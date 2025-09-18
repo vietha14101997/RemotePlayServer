@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj": {}
+    "E:\\RemotePlayServer\\RemotePlayServer.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj": {
+    "E:\\RemotePlayServer\\RemotePlayServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
+        "projectUniqueName": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
         "projectName": "RemotePlayServer",
-        "projectPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
-        "packagesPath": "C:\\Users\\Huy Nguyen\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\obj\\",
+        "projectPath": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
+        "packagesPath": "C:\\Users\\super\\.nuget\\packages\\",
+        "outputPath": "E:\\RemotePlayServer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Huy Nguyen\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\super\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],

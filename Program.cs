@@ -143,7 +143,7 @@ public class SignalAndRestServer
             if (offer == null) return;
 
             // 2) WebRTC: tạo streamer, trả answer
-            var streamer = new WebRTCStreamer(fps: 60);
+            var streamer = new WebRTCStreamer(fps: 30);
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
             {
@@ -175,7 +175,7 @@ public class SignalAndRestServer
 
                     cap.Start();                                   // bắt đầu nhận frame  :contentReference[oaicite:2]{index=2}
 
-                    while (!stopCapture!.IsCancellationRequested) Thread.Sleep(15);
+                    stopCapture.Token.WaitHandle.WaitOne();
                 }
                 catch (Exception ex)
                 {

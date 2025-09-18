@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -8,51 +9,97 @@ using SIPSorceryMedia.Abstractions;
 using SIPSorceryMedia.Encoders;
 
 /// <summary>
-/// WebRTCStreamer is responsible for piping BGRA frames into a VP8 encoder and forwarding the
-/// resulting RTP video packets into an RTCPeerConnection.  In earlier versions of
-/// SIPSorcery the VideoEncoderEndPoint class provided an abstraction for encoding
-/// raw frames.  However from version 8 onwards the VideoEncoderEndPoint no longer
-/// accepts raw samples which results in the encoder never producing encoded
-/// frames.  This implementation instead makes use of the VpxVideoEncoder directly
-/// to encode BGRA frames to VP8 and sends them to the peer connection.
+/// WebRTCStreamer: nhận BGRA frame, encode VP8 và đẩy vào RTCPeerConnection.
 /// </summary>
 public class WebRTCStreamer : IDisposable
 {
     private RTCPeerConnection? _pc;
+    private Task? _statsTask;
 
-    // Use VpxVideoEncoder directly instead of VideoEncoderEndPoint.  See README for details.
-    // The VpxVideoEncoder can encode raw BGRA frames to VP8 when supplied with
-    // the width, height and pixel format.  It exposes SupportedFormats which can be
-    // passed to the MediaStreamTrack and a ForceKeyFrame method which forces
-    // the next encoded frame to be an IDR keyframe.
+    // Dùng encoder VP8 trực tiếp (SIPSorceryMedia.Encoders).
     private readonly VpxVideoEncoder _encoder = new VpxVideoEncoder();
     private readonly int _fps;
 
-    // Channel used to buffer captured frames prior to encoding.  A small bounded
-    // channel with drop-oldest semantics is used so that slow encoders do not
-    // cause unlimited buffering and excessive latency.  Each item carries the
-    // raw BGRA buffer along with its dimensions and intended duration (frame
-    // spacing in ms).  Stride is included for completeness but is not used in
-    // the current encoder since BGRA frames have a stride equal to width * 4.
+    // Hàng đợi nhỏ, bỏ khung cũ để luôn lấy khung mới nhất (low-latency).
     private readonly Channel<(byte[] buf, int width, int height, int stride, int durationMs)> _sendChan
-        = Channel.CreateUnbounded<(byte[], int, int, int, int)>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        = Channel.CreateBounded<(byte[], int, int, int, int)>(
+            new BoundedChannelOptions(capacity: 3) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
+
     private CancellationTokenSource? _cts;
     private DateTime _lastKeyframe = DateTime.MinValue;
-    private readonly TimeSpan _kfInterval = TimeSpan.FromSeconds(2);
-
+    private readonly TimeSpan _kfInterval = TimeSpan.FromSeconds(5);
     private readonly System.Buffers.ArrayPool<byte> _pool = System.Buffers.ArrayPool<byte>.Shared;
 
-    public WebRTCStreamer(int fps = 60) { _fps = Math.Max(5, fps); }
+    // Đồng hồ thực để tính delta timestamp RTP theo thời gian thực
+    private readonly Stopwatch _sw = Stopwatch.StartNew();
+    private long _lastSendTsMs = -1;
+    private readonly System.Diagnostics.Stopwatch _gateSw = System.Diagnostics.Stopwatch.StartNew();
+    private long _lastEnqMs = 0;
+    private readonly int _minIntervalMs;
+    private readonly int _maxW = 1280, _maxH = 720;   // đặt “nấc” mong muốn
+    private byte[]? _scaleBuf;
+
+    static (int w, int h) FitEven(int w, int h, int maxW, int maxH)
+    {
+        double s = Math.Min((double)maxW / w, (double)maxH / h);
+        if (s >= 1.0) return (w & ~1, h & ~1); // không phóng to, ép chẵn
+        int nw = Math.Max(2, ((int)Math.Round(w * s)) & ~1);
+        int nh = Math.Max(2, ((int)Math.Round(h * s)) & ~1);
+        return (nw, nh);
+    }
+
+    static unsafe void DownscaleBgraBilinear(
+        byte[] src, int sw, int sh, int sstride,
+        byte[] dst, int dw, int dh, int dstride)
+    {
+        fixed (byte* ps = src)
+        fixed (byte* pd = dst)
+        {
+            double sx = (double)(sw - 1) / Math.Max(1, dw - 1);
+            double sy = (double)(sh - 1) / Math.Max(1, dh - 1);
+            for (int y = 0; y < dh; y++)
+            {
+                double fy = y * sy;
+                int y0 = (int)fy, y1 = Math.Min(sh - 1, y0 + 1);
+                double wy = fy - y0;
+                byte* drow = pd + y * dstride;
+                for (int x = 0; x < dw; x++)
+                {
+                    double fx = x * sx;
+                    int x0 = (int)fx, x1 = Math.Min(sw - 1, x0 + 1);
+                    double wx = fx - x0;
+
+                    byte* p00 = ps + y0 * sstride + x0 * 4;
+                    byte* p10 = ps + y0 * sstride + x1 * 4;
+                    byte* p01 = ps + y1 * sstride + x0 * 4;
+                    byte* p11 = ps + y1 * sstride + x1 * 4;
+
+                    for (int c = 0; c < 4; c++)
+                    { // B,G,R,A
+                        double v =
+                            (1 - wy) * ((1 - wx) * p00[c] + wx * p10[c]) +
+                             wy * ((1 - wx) * p01[c] + wx * p11[c]);
+                        drow[x * 4 + c] = (byte)(v + 0.5);
+                    }
+                }
+            }
+        }
+    }
+
+    public WebRTCStreamer(int fps = 30, uint targetKbps = 5000)
+    {
+        _fps = Math.Max(5, fps);
+        _minIntervalMs = Math.Max(1, 1000 / _fps);
+        _encoder.TargetKbps = targetKbps; // đặt bitrate mục tiêu  ~3.5 Mbps cho 1080p@24–30
+    }
 
     public Task StartAsync()
     {
         _cts = new CancellationTokenSource();
-        // Start the sender loop on a background task.  It will read raw
-        // frames from the channel, encode them via the VP8 encoder and
-        // forward the encoded samples into the peer connection.
         _ = Task.Run(SenderLoop);
         return Task.CompletedTask;
     }
+
     private long _enq, _deq, _sent;
 
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
@@ -60,71 +107,57 @@ public class WebRTCStreamer : IDisposable
         var cfg = new RTCConfiguration { iceServers = new() };
         _pc = new RTCPeerConnection(cfg);
 
-        // Diagnostic logging for connection state changes.
         _pc.onconnectionstatechange += st => Console.WriteLine($"[RTC] pc.state = {st}");
         _pc.oniceconnectionstatechange += st => Console.WriteLine($"[RTC] ice = {st}");
 
-        // Create a media track using the supported formats from the VPX encoder.
-        // Only VP8 is supported by the current encoder and therefore the
-        // MediaStreamTrack will advertise VP8 formats only.
         var track = new MediaStreamTrack(_encoder.SupportedFormats, MediaStreamStatusEnum.SendOnly);
         _pc.addTrack(track);
 
-        // When the browser negotiates a video format it will be passed back here.
-        // There is no need to call SetVideoSourceFormat on the VpxVideoEncoder since
-        // it only supports VP8.  However, if additional encoders are added the
-        // negotiated format can be used to set the encoder's codec or bit rate.
         _pc.OnVideoFormatsNegotiated += formats =>
         {
             if (formats != null && formats.Count > 0)
             {
                 Console.WriteLine($"[RTC] negotiated format: {formats[0]}");
-                // Optionally adjust encoder target bitrate based on negotiated codec.
-                // For example: _encoder.TargetKbps = 2000;
+                // Có thể set bitrate ở đây nếu cần: _encoder.TargetKbps = 2000;
+                _encoder.TargetKbps = 3500;
             }
         };
 
-        // Periodically dump queue statistics so that dropped frames can be diagnosed.
-        _ = Task.Run(async () =>
+        _statsTask = Task.Run(async () =>
         {
-            while (true)
+            while (!_cts!.IsCancellationRequested)
             {
-                await Task.Delay(2000);
-                Console.WriteLine($"[RTC] q=enq:{Interlocked.Read(ref _enq)} deq:{Interlocked.Read(ref _deq)} sent:{Interlocked.Read(ref _sent)}");
+                try
+                {
+                    await Task.Delay(2000, _cts.Token);
+                    Console.WriteLine($"[RTC] q=enq:{Interlocked.Read(ref _enq)} deq:{Interlocked.Read(ref _deq)} sent:{Interlocked.Read(ref _sent)}");
+                }
+                catch (OperationCanceledException) { break; }
             }
         });
 
-        // Perform the SDP offer/answer exchange.  Set the remote description from
-        // the offer received from the browser, create a local answer and set it
-        // on the peer connection.  Note that the call to setRemoteDescription is
-        // synchronous on the C# side but will still initiate the async ICE
-        // gathering process.
         var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
         _pc.setRemoteDescription(offer);
         var answer = _pc.createAnswer(null);
         await _pc.setLocalDescription(answer);
 
-        // Start the encoder immediately.  Unlike the VideoEncoderEndPoint the
-        // VpxVideoEncoder does not require an explicit StartVideo call.  A
-        // keyframe will automatically be generated when ForceKeyFrame is invoked.
         _encoder.ForceKeyFrame();
         Console.WriteLine("[RTC] VPX encoder initialised");
 
         return answer.sdp;
     }
 
-    public Task StartVideoAsync(int width, int height)
-    {
-        // The VPX encoder does not need to know the resolution ahead of time.
-        // Each frame passed to EncodeVideo includes its dimensions.  This
-        // method remains for compatibility with the existing API and does
-        // nothing.
-        return Task.CompletedTask;
-    }
+    public Task StartVideoAsync(int width, int height) => Task.CompletedTask;
 
     public Task PushBgraBytesAsync(byte[] src, int width, int height, int stride)
     {
+        // durationMs ở item chỉ là "gợi ý" ban đầu, ta sẽ thay bằng delta thực ở lúc gửi
+        long now = _gateSw.ElapsedMilliseconds;
+        if (now - _lastEnqMs < _minIntervalMs - 1)
+            return Task.CompletedTask; // chưa tới nhịp -> bỏ từ gốc, không copy/alloc
+        _lastEnqMs = now;
         int durationMs = Math.Max(1, 1000 / _fps);
+
         int size = stride * height;
         var buf = _pool.Rent(size);
         Buffer.BlockCopy(src, 0, buf, 0, size);
@@ -137,49 +170,79 @@ public class WebRTCStreamer : IDisposable
         }
         else
         {
-            Console.WriteLine("[RTC] channel full or closed -> drop");
-            _pool.Return(buf);
+            _pool.Return(buf); // channel đầy -> drop
         }
         return Task.CompletedTask;
     }
 
     private async Task SenderLoop()
     {
-        if (_cts == null)
-            return;
+        if (_cts == null) return;
         var ct = _cts.Token;
+
         try
         {
             while (!ct.IsCancellationRequested)
             {
-                // Periodically request a key frame.  This ensures the
-                // receiving browser can start decoding at any time without
-                // needing to wait for the next natural I‑frame.  The logic
-                // mirrors the previous implementation but now calls
-                // VpxVideoEncoder.ForceKeyFrame().
+                // Cưỡng bức keyframe theo chu kỳ để peer mới có thể bắt đầu ngay.
                 if (DateTime.UtcNow - _lastKeyframe > _kfInterval)
                 {
                     try { _encoder.ForceKeyFrame(); } catch { }
                     _lastKeyframe = DateTime.UtcNow;
                 }
 
-                // Wait for the next raw frame from the capture thread.
+                // Lấy 1 khung từ channel rồi drain để giữ khung mới nhất
                 var item = await _sendChan.Reader.ReadAsync(ct);
                 Interlocked.Increment(ref _deq);
+                while (_sendChan.Reader.TryRead(out var newer))
+                {
+                    Interlocked.Increment(ref _deq);
+                    _pool.Return(item.buf);
+                    item = newer; // luôn giữ newest
+                }
 
                 try
                 {
-                    // Encode the BGRA sample into VP8.  The EncodeVideo method
-                    // automatically performs any colour space conversion as
-                    // necessary.  The returned buffer contains an RTP payload
-                    // ready to be packetised by the RTCPeerConnection.  The
-                    // duration supplied to SendVideo controls the RTP
-                    // timestamp increment for the sample.
-                    byte[] encoded = _encoder.EncodeVideo(item.width, item.height, item.buf,
-                        VideoPixelFormatsEnum.Bgra, VideoCodecsEnum.VP8);
+                    // Quyết định kích thước encode trước
+                    var (ew, eh) = FitEven(item.width, item.height, _maxW, _maxH);
+
+                    byte[] srcForEnc = item.buf;
+                    int encStride = item.stride;
+
+                    if (ew != item.width || eh != item.height)
+                    {
+                        int need = ew * eh * 4;
+                        _scaleBuf ??= new byte[need];
+                        if (_scaleBuf.Length < need) _scaleBuf = new byte[need];
+
+                        DownscaleBgraBilinear(item.buf, item.width, item.height, item.stride, _scaleBuf, ew, eh, ew * 4);
+                        srcForEnc = _scaleBuf;
+                        encStride = ew * 4;
+                    }
+
+                    // ✅ Dùng VP8 nhất quán để khớp với codec thực tế
+                    var encoded = _encoder.EncodeVideo(ew, eh, srcForEnc, VideoPixelFormatsEnum.Bgra, VideoCodecsEnum.VP8);
+
                     if (encoded != null && encoded.Length > 0)
                     {
-                        _pc?.SendVideo((uint)item.durationMs, encoded);
+                        // 🔸 TÍNH DELTA THỰC CHO RTP TIMESTAMP
+                        long nowMs = _sw.ElapsedMilliseconds;
+                        int deltaMs;
+                        if (_lastSendTsMs < 0)
+                        {
+                            // Khung đầu: dùng gần 1000/fps
+                            deltaMs = Math.Max(1, 1000 / _fps);
+                        }
+                        else
+                        {
+                            // Delta theo thời gian thực giữa 2 lần gửi
+                            long d = nowMs - _lastSendTsMs;
+                            // Clamp nhẹ để tránh nhảy số quá lớn nếu thread bị treo
+                            deltaMs = (int)Math.Clamp(d, 1, 1000);
+                        }
+                        _lastSendTsMs = nowMs;
+
+                        _pc?.SendVideo((uint)deltaMs, encoded);
                         Interlocked.Increment(ref _sent);
                     }
                 }
@@ -189,15 +252,11 @@ public class WebRTCStreamer : IDisposable
                 }
                 finally
                 {
-                    // Return the rented buffer back to the pool.
                     _pool.Return(item.buf);
                 }
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when the cancellation token is triggered during shutdown.
-        }
+        catch (OperationCanceledException) { /* normal on stop */ }
     }
 
     public Task StopAsync()
@@ -209,6 +268,7 @@ public class WebRTCStreamer : IDisposable
     public void Dispose()
     {
         try { _cts?.Cancel(); } catch { }
+        try { _statsTask?.Wait(200); } catch { }
         try { _pc?.Close("dispose"); _pc?.Dispose(); } catch { }
         try { _encoder?.Dispose(); } catch { }
     }

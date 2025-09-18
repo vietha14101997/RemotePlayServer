@@ -1,7 +1,7 @@
 --target
-E:\RemotePlayServer\obj\Debug\net9.0-windows10.0.19041.0\RemotePlayServer.dll
+E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\RemotePlayServer.dll
 --outdir
-E:\RemotePlayServer\obj\Debug\net9.0-windows10.0.19041.0\IIDOptimizer\
+E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\IIDOptimizer\
 --refs 
  C:\Users\super\.nuget\packages\bouncycastle.cryptography\2.5.1\lib\net6.0\BouncyCastle.Cryptography.dll
 --refs 
