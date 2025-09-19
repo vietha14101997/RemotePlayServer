@@ -43,7 +43,7 @@ class Program
 public class SignalAndRestServer
 {
     private readonly HttpListener _listener;
-    private readonly ConcurrentDictionary<Guid, WebRTCStreamer> _streams = new();
+    private readonly ConcurrentDictionary<Guid, IWebRTCStreamer> _streams = new();
     private readonly ConcurrentDictionary<Guid, (int wid, WgcCapture cap)> _captures = new();
     private System.Collections.Generic.List<Win32.WindowInfo> _windows = new();
 
@@ -143,7 +143,13 @@ public class SignalAndRestServer
             if (offer == null) return;
 
             // 2) WebRTC: tạo streamer, trả answer
-            var streamer = new WebRTCStreamer(fps: 30);
+            var streamer = new WebRTCStreamer_H264(
+                fps: 30,
+                targetKbps: 6000,
+                crf: 22,
+                preset: "ultrafast",
+                zerolatency: true
+                );
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
             {
@@ -208,4 +214,12 @@ public class SignalAndRestServer
             Console.WriteLine($"[Signal] Client disconnected {id}");
         }
     }
+}
+
+public interface IWebRTCStreamer : IDisposable
+{
+    Task StartAsync();
+    Task StopAsync();
+    Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp);
+    Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
 }
