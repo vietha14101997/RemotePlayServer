@@ -1,5 +1,7 @@
+#nullable enable
 using System;
 using System.Runtime.InteropServices;
+using Windows.Graphics;
 using Windows.Graphics.Capture;
 using Windows.Graphics.DirectX;
 using Windows.Graphics.DirectX.Direct3D11;
@@ -52,7 +54,6 @@ internal static class WgcInterop
     public static bool IsCapturableWindow(IntPtr hwnd)
     {
         if (!IsWindow(hwnd)) return false;
-
         int style = GetWindowLong(hwnd, GWL_STYLE);
         int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
         if ((style & WS_VISIBLE) != WS_VISIBLE) return false;
@@ -102,7 +103,6 @@ internal static class WgcInterop
             var interop = (IGraphicsCaptureItemInterop)Marshal.GetObjectForIUnknown(interopPtr);
 
             Guid iidItem = new Guid("79C3F95B-31F7-4EC2-A464-632EF5D30760");
-
             hr = interop.CreateForWindow(hwnd, ref iidItem, out itemPtr);
             if (hr != 0 || itemPtr == IntPtr.Zero)
             {
@@ -130,7 +130,7 @@ internal static class WgcInterop
     [ComImport, Guid("5B0D3235-4DBA-4D44-865E-8F1D0E4FD04D"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     unsafe interface IMemoryBufferByteAccess { void GetBuffer(out byte* buffer, out uint capacity); }
 
-    public static ID3D11Texture2D TryGetTextureFast(IDirect3DSurface surface)
+    public static ID3D11Texture2D? TryGetTextureFast(IDirect3DSurface surface)
     {
         if (surface is null) throw new ArgumentNullException(nameof(surface));
         IntPtr abi = IntPtr.Zero, accessPtr = IntPtr.Zero, texPtr = IntPtr.Zero;
@@ -161,15 +161,11 @@ internal static class WgcInterop
         using var buffer = conv.LockBuffer(BitmapBufferAccessMode.Read);
         using var reference = buffer.CreateReference();
 
-        // ⚠️ KHÔNG ép kiểu trực tiếp ((IMemoryBufferByteAccess)reference) — sẽ InvalidCastException
         IntPtr refAbi = IntPtr.Zero, byteAccessPtr = IntPtr.Zero;
         try
         {
-            // Lấy ABI pointer từ IMemoryBufferReference (Windows.Foundation)
             refAbi = WinRT.MarshalInterface<Windows.Foundation.IMemoryBufferReference>.FromManaged(reference);
-
-            // QI sang IMemoryBufferByteAccess
-            Guid iidMBA = typeof(IMemoryBufferByteAccess).GUID; // {5B0D3235-4DBA-4D44-865E-8F1D0E4FD04D}
+            Guid iidMBA = typeof(IMemoryBufferByteAccess).GUID;
             int hr = Marshal.QueryInterface(refAbi, in iidMBA, out byteAccessPtr);
             if (hr != 0 || byteAccessPtr == IntPtr.Zero)
                 Marshal.ThrowExceptionForHR(hr);
@@ -178,9 +174,12 @@ internal static class WgcInterop
             byteAccess.GetBuffer(out byte* srcBase, out uint cap);
 
             var plane = buffer.GetPlaneDescription(0);
-            uint rowBytes = Math.Min(strideOut, (uint)plane.Stride);
 
-            for (int y = 0; y < (int)h; y++)
+            // ⭐ Clamp tuyệt đối theo thông số plane thực tế
+            int rows = Math.Min((int)h, plane.Height);
+            uint rowBytes = (uint)Math.Min((int)strideOut, Math.Min(plane.Stride, plane.Width * 4));
+
+            for (int y = 0; y < rows; y++)
             {
                 byte* srcRow = srcBase + plane.StartIndex + y * plane.Stride;
                 fixed (byte* dst = &scratch[y * strideOut])
@@ -213,7 +212,6 @@ public sealed class WgcCapture : IDisposable
     public event Action<byte[], int, int, int>? OnFrame;
 #nullable disable
 
-    // ✅ expose size để Program.cs có thể đọc nếu muốn
     public (uint w, uint h) Size => (_w, _h);
 
     public WgcCapture(IntPtr hwnd)
@@ -224,7 +222,6 @@ public sealed class WgcCapture : IDisposable
         using var dxgi = _d3d.QueryInterface<IDXGIDevice>();
         _dxDevice = DxInterop.CreateDirect3DDeviceFromDxgi(dxgi.NativePointer);
 
-        // Tạo item an toàn (có kiểm tra support + capturable)
         _item = WgcInterop.CreateItemForHwndWithFallback(hwnd);
         if (_item is null) throw new InvalidOperationException("Failed to create GraphicsCaptureItem for the window.");
 
@@ -237,6 +234,13 @@ public sealed class WgcCapture : IDisposable
         _pool.FrameArrived += OnFrameArrived;
         _session = _pool.CreateCaptureSession(_item);
         _session.IsCursorCaptureEnabled = true;
+
+        // Đóng an toàn khi item mất hiệu lực
+        _item.Closed += (s, e) =>
+        {
+            try { _session?.Dispose(); } catch { }
+            try { _pool?.Dispose(); } catch { }
+        };
 
         _staging = CreateStaging(_w, _h);
         EnsureScratch();
@@ -283,6 +287,20 @@ public sealed class WgcCapture : IDisposable
                 _staging.Dispose();
                 _staging = CreateStaging(_w, _h);
                 EnsureScratch();
+
+                // ⭐ Quan trọng: cập nhật FramePool theo size mới để tránh crash
+                try
+                {
+                    _pool.Recreate(_dxDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1,
+                        new SizeInt32 { Width = (int)_w, Height = (int)_h });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[WGC] Recreate(pool) failed: " + e);
+                }
+
+                // Bỏ frame giao thời để tránh sai stride
+                return;
             }
 
             bool fastOK = false;
@@ -305,7 +323,8 @@ public sealed class WgcCapture : IDisposable
                                 byte* srcRow = srcBase + y * srcStride;
                                 fixed (byte* dst = &_scratch[y * _stride])
                                 {
-                                    Buffer.MemoryCopy(srcRow, dst, _stride, _stride);
+                                    ulong n = (ulong)Math.Min((uint)_stride, srcStride);
+                                    Buffer.MemoryCopy(srcRow, dst, _stride, n);
                                 }
                             }
                         }
