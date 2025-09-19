@@ -8,6 +8,7 @@ using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
 using SIPSorceryMedia.FFmpeg;              // <- encoder H.264 (FFmpeg)
 using System.Collections.Generic;
+using FFmpeg.AutoGen;
 
 /// <summary>
 /// WebRTCStreamer_H264: nhận BGRA frame, encode H.264 (libx264) và đẩy vào RTCPeerConnection.
@@ -33,6 +34,24 @@ public class WebRTCStreamer_H264 : IWebRTCStreamer
     // Chọn trần kích thước encode để vừa đẹp vừa nhẹ (bạn có thể đẩy lên 1920x1080 nếu máy khoẻ)
     private readonly int _maxW = 1280, _maxH = 720;
     private byte[]? _scaleBuf;
+
+    private void LogFFmpegInfo()
+    {
+        try
+        {
+            var ver = ffmpeg.avcodec_version();
+            string cfg = ffmpeg.avcodec_configuration();
+            Console.WriteLine($"[FFmpeg] avcodec ver={ver} | {cfg}");
+        }
+        catch (DllNotFoundException e)
+        {
+            Console.WriteLine("[FFmpeg] DLL not found: " + e.Message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("[FFmpeg] init error: " + e);
+        }
+    }
 
     static unsafe void DownscaleBgraBilinear(
         byte[] src, int sw, int sh, int sstride,
@@ -86,6 +105,7 @@ public class WebRTCStreamer_H264 : IWebRTCStreamer
     public Task StartAsync()
     {
         _cts = new CancellationTokenSource();
+        LogFFmpegInfo();
         _ = Task.Run(SenderLoop);
         return Task.CompletedTask;
     }
