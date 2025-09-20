@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "E:\\RemotePlayServer\\RemotePlayServer.csproj": {}
+    "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj": {}
   },
   "projects": {
-    "E:\\RemotePlayServer\\RemotePlayServer.csproj": {
+    "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
+        "projectUniqueName": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
         "projectName": "RemotePlayServer",
-        "projectPath": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
-        "packagesPath": "C:\\Users\\super\\.nuget\\packages\\",
-        "outputPath": "E:\\RemotePlayServer\\obj\\",
+        "projectPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
+        "packagesPath": "C:\\Users\\Huy Nguyen\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\super\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Huy Nguyen\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -65,6 +65,10 @@
             "SIPSorceryMedia.Encoders": {
               "target": "Package",
               "version": "[8.0.7, )"
+            },
+            "SIPSorceryMedia.FFmpeg": {
+              "target": "Package",
+              "version": "[8.0.12, )"
             },
             "Vortice.DXGI": {
               "target": "Package",

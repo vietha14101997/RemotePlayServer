@@ -105,27 +105,43 @@ public class WebRTCStreamer_H264 : IDisposable
                 OnPeerDisconnected?.Invoke();
             }
         };
-        _pc.oniceconnectionstatechange += st => Console.WriteLine($"[RTC] ice = {st}");
+        _pc.oniceconnectionstatechange += st =>
+        {
+            Console.WriteLine($"[RTC] ice = {st}");
+            if (st == RTCIceConnectionState.connected)
+            {
+                Console.WriteLine("[RTC] TEMP ENABLE SEND FOR DIAG");
+                _canSend = true; // CHỈ test chẩn đoán
+            }
+        };
+        _pc.onconnectionstatechange += st => Console.WriteLine($"[RTC] pc.state = {st}");
 
         // Tạo track H.264
         var h264 = new SDPAudioVideoMediaFormat(
             SDPMediaTypesEnum.video,
-            id: 102,
+            id: 0, // PT động
             name: "H264",
             clockRate: 90000,
             channels: 0,
-            fmtp: "packetization-mode=1;profile-level-id=42e01f");
+            fmtp: "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f");
         var caps = new List<SDPAudioVideoMediaFormat> { h264 };
-        var track = new MediaStreamTrack(SDPMediaTypesEnum.video, isRemote: false, capabilities: caps, streamStatus: MediaStreamStatusEnum.SendOnly);
+        var track = new MediaStreamTrack(
+            SDPMediaTypesEnum.video,
+            isRemote: false,
+            capabilities: new List<SDPAudioVideoMediaFormat> { h264 },
+            streamStatus: MediaStreamStatusEnum.SendRecv);
         _pc.addTrack(track);
 
         // Khi đối tác thương lượng xong
         _pc.OnVideoFormatsNegotiated += fmts =>
         {
+            Console.WriteLine("NEGOTIATED VIDEO FORMATS:");
+            if (fmts != null)
+                foreach (var f in fmts) Console.WriteLine("  " + f);
+
             var ok = fmts?.Any(f => f.Codec == VideoCodecsEnum.H264) == true;
             _canSend = ok;
-            var pick = fmts?.FirstOrDefault();
-            Console.WriteLine("[RTC] negotiated format: " + (pick != null ? pick.ToString() : "(none)"));
+            Console.WriteLine("canSend(H264) = " + _canSend);
         };
 
         // stats log
@@ -144,8 +160,10 @@ public class WebRTCStreamer_H264 : IDisposable
 
         // SDP
         var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
+        Console.WriteLine("---- REMOTE OFFER SDP ----\n" + offerSdp);
         _pc.setRemoteDescription(offer);
         var answer = _pc.createAnswer(null);
+        Console.WriteLine("---- LOCAL ANSWER SDP ----\n" + answer.sdp);
         await _pc.setLocalDescription(answer);
 
         Console.WriteLine("[RTC] H.264 encoder (FFmpeg) initialised");
@@ -279,11 +297,12 @@ public class WebRTCStreamer_H264 : IDisposable
                 nextDueMs += Math.Max(1, item.durMs);
 
                 // RTP step theo 90kHz clock dựa trên durMs của AU
-                uint rtpStep = (uint)Math.Max(1, 90000L * item.durMs / 1000L);
+                // uint rtpStep = (uint)Math.Max(1, 90000L * item.durMs / 1000L);
+                uint deltaMs = Math.Max(1u, item.durMs);
 
                 if (_canSend && _pc != null && _running && _cts != null && !_cts.IsCancellationRequested)
                 {
-                    _pc.SendVideo(rtpStep, au);
+                    _pc.SendVideo(deltaMs, au);
                     Interlocked.Increment(ref _sent);
                 }
             }

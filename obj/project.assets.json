@@ -45,6 +45,19 @@
           }
         }
       },
+      "FFmpeg.AutoGen/7.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/FFmpeg.AutoGen.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/FFmpeg.AutoGen.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.0": {
         "type": "package",
         "compile": {
@@ -388,6 +401,23 @@
         },
         "build": {
           "build/SIPSorceryMedia.Encoders.targets": {}
+        }
+      },
+      "SIPSorceryMedia.FFmpeg/8.0.12": {
+        "type": "package",
+        "dependencies": {
+          "FFmpeg.AutoGen": "7.0.0",
+          "SIPSorceryMedia.Abstractions": "8.0.12"
+        },
+        "compile": {
+          "lib/net8.0/SIPSorceryMedia.FFmpeg.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SIPSorceryMedia.FFmpeg.dll": {
+            "related": ".xml"
+          }
         }
       },
       "System.Collections/4.3.0": {
@@ -1410,6 +1440,22 @@
         "lib/netstandard2.1/DnsClient.xml"
       ]
     },
+    "FFmpeg.AutoGen/7.0.0": {
+      "sha512": "RzSgOmHWzEpYzA3zl2Ac3iOdkk1ZCDgJBlRjHBIlaXHJg9aWEmPCzo0qDgEESZDNA7RaD2g4xn7yrKvT1q0Paw==",
+      "type": "package",
+      "path": "ffmpeg.autogen/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.txt",
+        "ffmpeg.autogen.7.0.0.nupkg.sha512",
+        "ffmpeg.autogen.nuspec",
+        "lib/netstandard2.0/FFmpeg.AutoGen.dll",
+        "lib/netstandard2.0/FFmpeg.AutoGen.xml",
+        "lib/netstandard2.1/FFmpeg.AutoGen.dll",
+        "lib/netstandard2.1/FFmpeg.AutoGen.xml"
+      ]
+    },
     "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.0": {
       "sha512": "+6f2qv2a3dLwd5w6JanPIPs47CxRbnk+ZocMJUhv9NxP88VlOcJYZs9jY+MYSjxvady08bUZn6qgiNh7DadGgg==",
       "type": "package",
@@ -2119,6 +2165,32 @@
         "lib/netstandard2.0/SIPSorceryMedia.Encoders.dll",
         "sipsorcerymedia.encoders.8.0.7.nupkg.sha512",
         "sipsorcerymedia.encoders.nuspec"
+      ]
+    },
+    "SIPSorceryMedia.FFmpeg/8.0.12": {
+      "sha512": "HHirVa6gl5kR7na/D6l8vdzlczFtPbBmV9bZE7ApWOd74JDnd06Uh8V2PsC+DrQ/MO6kuFTNLrAtP/ZvZIMSCA==",
+      "type": "package",
+      "path": "sipsorcerymedia.ffmpeg/8.0.12",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "icon.png",
+        "lib/net5.0/SIPSorceryMedia.FFmpeg.dll",
+        "lib/net5.0/SIPSorceryMedia.FFmpeg.xml",
+        "lib/net6.0/SIPSorceryMedia.FFmpeg.dll",
+        "lib/net6.0/SIPSorceryMedia.FFmpeg.xml",
+        "lib/net7.0/SIPSorceryMedia.FFmpeg.dll",
+        "lib/net7.0/SIPSorceryMedia.FFmpeg.xml",
+        "lib/net8.0/SIPSorceryMedia.FFmpeg.dll",
+        "lib/net8.0/SIPSorceryMedia.FFmpeg.xml",
+        "lib/netcoreapp3.1/SIPSorceryMedia.FFmpeg.dll",
+        "lib/netcoreapp3.1/SIPSorceryMedia.FFmpeg.xml",
+        "lib/netstandard2.0/SIPSorceryMedia.FFmpeg.dll",
+        "lib/netstandard2.0/SIPSorceryMedia.FFmpeg.xml",
+        "lib/netstandard2.1/SIPSorceryMedia.FFmpeg.dll",
+        "lib/netstandard2.1/SIPSorceryMedia.FFmpeg.xml",
+        "sipsorcerymedia.ffmpeg.8.0.12.nupkg.sha512",
+        "sipsorcerymedia.ffmpeg.nuspec"
       ]
     },
     "System.Collections/4.3.0": {
@@ -4542,28 +4614,29 @@
       "SIPSorcery >= 8.0.23",
       "SIPSorceryMedia.Abstractions >= 8.0.12",
       "SIPSorceryMedia.Encoders >= 8.0.7",
+      "SIPSorceryMedia.FFmpeg >= 8.0.12",
       "Vortice.DXGI >= 3.6.2",
       "Vortice.Direct3D11 >= 3.6.2"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\super\\.nuget\\packages\\": {},
+    "C:\\Users\\Huy Nguyen\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
+      "projectUniqueName": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
       "projectName": "RemotePlayServer",
-      "projectPath": "E:\\RemotePlayServer\\RemotePlayServer.csproj",
-      "packagesPath": "C:\\Users\\super\\.nuget\\packages\\",
-      "outputPath": "E:\\RemotePlayServer\\obj\\",
+      "projectPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\RemotePlayServer.csproj",
+      "packagesPath": "C:\\Users\\Huy Nguyen\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Huy Nguyen\\Dotnet Projects\\RemotePlayServer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\super\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Huy Nguyen\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4611,6 +4684,10 @@
           "SIPSorceryMedia.Encoders": {
             "target": "Package",
             "version": "[8.0.7, )"
+          },
+          "SIPSorceryMedia.FFmpeg": {
+            "target": "Package",
+            "version": "[8.0.12, )"
           },
           "Vortice.DXGI": {
             "target": "Package",

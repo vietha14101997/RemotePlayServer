@@ -33,3 +33,5 @@ C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\obj\Debug\net9.0-windows10.
 C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\obj\Debug\net9.0-windows10.0.19041.0\ref\RemotePlayServer.dll
 C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Debug\net9.0-windows10.0.19041.0\BouncyCastle.Cryptography.dll
 C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Debug\net9.0-windows10.0.19041.0\Concentus.dll
+C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Debug\net9.0-windows10.0.19041.0\FFmpeg.AutoGen.dll
+C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Debug\net9.0-windows10.0.19041.0\SIPSorceryMedia.FFmpeg.dll

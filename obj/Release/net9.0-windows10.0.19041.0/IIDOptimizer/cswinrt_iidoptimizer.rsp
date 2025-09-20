@@ -1,19 +1,21 @@
 --target
-E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\RemotePlayServer.dll
+C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\RemotePlayServer.dll
 --outdir
-E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\IIDOptimizer\
+C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\IIDOptimizer\
 --refs 
- C:\Users\super\.nuget\packages\bouncycastle.cryptography\2.5.1\lib\net6.0\BouncyCastle.Cryptography.dll
+ C:\Users\Huy Nguyen\.nuget\packages\bouncycastle.cryptography\2.5.1\lib\net6.0\BouncyCastle.Cryptography.dll
 --refs 
- C:\Users\super\.nuget\packages\concentus\2.2.2\lib\net8.0\Concentus.dll
+ C:\Users\Huy Nguyen\.nuget\packages\concentus\2.2.2\lib\net8.0\Concentus.dll
 --refs 
- C:\Users\super\.nuget\packages\dnsclient\1.8.0\lib\net8.0\DnsClient.dll
+ C:\Users\Huy Nguyen\.nuget\packages\dnsclient\1.8.0\lib\net8.0\DnsClient.dll
+--refs 
+ C:\Users\Huy Nguyen\.nuget\packages\ffmpeg.autogen\7.0.0\lib\netstandard2.1\FFmpeg.AutoGen.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\Microsoft.CSharp.dll
 --refs 
- C:\Users\super\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\9.0.0\lib\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ C:\Users\Huy Nguyen\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\9.0.0\lib\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 --refs 
- C:\Users\super\.nuget\packages\microsoft.extensions.logging.abstractions\9.0.0\lib\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
+ C:\Users\Huy Nguyen\.nuget\packages\microsoft.extensions.logging.abstractions\9.0.0\lib\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\Microsoft.VisualBasic.Core.dll
 --refs 
@@ -23,21 +25,23 @@ E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\IIDOptimizer\
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\Microsoft.Win32.Registry.dll
 --refs 
- C:\Users\super\.nuget\packages\microsoft.windows.sdk.net.ref\10.0.19041.57\lib\net8.0\Microsoft.Windows.SDK.NET.dll
+ C:\Users\Huy Nguyen\.nuget\packages\microsoft.windows.sdk.net.ref\10.0.19041.57\lib\net8.0\Microsoft.Windows.SDK.NET.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\mscorlib.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\netstandard.dll
 --refs 
- C:\Users\super\.nuget\packages\sharpgen.runtime.com\2.2.0-beta\lib\net8.0\SharpGen.Runtime.COM.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sharpgen.runtime.com\2.2.0-beta\lib\net8.0\SharpGen.Runtime.COM.dll
 --refs 
- C:\Users\super\.nuget\packages\sharpgen.runtime\2.2.0-beta\lib\net8.0\SharpGen.Runtime.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sharpgen.runtime\2.2.0-beta\lib\net8.0\SharpGen.Runtime.dll
 --refs 
- C:\Users\super\.nuget\packages\sipsorcery\8.0.23\lib\net8.0\SIPSorcery.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sipsorcery\8.0.23\lib\net8.0\SIPSorcery.dll
 --refs 
- C:\Users\super\.nuget\packages\sipsorcerymedia.abstractions\8.0.12\lib\net8.0\SIPSorceryMedia.Abstractions.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sipsorcerymedia.abstractions\8.0.12\lib\net8.0\SIPSorceryMedia.Abstractions.dll
 --refs 
- C:\Users\super\.nuget\packages\sipsorcerymedia.encoders\8.0.7\lib\netstandard2.0\SIPSorceryMedia.Encoders.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sipsorcerymedia.encoders\8.0.7\lib\netstandard2.0\SIPSorceryMedia.Encoders.dll
+--refs 
+ C:\Users\Huy Nguyen\.nuget\packages\sipsorcerymedia.ffmpeg\8.0.12\lib\net8.0\SIPSorceryMedia.FFmpeg.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\System.AppContext.dll
 --refs 
@@ -351,16 +355,16 @@ E:\RemotePlayServer\obj\Release\net9.0-windows10.0.19041.0\IIDOptimizer\
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\System.Xml.XPath.XDocument.dll
 --refs 
- C:\Users\super\.nuget\packages\vortice.direct3d11\3.6.2\lib\net8.0\Vortice.Direct3D11.dll
+ C:\Users\Huy Nguyen\.nuget\packages\vortice.direct3d11\3.6.2\lib\net8.0\Vortice.Direct3D11.dll
 --refs 
- C:\Users\super\.nuget\packages\vortice.directx\3.6.2\lib\net8.0-windows10.0.19041\Vortice.DirectX.dll
+ C:\Users\Huy Nguyen\.nuget\packages\vortice.directx\3.6.2\lib\net8.0-windows10.0.19041\Vortice.DirectX.dll
 --refs 
- C:\Users\super\.nuget\packages\vortice.dxgi\3.6.2\lib\net8.0-windows10.0.19041\Vortice.DXGI.dll
+ C:\Users\Huy Nguyen\.nuget\packages\vortice.dxgi\3.6.2\lib\net8.0-windows10.0.19041\Vortice.DXGI.dll
 --refs 
- C:\Users\super\.nuget\packages\vortice.mathematics\1.9.2\lib\net9.0-windows10.0.19041\Vortice.Mathematics.dll
+ C:\Users\Huy Nguyen\.nuget\packages\vortice.mathematics\1.9.2\lib\net9.0-windows10.0.19041\Vortice.Mathematics.dll
 --refs 
- C:\Users\super\.nuget\packages\sipsorcery.websocketsharp\0.0.1\lib\netstandard2.0\websocket-sharp.dll
+ C:\Users\Huy Nguyen\.nuget\packages\sipsorcery.websocketsharp\0.0.1\lib\netstandard2.0\websocket-sharp.dll
 --refs 
  C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.9\ref\net9.0\WindowsBase.dll
 --refs 
- C:\Users\super\.nuget\packages\microsoft.windows.sdk.net.ref\10.0.19041.57\lib\net8.0\WinRT.Runtime.dll
+ C:\Users\Huy Nguyen\.nuget\packages\microsoft.windows.sdk.net.ref\10.0.19041.57\lib\net8.0\WinRT.Runtime.dll

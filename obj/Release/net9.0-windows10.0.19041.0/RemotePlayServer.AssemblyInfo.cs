@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RemotePlayServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ddffe502828e5fb09b725fc4465386128f2e9a6a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bfce5f904fb43d2d8deeff187e634a2f463c7b6f")]
 [assembly: System.Reflection.AssemblyProductAttribute("RemotePlayServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RemotePlayServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
