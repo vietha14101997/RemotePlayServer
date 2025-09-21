@@ -38,6 +38,28 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     uint _lastDurationMs = 1000 / 30;
     const int _maxBufferBytes = 4 * 1024 * 1024;
     private readonly string _exePath;
+    byte[]? _lastSps, _lastPps;
+
+    static (bool hasIdr, bool hasSps, bool hasPps) ScanNalTypes(ReadOnlySpan<byte> au, out int spsPos, out int ppsPos)
+    {
+        spsPos = ppsPos = -1;
+        bool idr = false, sps = false, pps = false;
+        int i = 0;
+        while (i + 3 < au.Length)
+        {
+            int sc = (i + 4 <= au.Length && au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 0 && au[i + 3] == 1) ? 4 :
+                     (au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ? 3 : 0;
+            if (sc == 0) { i++; continue; }
+            int nalStart = i + sc;
+            int nalType = (nalStart < au.Length) ? (au[nalStart] & 0x1F) : -1;
+            if (nalType == 7) { sps = true; spsPos = i; }
+            else if (nalType == 8) { pps = true; ppsPos = i; }
+            else if (nalType == 5) idr = true;
+            // next
+            i = nalStart + 1;
+        }
+        return (idr, sps, pps);
+    }
 
     void DrainStderrLoop(CancellationToken ct)
     {
@@ -98,20 +120,25 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
     string BuildArgs()
     {
-        // -r: fps output (khóa fps encoder), -g: keyint ~ 1s
-        // ép x264 chèn AUD mỗi frame + lặp SPS/PPS ở mỗi keyframe (IDR)
-        var x264Params = $"keyint={Math.Max(FPS, 2)}:min-keyint={Math.Max(FPS, 2)}:scenecut=0:aud=1:repeat-headers=1:slices=1";
-        if (BitrateKbps > 0) x264Params += ":nal-hrd=cbr"; // đẹp HRD cho CBR
+        int g = Math.Max(FPS, 2);
+
+        var x264Params =
+             "profile=constrained_baseline:level=3.1" +
+             $":keyint={g}:min-keyint={g}:scenecut=0" +
+             ":bframes=0:ref=1:cabac=0" +
+             ":aud=1:repeat-headers=1" +
+             ":sliced-threads=0:slices=1";
 
         var common =
             $"-f rawvideo -pix_fmt bgra -s {Width}x{Height} -r {FPS} -i - " +
             "-an -c:v libx264 " +
             $"-preset {Preset} " +
             (ZeroLatency ? "-tune zerolatency " : "") +
+            "-pix_fmt yuv420p " +         // bắt buộc cho WebRTC
+            "-profile:v baseline " +      // wrapper metadata đồng bộ
+            "-level:v 3.1 " +
             $"-x264-params {x264Params} " +
-            "-pix_fmt yuv420p " +
-            $"-g {Math.Max(FPS, 2)} " +
-            // không cần bsf aud nữa vì x264 đã chèn sẵn
+            $"-g {g} " +
             "-f h264 -";
 
         if (BitrateKbps > 0)
@@ -220,6 +247,25 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     }
 
     static readonly byte[] AUD = new byte[] { 0x00, 0x00, 0x00, 0x01, 0x09 };
+    static int NextStartCode(byte[] buf, int from)
+    {
+        if (buf == null) throw new ArgumentNullException(nameof(buf));
+        int n = buf.Length;
+        if (from < 0) from = 0;
+        if (from > n - 3) return n; // tối thiểu cần 3 byte để có start code
+
+        for (int i = from; i <= n - 3; i++)
+        {
+            // 3-byte: 00 00 01
+            if (buf[i] == 0 && buf[i + 1] == 0 && buf[i + 2] == 1)
+                return i;
+
+            // 4-byte: 00 00 00 01
+            if (i <= n - 4 && buf[i] == 0 && buf[i + 1] == 0 && buf[i + 2] == 0 && buf[i + 3] == 1)
+                return i;
+        }
+        return n;
+    }
 
     void AppendAndSplit(ReadOnlySpan<byte> chunk)
     {
@@ -257,21 +303,47 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                 int start = nals[audIdxs[a]].pos;
                 int end = nals[audIdxs[a + 1]].pos;
 
-                // chỉ emit nếu đoạn này có VCL (1/5)
-                bool hasVcl = false;
+                // Có VCL (type 1/5) mới emit
+                bool hasVcl = false, hasIdrLocal = false;
                 for (int t = audIdxs[a]; t < audIdxs[a + 1]; t++)
                 {
-                    int ty = nals[t].type; if (ty == 1 || ty == 5) { hasVcl = true; break; }
+                    int ty = nals[t].type;
+                    if (ty == 1 || ty == 5) { hasVcl = true; if (ty == 5) hasIdrLocal = true; }
                 }
                 if (!hasVcl) continue;
 
                 int len = end - start;
                 var au = new byte[len];
                 Buffer.BlockCopy(data, start, au, 0, len);
+
+                // Cập nhật cache
+                var (hasIdr, hasSps, hasPps) = ScanNalTypes(au, out int spsPos, out int ppsPos);
+                if (hasSps && spsPos >= 0) _lastSps = au.AsSpan(spsPos, NextStartCode(au, spsPos) - spsPos).ToArray();
+                if (hasPps && ppsPos >= 0) _lastPps = au.AsSpan(ppsPos, NextStartCode(au, ppsPos) - ppsPos).ToArray();
+
+                // Warm-up: IDR mà cache chưa có -> bỏ
+                if ((hasIdr || hasIdrLocal) && (_lastSps == null || _lastPps == null))
+                    continue;
+
+                // LUÔN prepend SPS/PPS cho mọi IDR, bất kể au đã có hay chưa
+                if (hasIdr || hasIdrLocal)
+                {
+                    var sps = _lastSps; var pps = _lastPps;
+                    if (sps != null && pps != null)
+                    {
+                        var fixedAu = new byte[sps.Length + pps.Length + au.Length];
+                        int off = 0;
+                        Buffer.BlockCopy(sps, 0, fixedAu, off, sps.Length); off += sps.Length;
+                        Buffer.BlockCopy(pps, 0, fixedAu, off, pps.Length); off += pps.Length;
+                        Buffer.BlockCopy(au, 0, fixedAu, off, au.Length);
+                        au = fixedAu;
+                    }
+                }
+
                 OnEncodedAccessUnit?.Invoke(_lastDurationMs, au);
             }
 
-            // Giữ đuôi từ AUD cuối cùng
+            // Giữ phần đuôi từ AUD cuối
             int keepFrom = nals[audIdxs[^1]].pos;
             int remain = total - keepFrom;
             var tail = new byte[remain];

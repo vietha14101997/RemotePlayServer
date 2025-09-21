@@ -114,7 +114,6 @@ public class WebRTCStreamer_H264 : IDisposable
                 _canSend = true; // CHỈ test chẩn đoán
             }
         };
-        _pc.onconnectionstatechange += st => Console.WriteLine($"[RTC] pc.state = {st}");
 
         // Tạo track H.264
         var h264 = new SDPAudioVideoMediaFormat(
@@ -129,7 +128,7 @@ public class WebRTCStreamer_H264 : IDisposable
             SDPMediaTypesEnum.video,
             isRemote: false,
             capabilities: new List<SDPAudioVideoMediaFormat> { h264 },
-            streamStatus: MediaStreamStatusEnum.SendRecv);
+            streamStatus: MediaStreamStatusEnum.SendOnly);
         _pc.addTrack(track);
 
         // Khi đối tác thương lượng xong
@@ -163,11 +162,13 @@ public class WebRTCStreamer_H264 : IDisposable
         Console.WriteLine("---- REMOTE OFFER SDP ----\n" + offerSdp);
         _pc.setRemoteDescription(offer);
         var answer = _pc.createAnswer(null);
-        Console.WriteLine("---- LOCAL ANSWER SDP ----\n" + answer.sdp);
         await _pc.setLocalDescription(answer);
 
-        Console.WriteLine("[RTC] H.264 encoder (FFmpeg) initialised");
-        return answer.sdp;
+        // Bắt buộc dùng SAVPF cho Unity
+        var sdp = answer.sdp.Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+
+        // gửi lại sdp này ra WebSocket
+        return sdp;
     }
 
     /// <summary>Được gọi bởi WgcCapture mỗi frame BGRA.</summary>
@@ -288,7 +289,7 @@ public class WebRTCStreamer_H264 : IDisposable
                 while (_auChan.Reader.TryRead(out var newer)) item = newer;
 
                 // Một số packetiser kén AUD => lược bỏ AUD đầu (nếu có)
-                var au = StripLeadingAud(item.au);
+                // var au = StripLeadingAud(item.au);
 
                 // Pace theo delta thực (durMs) thay vì cố định theo fps
                 var nowMs = sw.ElapsedMilliseconds;
@@ -296,18 +297,44 @@ public class WebRTCStreamer_H264 : IDisposable
                     await Task.Delay((int)(nextDueMs - nowMs), ct);
                 nextDueMs += Math.Max(1, item.durMs);
 
-                // RTP step theo 90kHz clock dựa trên durMs của AU
-                // uint rtpStep = (uint)Math.Max(1, 90000L * item.durMs / 1000L);
                 uint deltaMs = Math.Max(1u, item.durMs);
+                // RTP step theo 90kHz clock dựa trên durMs của AU
+                uint rtpStep = (uint)Math.Max(1, 90000L * deltaMs / 1000L);
 
                 if (_canSend && _pc != null && _running && _cts != null && !_cts.IsCancellationRequested)
                 {
-                    _pc.SendVideo(deltaMs, au);
+                    LogNalSummary(item.au);
+                    _pc.SendVideo(rtpStep, item.au);
                     Interlocked.Increment(ref _sent);
                 }
             }
         }
         catch (OperationCanceledException) { /* normal */ }
+    }
+
+    static void LogNalSummary(byte[] au)
+    {
+        int i = 0; bool sps = false, pps = false, idr = false;
+        while (i + 4 <= au.Length)
+        {
+            int sc = (au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ? 3 :
+                     (i + 4 <= au.Length && au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 0 && au[i + 3] == 1) ? 4 : 0;
+            if (sc == 0) break; i += sc;
+            if (i >= au.Length) break;
+            int nal = au[i] & 0x1F;
+            if (nal == 7) sps = true;
+            else if (nal == 8) pps = true;
+            else if (nal == 5) idr = true;
+            // nhảy tới start code kế tiếp
+            int j = i + 1;
+            for (; j + 3 < au.Length; j++)
+            {
+                if ((au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 1) || (j + 4 <= au.Length && au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 0 && au[j + 3] == 1))
+                    break;
+            }
+            i = j;
+        }
+        if (idr) Console.WriteLine($"[H264] AU has IDR (SPS={sps}, PPS={pps})");
     }
 
     // Bỏ NAL AUD đầu tiên nếu xuất hiện ngay đầu AU (giúp 1 số RTP packetiser).
