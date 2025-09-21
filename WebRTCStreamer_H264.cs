@@ -40,7 +40,7 @@ public class WebRTCStreamer_H264 : IDisposable
 
     // ---- encoded AU queue & paced sender ----
     private readonly Channel<(uint durMs, byte[] au)> _auChan =
-        Channel.CreateBounded<(uint, byte[])>(new BoundedChannelOptions(120)
+        Channel.CreateBounded<(uint, byte[])>(new BoundedChannelOptions(8)
         {
             SingleReader = true,
             SingleWriter = true,

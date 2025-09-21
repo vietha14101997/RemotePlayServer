@@ -39,6 +39,102 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     const int _maxBufferBytes = 4 * 1024 * 1024;
     private readonly string _exePath;
     byte[]? _lastSps, _lastPps;
+    enum GpuEnc { None, NVENC, QSV, AMF }
+    static GpuEnc _chosenGpu = GpuEnc.None;
+    static Dictionary<string, bool> _filterCache = new(StringComparer.OrdinalIgnoreCase);
+
+    bool ProbeFilter(string filterName)
+    {
+        if (string.IsNullOrWhiteSpace(_exePath)) return false;
+
+        // Trả về từ cache nếu đã hỏi rồi
+        if (_filterCache.TryGetValue(filterName, out var ok)) return ok;
+
+        try
+        {
+            using var p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = _exePath, // đường dẫn ffmpeg.exe hiện tại
+                    Arguments = "-hide_banner -loglevel error -filters",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(_exePath)!
+                }
+            };
+
+            p.Start();
+
+            // Đọc cả stdout + stderr (một số build in thông tin ra stderr)
+            string textOut = p.StandardOutput.ReadToEnd();
+            string textErr = p.StandardError.ReadToEnd();
+            p.WaitForExit(3000);
+
+            string all = (textOut + "\n" + textErr);
+            bool found = all.IndexOf(filterName, StringComparison.OrdinalIgnoreCase) >= 0;
+
+            _filterCache[filterName] = found; // lưu cache
+            Console.WriteLine($"[FFMPEG][probe filter] {filterName} = {found}");
+            return found;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FFMPEG][probe filter] {filterName} EX: {ex.Message}");
+            _filterCache[filterName] = false;
+            return false;
+        }
+    }
+
+    bool ProbeEncoder(string encName)
+    {
+        const string probeSize = "640x360"; // <-- tăng size để NVENC chấp nhận
+        string args =
+            "-hide_banner -loglevel verbose " +
+            $"-f lavfi -i color=c=black:s={probeSize} -frames:v 1 " +
+            $"-c:v {encName} -f null -";
+
+        try
+        {
+            using var p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = _exePath,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(_exePath)!
+                }
+            };
+            p.Start();
+            string err = p.StandardError.ReadToEnd();
+            if (!p.WaitForExit(5000)) { try { p.Kill(true); } catch { } }
+
+            Console.WriteLine($"[FFMPEG][probe {encName}] exit={p.ExitCode}");
+            if (!string.IsNullOrWhiteSpace(err)) Console.WriteLine(err);
+
+            return p.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FFMPEG][probe {encName}] EX: {ex.Message}");
+            return false;
+        }
+    }
+
+    void EnsureChosenEncoder()
+    {
+        if (_chosenGpu != 0) return; // đã chọn
+        if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+        if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+        if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+        _chosenGpu = GpuEnc.None;
+    }
 
     static (bool hasIdr, bool hasSps, bool hasPps) ScanNalTypes(ReadOnlySpan<byte> au, out int spsPos, out int ppsPos)
     {
@@ -71,6 +167,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
             {
                 int n = sr.Read(buf, 0, buf.Length);
                 if (n <= 0) break; // ffmpeg đã thoát
+                Console.Write(new string(buf, 0, n));
             }
         }
         catch { /* ignore */ }
@@ -120,36 +217,108 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
     string BuildArgs()
     {
+        EnsureChosenEncoder();
+        Console.WriteLine("[FFMPEG] chosen encoder = " + _chosenGpu);
         int g = Math.Max(FPS, 2);
 
-        var x264Params =
-             "profile=constrained_baseline:level=3.1" +
-             $":keyint={g}:min-keyint={g}:scenecut=0" +
-             ":bframes=0:ref=1:cabac=0" +
-             ":aud=1:repeat-headers=1" +
-             ":sliced-threads=0:slices=1";
-
-        var common =
-            $"-f rawvideo -pix_fmt bgra -s {Width}x{Height} -r {FPS} -i - " +
-            "-an -c:v libx264 " +
-            $"-preset {Preset} " +
-            (ZeroLatency ? "-tune zerolatency " : "") +
-            "-pix_fmt yuv420p " +         // bắt buộc cho WebRTC
-            "-profile:v baseline " +      // wrapper metadata đồng bộ
-            "-level:v 3.1 " +
-            $"-x264-params {x264Params} " +
-            $"-g {g} " +
-            "-f h264 -";
-
-        if (BitrateKbps > 0)
+        switch (_chosenGpu)
         {
-            var vbv = Math.Max(BitrateKbps * 2, 1000);
-            return $"{common} -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
-        }
-        else
-        {
-            var crf = CRF >= 0 ? CRF : 23;
-            return $"{common} -crf {crf}";
+            case GpuEnc.NVENC:
+                {
+                    // phần input chung như CPU (raw BGRA piped qua stdin)
+                    var inPart =
+                        "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
+                        $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+
+                    // out cho GPU: KHÔNG ép -pix_fmt, KHÔNG cố định -level
+                    var outGpu =
+                        "-profile:v baseline " +       // baseline để dễ tương thích WebRTC
+                        $"-g {g} -vsync drop -f h264 -";
+
+                    // chọn filter scale trên GPU nếu có
+                    bool hasScaleCuda = ProbeFilter("scale_cuda");
+                    bool hasScaleNpp = ProbeFilter("scale_npp");
+
+                    string vf;
+                    if (hasScaleCuda)
+                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
+                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_cuda=1280:720\" ";
+                    else if (hasScaleNpp)
+                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
+                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_npp=1280:720\" ";
+                    else
+                        vf = "-vf \"scale=1280:720:flags=bicubic,format=nv12\" ";
+
+                    // điều khiển bitrate / chất lượng
+                    string rc;
+                    if (BitrateKbps > 0)
+                    {
+                        int vbv = Math.Max(BitrateKbps, 1000);
+                        rc = $"-rc cbr_ld_hq -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                    }
+                    else
+                    {
+                        int cq = (CRF >= 0 ? CRF : 23);      // dùng cq như CRF
+                        rc = $"-rc vbr -cq {cq}";
+                    }
+
+                    string tune = ZeroLatency ? "-tune ll " : "";
+
+                    // ghép lệnh NVENC hoàn chỉnh
+                    var nvenc =
+                        inPart +
+                        "-an -c:v h264_nvenc -preset p1 " + tune + rc + " " +
+                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " + // low-latency, IDR có AUD
+                        vf + outGpu;
+
+                    return nvenc
+                        .Replace("{Width}", Width.ToString())
+                        .Replace("{Height}", Height.ToString())
+                        .Replace("{FPS}", FPS.ToString());
+                }
+            case GpuEnc.QSV:
+                return $"-hwaccel qsv -c:v h264_qsv " +
+                       $"-preset slow -g {g} " +
+                       $"-time_base 1/{FPS} -r {FPS}";
+            case GpuEnc.AMF:
+                return $"-hwaccel dxva2 -c:v h264_amf " +
+                       $"-usage transcoding -profile high -g {g} " +
+                       $"-time_base 1/{FPS} -r {FPS}";
+            case GpuEnc.None:
+                {
+                    var x264Params =
+                    "profile=constrained_baseline:level=3.1" +
+                    $":keyint={g}:min-keyint={g}:scenecut=0" +
+                    ":bframes=0:ref=1:cabac=0" +
+                    ":aud=1:repeat-headers=1" +
+                    ":sliced-threads=0:slices=1" +
+                    ":rc-lookahead=0:sync-lookahead=0";
+
+                    var common =
+                        $"-f rawvideo -pix_fmt bgra -s {Width}x{Height} -r {FPS} -i - " +
+                        "-an -c:v libx264 " +
+                        $"-preset {Preset} " +
+                        (ZeroLatency ? "-tune zerolatency " : "") +
+                        "-pix_fmt yuv420p " +         // bắt buộc cho WebRTC
+                        "-profile:v baseline " +      // wrapper metadata đồng bộ
+                        "-level:v 3.1 " +
+                        $"-x264-params {x264Params} " +
+                        $"-g {g} " +
+                        "-f h264 -";
+
+                    if (BitrateKbps > 0)
+                    {
+                        var vbv = Math.Max(BitrateKbps, 1000);
+                        return $"{common} -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                    }
+                    else
+                    {
+                        var crf = CRF >= 0 ? CRF : 23;
+                        return $"{common} -crf {crf}";
+                    }
+                }
+            default:
+                return "";
         }
     }
 
@@ -164,7 +333,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = _exePath, // << dùng đường dẫn đã resolve
-                    Arguments = "-hide_banner -loglevel error " + BuildArgs(),
+                    Arguments = "-hide_banner -loglevel info " + BuildArgs(),
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
