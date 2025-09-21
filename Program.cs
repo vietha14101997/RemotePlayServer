@@ -17,7 +17,7 @@ class Program
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("=== RemotePlayServer (.NET 9 + Windows Graphics Capture + WebRTC) ===");
 
-        // Chỉ liệt kê cửa sổ có thể capture được (tránh cloaked/tool/invisible)
+        // Liệt kê các cửa sổ capturable (snapshot ban đầu)
         var windows = Win32.ListTopLevelWindows()
             .Where(w => !string.IsNullOrWhiteSpace(w.title))
             .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
@@ -43,7 +43,7 @@ class Program
 public class SignalAndRestServer
 {
     private readonly HttpListener _listener;
-    private readonly ConcurrentDictionary<Guid, WebRTCStreamer> _streams = new();
+    private readonly ConcurrentDictionary<Guid, WebRTCStreamer_H264> _streams = new();
     private readonly ConcurrentDictionary<Guid, (int wid, WgcCapture cap)> _captures = new();
     private System.Collections.Generic.List<Win32.WindowInfo> _windows = new();
 
@@ -83,7 +83,15 @@ public class SignalAndRestServer
 
             if (path == "/api/windows" && ctx.Request.HttpMethod == "GET")
             {
-                var arr = System.Text.Json.JsonSerializer.Serialize(_windows.Select((w, i) => new { id = i, title = w.title }));
+                // ⭐ Luôn quét lại để thấy app vừa fullscreen/thoát fullscreen
+                var winsNow = Win32.ListTopLevelWindows()
+                    .Where(w => !string.IsNullOrWhiteSpace(w.title))
+                    .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
+                    .ToList();
+                _windows = winsNow;
+
+                var arr = System.Text.Json.JsonSerializer.Serialize(
+                    winsNow.Select((w, i) => new { id = i, title = w.title }));
                 var bytes = Encoding.UTF8.GetBytes(arr);
                 ctx.Response.ContentType = "application/json";
                 ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
@@ -93,14 +101,15 @@ public class SignalAndRestServer
 
             if (ctx.Request.IsWebSocketRequest && path == "/signal")
             {
-                var widStr = HttpUtility.ParseQueryString(ctx.Request.Url!.Query).Get("wid");
+                var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
+                var widStr = qs.Get("wid");
                 if (!int.TryParse(widStr, out var wid) || wid < 0 || wid >= _windows.Count) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
 
                 var wsCtx = await ctx.AcceptWebSocketAsync(null);
                 var id = Guid.NewGuid();
                 Console.WriteLine($"[Signal] Client connected {id}, wid={wid}");
 
-                _ = Task.Run(() => HandleClient(id, wid, wsCtx.WebSocket));
+                _ = Task.Run(() => HandleClient(id, wid, wsCtx.WebSocket, qs));
                 continue;
             }
 
@@ -111,7 +120,7 @@ public class SignalAndRestServer
 
     [DllImport("combase.dll")] static extern int RoInitialize(uint initType); // 1 = RO_INIT_MULTITHREADED
 
-    private async Task HandleClient(Guid id, int wid, System.Net.WebSockets.WebSocket ws)
+    private async Task HandleClient(Guid id, int wid, System.Net.WebSockets.WebSocket ws, System.Collections.Specialized.NameValueCollection qs)
     {
         CancellationTokenSource? stopCapture = null;
         Thread? capThread = null;
@@ -142,17 +151,24 @@ public class SignalAndRestServer
             }
             if (offer == null) return;
 
+            // Tham số codec từ query (tuỳ chọn): fps/kbps/crf/preset/zerolat
+            int fps = TryParseInt(qs.Get("fps"), 60, 5, 120);
+            int kbps = TryParseInt(qs.Get("kbps"), 12000, 0, 100000);
+            int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
+            string preset = qs.Get("preset") ?? "veryfast";
+            bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
+
             // 2) WebRTC: tạo streamer, trả answer
-            var streamer = new WebRTCStreamer(fps: 30);
+            var streamer = new WebRTCStreamer_H264(fps: fps, targetKbps: kbps, crf: crf, preset: preset, zerolatency: zerolat);
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
             {
                 var data = Encoding.UTF8.GetBytes("answer:" + answer);
                 await ws.SendAsync(new ArraySegment<byte>(data), System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
             }
-            _streams[id] = streamer; // quản lý vòng đời :contentReference[oaicite: 0]{ index = 0}
+            _streams[id] = streamer;
 
-            // 3) Khởi động capture trên thread riêng (RoInitialize + ComWrappersSupport)
+            // 3) Khởi động capture trên thread riêng
             var hwnd = _windows[wid].hwnd;
             stopCapture = new CancellationTokenSource();
 
@@ -163,19 +179,27 @@ public class SignalAndRestServer
 
                 try
                 {
-                    var cap = new WgcCapture(hwnd);               // tạo pool + session  :contentReference[oaicite:1]{index=1}
+                    var cap = new WgcCapture(hwnd);
                     _captures[id] = (wid, cap);
 
-                    // Đẩy frame ra WebRTC
-                    cap.OnFrame += (buf, w, h, stride) =>
+                    Action<byte[], int, int, int> handler = (buf, w, h, stride) =>
                     {
-                        try { streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                        try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
                         catch (Exception ex) { Console.WriteLine("[WGC->RTC] push error: " + ex); }
                     };
+                    cap.OnFrame += handler;
 
-                    cap.Start();                                   // bắt đầu nhận frame  :contentReference[oaicite:2]{index=2}
+                    // Nếu peer rớt, ngắt capture ngay
+                    streamer.OnPeerDisconnected += () =>
+                    {
+                        try { stopCapture?.Cancel(); } catch { }
+                    };
 
+                    cap.Start();
                     stopCapture.Token.WaitHandle.WaitOne();
+
+                    // gỡ handler trước khi dispose để tránh race
+                    try { cap.OnFrame -= handler; } catch { }
                 }
                 catch (Exception ex)
                 {
@@ -186,7 +210,7 @@ public class SignalAndRestServer
             capThread.Start();
 
             Console.WriteLine($"[WGC] Streaming wid={wid}");
-            while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(500);
+            while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(250);
         }
         catch (Exception ex)
         {
@@ -208,4 +232,18 @@ public class SignalAndRestServer
             Console.WriteLine($"[Signal] Client disconnected {id}");
         }
     }
+
+    static int TryParseInt(string? s, int def, int min, int max)
+    {
+        if (!int.TryParse(s, out var v)) return def;
+        return Math.Clamp(v, min, max);
+    }
+}
+
+public interface IWebRTCStreamer : IDisposable
+{
+    Task StartAsync();
+    Task StopAsync();
+    Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp);
+    Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
 }

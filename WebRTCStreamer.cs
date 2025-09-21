@@ -11,7 +11,7 @@ using SIPSorceryMedia.Encoders;
 /// <summary>
 /// WebRTCStreamer: nhận BGRA frame, encode VP8 và đẩy vào RTCPeerConnection.
 /// </summary>
-public class WebRTCStreamer : IDisposable
+public class WebRTCStreamer : IWebRTCStreamer
 {
     private RTCPeerConnection? _pc;
     private Task? _statsTask;
