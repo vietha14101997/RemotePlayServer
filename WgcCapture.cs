@@ -23,12 +23,9 @@ internal static class DxInterop
         return MarshalInterface<IDirect3DDevice>.FromAbi(devicePtr);
     }
 
-    [DllImport("combase.dll")]
-    public static extern int RoGetActivationFactory(IntPtr hstringClassId, ref Guid iid, out IntPtr factory);
-    [DllImport("combase.dll", CharSet = CharSet.Unicode)]
-    public static extern int WindowsCreateString(string sourceString, int length, out IntPtr hstring);
-    [DllImport("combase.dll")]
-    public static extern int WindowsDeleteString(IntPtr hstring);
+    [DllImport("combase.dll")] public static extern int RoGetActivationFactory(IntPtr hstringClassId, ref Guid iid, out IntPtr factory);
+    [DllImport("combase.dll", CharSet = CharSet.Unicode)] public static extern int WindowsCreateString(string sourceString, int length, out IntPtr hstring);
+    [DllImport("combase.dll")] public static extern int WindowsDeleteString(IntPtr hstring);
 
     public static readonly Guid IID_IActivationFactory = new Guid("00000035-0000-0000-C000-000000000046");
 }
@@ -74,8 +71,8 @@ internal static class WgcInterop
     [ComImport, Guid("3628E81B-3CAC-4C60-B7F4-23CE0E0C3356"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     interface IGraphicsCaptureItemInterop
     {
-        [PreserveSig]
-        int CreateForWindow(IntPtr hwnd, [In] ref Guid iid, out IntPtr item);
+        [PreserveSig] int CreateForWindow(IntPtr hwnd, [In] ref Guid iid, out IntPtr item);
+        [PreserveSig] int CreateForMonitor(IntPtr hmon, [In] ref Guid iid, out IntPtr item);
     }
 
     public static GraphicsCaptureItem CreateItemForHwndWithFallback(IntPtr hwnd)
@@ -101,7 +98,6 @@ internal static class WgcInterop
             if (hr != 0 || interopPtr == IntPtr.Zero) throw new COMException($"QueryInterface(IGraphicsCaptureItemInterop) failed: 0x{hr:X8}", hr);
 
             var interop = (IGraphicsCaptureItemInterop)Marshal.GetObjectForIUnknown(interopPtr);
-
             Guid iidItem = new Guid("79C3F95B-31F7-4EC2-A464-632EF5D30760");
             hr = interop.CreateForWindow(hwnd, ref iidItem, out itemPtr);
             if (hr != 0 || itemPtr == IntPtr.Zero)
@@ -110,6 +106,45 @@ internal static class WgcInterop
                     throw new COMException("E_NOINTERFACE: cần IID của IGraphicsCaptureItem", hr);
                 throw new COMException($"GraphicsCaptureItem.CreateForWindow failed: 0x{hr:X8}", hr);
             }
+
+            var item = MarshalInterface<GraphicsCaptureItem>.FromAbi(itemPtr);
+            itemPtr = IntPtr.Zero;
+            return item;
+        }
+        finally
+        {
+            if (itemPtr != IntPtr.Zero) Marshal.Release(itemPtr);
+            if (interopPtr != IntPtr.Zero) Marshal.Release(interopPtr);
+            if (actPtr != IntPtr.Zero) Marshal.Release(actPtr);
+            if (hstr != IntPtr.Zero) DxInterop.WindowsDeleteString(hstr);
+        }
+    }
+
+    public static GraphicsCaptureItem CreateItemForMonitor(IntPtr hmon)
+    {
+        if (!GraphicsCaptureSession.IsSupported())
+            throw new NotSupportedException("Windows Graphics Capture is not supported on this system.");
+
+        const string ClassId = "Windows.Graphics.Capture.GraphicsCaptureItem";
+        IntPtr hstr = IntPtr.Zero, actPtr = IntPtr.Zero, interopPtr = IntPtr.Zero, itemPtr = IntPtr.Zero;
+        try
+        {
+            int hr = DxInterop.WindowsCreateString(ClassId, ClassId.Length, out hstr);
+            if (hr != 0) throw new COMException($"WindowsCreateString failed: 0x{hr:X8}", hr);
+
+            Guid iidAct = DxInterop.IID_IActivationFactory;
+            hr = DxInterop.RoGetActivationFactory(hstr, ref iidAct, out actPtr);
+            if (hr != 0 || actPtr == IntPtr.Zero) throw new COMException($"RoGetActivationFactory failed: 0x{hr:X8}", hr);
+
+            Guid iidInterop = typeof(IGraphicsCaptureItemInterop).GUID;
+            hr = Marshal.QueryInterface(actPtr, in iidInterop, out interopPtr);
+            if (hr != 0 || interopPtr == IntPtr.Zero) throw new COMException($"QueryInterface(IGraphicsCaptureItemInterop) failed: 0x{hr:X8}", hr);
+
+            var interop = (IGraphicsCaptureItemInterop)Marshal.GetObjectForIUnknown(interopPtr);
+            Guid iidItem = new Guid("79C3F95B-31F7-4EC2-A464-632EF5D30760");
+            hr = interop.CreateForMonitor(hmon, ref iidItem, out itemPtr);
+            if (hr != 0 || itemPtr == IntPtr.Zero)
+                throw new COMException($"GraphicsCaptureItem.CreateForMonitor failed: 0x{hr:X8}", hr);
 
             var item = MarshalInterface<GraphicsCaptureItem>.FromAbi(itemPtr);
             itemPtr = IntPtr.Zero;
@@ -194,6 +229,36 @@ internal static class WgcInterop
             if (refAbi != IntPtr.Zero) WinRT.MarshalInterface<Windows.Foundation.IMemoryBufferReference>.DisposeAbi(refAbi);
         }
     }
+
+    public static System.Collections.Generic.List<(IntPtr hmon, string name, int width, int height)> ListMonitorsDXGI()
+    {
+        var list = new System.Collections.Generic.List<(IntPtr, string, int, int)>();
+
+        // Tạo factory (dùng kiểu 1 cho tương thích rộng)
+        using var factory = Vortice.DXGI.DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+
+        for (uint ai = 0; ; ai++)
+        {
+            // ⚠️ API kiểu out + Result
+            if (factory.EnumAdapters1(ai, out IDXGIAdapter1 adapter).Failure) break;
+            using (adapter)
+            {
+                for (uint oi = 0; ; oi++)
+                {
+                    if (adapter.EnumOutputs(oi, out IDXGIOutput output).Failure) break;
+                    using (output)
+                    {
+                        var desc = output.Description;
+                        int w = desc.DesktopCoordinates.Right - desc.DesktopCoordinates.Left;
+                        int h = desc.DesktopCoordinates.Bottom - desc.DesktopCoordinates.Top;
+
+                        list.Add((desc.Monitor, desc.DeviceName ?? $"Monitor{list.Count}", w, h));
+                    }
+                }
+            }
+        }
+        return list;
+    }
 }
 
 public sealed class WgcCapture : IDisposable
@@ -201,42 +266,66 @@ public sealed class WgcCapture : IDisposable
     readonly ID3D11Device _d3d;
     readonly ID3D11DeviceContext _ctx;
     readonly IDirect3DDevice _dxDevice;
-    GraphicsCaptureItem _item;
-    Direct3D11CaptureFramePool _pool;
-    GraphicsCaptureSession _session;
-    ID3D11Texture2D _staging;
+    GraphicsCaptureItem _item = null!;
+    Direct3D11CaptureFramePool _pool = null!;
+    GraphicsCaptureSession _session = null!;
+    ID3D11Texture2D _staging = null!;
     uint _w, _h, _stride;
     byte[] _scratch = Array.Empty<byte>();
 
-#nullable enable
     public event Action<byte[], int, int, int>? OnFrame;
-#nullable disable
 
     public (uint w, uint h) Size => (_w, _h);
 
     public WgcCapture(IntPtr hwnd)
     {
-        D3D11.D3D11CreateDevice(null, DriverType.Hardware,
+        var levels = new[] { FeatureLevel.Level_11_0 };
+        D3D11.D3D11CreateDevice(
+            null,
+            DriverType.Hardware,
             DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
-            null, out _d3d, out _ctx);
+            levels,
+            out _d3d,
+            out _ctx
+        );
         using var dxgi = _d3d.QueryInterface<IDXGIDevice>();
         _dxDevice = DxInterop.CreateDirect3DDeviceFromDxgi(dxgi.NativePointer);
 
         _item = WgcInterop.CreateItemForHwndWithFallback(hwnd);
-        if (_item is null) throw new InvalidOperationException("Failed to create GraphicsCaptureItem for the window.");
+        InitCommon(_item);
+    }
 
-        var size = _item.Size;
+    public WgcCapture(IntPtr hmon, bool isMonitor)
+    {
+        var levels = new[] { FeatureLevel.Level_11_0 };
+        D3D11.D3D11CreateDevice(
+            null,
+            DriverType.Hardware,
+            DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
+            levels,
+            out _d3d,
+            out _ctx
+        );
+        using var dxgi = _d3d.QueryInterface<IDXGIDevice>();
+        _dxDevice = DxInterop.CreateDirect3DDeviceFromDxgi(dxgi.NativePointer);
+
+        _item = WgcInterop.CreateItemForMonitor(hmon);
+        InitCommon(_item);
+    }
+
+    void InitCommon(GraphicsCaptureItem item)
+    {
+        var size = item.Size;
         _w = (uint)Math.Max(16, size.Width);
         _h = (uint)Math.Max(16, size.Height);
         _stride = _w * 4;
 
         _pool = Direct3D11CaptureFramePool.CreateFreeThreaded(_dxDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1, size);
         _pool.FrameArrived += OnFrameArrived;
-        _session = _pool.CreateCaptureSession(_item);
+        _session = _pool.CreateCaptureSession(item);
         _session.IsCursorCaptureEnabled = true;
 
-        // Đóng an toàn khi item mất hiệu lực
-        _item.Closed += (s, e) =>
+        item.Closed += (s, e) =>
         {
             try { _session?.Dispose(); } catch { }
             try { _pool?.Dispose(); } catch { }
@@ -288,7 +377,6 @@ public sealed class WgcCapture : IDisposable
                 _staging = CreateStaging(_w, _h);
                 EnsureScratch();
 
-                // ⭐ Quan trọng: cập nhật FramePool theo size mới để tránh crash
                 try
                 {
                     _pool.Recreate(_dxDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1,
@@ -298,39 +386,40 @@ public sealed class WgcCapture : IDisposable
                 {
                     Console.WriteLine("[WGC] Recreate(pool) failed: " + e);
                 }
-
-                // Bỏ frame giao thời để tránh sai stride
-                return;
+                return; // bỏ frame giao thời
             }
 
             bool fastOK = false;
             try
             {
                 using var src = WgcInterop.TryGetTextureFast(frame.Surface);
-                if (src != null)
+                using (src)
                 {
-                    _ctx.CopyResource(_staging, src);
-                    var box = _ctx.Map(_staging, 0, Vortice.Direct3D11.MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                    try
+                    if (src != null)
                     {
-                        uint srcStride = box.RowPitch;
-                        EnsureScratch();
-                        unsafe
+                        _ctx.CopyResource(_staging, src);
+                        var box = _ctx.Map(_staging, 0, Vortice.Direct3D11.MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                        try
                         {
-                            byte* srcBase = (byte*)box.DataPointer;
-                            for (int y = 0; y < _h; y++)
+                            uint srcStride = box.RowPitch;
+                            EnsureScratch();
+                            unsafe
                             {
-                                byte* srcRow = srcBase + y * srcStride;
-                                fixed (byte* dst = &_scratch[y * _stride])
+                                byte* srcBase = (byte*)box.DataPointer;
+                                for (int y = 0; y < _h; y++)
                                 {
-                                    ulong n = (ulong)Math.Min((uint)_stride, srcStride);
-                                    Buffer.MemoryCopy(srcRow, dst, _stride, n);
+                                    byte* srcRow = srcBase + y * srcStride;
+                                    fixed (byte* dst = &_scratch[y * _stride])
+                                    {
+                                        ulong n = (ulong)Math.Min((uint)_stride, srcStride);
+                                        Buffer.MemoryCopy(srcRow, dst, _stride, n);
+                                    }
                                 }
                             }
                         }
+                        finally { _ctx.Unmap(_staging, 0); }
+                        fastOK = true;
                     }
-                    finally { _ctx.Unmap(_staging, 0); }
-                    fastOK = true;
                 }
             }
             catch { fastOK = false; }

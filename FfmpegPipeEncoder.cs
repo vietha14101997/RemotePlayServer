@@ -225,51 +225,38 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         {
             case GpuEnc.NVENC:
                 {
-                    // phần input chung như CPU (raw BGRA piped qua stdin)
+                    // input: raw BGRA qua stdin (không dùng -fps_mode)
                     var inPart =
                         "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
+                        "-fflags +genpts " + // tự tạo PTS nếu thiếu
                         $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
 
-                    // out cho GPU: KHÔNG ép -pix_fmt, KHÔNG cố định -level
-                    var outGpu =
-                        "-profile:v baseline " +       // baseline để dễ tương thích WebRTC
-                        $"-g {g} -vsync drop -f h264 -";
+                    // KHÔNG scale -> encode đúng kích thước nguồn (1366x768 trong log)
+                    // => không thêm -vf; NVENC tự upload và convert format nội bộ
+                    string vf = ""; // nếu sau này muốn ép 1280x720 thì mới gán -vf scale...
 
-                    // chọn filter scale trên GPU nếu có
-                    bool hasScaleCuda = ProbeFilter("scale_cuda");
-                    bool hasScaleNpp = ProbeFilter("scale_npp");
-
-                    string vf;
-                    if (hasScaleCuda)
-                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
-                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_cuda=1280:720\" ";
-                    else if (hasScaleNpp)
-                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
-                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_npp=1280:720\" ";
-                    else
-                        vf = "-vf \"scale=1280:720:flags=bicubic,format=nv12\" ";
-
-                    // điều khiển bitrate / chất lượng
+                    // điều khiển bitrate / chất lượng (đổi -tune llhq -> -tune ll)
                     string rc;
                     if (BitrateKbps > 0)
                     {
                         int vbv = Math.Max(BitrateKbps, 1000);
-                        rc = $"-rc cbr_ld_hq -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k " +
+                             "-tune ll -spatial_aq 1 -temporal_aq 1 -aq-strength 8";
                     }
                     else
                     {
-                        int cq = (CRF >= 0 ? CRF : 23);      // dùng cq như CRF
-                        rc = $"-rc vbr -cq {cq}";
+                        int cq = (CRF >= 0 ? CRF : 23); // dùng cq như CRF
+                        rc = $"-rc vbr -cq {cq} -tune ll -spatial_aq 1 -temporal_aq 1 -aq-strength 8";
                     }
 
-                    string tune = ZeroLatency ? "-tune ll " : "";
+                    // output: h264 elementary stream, yuv420p + baseline cho WebRTC
+                    var outPart =
+                        "-an -c:v h264_nvenc -preset p1 " + rc + " " +
+                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " +   // low-latency + AUD
+                        "-pix_fmt yuv420p -profile:v baseline " +
+                        $"-g {g} -vsync passthrough -f h264 -";
 
-                    // ghép lệnh NVENC hoàn chỉnh
-                    var nvenc =
-                        inPart +
-                        "-an -c:v h264_nvenc -preset p1 " + tune + rc + " " +
-                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " + // low-latency, IDR có AUD
-                        vf + outGpu;
+                    var nvenc = inPart + vf + outPart;
 
                     return nvenc
                         .Replace("{Width}", Width.ToString())

@@ -23,17 +23,25 @@ class Program
             .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
             .ToList();
 
-        if (windows.Count == 0) { Console.WriteLine("Không tìm thấy cửa sổ."); return; }
         for (int i = 0; i < windows.Count; i++) Console.WriteLine($"{i,3}: {windows[i].title}");
+        if (windows.Count == 0) Console.WriteLine("(!) Không tìm thấy cửa sổ.");
+
+        // Liệt kê monitor (bao gồm màn hình ảo nếu đã mount)
+        var monitors = WgcInterop.ListMonitorsDXGI();
+        Console.WriteLine("=== Monitors ===");
+        for (int i = 0; i < monitors.Count; i++)
+            Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
         int port = 8288;
         var server = new SignalAndRestServer($"http://+:{port}/");
         server.SetWindows(windows);
+        server.SetMonitors(monitors);
         await server.StartAsync();
 
         foreach (var ip in NetUtil.GetLocalIPv4Addresses())
-            Console.WriteLine($"   • ws://{ip}:{port}/signal?wid=<id>");
+            Console.WriteLine($"   • ws://{ip}:{port}/signal?wid=<id>   hoặc   ws://{ip}:{port}/signal?mid=<id>");
         Console.WriteLine($"   • http://localhost:{port}/api/windows");
+        Console.WriteLine($"   • http://localhost:{port}/api/monitors");
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
         await server.StopAsync();
@@ -45,7 +53,9 @@ public class SignalAndRestServer
     private readonly HttpListener _listener;
     private readonly ConcurrentDictionary<Guid, WebRTCStreamer_H264> _streams = new();
     private readonly ConcurrentDictionary<Guid, (int wid, WgcCapture cap)> _captures = new();
+
     private System.Collections.Generic.List<Win32.WindowInfo> _windows = new();
+    private System.Collections.Generic.List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
 
     public SignalAndRestServer(string prefix)
     {
@@ -54,6 +64,7 @@ public class SignalAndRestServer
     }
 
     public void SetWindows(System.Collections.Generic.List<Win32.WindowInfo> wins) => _windows = wins;
+    public void SetMonitors(System.Collections.Generic.List<(IntPtr hmon, string name, int w, int h)> mons) => _monitors = mons;
 
     public Task StartAsync()
     {
@@ -99,17 +110,38 @@ public class SignalAndRestServer
                 continue;
             }
 
+            if (path == "/api/monitors" && ctx.Request.HttpMethod == "GET")
+            {
+                var monsNow = WgcInterop.ListMonitorsDXGI();
+                _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+
+                var arr = System.Text.Json.JsonSerializer.Serialize(
+                    _monitors.Select((m, i) => new { id = i, name = m.name, w = m.w, h = m.h }));
+                var bytes = Encoding.UTF8.GetBytes(arr);
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                ctx.Response.Close();
+                continue;
+            }
+
             if (ctx.Request.IsWebSocketRequest && path == "/signal")
             {
                 var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
                 var widStr = qs.Get("wid");
-                if (!int.TryParse(widStr, out var wid) || wid < 0 || wid >= _windows.Count) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
+                var midStr = qs.Get("mid");
+
+                int wid = -1, mid = -1;
+                if (!string.IsNullOrWhiteSpace(widStr)) int.TryParse(widStr, out wid);
+                if (!string.IsNullOrWhiteSpace(midStr)) int.TryParse(midStr, out mid);
+
+                if (wid < 0 && mid < 0) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
+                if (wid >= _windows.Count && mid >= _monitors.Count) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
 
                 var wsCtx = await ctx.AcceptWebSocketAsync(null);
                 var id = Guid.NewGuid();
-                Console.WriteLine($"[Signal] Client connected {id}, wid={wid}");
+                Console.WriteLine($"[Signal] Client connected {id}, wid={wid}, mid={mid}");
 
-                _ = Task.Run(() => HandleClient(id, wid, wsCtx.WebSocket, qs));
+                _ = Task.Run(() => HandleClient(id, wid, mid, wsCtx.WebSocket, qs));
                 continue;
             }
 
@@ -120,7 +152,7 @@ public class SignalAndRestServer
 
     [DllImport("combase.dll")] static extern int RoInitialize(uint initType); // 1 = RO_INIT_MULTITHREADED
 
-    private async Task HandleClient(Guid id, int wid, System.Net.WebSockets.WebSocket ws, System.Collections.Specialized.NameValueCollection qs)
+    private async Task HandleClient(Guid id, int wid, int mid, System.Net.WebSockets.WebSocket ws, System.Collections.Specialized.NameValueCollection qs)
     {
         CancellationTokenSource? stopCapture = null;
         Thread? capThread = null;
@@ -169,7 +201,6 @@ public class SignalAndRestServer
             _streams[id] = streamer;
 
             // 3) Khởi động capture trên thread riêng
-            var hwnd = _windows[wid].hwnd;
             stopCapture = new CancellationTokenSource();
 
             capThread = new Thread(() =>
@@ -179,7 +210,17 @@ public class SignalAndRestServer
 
                 try
                 {
-                    var cap = new WgcCapture(hwnd);
+                    WgcCapture cap;
+                    if (mid >= 0 && mid < _monitors.Count)
+                    {
+                        var hmon = _monitors[mid].hmon;
+                        cap = new WgcCapture(hmon, isMonitor: true);
+                    }
+                    else
+                    {
+                        var hwnd = _windows[wid].hwnd;
+                        cap = new WgcCapture(hwnd);
+                    }
                     _captures[id] = (wid, cap);
 
                     Action<byte[], int, int, int> handler = (buf, w, h, stride) =>
@@ -206,10 +247,12 @@ public class SignalAndRestServer
                     Console.WriteLine("[Capture] start error: " + ex);
                 }
             })
-            { IsBackground = true, Name = $"WGC-Capture-{wid}" };
+            { IsBackground = true, Name = $"WGC-Capture-{(mid >= 0 ? $"mid{mid}" : $"wid{wid}")}" };
             capThread.Start();
 
-            Console.WriteLine($"[WGC] Streaming wid={wid}");
+            if (mid >= 0) Console.WriteLine($"[WGC] Streaming monitor mid={mid}");
+            else Console.WriteLine($"[WGC] Streaming window wid={wid}");
+
             while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(250);
         }
         catch (Exception ex)
