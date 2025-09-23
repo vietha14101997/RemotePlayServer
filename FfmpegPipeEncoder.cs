@@ -225,40 +225,36 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         {
             case GpuEnc.NVENC:
                 {
-                    // input: raw BGRA qua stdin (không dùng -fps_mode)
+                    // input: raw BGRA qua stdin
                     var inPart =
                         "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
-                        "-fflags +genpts " + // tự tạo PTS nếu thiếu
                         $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
 
-                    // KHÔNG scale -> encode đúng kích thước nguồn (1366x768 trong log)
-                    // => không thêm -vf; NVENC tự upload và convert format nội bộ
-                    string vf = ""; // nếu sau này muốn ép 1280x720 thì mới gán -vf scale...
-
-                    // điều khiển bitrate / chất lượng (đổi -tune llhq -> -tune ll)
+                    // rate control
                     string rc;
                     if (BitrateKbps > 0)
                     {
                         int vbv = Math.Max(BitrateKbps, 1000);
-                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k " +
-                             "-tune ll -spatial_aq 1 -temporal_aq 1 -aq-strength 8";
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k -spatial_aq 1 -temporal_aq 1 -aq-strength 8";
                     }
                     else
                     {
-                        int cq = (CRF >= 0 ? CRF : 23); // dùng cq như CRF
-                        rc = $"-rc vbr -cq {cq} -tune ll -spatial_aq 1 -temporal_aq 1 -aq-strength 8";
+                        int cq = (CRF >= 0 ? CRF : 23);
+                        rc = $"-rc vbr -cq {cq}";
                     }
 
-                    // output: h264 elementary stream, yuv420p + baseline cho WebRTC
+                    string tune = ZeroLatency ? "-tune ll" : "";
+
+                    // KHÔNG scale/không hwupload: để nguyên 1366x768 → bỏ -vf hoàn toàn
                     var outPart =
-                        "-an -c:v h264_nvenc -preset p1 " + rc + " " +
-                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " +   // low-latency + AUD
-                        "-pix_fmt yuv420p -profile:v baseline " +
-                        $"-g {g} -vsync passthrough -f h264 -";
+                        "-an -c:v h264_nvenc -preset p1 " + tune + " " + rc + " " +
+                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " +
+                        "-pix_fmt nv12 " +                 // để NVENC dùng NV12, ffmpeg tự convert từ BGRA
+                        $"-g {g} " +
+                        "-profile:v baseline " +           // dễ tương thích WebRTC
+                        "-f h264 -";
 
-                    var nvenc = inPart + vf + outPart;
-
-                    return nvenc
+                    return (inPart + outPart)
                         .Replace("{Width}", Width.ToString())
                         .Replace("{Height}", Height.ToString())
                         .Replace("{FPS}", FPS.ToString());

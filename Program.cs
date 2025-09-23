@@ -32,6 +32,25 @@ class Program
         for (int i = 0; i < monitors.Count; i++)
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
+        // ⭐ Tự chọn màn hình ảo:
+        int midVirtual = MonitorDetect.PickVirtualMid(monitors);
+        if (midVirtual >= 0)
+        {
+            Console.WriteLine($"[AutoPick] Virtual display ≈ mid={midVirtual} ({monitors[midVirtual].name})");
+
+            // ⭐ Ép 1366x768@60 ngay lúc khởi động
+            if (DisplayUtil.ForceResolution(monitors[midVirtual].name, 1366, 768, 60))
+                Console.WriteLine("[Display] Forced 1366x768@60");
+            else
+                Console.WriteLine("[Display] ForceResolution failed (may already be 1366x768 or driver blocks change)");
+        }
+        else
+        {
+            Console.WriteLine("[AutoPick] Could not find a virtual display. Using mid=0 as fallback.");
+            midVirtual = monitors.Count - 1; // fallback: chọn cái cuối
+        }
+        ForceVirtualDisplayTo1366x76860(midVirtual);
+
         int port = 8288;
         var server = new SignalAndRestServer($"http://+:{port}/");
         server.SetWindows(windows);
@@ -45,6 +64,19 @@ class Program
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
         await server.StopAsync();
+    }
+
+    static void ForceVirtualDisplayTo1366x76860(int mid)
+    {
+        // Bạn đã có API liệt kê monitors (DXGI) kèm DeviceName kiểu \\.\DISPLAY5
+        var mons = WgcInterop.ListMonitorsDXGI(); // (hmon, name, w, h)
+        if (mid >= 0 && mid < mons.Count)
+        {
+            string devName = mons[mid].name; // ví dụ "\\\\.\\DISPLAY5"
+            Console.WriteLine("[Display] Forcing " + devName + " -> 1366x768@60");
+            bool ok = DisplayUtil.ForceResolution(devName, 1366, 768, 60);
+            Console.WriteLine(ok ? "[Display] OK" : "[Display] Failed to set mode");
+        }
     }
 }
 
@@ -289,4 +321,168 @@ public interface IWebRTCStreamer : IDisposable
     Task StopAsync();
     Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp);
     Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
+}
+
+static class DisplayUtil
+{
+    const int ENUM_CURRENT_SETTINGS = -1;
+    const int DM_PELSWIDTH = 0x00080000;
+    const int DM_PELSHEIGHT = 0x00100000;
+    const int DM_DISPLAYFREQUENCY = 0x00400000;
+    const int CDS_UPDATEREGISTRY = 0x00000001;
+    const int CDS_GLOBAL = 0x00000008;
+    const int DISP_CHANGE_SUCCESSFUL = 0;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DEVMODE
+    {
+        private const int CCHDEVICENAME = 32;
+        private const int CCHFORMNAME = 32;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
+        public string dmDeviceName;
+        public short dmSpecVersion;
+        public short dmDriverVersion;
+        public short dmSize;
+        public short dmDriverExtra;
+        public int dmFields;
+
+        public int dmPositionX;
+        public int dmPositionY;
+        public int dmDisplayOrientation;
+        public int dmDisplayFixedOutput;
+
+        public short dmColor;
+        public short dmDuplex;
+        public short dmYResolution;
+        public short dmTTOption;
+        public short dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)]
+        public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel;
+        public int dmPelsWidth;
+        public int dmPelsHeight;
+        public int dmDisplayFlags;
+        public int dmDisplayFrequency;
+        public int dmICMMethod;
+        public int dmICMIntent;
+        public int dmMediaType;
+        public int dmDitherType;
+        public int dmReserved1;
+        public int dmReserved2;
+        public int dmPanningWidth;
+        public int dmPanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern bool EnumDisplaySettingsEx(string lpszDeviceName, int iModeNum, ref DEVMODE lpDevMode, int dwFlags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern int ChangeDisplaySettingsEx(string lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, int dwflags, IntPtr lParam);
+
+    public static bool ForceResolution(string deviceName, int w, int h, int hz)
+    {
+        var dm = new DEVMODE();
+        dm.dmDeviceName = new string('\0', 32);
+        dm.dmFormName = new string('\0', 32);
+        dm.dmSize = (short)Marshal.SizeOf<DEVMODE>();
+
+        // Lấy current mode rồi sửa ba trường cần thiết
+        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+            return false;
+
+        dm.dmPelsWidth = w;
+        dm.dmPelsHeight = h;
+        dm.dmDisplayFrequency = hz;
+        dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+
+        int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_GLOBAL, IntPtr.Zero);
+        return ret == DISP_CHANGE_SUCCESSFUL;
+    }
+}
+
+static class MonitorDetect
+{
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DISPLAY_DEVICE
+    {
+        public int cb;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceString;
+        public int StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceID;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceKey;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+
+    // Physical Monitor API (fallback)
+    [DllImport("dxva2.dll", SetLastError = true)]
+    static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
+
+    static bool IsLikelyVirtualByStrings(string deviceString, string deviceId)
+    {
+        var s = (deviceString ?? "").ToLowerInvariant();
+        var id = (deviceId ?? "").ToLowerInvariant();
+        // Thêm từ khóa riêng của driver nếu biết (ví dụ "virtual display driver")
+        string[] keywords = { "virtual", "idd", "indirect", "headless" };
+        return keywords.Any(k => s.Contains(k) || id.Contains(k));
+    }
+
+    static bool HasNoPhysicalMonitors(IntPtr hmon)
+    {
+        try { return GetNumberOfPhysicalMonitorsFromHMONITOR(hmon, out var n) && n == 0; }
+        catch { return false; }
+    }
+
+    /// <summary>
+    /// Trả về true nếu \\.\DISPLAYx trông giống màn hình ảo.
+    /// </summary>
+    public static bool IsVirtualDisplay(string displayName, IntPtr hmon)
+    {
+        // 1) Tìm display adapter ứng với \\.\DISPLAYx
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break; // hết adapter
+            if (!string.Equals(dd.DeviceName, displayName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // 2) Lấy "monitor device" nằm dưới adapter này (pass adapter name vào lpDevice)
+            var mon = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (EnumDisplayDevices(dd.DeviceName, 0, ref mon, 0))
+            {
+                if (IsLikelyVirtualByStrings(mon.DeviceString, mon.DeviceID))
+                    return true;
+            }
+            // Fallback: nếu chuỗi không giúp, thử physical monitor API
+            return HasNoPhysicalMonitors(hmon);
+        }
+
+        // Nếu không tìm thấy entry cho \\.\DISPLAYx, dùng fallback
+        return HasNoPhysicalMonitors(hmon);
+    }
+
+    /// <summary>
+    /// Chọn mid của màn hình ảo trong danh sách monitors DXGI (ưu tiên có từ khóa).
+    /// </summary>
+    public static int PickVirtualMid(System.Collections.Generic.List<(IntPtr hmon, string name, int width, int height)> mons)
+    {
+        // Ưu tiên: có keyword ảo
+        for (int i = 0; i < mons.Count; i++)
+            if (IsVirtualDisplay(mons[i].name, mons[i].hmon))
+                return i;
+
+        // Fallback: chọn cái có kích thước “mặc định ảo” hay khác biệt (800x600/1024x768/1366x768)
+        int[] favW = { 1366, 1280, 1024, 800 };
+        int[] favH = { 768, 720, 768, 600 };
+        for (int i = 0; i < mons.Count; i++)
+            for (int k = 0; k < favW.Length; k++)
+                if (mons[i].width == favW[k] && mons[i].height == favH[k])
+                    return i;
+
+        // Không chắc: chọn monitor cuối cùng (thường là ảo khi vừa add)
+        return mons.Count > 0 ? mons.Count - 1 : -1;
+    }
 }
