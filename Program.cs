@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Web;
 using System.Runtime.InteropServices;
 
-class Program
+partial class Program
 {
     static async Task Main()
     {
@@ -32,13 +33,11 @@ class Program
         for (int i = 0; i < monitors.Count; i++)
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
-        // ⭐ Tự chọn màn hình ảo:
+        // ⭐ Tự chọn màn hình ảo nếu có
         int midVirtual = MonitorDetect.PickVirtualMid(monitors);
         if (midVirtual >= 0)
         {
             Console.WriteLine($"[AutoPick] Virtual display ≈ mid={midVirtual} ({monitors[midVirtual].name})");
-
-            // ⭐ Ép 1366x768@60 ngay lúc khởi động
             if (DisplayUtil.ForceResolution(monitors[midVirtual].name, 1366, 768, 60))
                 Console.WriteLine("[Display] Forced 1366x768@60");
             else
@@ -46,21 +45,22 @@ class Program
         }
         else
         {
-            Console.WriteLine("[AutoPick] Could not find a virtual display. Using mid=0 as fallback.");
-            midVirtual = monitors.Count - 1; // fallback: chọn cái cuối
+            Console.WriteLine("[AutoPick] Could not find a virtual display. Using last display as fallback.");
+            midVirtual = monitors.Count - 1;
         }
         ForceVirtualDisplayTo1366x76860(midVirtual);
 
         int port = 8288;
         var server = new SignalAndRestServer($"http://+:{port}/");
         server.SetWindows(windows);
-        server.SetMonitors(monitors);
+        server.SetMonitors(monitors.Select(m => (m.hmon, m.name, m.width, m.height)).ToList());
         await server.StartAsync();
 
         foreach (var ip in NetUtil.GetLocalIPv4Addresses())
             Console.WriteLine($"   • ws://{ip}:{port}/signal?wid=<id>   hoặc   ws://{ip}:{port}/signal?mid=<id>");
         Console.WriteLine($"   • http://localhost:{port}/api/windows");
         Console.WriteLine($"   • http://localhost:{port}/api/monitors");
+        Console.WriteLine($"   • http://localhost:{port}/api/cluster");
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
         await server.StopAsync();
@@ -68,11 +68,10 @@ class Program
 
     static void ForceVirtualDisplayTo1366x76860(int mid)
     {
-        // Bạn đã có API liệt kê monitors (DXGI) kèm DeviceName kiểu \\.\DISPLAY5
         var mons = WgcInterop.ListMonitorsDXGI(); // (hmon, name, w, h)
         if (mid >= 0 && mid < mons.Count)
         {
-            string devName = mons[mid].name; // ví dụ "\\\\.\\DISPLAY5"
+            string devName = mons[mid].name; // ví dụ "\\.\DISPLAY5"
             Console.WriteLine("[Display] Forcing " + devName + " -> 1366x768@60");
             bool ok = DisplayUtil.ForceResolution(devName, 1366, 768, 60);
             Console.WriteLine(ok ? "[Display] OK" : "[Display] Failed to set mode");
@@ -80,14 +79,99 @@ class Program
     }
 }
 
+// ====================== Cluster planner (Trái/Giữa/Phải) ======================
+public record ClusterMap(int leftMid, int centerMid, int rightMid);
+
+static class ClusterPlanner
+{
+    public static ClusterMap ComputeThreeScreenCluster(
+    List<(IntPtr hmon, string name, int w, int h)> mons)
+    {
+        if (mons == null || mons.Count == 0) return new ClusterMap(-1, -1, -1);
+
+        // CENTER = Primary (không có thì DISPLAY1, rồi 0)
+        int midCenter = -1;
+        for (int i = 0; i < mons.Count; i++)
+            if (DisplayUtil.IsPrimary(mons[i].name)) { midCenter = i; break; }
+        if (midCenter < 0)
+            for (int i = 0; i < mons.Count; i++)
+                if (mons[i].name.Equals(@"\\.\DISPLAY1", StringComparison.OrdinalIgnoreCase)) { midCenter = i; break; }
+        if (midCenter < 0) midCenter = 0;
+
+        // LEFT = Virtual khác center
+        int midVirtual = -1;
+        for (int i = 0; i < mons.Count; i++)
+        {
+            if (i == midCenter) continue;
+            if (DisplayUtil.IsVirtualDisplay(mons[i].name, mons[i].hmon)) { midVirtual = i; break; }
+        }
+
+        // RIGHT = Physical khác center & khác virtual
+        int midPhysical = -1;
+        for (int i = 0; i < mons.Count; i++)
+        {
+            if (i == midCenter || i == midVirtual) continue;
+            if (!DisplayUtil.IsVirtualDisplay(mons[i].name, mons[i].hmon)) { midPhysical = i; break; }
+        }
+
+        // Fallback nếu thiếu 1 bên: lấp bằng bất kỳ còn trống
+        if (midVirtual < 0)
+            for (int i = 0; i < mons.Count; i++)
+                if (i != midCenter && i != midPhysical) { midVirtual = i; break; }
+
+        if (midPhysical < 0)
+            for (int i = 0; i < mons.Count; i++)
+                if (i != midCenter && i != midVirtual) { midPhysical = i; break; }
+
+        return new ClusterMap(midVirtual, midCenter, midPhysical);
+    }
+}
+
+static class ClusterId
+{
+    public static int DisplayOrdinalFromName(string deviceName)
+    {
+        if (string.IsNullOrWhiteSpace(deviceName)) return -1;
+        var key = "DISPLAY";
+        var idx = deviceName.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+        if (idx < 0) return -1;
+        idx += key.Length;
+        int j = idx;
+        while (j < deviceName.Length && char.IsDigit(deviceName[j])) j++;
+        var digits = deviceName.Substring(idx, j - idx);
+        return int.TryParse(digits, out var n) ? n : -1;
+    }
+
+    // Chuyển mid (index) -> ordinal (1..N), fallback = mid+1 nếu parse lỗi
+    public static int MidToOrdinal(List<(IntPtr hmon, string name, int w, int h)> mons, int mid)
+    {
+        if (mid < 0 || mid >= mons.Count) return -1;
+        int ord = DisplayOrdinalFromName(mons[mid].name);
+        return ord > 0 ? ord : (mid + 1);
+    }
+}
+
+// ====================== HTTP + WebRTC server ======================
 public class SignalAndRestServer
 {
     private readonly HttpListener _listener;
     private readonly ConcurrentDictionary<Guid, WebRTCStreamer_H264> _streams = new();
     private readonly ConcurrentDictionary<Guid, (int wid, WgcCapture cap)> _captures = new();
 
-    private System.Collections.Generic.List<Win32.WindowInfo> _windows = new();
-    private System.Collections.Generic.List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
+    private List<Win32.WindowInfo> _windows = new();
+    private List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
+
+    // (Tuỳ chọn) Ép 1366×768@60 cho hai màn phụ để đồng bộ tỉ lệ
+    static void ForceClusterSidesTo1366x768(List<(IntPtr hmon, string name, int w, int h)> mons, ClusterMap cluster)
+    {
+        void Force(int mid)
+        {
+            if (mid >= 0 && mid < mons.Count)
+                try { DisplayUtil.ForceResolution(mons[mid].name, 1366, 768, 60); } catch { }
+        }
+        Force(cluster.leftMid);
+        Force(cluster.rightMid);
+    }
 
     public SignalAndRestServer(string prefix)
     {
@@ -95,8 +179,8 @@ public class SignalAndRestServer
         _listener.Prefixes.Add(prefix);
     }
 
-    public void SetWindows(System.Collections.Generic.List<Win32.WindowInfo> wins) => _windows = wins;
-    public void SetMonitors(System.Collections.Generic.List<(IntPtr hmon, string name, int w, int h)> mons) => _monitors = mons;
+    public void SetWindows(List<Win32.WindowInfo> wins) => _windows = wins;
+    public void SetMonitors(List<(IntPtr hmon, string name, int w, int h)> mons) => _monitors = mons;
 
     public Task StartAsync()
     {
@@ -153,6 +237,51 @@ public class SignalAndRestServer
                 ctx.Response.ContentType = "application/json";
                 ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
                 ctx.Response.Close();
+                continue;
+            }
+
+            // >>> ADD: API trả sơ đồ bind cụm 3 màn
+            if (path == "/api/cluster" && ctx.Request.HttpMethod == "GET")
+            {
+                try
+                {
+                    var monsNow = WgcInterop.ListMonitorsDXGI();
+                    _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+
+                    var cluster = ClusterPlanner.ComputeThreeScreenCluster(_monitors);
+
+                    // Trả trực tiếp MID (0-based) thay vì ordinal 1..N
+                    int L = cluster.leftMid;
+                    int C = cluster.centerMid;
+                    int R = cluster.rightMid;
+
+                    // Nếu thiếu (=-1) mà vẫn có >=3 màn, lấp bằng id chưa dùng
+                    if (_monitors.Count >= 3)
+                    {
+                        var used = new HashSet<int> { L, C, R };
+                        for (int i = 0; i < _monitors.Count; i++)
+                        {
+                            if (used.Contains(i)) continue;
+                            if (L < 0) { L = i; used.Add(i); continue; }
+                            if (R < 0) { R = i; used.Add(i); continue; }
+                        }
+                    }
+
+                    string json = $"{{\"left\":{Math.Max(0, L)},\"center\":{Math.Max(0, C)},\"right\":{Math.Max(0, R)}}}";
+                    var bytes = Encoding.UTF8.GetBytes(json);
+                    ctx.Response.ContentType = "application/json";
+                    ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                    ctx.Response.Close();
+                }
+                catch (Exception ex)
+                {
+                    var bytes = Encoding.UTF8.GetBytes("{\"left\":1,\"center\":1,\"right\":1}");
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.ContentType = "application/json";
+                    ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                    ctx.Response.Close();
+                    Console.WriteLine("[/api/cluster] " + ex);
+                }
                 continue;
             }
 
@@ -315,6 +444,7 @@ public class SignalAndRestServer
     }
 }
 
+// ====================== WebRTC interface (giữ nguyên) ======================
 public interface IWebRTCStreamer : IDisposable
 {
     Task StartAsync();
@@ -323,84 +453,7 @@ public interface IWebRTCStreamer : IDisposable
     Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
 }
 
-static class DisplayUtil
-{
-    const int ENUM_CURRENT_SETTINGS = -1;
-    const int DM_PELSWIDTH = 0x00080000;
-    const int DM_PELSHEIGHT = 0x00100000;
-    const int DM_DISPLAYFREQUENCY = 0x00400000;
-    const int CDS_UPDATEREGISTRY = 0x00000001;
-    const int CDS_GLOBAL = 0x00000008;
-    const int DISP_CHANGE_SUCCESSFUL = 0;
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    struct DEVMODE
-    {
-        private const int CCHDEVICENAME = 32;
-        private const int CCHFORMNAME = 32;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
-        public string dmDeviceName;
-        public short dmSpecVersion;
-        public short dmDriverVersion;
-        public short dmSize;
-        public short dmDriverExtra;
-        public int dmFields;
-
-        public int dmPositionX;
-        public int dmPositionY;
-        public int dmDisplayOrientation;
-        public int dmDisplayFixedOutput;
-
-        public short dmColor;
-        public short dmDuplex;
-        public short dmYResolution;
-        public short dmTTOption;
-        public short dmCollate;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)]
-        public string dmFormName;
-        public short dmLogPixels;
-        public int dmBitsPerPel;
-        public int dmPelsWidth;
-        public int dmPelsHeight;
-        public int dmDisplayFlags;
-        public int dmDisplayFrequency;
-        public int dmICMMethod;
-        public int dmICMIntent;
-        public int dmMediaType;
-        public int dmDitherType;
-        public int dmReserved1;
-        public int dmReserved2;
-        public int dmPanningWidth;
-        public int dmPanningHeight;
-    }
-
-    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
-    static extern bool EnumDisplaySettingsEx(string lpszDeviceName, int iModeNum, ref DEVMODE lpDevMode, int dwFlags);
-
-    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
-    static extern int ChangeDisplaySettingsEx(string lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, int dwflags, IntPtr lParam);
-
-    public static bool ForceResolution(string deviceName, int w, int h, int hz)
-    {
-        var dm = new DEVMODE();
-        dm.dmDeviceName = new string('\0', 32);
-        dm.dmFormName = new string('\0', 32);
-        dm.dmSize = (short)Marshal.SizeOf<DEVMODE>();
-
-        // Lấy current mode rồi sửa ba trường cần thiết
-        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
-            return false;
-
-        dm.dmPelsWidth = w;
-        dm.dmPelsHeight = h;
-        dm.dmDisplayFrequency = hz;
-        dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
-
-        int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_GLOBAL, IntPtr.Zero);
-        return ret == DISP_CHANGE_SUCCESSFUL;
-    }
-}
-
+// ====================== Virtual monitor heuristics (giữ nguyên, bổ sung dùng chung) ======================
 static class MonitorDetect
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -425,7 +478,6 @@ static class MonitorDetect
     {
         var s = (deviceString ?? "").ToLowerInvariant();
         var id = (deviceId ?? "").ToLowerInvariant();
-        // Thêm từ khóa riêng của driver nếu biết (ví dụ "virtual display driver")
         string[] keywords = { "virtual", "idd", "indirect", "headless" };
         return keywords.Any(k => s.Contains(k) || id.Contains(k));
     }
@@ -436,45 +488,34 @@ static class MonitorDetect
         catch { return false; }
     }
 
-    /// <summary>
     /// Trả về true nếu \\.\DISPLAYx trông giống màn hình ảo.
-    /// </summary>
     public static bool IsVirtualDisplay(string displayName, IntPtr hmon)
     {
-        // 1) Tìm display adapter ứng với \\.\DISPLAYx
         for (uint devNum = 0; ; devNum++)
         {
             var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
-            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break; // hết adapter
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
             if (!string.Equals(dd.DeviceName, displayName, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            // 2) Lấy "monitor device" nằm dưới adapter này (pass adapter name vào lpDevice)
             var mon = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
             if (EnumDisplayDevices(dd.DeviceName, 0, ref mon, 0))
             {
                 if (IsLikelyVirtualByStrings(mon.DeviceString, mon.DeviceID))
                     return true;
             }
-            // Fallback: nếu chuỗi không giúp, thử physical monitor API
             return HasNoPhysicalMonitors(hmon);
         }
-
-        // Nếu không tìm thấy entry cho \\.\DISPLAYx, dùng fallback
         return HasNoPhysicalMonitors(hmon);
     }
 
-    /// <summary>
     /// Chọn mid của màn hình ảo trong danh sách monitors DXGI (ưu tiên có từ khóa).
-    /// </summary>
-    public static int PickVirtualMid(System.Collections.Generic.List<(IntPtr hmon, string name, int width, int height)> mons)
+    public static int PickVirtualMid(List<(IntPtr hmon, string name, int width, int height)> mons)
     {
-        // Ưu tiên: có keyword ảo
         for (int i = 0; i < mons.Count; i++)
             if (IsVirtualDisplay(mons[i].name, mons[i].hmon))
                 return i;
 
-        // Fallback: chọn cái có kích thước “mặc định ảo” hay khác biệt (800x600/1024x768/1366x768)
         int[] favW = { 1366, 1280, 1024, 800 };
         int[] favH = { 768, 720, 768, 600 };
         for (int i = 0; i < mons.Count; i++)
@@ -482,7 +523,6 @@ static class MonitorDetect
                 if (mons[i].width == favW[k] && mons[i].height == favH[k])
                     return i;
 
-        // Không chắc: chọn monitor cuối cùng (thường là ảo khi vừa add)
         return mons.Count > 0 ? mons.Count - 1 : -1;
     }
 }

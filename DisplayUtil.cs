@@ -1,0 +1,166 @@
+// ========== DisplayUtil.cs (hoặc giữ nguyên trong Program.cs nếu bạn đang để cùng file) ==========
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+
+static class DisplayUtil
+{
+    // --- Constants & flags ---
+    const int ENUM_CURRENT_SETTINGS = -1;
+    const int DM_POSITION = 0x00000020;
+    const int DM_PELSWIDTH = 0x00080000;
+    const int DM_PELSHEIGHT = 0x00100000;
+    const int DM_DISPLAYFREQUENCY = 0x00400000;
+
+    const int CDS_UPDATEREGISTRY = 0x00000001;
+    const int CDS_GLOBAL = 0x00000008;
+
+    const int DISP_CHANGE_SUCCESSFUL = 0;
+    const int DISPLAY_DEVICE_ACTIVE = 0x00000001;
+    const int DISPLAY_DEVICE_PRIMARY_DEVICE = 0x00000004;
+
+    // --- Structs & P/Invoke ---
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DEVMODE
+    {
+        private const int CCHDEVICENAME = 32;
+        private const int CCHFORMNAME = 32;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
+        public string dmDeviceName;
+        public short dmSpecVersion;
+        public short dmDriverVersion;
+        public short dmSize;
+        public short dmDriverExtra;
+        public int dmFields;
+
+        public int dmPositionX;
+        public int dmPositionY;
+        public ScreenOrientation dmDisplayOrientation;
+        public int dmDisplayFixedOutput;
+
+        public short dmColor;
+        public short dmDuplex;
+        public short dmYResolution;
+        public short dmTTOption;
+        public short dmCollate;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)]
+        public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel;
+        public int dmPelsWidth;
+        public int dmPelsHeight;
+        public int dmDisplayFlags;
+        public int dmDisplayFrequency;
+        public int dmICMMethod;
+        public int dmICMIntent;
+        public int dmMediaType;
+        public int dmDitherType;
+        public int dmReserved1;
+        public int dmReserved2;
+        public int dmPanningWidth;
+        public int dmPanningHeight;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DISPLAY_DEVICE
+    {
+        public int cb;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceString;
+        public int StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceID;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceKey;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern bool EnumDisplaySettingsEx(string lpszDeviceName, int iModeNum, ref DEVMODE lpDevMode, int dwFlags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern int ChangeDisplaySettingsEx(string lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, int dwflags, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+
+    [DllImport("dxva2.dll", SetLastError = true)]
+    static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
+
+    // --- Helpers ---
+
+    /// Đọc layout (tọa độ X/Y + kích thước) hiện tại của một \\.\DISPLAYx
+    public static (int x, int y, int w, int h, bool ok) TryGetLayout(string deviceName)
+    {
+        var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+            return (0, 0, 0, 0, false);
+        return (dm.dmPositionX, dm.dmPositionY, dm.dmPelsWidth, dm.dmPelsHeight, true);
+    }
+
+    /// Đặt mode độ phân giải / tần số cho một \\.\DISPLAYx
+    public static bool ForceResolution(string deviceName, int w, int h, int hz)
+    {
+        var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+            return false;
+
+        dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+        dm.dmPelsWidth = w;
+        dm.dmPelsHeight = h;
+        dm.dmDisplayFrequency = hz;
+
+        int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_GLOBAL, IntPtr.Zero);
+        return ret == DISP_CHANGE_SUCCESSFUL;
+    }
+
+    static bool IsLikelyVirtualByStrings(string deviceString, string deviceId)
+    {
+        var s = (deviceString ?? "").ToLowerInvariant();
+        var id = (deviceId ?? "").ToLowerInvariant();
+        string[] keywords = { "virtual", "indirect", "idd", "headless" };
+        return keywords.Any(k => s.Contains(k) || id.Contains(k));
+    }
+
+    static bool HasNoPhysicalMonitors(IntPtr hmon)
+    {
+        try { return GetNumberOfPhysicalMonitorsFromHMONITOR(hmon, out var n) && n == 0; }
+        catch { return false; }
+    }
+
+    /// Trả về true nếu \\.\DISPLAYx trông giống màn hình ảo (chuỗi nhận diện + không có physical monitor).
+    public static bool IsVirtualDisplay(string displayName, IntPtr hmon)
+    {
+        // Bắt cặp DISPLAYx -> adapter
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
+            if (!string.Equals(dd.DeviceName, displayName, StringComparison.OrdinalIgnoreCase)) continue;
+
+            // Thiết bị con
+            var mon = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (EnumDisplayDevices(dd.DeviceName, 0, ref mon, 0))
+            {
+                if (IsLikelyVirtualByStrings(mon.DeviceString, mon.DeviceID))
+                    return true;
+            }
+            return HasNoPhysicalMonitors(hmon);
+        }
+        return HasNoPhysicalMonitors(hmon);
+    }
+
+    /// Kiểm tra một \\.\DISPLAYx có phải Primary không
+    public static bool IsPrimary(string deviceName)
+    {
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
+            if (!string.Equals(dd.DeviceName, deviceName, StringComparison.OrdinalIgnoreCase)) continue;
+            return (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
+        }
+        return deviceName.Equals(@"\\.\DISPLAY1", StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+enum ScreenOrientation : int { DMDO_DEFAULT = 0, DMDO_90 = 1, DMDO_180 = 2, DMDO_270 = 3 }
