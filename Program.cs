@@ -54,6 +54,7 @@ partial class Program
         var server = new SignalAndRestServer($"http://+:{port}/");
         server.SetWindows(windows);
         server.SetMonitors(monitors.Select(m => (m.hmon, m.name, m.width, m.height)).ToList());
+        InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
         await server.StartAsync();
 
         foreach (var ip in NetUtil.GetLocalIPv4Addresses())
@@ -160,6 +161,14 @@ public class SignalAndRestServer
 
     private List<Win32.WindowInfo> _windows = new();
     private List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
+
+    // ===== Input logging helpers =====
+    static readonly bool INPUT_LOG = true;
+    static void InputLog(string msg)
+    {
+        if (INPUT_LOG)
+            Console.WriteLine($"[INPUT] {DateTime.Now:HH:mm:ss.fff} {msg}");
+    }
 
     // (Tuỳ chọn) Ép 1366×768@60 cho hai màn phụ để đồng bộ tỉ lệ
     static void ForceClusterSidesTo1366x768(List<(IntPtr hmon, string name, int w, int h)> mons, ClusterMap cluster)
@@ -313,75 +322,164 @@ public class SignalAndRestServer
 
     [DllImport("combase.dll")] static extern int RoInitialize(uint initType); // 1 = RO_INIT_MULTITHREADED
 
-    private async Task HandleClient(Guid id, int wid, int mid, System.Net.WebSockets.WebSocket ws, System.Collections.Specialized.NameValueCollection qs)
+    private async Task HandleClient(Guid id, int wid, int mid,
+    System.Net.WebSockets.WebSocket ws,
+    System.Collections.Specialized.NameValueCollection qs)
     {
         CancellationTokenSource? stopCapture = null;
         Thread? capThread = null;
 
-        try
-        {
-            // 1) Nhận "offer:..."
-            string? offer = null;
-            var recvBuf = new byte[256 * 1024];
-            using var ms = new System.IO.MemoryStream();
+        var offerTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        string activeDisplay = (mid >= 0 && mid < _monitors.Count) ? _monitors[mid].name : "";
 
+        // ===== 1) Vòng nhận DUY NHẤT cho mọi message =====
+        var rxLoop = Task.Run(async () =>
+        {
+            var buf = new byte[64 * 1024];
+            var ms = new System.IO.MemoryStream();
             while (ws.State == System.Net.WebSockets.WebSocketState.Open)
             {
-                var res = await ws.ReceiveAsync(new ArraySegment<byte>(recvBuf), CancellationToken.None);
+                var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
                 if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
-                ms.Write(recvBuf, 0, res.Count);
+
+                ms.Write(buf, 0, res.Count);
                 if (!res.EndOfMessage) continue;
 
                 var text = Encoding.UTF8.GetString(ms.ToArray());
                 ms.SetLength(0);
 
-                if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase)) { offer = text.Substring("offer:".Length); break; }
-                else if (text.Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // a) offer
+                if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                {
+                    offerTcs.TrySetResult(text.Substring("offer:".Length));
+                    continue;
+                }
+
+                // b) ping/pong (giữ kết nối)
+                if (text.Equals("ping", StringComparison.OrdinalIgnoreCase))
                 {
                     var pong = Encoding.UTF8.GetBytes("pong");
                     await ws.SendAsync(new ArraySegment<byte>(pong), System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                    continue;
                 }
-            }
-            if (offer == null) return;
 
-            // Tham số codec từ query (tuỳ chọn): fps/kbps/crf/preset/zerolat
+                // c) input JSON
+                if (text.StartsWith("{\"input\":"))
+                {
+                    try
+                    {
+                        if (text.Contains("\"input\":\"move_uv\""))
+                        {
+                            // thay mọi dấu phẩy giữa 2 chữ số thành dấu chấm
+                            text = System.Text.RegularExpressions.Regex.Replace(text, "(?<=\\d),(?=\\d)", ".");
+                        }
+                        var obj = System.Text.Json.JsonDocument.Parse(text).RootElement;
+                        string kind = obj.GetProperty("input").GetString() ?? "";
+
+                        if (kind == "move_uv" && activeDisplay.Length > 0)
+                        {
+                            float u = obj.GetProperty("u").GetSingle();
+                            float v = obj.GetProperty("v").GetSingle();
+                            v = 1f - v;
+                            var (px, py) = InputInjector.UvToDesktop(activeDisplay, u, v);
+                            bool pushed = false;
+
+                            // Đẩy ngang khi sát mép
+                            if (u >= 0.995f) { InputInjector.MoveRelative(+12, 0); pushed = true; }
+                            else if (u <= 0.005f) { InputInjector.MoveRelative(-12, 0); pushed = true; }
+
+                            // Đẩy dọc khi sát mép (đã đảo v rồi)
+                            if (v >= 0.995f) { InputInjector.MoveRelative(0, +12); pushed = true; }
+                            else if (v <= 0.005f) { InputInjector.MoveRelative(0, -12); pushed = true; }
+
+                            if (!pushed)
+                            {
+                                // Bình thường thì đặt tuyệt đối theo UV
+                                InputInjector.MoveAbsolute(px, py);
+                            }
+                            InputLog($"move_uv u={u:F3} v={v:F3} -> px={px} py={py}");
+                        }
+                        else if (kind == "down")
+                        {
+                            bool right = obj.TryGetProperty("btn", out var b) && b.GetString() == "right";
+                            bool middle = obj.TryGetProperty("btn", out var b2) && b2.GetString() == "middle";
+                            if (middle) { InputLog("mouse down MIDDLE"); InputInjector.ClickMiddle(true); }
+                            else { InputLog(right ? "mouse down RIGHT" : "mouse down LEFT"); InputInjector.Click(true, right); }
+                        }
+                        else if (kind == "up")
+                        {
+                            bool right = obj.TryGetProperty("btn", out var b) && b.GetString() == "right";
+                            bool middle = obj.TryGetProperty("btn", out var b2) && b2.GetString() == "middle";
+                            if (middle) { InputLog("mouse up MIDDLE"); InputInjector.ClickMiddle(false); }
+                            else { InputLog(right ? "mouse up RIGHT" : "mouse up LEFT"); InputInjector.Click(false, right); }
+                        }
+                        else if (kind == "key")
+                        {
+                            ushort vk = (ushort)obj.GetProperty("vk").GetInt32();
+                            bool down = obj.GetProperty("down").GetBoolean();
+                            InputLog($"key vk=0x{vk:X2} {(down ? "DOWN" : "UP")}");
+                            InputInjector.Key(vk, down);
+                        }
+                        else if (kind == "wheel")
+                        {
+                            int delta = obj.GetProperty("delta").GetInt32();
+                            bool horiz = obj.TryGetProperty("h", out var hv) && hv.GetBoolean();
+                            InputLog($"wheel {(horiz ? "H" : "V")} delta={delta}");
+                            InputInjector.Wheel(delta, horiz);
+                        }
+                        else if (kind == "text")
+                        {
+                            string s = obj.GetProperty("text").GetString() ?? "";
+                            InputLog($"text '{s}' (len={s.Length})");
+                            InputInjector.Text(s);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[INPUT] parse error: " + ex.Message);
+                    }
+                    continue;
+                }
+
+                // d) candidate / các loại khác → bỏ qua nhưng log ngắn gọn để chẩn đoán
+                if (!string.IsNullOrWhiteSpace(text))
+                    Console.WriteLine("[WS] non-input msg: " + (text.Length > 60 ? text.Substring(0, 60) + "..." : text));
+            }
+        });
+
+        try
+        {
+            // ===== 2) Đợi offer từ vòng nhận duy nhất
+            string offer = await offerTcs.Task;
+
+            // Tham số codec
             int fps = TryParseInt(qs.Get("fps"), 60, 5, 120);
             int kbps = TryParseInt(qs.Get("kbps"), 12000, 0, 100000);
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
             bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
 
-            // 2) WebRTC: tạo streamer, trả answer
+            // ===== 3) WebRTC
             var streamer = new WebRTCStreamer_H264(fps: fps, targetKbps: kbps, crf: crf, preset: preset, zerolatency: zerolat);
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
-            {
-                var data = Encoding.UTF8.GetBytes("answer:" + answer);
-                await ws.SendAsync(new ArraySegment<byte>(data), System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
-            }
+            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("answer:" + answer)),
+                System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+
             _streams[id] = streamer;
 
-            // 3) Khởi động capture trên thread riêng
+            // ===== 4) Capture
             stopCapture = new CancellationTokenSource();
-
             capThread = new Thread(() =>
             {
                 try { RoInitialize(1); } catch { }
                 try { WinRT.ComWrappersSupport.InitializeComWrappers(); } catch { }
-
                 try
                 {
-                    WgcCapture cap;
-                    if (mid >= 0 && mid < _monitors.Count)
-                    {
-                        var hmon = _monitors[mid].hmon;
-                        cap = new WgcCapture(hmon, isMonitor: true);
-                    }
-                    else
-                    {
-                        var hwnd = _windows[wid].hwnd;
-                        cap = new WgcCapture(hwnd);
-                    }
+                    WgcCapture cap = (mid >= 0 && mid < _monitors.Count)
+                        ? new WgcCapture(_monitors[mid].hmon, isMonitor: true)
+                        : new WgcCapture(_windows[wid].hwnd);
+
                     _captures[id] = (wid, cap);
 
                     Action<byte[], int, int, int> handler = (buf, w, h, stride) =>
@@ -391,22 +489,13 @@ public class SignalAndRestServer
                     };
                     cap.OnFrame += handler;
 
-                    // Nếu peer rớt, ngắt capture ngay
-                    streamer.OnPeerDisconnected += () =>
-                    {
-                        try { stopCapture?.Cancel(); } catch { }
-                    };
+                    streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
 
                     cap.Start();
                     stopCapture.Token.WaitHandle.WaitOne();
-
-                    // gỡ handler trước khi dispose để tránh race
                     try { cap.OnFrame -= handler; } catch { }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("[Capture] start error: " + ex);
-                }
+                catch (Exception ex) { Console.WriteLine("[Capture] start error: " + ex); }
             })
             { IsBackground = true, Name = $"WGC-Capture-{(mid >= 0 ? $"mid{mid}" : $"wid{wid}")}" };
             capThread.Start();
@@ -414,7 +503,9 @@ public class SignalAndRestServer
             if (mid >= 0) Console.WriteLine($"[WGC] Streaming monitor mid={mid}");
             else Console.WriteLine($"[WGC] Streaming window wid={wid}");
 
+            // Chờ tới khi socket đóng hoặc capture ngắt
             while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(250);
+            await rxLoop; // bảo đảm vòng nhận kết thúc
         }
         catch (Exception ex)
         {
@@ -422,12 +513,8 @@ public class SignalAndRestServer
         }
         finally
         {
-            try
-            {
-                if (stopCapture != null) stopCapture.Cancel();
-                if (capThread != null && capThread.IsAlive) { try { capThread.Join(500); } catch { } }
-            }
-            catch { }
+            try { if (stopCapture != null) stopCapture.Cancel(); } catch { }
+            try { if (capThread != null && capThread.IsAlive) capThread.Join(500); } catch { }
 
             if (_streams.TryRemove(id, out var st)) { try { st.StopAsync().Wait(500); } catch { } try { st.Dispose(); } catch { } }
             if (_captures.TryRemove(id, out var cap)) { try { cap.cap.Dispose(); } catch { } }
@@ -524,5 +611,205 @@ static class MonitorDetect
                     return i;
 
         return mons.Count > 0 ? mons.Count - 1 : -1;
+    }
+}
+
+static class InputInjector
+{
+    public static System.Action<string>? OnLog;
+    [StructLayout(LayoutKind.Sequential)]
+    struct INPUT { public int type; public INPUTUNION U; }
+    [StructLayout(LayoutKind.Explicit)]
+    struct INPUTUNION
+    {
+        [FieldOffset(0)] public MOUSEINPUT mi;
+        [FieldOffset(0)] public KEYBDINPUT ki;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    struct MOUSEINPUT { public int dx, dy, mouseData, dwFlags, time; public IntPtr dwExtraInfo; }
+    [StructLayout(LayoutKind.Sequential)]
+    struct KEYBDINPUT { public ushort wVk; public ushort wScan; public int dwFlags; public int time; public IntPtr dwExtraInfo; }
+
+    const int INPUT_MOUSE = 0, INPUT_KEYBOARD = 1;
+    const int MOUSEEVENTF_MOVE = 0x0001;
+    const int MOUSEEVENTF_ABSOLUTE = 0x8000;
+    const int MOUSEEVENTF_LEFTDOWN = 0x0002;
+    const int MOUSEEVENTF_LEFTUP = 0x0004;
+    const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
+    const int MOUSEEVENTF_RIGHTUP = 0x0010;
+    const int MOUSEEVENTF_WHEEL = 0x0800;
+    const int MOUSEEVENTF_HWHEEL = 0x01000;
+    const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+    const int MOUSEEVENTF_MIDDLEUP = 0x0040;
+    const int KEYEVENTF_KEYUP = 0x0002;
+    const int KEYEVENTF_UNICODE = 0x0004;
+
+    [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+    [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
+
+    // Map (u,v) [0..1] trên 1 monitor -> toạ độ desktop tuyệt đối
+    public static void MoveRelative(int dx, int dy)
+    {
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = dx,
+                    dy = dy,
+                    mouseData = 0,
+                    dwFlags = MOUSEEVENTF_MOVE,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        OnLog?.Invoke($"MoveRel dx={dx} dy={dy}");
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    public static (int x, int y) UvToDesktop(string deviceName, float u, float v)
+    {
+        var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(deviceName);
+        if (!ok) return (0, 0);
+        int px = x + Math.Clamp((int)Math.Round(u * (w - 1)), 0, Math.Max(0, w - 1));
+        int py = y + Math.Clamp((int)Math.Round(v * (h - 1)), 0, Math.Max(0, h - 1));
+        return (px, py);
+    }
+
+    public static void Text(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return;
+        var list = new System.Collections.Generic.List<INPUT>();
+        foreach (var ch in s)
+        {
+            // gửi UNICODE down
+            list.Add(new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                U = new INPUTUNION
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = 0,                // VK = 0 khi dùng UNICODE
+                        wScan = (ushort)ch,             // mã unicode
+                        dwFlags = KEYEVENTF_UNICODE,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            });
+            // gửi UNICODE up
+            list.Add(new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                U = new INPUTUNION
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = 0,
+                        wScan = (ushort)ch,
+                        dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            });
+        }
+        OnLog?.Invoke($"Text \"{s}\"");
+        SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
+    }
+
+    public static void ClickMiddle(bool down)
+    {
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0,
+                    dy = 0,
+                    mouseData = 0,
+                    dwFlags = down ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        OnLog?.Invoke($"Click M {(down ? "DOWN" : "UP")}");
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    public static void Wheel(int delta, bool horizontal = false)
+    {
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0,
+                    dy = 0,
+                    mouseData = delta,
+                    dwFlags = horizontal ? MOUSEEVENTF_HWHEEL : MOUSEEVENTF_WHEEL,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        OnLog?.Invoke($"Wheel {(horizontal ? "H" : "V")} delta={delta}");
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    public static void MoveAbsolute(int px, int py) { OnLog?.Invoke($"SetCursorPos x={px} y={py}"); SetCursorPos(px, py); }
+
+    public static void Click(bool down, bool right = false)
+    {
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0,
+                    dy = 0,
+                    mouseData = 0,
+                    dwFlags = right
+                        ? (down ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP)
+                        : (down ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP),
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        OnLog?.Invoke($"Click {(right ? "R" : "L")} {(down ? "DOWN" : "UP")}");
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    public static void Key(ushort vk, bool down)
+    {
+        OnLog?.Invoke($"Key vk=0x{vk:X2} {(down ? "DOWN" : "UP")}");
+        var inp = new INPUT
+        {
+            type = INPUT_KEYBOARD,
+            U = new INPUTUNION
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = vk,
+                    wScan = 0,
+                    dwFlags = down ? 0 : KEYEVENTF_KEYUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
 }
