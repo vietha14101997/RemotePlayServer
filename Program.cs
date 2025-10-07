@@ -14,6 +14,13 @@ partial class Program
 {
     static async Task Main()
     {
+        // Khôi phục nếu phiên trước crash (chạy rất sớm)
+        if (Environment.GetCommandLineArgs().Any(a => a.Equals("--restore-if-needed", StringComparison.OrdinalIgnoreCase)))
+        {
+            DisplayGuard.RestoreIfNeededOnStartup();
+            return;
+        }
+
         WinRT.ComWrappersSupport.InitializeComWrappers();
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("=== RemotePlayServer (.NET 9 + Windows Graphics Capture + WebRTC) ===");
@@ -34,28 +41,37 @@ partial class Program
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
         // ⭐ Tự chọn màn hình ảo nếu có
-        int midVirtual = MonitorDetect.PickVirtualMid(monitors);
-        if (midVirtual >= 0)
-        {
-            Console.WriteLine($"[AutoPick] Virtual display ≈ mid={midVirtual} ({monitors[midVirtual].name})");
-            if (DisplayUtil.ForceResolution(monitors[midVirtual].name, 1366, 768, 60))
-                Console.WriteLine("[Display] Forced 1366x768@60");
-            else
-                Console.WriteLine("[Display] ForceResolution failed (may already be 1366x768 or driver blocks change)");
-        }
-        else
-        {
-            Console.WriteLine("[AutoPick] Could not find a virtual display. Using last display as fallback.");
-            midVirtual = monitors.Count - 1;
-        }
-        ForceVirtualDisplayTo1366x76860(midVirtual);
+        // int midVirtual = MonitorDetect.PickVirtualMid(monitors);
+        // if (midVirtual >= 0)
+        // {
+        //     Console.WriteLine($"[AutoPick] Virtual display ≈ mid={midVirtual} ({monitors[midVirtual].name})");
+        //     if (DisplayUtil.ForceResolution(monitors[midVirtual].name, 1366, 768, 60))
+        //         Console.WriteLine("[Display] Forced 1366x768@60");
+        //     else
+        //         Console.WriteLine("[Display] ForceResolution failed (may already be 1366x768 or driver blocks change)");
+        // }
+        // else
+        // {
+        //     Console.WriteLine("[AutoPick] Could not find a virtual display. Using last display as fallback.");
+        //     midVirtual = monitors.Count - 1;
+        // }
+        // ForceVirtualDisplayTo1366x76860(midVirtual);
+
+        // ⭐ Bật “ông bảo vệ”: snapshot + ép tất cả về 1366×768, đăng ký RunOnce
+        DisplayGuard.PrepareAndForceAllTo1366(monitors);
 
         int port = 8288;
         var server = new SignalAndRestServer($"http://+:{port}/");
-        server.SetWindows(windows);
+        server.SetWindows(Win32.ListTopLevelWindows()
+            .Where(w => !string.IsNullOrWhiteSpace(w.title))
+            .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
+            .ToList());
         server.SetMonitors(monitors.Select(m => (m.hmon, m.name, m.width, m.height)).ToList());
         InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
+
         await server.StartAsync();
+
+        Console.WriteLine($"   • http://localhost:{port}/api/layout");
 
         foreach (var ip in NetUtil.GetLocalIPv4Addresses())
             Console.WriteLine($"   • ws://{ip}:{port}/signal?wid=<id>   hoặc   ws://{ip}:{port}/signal?mid=<id>");
@@ -64,7 +80,13 @@ partial class Program
         Console.WriteLine($"   • http://localhost:{port}/api/cluster");
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
+
         await server.StopAsync();
+
+        // Guard đã đăng ký hook ProcessExit/CancelKeyPress/UnhandledException,
+        // nên không cần gọi RestoreAndCleanup() ở đây,
+        // nhưng gọi thêm cũng không sao:
+        DisplayGuard.RestoreAndCleanup();
     }
 
     static void ForceVirtualDisplayTo1366x76860(int mid)
@@ -246,6 +268,52 @@ public class SignalAndRestServer
                 ctx.Response.ContentType = "application/json";
                 ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
                 ctx.Response.Close();
+                continue;
+            }
+
+            if (path == "/api/layout" && ctx.Request.HttpMethod == "GET")
+            {
+                try
+                {
+                    // Cập nhật danh sách monitor hiện tại (phòng khi cắm/rút màn)
+                    var monsNow = WgcInterop.ListMonitorsDXGI();
+                    _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+
+                    var items = new List<object>();
+                    for (int i = 0; i < _monitors.Count; i++)
+                    {
+                        var m = _monitors[i];
+                        var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(m.name);
+                        bool primary = DisplayUtil.IsPrimary(m.name);
+                        bool virt = DisplayUtil.IsVirtualDisplay(m.name, m.hmon);
+                        items.Add(new
+                        {
+                            id = i,        // dùng cho /signal?mid=<id>
+                            name = m.name, // \\.\DISPLAYx
+                            x,
+                            y,
+                            w,
+                            h,
+                            primary,
+                            virt
+                        });
+                    }
+
+                    var json = System.Text.Json.JsonSerializer.Serialize(items);
+                    var bytes = Encoding.UTF8.GetBytes(json);
+                    ctx.Response.ContentType = "application/json";
+                    ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                    ctx.Response.Close();
+                }
+                catch (Exception ex)
+                {
+                    var bytes = Encoding.UTF8.GetBytes("[]");
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.ContentType = "application/json";
+                    ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                    ctx.Response.Close();
+                    Console.WriteLine("[/api/layout] " + ex);
+                }
                 continue;
             }
 

@@ -1,7 +1,10 @@
-// ========== DisplayUtil.cs (hoặc giữ nguyên trong Program.cs nếu bạn đang để cùng file) ==========
+#nullable enable
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 static class DisplayUtil
 {
@@ -81,10 +84,74 @@ static class DisplayUtil
     static extern int ChangeDisplaySettingsEx(string lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, int dwflags, IntPtr lParam);
 
     [DllImport("user32.dll", CharSet = CharSet.Ansi)]
-    static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+    static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
 
     [DllImport("dxva2.dll", SetLastError = true)]
     static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
+
+    public struct DisplayModeSnapshot
+    {
+        public string DeviceName { get; set; }   // \\.\DISPLAYx
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int Frequency { get; set; }
+    }
+
+    public static bool TryGetMode(string deviceName, out DisplayModeSnapshot snap)
+    {
+        var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+        {
+            snap = default;
+            return false;
+        }
+        snap = new DisplayModeSnapshot
+        {
+            DeviceName = deviceName,
+            X = dm.dmPositionX,
+            Y = dm.dmPositionY,
+            Width = dm.dmPelsWidth,
+            Height = dm.dmPelsHeight,
+            Frequency = dm.dmDisplayFrequency
+        };
+        return true;
+    }
+
+    public static List<DisplayModeSnapshot> SnapshotAll(IEnumerable<string> deviceNames)
+    {
+        var list = new List<DisplayModeSnapshot>();
+        foreach (var dn in deviceNames)
+            if (TryGetMode(dn, out var s)) list.Add(s);
+        return list;
+    }
+
+    public static void SaveSnapshot(string path, List<DisplayModeSnapshot> snaps)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, JsonSerializer.Serialize(snaps));
+    }
+
+    public static List<DisplayModeSnapshot>? LoadSnapshot(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            return JsonSerializer.Deserialize<List<DisplayModeSnapshot>>(File.ReadAllText(path));
+        }
+        catch { return null; }
+    }
+
+    public static void RestoreFromSnapshot(List<DisplayModeSnapshot> snaps)
+    {
+        if (snaps == null) return;
+        foreach (var s in snaps)
+        {
+            // Khôi phục độ phân giải & tần số; layout X/Y để Windows tự hàn gắn lại theo registry hiện tại
+            try { ForceResolution(s.DeviceName, s.Width, s.Height, s.Frequency); } catch { }
+        }
+    }
 
     // --- Helpers ---
 

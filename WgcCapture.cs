@@ -323,7 +323,7 @@ public sealed class WgcCapture : IDisposable
         _pool = Direct3D11CaptureFramePool.CreateFreeThreaded(_dxDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 1, size);
         _pool.FrameArrived += OnFrameArrived;
         _session = _pool.CreateCaptureSession(item);
-        _session.IsCursorCaptureEnabled = false;
+        _session.IsCursorCaptureEnabled = true;
 
         item.Closed += (s, e) =>
         {
