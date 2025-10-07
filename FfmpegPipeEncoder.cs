@@ -260,9 +260,42 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         .Replace("{FPS}", FPS.ToString());
                 }
             case GpuEnc.QSV:
-                return $"-hwaccel qsv -c:v h264_qsv " +
-                       $"-preset slow -g {g} " +
-                       $"-time_base 1/{FPS} -r {FPS}";
+                {
+                    // input: raw BGRA qua stdin (giống NVENC)
+                    var inPart =
+                        "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
+                        $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+
+                    // Chuyển sang NV12 trước khi upload sang QSV để chắc chắn tương thích
+                    var toNV12 = "-vf format=nv12";
+
+                    // Rate control: ưu tiên CBR nếu có BitrateKbps, ngược lại dùng ICQ (giống CRF)
+                    string rc;
+                    if (BitrateKbps > 0)
+                    {
+                        int vbv = Math.Max(BitrateKbps, 1000);
+                        rc = $"-b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k -look_ahead 0";
+                    }
+                    else
+                    {
+                        int cq = (CRF >= 0 ? CRF : 23);
+                        rc = $"-rc icq -global_quality {cq} -look_ahead 0";
+                    }
+
+                    // low-latency: tắt B-frame, giảm hàng đợi
+                    var outPart =
+                        "-an -c:v h264_qsv -profile:v high " +   // (baseline thường không hỗ trợ; High/Main đều OK với WebRTC)
+                        "-bf 0 -g " + g + " -sc_threshold 0 " +
+                        "-async_depth 1 -low_power 1 " + rc + " " +
+                        // Chèn AUD để tách AU ổn định hơn (đầu ra vẫn là Annex-B)
+                        "-bsf:v h264_metadata=aud=insert " +
+                        "-f h264 -";
+
+                    return (inPart + toNV12 + " " + outPart)
+                        .Replace("{Width}", Width.ToString())
+                        .Replace("{Height}", Height.ToString())
+                        .Replace("{FPS}", FPS.ToString());
+                }
             case GpuEnc.AMF:
                 return $"-hwaccel dxva2 -c:v h264_amf " +
                        $"-usage transcoding -profile high -g {g} " +
