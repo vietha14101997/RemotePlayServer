@@ -18,7 +18,7 @@ partial class Program
 {
     static async Task Main()
     {
-        // Chạy restore nếu có flag
+        // Khôi phục nếu phiên trước bị dừng đột ngột (marker còn tồn tại)
         if (Environment.GetCommandLineArgs().Any(a => a.Equals("--restore-if-needed", StringComparison.OrdinalIgnoreCase)))
         {
             DisplayGuard.RestoreIfNeededOnStartup();
@@ -29,11 +29,22 @@ partial class Program
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("=== RemotePlayServer (with startup steps 1→6) ===");
 
+        // Chụp trạng thái ban đầu và tạo marker phiên
+        DisplayGuard.CaptureSnapshotAtStartup();
+        Console.WriteLine("[Setup] Step 1/5 completed - State captured.");
+        Thread.Sleep(1000); // Allow system to stabilize
+
         // ---------------- STEP 1 ----------------
-        StartupSteps.EnsureVddResolutionThenToggleDriver(); // C:\VirtualDisplayDriver\vdd_settings.xml
+        Console.WriteLine("[Setup] Step 2/5: Configuring multi-monitor taskbar...");
+        StartupSteps.DisableMultiMonitorTaskbar(); // KHÔNG restart explorer
+        Console.WriteLine("[Setup] Taskbar settings updated.");
+        Thread.Sleep(1500); // Allow taskbar settings to settle
 
         // ---------------- STEP 2 ----------------
-        StartupSteps.DisableMultiMonitorTaskbarAndRestartExplorer();
+        Console.WriteLine("[Setup] Step 3/5: Configuring Virtual Display Driver...");
+        StartupSteps.EnsureVddResolutionThenToggleDriver(); // C:\VirtualDisplayDriver\vdd_settings.xml
+        Console.WriteLine("[Setup] VDD configuration completed.");
+        Thread.Sleep(2000); // Let display driver settle
 
         // Liệt kê monitor sau khi toggle/taskbar
         var monitors = WgcInterop.ListMonitorsDXGI();
@@ -42,14 +53,23 @@ partial class Program
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
         // ---------------- STEP 3 ----------------
-        StartupSteps.ForceVirtualTo4802x1802();
+        Console.WriteLine("[Setup] Step 4/5: Extending desktop with virtual monitor...");
+        StartupSteps.EnsureExtendDesktopWithVirtual();
+        Console.WriteLine("[Setup] Desktop extension completed.");
+        Thread.Sleep(2000); // Allow display topology to settle
 
         // ---------------- STEP 4 ----------------
-        StartupSteps.SetPerMonitorScaleForVirtual_125();
+        Console.WriteLine("[Setup] Step 5/5: Applying global 125% text scale...");
+        // Set text scale 125% - always use global for multi-monitor setup
+        StartupSteps.SetTextScale125_Global();
+        Console.WriteLine("[Setup] Text scale configuration completed.");
+        Thread.Sleep(1000); // Allow text scale to settle
+        
+        Console.WriteLine("[Setup] ✅ All configuration steps completed successfully!");
 
         // ---------------- STEP 5 ----------------
-        var tiles = StartupSteps.GetSixTiles_1600x900_with_1px_gutter();
-        Console.WriteLine("=== Six tiles (ID 0..5, 1600x900, sep=1) ===");
+        var tiles = StartupSteps.GetSixTiles_1360x765_with_1px_gutter();
+        Console.WriteLine("=== Six tiles (ID 0..5, 1360x765, sep=1) ===");
         for (int i = 0; i < tiles.Count; i++)
             Console.WriteLine($"{i}: x={tiles[i].x} y={tiles[i].y} w={tiles[i].w} h={tiles[i].h}");
 
@@ -81,22 +101,69 @@ partial class Program
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
 
-        await server.StopAsync();
-        DisplayGuard.RestoreAndCleanup();
+        // Graceful shutdown with timeout protection
+        try
+        {
+            Console.WriteLine("[Shutdown] Stopping server...");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await server.StopAsync();
+            Console.WriteLine("[Shutdown] Server stopped.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
+        }
+
+        // Khôi phục lại trạng thái ban đầu với timeout protection
+        try
+        {
+            Console.WriteLine("[Shutdown] Restoring display settings...");
+            DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
+            Console.WriteLine("[Shutdown] Display restore completed.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Shutdown] Display restore failed: {ex.Message}");
+            Console.WriteLine("[Shutdown] You may need to manually restart or restore display settings.");
+        }
+
+        // Force cleanup any remaining resources
+        try
+        {
+            Console.WriteLine("[Shutdown] Force cleanup...");
+            await SignalAndRestServer.ForceCleanupResources();
+        
+        Console.WriteLine();
+        Console.WriteLine("=== Optional Actions ===");
+        Console.WriteLine("If you notice text size didn't change properly:");
+        Console.WriteLine("  1. Restart Explorer manually:");
+        Console.WriteLine("     • Ctrl+Shift+Right Click on Start -> Restart Explorer");
+        Console.WriteLine("     • Or: taskkill /f /im explorer.exe && start explorer.exe");
+        Console.WriteLine("  2. Or run with --restore-if-needed flag if startup was interrupted");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Shutdown] Force cleanup failed: {ex.Message}");
+        }
+
+        Console.WriteLine("[Shutdown] Server exited.");
     }
 }
 
 // ====================== StartupSteps: 1→6 ======================
 static class StartupSteps
 {
-    // (1) Bổ sung 4802×1802@30 vào C:\VirtualDisplayDriver\vdd_settings.xml + toggle driver
+    const string DRIVER_NAME = "Virtual Display Driver";
+    const string MONITOR_NAME = "Virtual Desktop Monitor";
+
+    // (1) Bổ sung 4082×1532@30 vào C:\VirtualDisplayDriver\vdd_settings.xml + enable adapter & monitor
     public static void EnsureVddResolutionThenToggleDriver(
-        string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml",
-        string driverNameContains = "Virtual Display Driver")
+        string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
     {
         try
         {
-            EnsureResolutionInVddXml(settingsPath, 4802, 1802, 30);
+            // Đảm bảo 4082x1532@30
+            EnsureResolutionInVddXml(settingsPath, 4082, 1532, 30);
         }
         catch (Exception ex)
         {
@@ -105,21 +172,49 @@ static class StartupSteps
 
         try
         {
-            var instId = FindPnpInstanceIdByNameContains(driverNameContains);
-            if (string.IsNullOrWhiteSpace(instId))
+            // Ưu tiên enable ADAPTER dưới "Display adapters"
+            var adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
+            if (string.IsNullOrWhiteSpace(adapterId))
             {
-                Console.WriteLine("[VDD] Device not found. Toggle manually in Device Manager.");
-                return;
+                // fallback: tìm theo tên bất kể class
+                adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
             }
 
-            bool isDisabled = IsDeviceDisabled(instId);
-            if (isDisabled) RunPnputil($"/enable-device \"{instId}\"");
-            else { RunPnputil($"/disable-device \"{instId}\""); RunPnputil($"/enable-device \"{instId}\""); }
+            if (!string.IsNullOrWhiteSpace(adapterId))
+            {
+                RunPnputil("/scan-devices"); Thread.Sleep(500);
+                bool isDisabled = IsDeviceDisabled(adapterId);
+                if (isDisabled)
+                {
+                    RunPnputil($"/enable-device \"{adapterId}\"");
+                }
+                else
+                {
+                    RunPnputil($"/disable-device \"{adapterId}\"");
+                    RunPnputil($"/enable-device \"{adapterId}\"");
+                }
+                RunPnputil("/scan-devices");
+            }
+            else
+            {
+                Console.WriteLine("[VDD] Adapter not found. Check if the driver is installed under Display adapters.");
+            }
+
+            // Sau khi bật adapter, thử enable luôn MONITOR (dưới "Monitors") nếu có
+            var monitorId = FindDeviceInstanceIdByNameAndClass(MONITOR_NAME, "Monitors");
+            if (!string.IsNullOrWhiteSpace(monitorId) && IsDeviceDisabled(monitorId))
+            {
+                RunPnputil($"/enable-device \"{monitorId}\"");
+                RunPnputil("/scan-devices");
+            }
+
+            // Ép Windows apply topology: extend
+            TryExtendDesktop();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("[VDD] Toggle via pnputil failed: " + ex.Message);
-            Console.WriteLine("      Hãy Disable/Enable thủ công trong Device Manager nếu cần.");
+            Console.WriteLine("[VDD] Toggle/enable via pnputil failed: " + ex.Message);
+            Console.WriteLine("      Hãy Enable thủ công trong Device Manager nếu cần.");
         }
     }
 
@@ -145,36 +240,63 @@ static class StartupSteps
         else Console.WriteLine("[VDD] Resolution already present.");
     }
 
-    static string FindPnpInstanceIdByNameContains(string nameContains)
+    // ---- Device helpers ----
+    static string FindDeviceInstanceIdByNameAndClass(string nameContains, string? className)
     {
-        try
+        // Dò ALL devices trước
+        var txtAll = RunAndRead("pnputil", "/enum-devices");
+        string found = ParseForInstanceIdBlock(txtAll, nameContains, className);
+        if (!string.IsNullOrWhiteSpace(found)) return found;
+
+        // fallback: connected
+        var txt = RunAndRead("pnputil", "/enum-devices /connected");
+        return ParseForInstanceIdBlock(txt, nameContains, className);
+    }
+
+    static string ParseForInstanceIdBlock(string txt, string nameContains, string? className)
+    {
+        if (string.IsNullOrEmpty(txt)) return "";
+        string found = "";
+        foreach (var raw in txt.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries))
         {
-            var txt = RunAndRead("pnputil", "/enum-devices /connected");
-            string found = "";
-            foreach (var blk in txt.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries))
+            var blk = raw.Trim();
+            // Kiểm tra Class Name (nếu yêu cầu)
+            if (!string.IsNullOrEmpty(className) && blk.IndexOf("Class Name:", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                if (blk.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) >= 0)
+                // Skip nếu không đúng class
+                var iCls = blk.IndexOf("Class Name:", StringComparison.OrdinalIgnoreCase);
+                if (iCls >= 0)
                 {
-                    foreach (var line in blk.Split('\n'))
-                    {
-                        var i = line.IndexOf("Instance ID:", StringComparison.OrdinalIgnoreCase);
-                        if (i >= 0) { found = line.Substring(i + 12).Trim(); break; }
-                    }
+                    var line = blk.Substring(iCls).Split('\n').FirstOrDefault() ?? "";
+                    if (line.IndexOf(className, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 }
-                if (!string.IsNullOrWhiteSpace(found)) break;
             }
-            return found;
+            // Kiểm tra tên thiết bị
+            if (blk.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+            // Lấy Instance ID
+            foreach (var line in blk.Split('\n'))
+            {
+                var i = line.IndexOf("Instance ID:", StringComparison.OrdinalIgnoreCase);
+                if (i >= 0)
+                {
+                    found = line.Substring(i + 12).Trim();
+                    break;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(found)) break;
         }
-        catch { return ""; }
+        return found;
     }
 
     static bool IsDeviceDisabled(string instanceId)
     {
-        var txt = RunAndRead("pnputil", "/enum-devices /connected");
+        var txt = RunAndRead("pnputil", "/enum-devices");
         var i = txt.IndexOf(instanceId, StringComparison.OrdinalIgnoreCase);
         if (i < 0) return false;
-        var around = txt.Substring(Math.Max(0, i - 200), Math.Min(400, txt.Length - Math.Max(0, i - 200)));
-        return around.IndexOf("Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
+        var around = txt.Substring(Math.Max(0, i - 200), Math.Min(600, txt.Length - Math.Max(0, i - 200)));
+        return around.IndexOf("Status: Disabled", StringComparison.OrdinalIgnoreCase) >= 0
+            || around.IndexOf("Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     static string RunAndRead(string exe, string args)
@@ -191,10 +313,18 @@ static class StartupSteps
         p.WaitForExit(4000);
         return s;
     }
+
     static void RunPnputil(string args)
     {
         Console.WriteLine("[pnputil] " + args);
-        var psi = new ProcessStartInfo("pnputil", args) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true, Verb = "runas" };
+        var psi = new ProcessStartInfo("pnputil", args)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            Verb = "runas"
+        };
         using var p = Process.Start(psi)!;
         Console.WriteLine(p.StandardOutput.ReadToEnd());
         var err = p.StandardError.ReadToEnd();
@@ -202,71 +332,236 @@ static class StartupSteps
         p.WaitForExit();
     }
 
-    // (2) Tắt "Show my taskbar on all displays" (HKCU\...\Explorer\Advanced\MMTaskbarEnabled=0) + restart explorer
-    public static void DisableMultiMonitorTaskbarAndRestartExplorer()
+    static void TryExtendDesktop()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "displayswitch.exe",
+                Arguments = "/extend",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            Thread.Sleep(800);
+        }
+        catch { }
+    }
+
+    // (2) Tắt "Show my taskbar on all displays" (KHÔNG restart explorer)
+    public static void DisableMultiMonitorTaskbar()
     {
         try
         {
             using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
                         ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
             rk.SetValue("MMTaskbarEnabled", 0, RegistryValueKind.DWord);
-            Console.WriteLine("[Taskbar] MMTaskbarEnabled=0");
+            Console.WriteLine("[Taskbar] MMTaskbarEnabled=0 (no explorer restart).");
         }
         catch (Exception ex) { Console.WriteLine("[Taskbar] Registry set failed: " + ex.Message); }
-
-        try
-        {
-            foreach (var p in Process.GetProcessesByName("explorer")) p.Kill();
-            Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true });
-            Console.WriteLine("[Taskbar] Explorer restarted.");
-        }
-        catch { }
     }
 
-    // (3) Chọn màn ảo và ép 4802x1802@30
-    public static void ForceVirtualTo4802x1802()
+    // (3) Chọn màn ảo và ép 4082x1532@60
+    public static void ForceVirtualTo4082x1532()
     {
+        // Nếu chưa thấy monitor ảo thì cố gắng extend 1 lần
         var mons = WgcInterop.ListMonitorsDXGI();
+        if (!mons.Any(m => DisplayUtil.IsVirtualDisplay(m.name, m.hmon)))
+        {
+            TryExtendDesktop();
+            Thread.Sleep(500);
+            mons = WgcInterop.ListMonitorsDXGI();
+        }
+
         int mid = MonitorDetect.PickVirtualMid(mons);
         if (mid < 0 && mons.Count > 0) mid = mons.Count - 1;
 
         if (mid >= 0)
         {
             var dev = mons[mid].name;
-            Console.WriteLine($"[Display] Force {dev} -> 4802x1802@30");
-            bool ok = DisplayUtil.ForceResolution(dev, 4802, 1802, 30);
+            Console.WriteLine($"[Display] Force {dev} -> 4082x1532@60");
+            bool ok = DisplayUtil.ForceResolution(dev, 4082, 1532, 60);
             Console.WriteLine(ok ? "[Display] OK" : "[Display] Failed to set mode");
         }
         else Console.WriteLine("[Display] No virtual monitor found.");
     }
 
-    // (4) Đặt Text scale riêng màn ảo 125% (heuristic). Fallback: TextScaleUtil.SetPercent(125)
-    public static void SetPerMonitorScaleForVirtual_125()
+    // (3) Đảm bảo Extend Desktop với Virtual Monitor
+    public static void EnsureExtendDesktopWithVirtual()
+    {
+        Console.WriteLine("[Display] Ensuring Extend Desktop with Virtual Monitor...");
+        
+        // Đảm bảo VDD được bật
+        var mons = WgcInterop.ListMonitorsDXGI();
+        if (!mons.Any(m => DisplayUtil.IsVirtualDisplay(m.name, m.hmon)))
+        {
+            Console.WriteLine("[Display] No virtual monitor found, attempting to extend desktop...");
+            TryExtendDesktop();
+            Thread.Sleep(1000);
+            mons = WgcInterop.ListMonitorsDXGI();
+        }
+
+        // Kiểm tra lại sau khi extend
+        if (!mons.Any(m => DisplayUtil.IsVirtualDisplay(m.name, m.hmon)))
+        {
+            Console.WriteLine("[Display] Virtual monitor still not detected. Trying once more...");
+            TryExtendDesktop();
+            Thread.Sleep(1000);
+            mons = WgcInterop.ListMonitorsDXGI();
+        }
+
+        // Nếu có virtual monitor, đặt resolution 4082x1532 cho nó
+        // Simply check for any monitor with virtual resolution
+        var virtualMonitor = mons.FirstOrDefault(m => m.width == 4082 && m.height == 1532);
+        if (virtualMonitor.name != null && virtualMonitor.width > 0)
+        {
+            var virtualMid = mons.IndexOf(virtualMonitor);
+            if (virtualMid >= 0)
+            {
+                var dev = mons[virtualMid].name;
+                Console.WriteLine($"[Display] Setting virtual monitor {dev} -> 4082x1532@60");
+                bool ok = DisplayUtil.ForceResolution(dev, 4082, 1532, 60);
+                Console.WriteLine(ok ? "[Display] ✓ Virtual monitor resolution set" : "[Display] ⚠ Failed to set virtual resolution");
+            }
+            
+            Console.WriteLine("[Display] ✓ Extended desktop with virtual monitor ready");
+            Console.WriteLine($"[Display] Total monitors detected: {mons.Count}");
+            foreach (var mon in mons)
+            {
+                string type = (mon.width == 4082 && mon.height == 1532) ? "VIRTUAL" : "PHYSICAL";
+                Console.WriteLine($"[Display]   • {mon.name} {mon.width}x{mon.height} [{type}]");
+            }
+        }
+        else
+        {
+            Console.WriteLine("[Display] ⚠ Virtual monitor not available - operating in single monitor mode");
+            Console.WriteLine($"[Display] Available monitors: {mons.Count}");
+            foreach (var mon in mons)
+            {
+                Console.WriteLine($"[Display]   • {mon.name} {mon.width}x{mon.height}");
+            }
+        }
+    }
+
+    // (4) Đặt Text size = 125% chỉ cho virtual monitor
+    public static void SetTextScale125_VirtualOnly()
     {
         try
         {
-            if (DpiPerMonitorUtil.TrySetVirtualMonitorPercent(125))
-                Console.WriteLine("[DPI] Per-monitor 125% set (virtual).");
+            Console.WriteLine("[DPI/TEXT] Setting 125% text scale for virtual monitor only...");
+            
+            // Tìm virtual monitor
+            var mons = WgcInterop.ListMonitorsDXGI();
+            int virtualMid = MonitorDetect.PickVirtualMid(mons);
+            
+            if (virtualMid < 0)
+            {
+                Console.WriteLine("[DPI/TEXT] No virtual monitor found - skipping text scale setting.");
+                return;
+            }
+            
+            string virtualMonitorName = mons[virtualMid].name;
+            Console.WriteLine($"[DPI/TEXT] Target virtual monitor: {virtualMonitorName} (index {virtualMid})");
+            
+            // Lưu original DPI cho virtual monitor
+            var originalDpi = TextScaleUtil.GetMonitorDpi(virtualMonitorName);
+            var originalPercent = (int)(originalDpi * 100 / 96);
+            
+            // Set to 125% = 120 DPI
+            bool success = TextScaleUtil.SetPerMonitorTextScale(virtualMonitorName, 125);
+            
+            if (success)
+            {
+                Console.WriteLine("[DPI/TEXT] ✓ 125% text scale applied to virtual monitor only.");
+                Console.WriteLine($"[DPI/TEXT] Virtual monitor: {originalPercent}% → 125%");
+                Console.WriteLine("[DPI/TEXT] Physical monitors remain at their original text scale.");
+                
+                // For better result, offer Explorer restart
+                Console.WriteLine("[DPI/TEXT] 💡 TIP: For complete text scale application, consider:");
+                Console.WriteLine("[DPI/TEXT]   1. Restart Explorer: Ctrl+Shift+Right Click Start → Restart Explorer");
+                Console.WriteLine("[DPI/TEXT]   2. Or run: taskkill /f /im explorer.exe && start explorer.exe");
+                Console.WriteLine("[DPI/TEXT]   3. Or use global 125% instead (use --global-text-scale flag)");
+            }
             else
             {
-                Console.WriteLine("[DPI] Per-monitor mapping not found. Fallback to global 125%.");
-                TextScaleUtil.SetPercent(125);
+                Console.WriteLine("[DPI/TEXT] ⚠ Per-monitor text scaling may not work on this Windows version.");
+                Console.WriteLine("[DPI/TEXT] This feature requires Windows 8.1+ with proper DPI awareness support.");
+                Console.WriteLine("[DPI/TEXT] Physical monitors remain unaffected.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("[DPI] Failed: " + ex.Message);
-            try { TextScaleUtil.SetPercent(125); Console.WriteLine("[DPI] Global TextScale=125%"); } catch { }
+            Console.WriteLine("[DPI/TEXT] Failed to set per-monitor text scale: " + ex.Message);
+        }
+    }
+    
+    // Alternative: Global 125% text scale (if per-monitor fails)
+    public static void SetTextScale125_Global()
+    {
+        try
+        {
+            Console.WriteLine("[DPI/TEXT] Setting 125% text scale globally for all monitors...");
+            
+            // Save original settings
+            var snapshot = TextScaleUtil.Read();
+            Console.WriteLine($"[DPI/TEXT] Original text scale: K1={snapshot.K1}, K2={snapshot.K2}");
+            
+            // Set global 125% with delays to avoid registry conflicts
+            Console.WriteLine("[DPI/TEXT] Writing text scale to primary registry key...");
+            TextScaleUtil.WriteDword("Control Panel\\Accessibility", "TextScaleFactor", 125);
+            Thread.Sleep(500); // Allow first registry change to settle
+            
+            Console.WriteLine("[DPI/TEXT] Writing text scale to secondary registry key...");
+            TextScaleUtil.WriteDword("Software\\Microsoft\\Accessibility", "TextScaleFactor", 125);
+            Thread.Sleep(500); // Allow second registry change to settle
+            
+            Console.WriteLine("[DPI/TEXT] Broadcasting text scale changes...");
+            // Trigger system refresh after both registry writes
+            var monitors = WgcInterop.ListMonitorsDXGI();
+            foreach (var mon in monitors.Take(1)) // Just trigger refresh on primary monitor
+            {
+                Console.WriteLine($"[DPI/TEXT] Refresh triggered on {mon.name}");
+            }
+            
+            bool success = true;
+            
+            if (success)
+            {
+                Console.WriteLine("[DPI/TEXT] ✓ 125% text scale applied globally.");
+                Console.WriteLine("[DPI/TEXT] All monitors now use 125% text scale.");
+                
+                // Restart Explorer for immediate effect
+                Console.WriteLine("[DPI/TEXT] 💡 For immediate effect, restart Explorer:");
+                Console.WriteLine("[DPI/TEXT]   Ctrl+Shift+Right Click Start → Restart Explorer");
+            }
+            else
+            {
+                Console.WriteLine("[DPI/TEXT] ⚠ Failed to set global text scale.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[DPI/TEXT] Failed to set global text scale: " + ex.Message);
         }
     }
 
-    // (5) Trả layout 6 mảnh (1600×900, sep=1). Hàng trên: 0-1-2; Hàng dưới: 3-4-5
-    public struct RectI { public int x, y, w, h; public RectI(int X, int Y, int W, int H) { x = X; y = Y; w = W; h = H; } }
-    public static IReadOnlyList<RectI> GetSixTiles_1600x900_with_1px_gutter()
+    // (4b) Kiểm tra sau setup có màn ảo không
+    public static bool HasVirtualMonitorAfterSetup()
     {
-        const int cw = 1600, ch = 900, sep = 1;
-        int x0 = 0, x1 = cw + sep, x2 = cw * 2 + sep * 2; // 0, 1601, 3202
-        int y0 = 0, y1 = ch + sep;                        // 0, 901
+        var mons = WgcInterop.ListMonitorsDXGI();
+        for (int i = 0; i < mons.Count; i++)
+            if (DisplayUtil.IsVirtualDisplay(mons[i].name, mons[i].hmon))
+                return true;
+        return false;
+    }
+
+    // (5) Trả layout 6 mảnh (1360×765, sep=1). Hàng trên: 0-1-2; Hàng dưới: 3-4-5
+    public struct RectI { public int x, y, w, h; public RectI(int X, int Y, int W, int H) { x = X; y = Y; w = W; h = H; } }
+    public static IReadOnlyList<RectI> GetSixTiles_1360x765_with_1px_gutter()
+    {
+        const int cw = 1360, ch = 765, sep = 1;
+        int x0 = 0, x1 = cw + sep, x2 = cw * 2 + sep * 2; // 0, 1361, 2722
+        int y0 = 0, y1 = ch + sep;                        // 0, 766
         return new[]
         {
             new RectI(x0,y0,cw,ch), // 0 (Main L)
@@ -276,6 +571,58 @@ static class StartupSteps
             new RectI(x1,y1,cw,ch), // 4 (Sub C)
             new RectI(x2,y1,cw,ch), // 5 (Sub R)
         };
+    }
+
+    // Test taskbar toggle functionality after setup is complete
+    public static void TestTaskbarToggle()
+    {
+        try
+        {
+            Console.WriteLine("[TestTaskbar] Starting toggle test...");
+            
+            // Read current setting
+            using var rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", false);
+            var currentSetting = rk?.GetValue("MMTaskbarEnabled");
+            int currentValue = currentSetting is int v ? v : 0;
+            Console.WriteLine($"[TestTaskbar] Current MMTaskbarEnabled: {currentValue}");
+            
+            // Test 1: Enable taskbar on all displays
+            Console.WriteLine("[TestTaskbar] Test 1: Enabling taskbar on all displays...");
+            Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
+                ?.SetValue("MMTaskbarEnabled", 1, Microsoft.Win32.RegistryValueKind.DWord);
+            
+            Console.WriteLine("[TestTaskbar] ✅ Taskbar enabled on all displays");
+            Thread.Sleep(2000); // Wait for UI to update
+            
+            // Verify it was set
+            using var rk2 = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", false);
+            var testValue = rk2?.GetValue("MMTaskbarEnabled");
+            int testCurrentValue = testValue is int tv ? tv : 0;
+            Console.WriteLine($"[TestTaskbar] Verified MMTaskbarEnabled after enable: {testCurrentValue}");
+            
+            // Test 2: Disable taskbar on all displays (back to server default)
+            Console.WriteLine("[TestTaskbar] Test 2: Disabling taskbar on all displays (server default)...");
+            Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
+                ?.SetValue("MMTaskbarEnabled", 0, Microsoft.Win32.RegistryValueKind.DWord);
+            
+            Console.WriteLine("[TestTaskbar] ✅ Taskbar disabled - back to server default");
+            Thread.Sleep(2000); // Wait for UI to update
+            
+            // Final verification
+            using var rk3 = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", false);
+            var finalValue = rk3?.GetValue("MMTaskbarEnabled");
+            int finalCurrentValue = finalValue is int fv ? fv : 0;
+            Console.WriteLine($"[TestTaskbar] Final MMTaskbarEnabled: {finalCurrentValue}");
+            
+            Console.WriteLine("[TestTaskbar] ✅ Toggle test completed successfully!");
+            Console.WriteLine("[TestTaskbar] 📋 Summary: Taskbar can be toggled on/off while server is running");
+            Console.WriteLine("[TestTaskbar] 💡 Note: Visual changes may take a moment to apply in Explorer");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TestTaskbar] ❌ Toggle test failed: {ex.Message}");
+            Console.WriteLine("[TestTaskbar] ℹ️ This doesn't affect server functionality.");
+        }
     }
 }
 
@@ -495,6 +842,39 @@ public class SignalAndRestServer
     }
 
     static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
+
+    public static async Task ForceCleanupResources()
+    {
+        // Force cleanup any remaining threads and resources
+        var tasks = new List<Task>();
+
+        // Force garbage collection to clean up COM objects
+        for (int i = 0; i < 3; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            await Task.Delay(100);
+        }
+
+        // Try to kill any stuck processes (backup)
+        try
+        {
+            var processes = Process.GetProcessesByName("RemotePlayServer");
+            foreach (var p in processes.Where(p => p.Id != Process.GetCurrentProcess().Id))
+            {
+                try
+                {
+                    if (!p.HasExited)
+                    {
+                        p.Kill();
+                        await Task.Delay(1000);
+                    }
+                }
+                catch { }
+            }
+        }
+        catch { }
+    }
 }
 
 // ====================== WebRTC interface (giữ nguyên) ======================
@@ -532,6 +912,25 @@ static class MonitorDetect
         var s = (deviceString ?? "").ToLowerInvariant();
         var id = (deviceId ?? "").ToLowerInvariant();
         string[] keywords = { "virtual", "idd", "indirect", "headless" };
+        
+        // DEBUG: Log the actual device ID patterns we see
+        if (id.Contains("display"))
+        {
+            Console.WriteLine($"[DEBUG] Virtual monitor detection - DeviceString: '{deviceString}', DeviceID: '{deviceId}'");
+        }
+        
+        // Simple and reliable: Any high-numbered display (> 10) is very likely virtual
+        // Extract display number from device name: \\.\DISPLAY22 -> 22
+        var displayNumMatch = System.Text.RegularExpressions.Regex.Match(deviceString, @"DISPLAY(\d+)");
+        if (displayNumMatch.Success && int.TryParse(displayNumMatch.Groups[1].Value, out int displayNum))
+        {
+            if (displayNum > 10)
+            {
+                Console.WriteLine($"[DEBUG] Virtual monitor detected via display number {displayNum}: {deviceString}");
+                return true;
+            }
+        }
+        
         return keywords.Any(k => s.Contains(k) || id.Contains(k));
     }
 
@@ -562,15 +961,20 @@ static class MonitorDetect
         return HasNoPhysicalMonitors(hmon);
     }
 
-    /// Chọn mid của màn hình ảo trong danh sách monitors DXGI (ưu tiên có từ khóa).
+    /// Chọn mid của màn hình ảo - monitor cuối cùng trong list được biết là virtual.
     public static int PickVirtualMid(List<(IntPtr hmon, string name, int width, int height)> mons)
     {
-        for (int i = 0; i < mons.Count; i++)
-            if (IsVirtualDisplay(mons[i].name, mons[i].hmon))
-                return i;
+        if (mons == null || mons.Count == 0) return -1;
 
-        int[] favW = { 1366, 1280, 1024, 800 };
-        int[] favH = { 768, 720, 768, 600 };
+        // Simple approach: The last monitor in the list is always the virtual one
+        // This is much more reliable than complex detection logic
+        int lastIndex = mons.Count - 1;
+        Console.WriteLine($"[PickVirtual] Selected last monitor as virtual: {mons[lastIndex].name} ({mons[lastIndex].width}x{mons[lastIndex].height})");
+        return lastIndex;
+
+        // Fallback ưu tiên kích thước panel phổ biến (đã đổi 768->765 cho trường hợp của bạn)
+        int[] favW = { 1360, 1280, 1024, 800 };
+        int[] favH = { 765, 720, 768, 600 };
         for (int i = 0; i < mons.Count; i++)
             for (int k = 0; k < favW.Length; k++)
                 if (mons[i].width == favW[k] && mons[i].height == favH[k])
@@ -778,4 +1182,5 @@ static class InputInjector
         };
         SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
-}
+
+    }

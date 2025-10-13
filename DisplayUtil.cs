@@ -185,6 +185,25 @@ static class DisplayUtil
         var s = (deviceString ?? "").ToLowerInvariant();
         var id = (deviceId ?? "").ToLowerInvariant();
         string[] keywords = { "virtual", "indirect", "idd", "headless" };
+        
+        // DEBUG: Log the actual device ID patterns we see
+        if (id.Contains("display"))
+        {
+            Console.WriteLine($"[DEBUG] Virtual monitor detection - DeviceString: '{deviceString}', DeviceID: '{deviceId}'");
+        }
+        
+        // Simple and reliable: Any high-numbered display (> 10) is very likely virtual
+        // Extract display number from device name: \\.\DISPLAY22 -> 22
+        var displayNumMatch = System.Text.RegularExpressions.Regex.Match(deviceString, @"DISPLAY(\d+)");
+        if (displayNumMatch.Success && int.TryParse(displayNumMatch.Groups[1].Value, out int displayNum))
+        {
+            if (displayNum > 10)
+            {
+                Console.WriteLine($"[DEBUG] Virtual monitor detected via display number {displayNum}: {deviceString}");
+                return true;
+            }
+        }
+        
         return keywords.Any(k => s.Contains(k) || id.Contains(k));
     }
 

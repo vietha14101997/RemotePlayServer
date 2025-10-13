@@ -1,180 +1,669 @@
 #nullable enable
-using Microsoft.Win32;
-using System.IO;
-using System.Text.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Win32;
 
 static class DisplayGuard
 {
-    private static readonly string GuardDir =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "RemotePlayServer", "display");
-    private static readonly string SnapPath = Path.Combine(GuardDir, "snapshot.json");
-    private static readonly string MarkerPath = Path.Combine(GuardDir, "lock.marker");
+    // Thư mục lưu snapshot + marker
+    static readonly string DataDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+        "RemotePlayServer");
+    static readonly string SnapshotPath = Path.Combine(DataDir, "display_snapshot.json");
+    static readonly string SessionMarker = Path.Combine(DataDir, "session.lock");
 
-    private static List<DisplayUtil.DisplayModeSnapshot>? _snapshot;
+    // Tên driver để tìm PnP Instance
+    const string DriverNameContains = "Virtual Display Driver";
 
-    // private static readonly string PerMonDpiSnapPath = Path.Combine(GuardDir, "permon_dpi_snapshot.json");
-    // private static readonly string PerMonDpiMarkerPath = Path.Combine(GuardDir, "permon_dpi.lock");
-    // private static List<DpiPerMonitorUtil.PerMonDpi>? _perMonDpiSnapshot;
-
-    private static readonly string TextSnapPath = System.IO.Path.Combine(GuardDir, "textscale_snapshot.json");
-    private static readonly string TextMarkerPath = System.IO.Path.Combine(GuardDir, "textscale.lock");
-    private static TextScaleUtil.Snapshot? _textSnap;
-
-    public static bool RestartExplore = false; // cho phép áp ngay mà không cần sign-out
-
-    public static void PrepareAndForceAllTo1366(List<(IntPtr hmon, string name, int w, int h)> mons)
+    // --- Model ---
+    public class Snapshot
     {
-        // 1) Lưu snapshot
-        var names = new List<string>();
-        foreach (var m in mons) names.Add(m.name);
-        _snapshot = DisplayUtil.SnapshotAll(names);
-        DisplayUtil.SaveSnapshot(SnapPath, _snapshot);
-
-        // 2) Ghi marker (nếu marker còn tồn tại -> phiên trước không khôi phục được)
-        Directory.CreateDirectory(GuardDir);
-        File.WriteAllText(MarkerPath, DateTime.UtcNow.ToString("o"));
-
-        // 3) Tạo RunOnce để nếu máy tắt đột ngột, lần đăng nhập tới sẽ chạy restore
-        try
-        {
-            using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\RunOnce", true)
-                        ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\RunOnce", true);
-            var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName!;
-            rk.SetValue("RemotePlayServerDisplayRestore", $"\"{exe}\" --restore-if-needed");
-        }
-        catch { /* non-fatal */ }
-
-        // 3.1) Lưu DPI per-monitor hiện tại & ép 125%
-        // try
-        // {
-        //     _perMonDpiSnapshot = DpiPerMonitorUtil.SnapshotAll();
-        //     DpiPerMonitorUtil.SaveSnapshot(PerMonDpiSnapPath, _perMonDpiSnapshot);
-        //     File.WriteAllText(PerMonDpiMarkerPath, DateTime.UtcNow.ToString("o"));
-
-        //     DpiPerMonitorUtil.SetAllMonitorsScalePercent(125);
-        //     if (RestartExplore) DpiUtil.RestartExplorerShell();
-        // }
-        // catch { /* non-fatal */ }
-
-        try
-        {
-            _textSnap = TextScaleUtil.Read();
-            System.IO.File.WriteAllText(TextSnapPath, System.Text.Json.JsonSerializer.Serialize(_textSnap));
-            System.IO.File.WriteAllText(TextMarkerPath, DateTime.UtcNow.ToString("o"));
-
-            TextScaleUtil.SetPercent(125);
-            if (RestartExplore) TextScaleUtil.RestartExplorerShell();
-        }
-        catch { /* best-effort */ }
-
-        // 4) Ép tất cả màn hình về 1366×768@60
-        foreach (var m in mons)
-        {
-            try { DisplayUtil.ForceResolution(m.name, 1366, 768, 60); } catch { }
-        }
-
-        // 5) Hook để khi thoát bình thường thì khôi phục + gỡ RunOnce
-        AppDomain.CurrentDomain.ProcessExit += (_, __) => RestoreAndCleanup();
-        Console.CancelKeyPress += (_, e) => { e.Cancel = false; RestoreAndCleanup(); };
-        AppDomain.CurrentDomain.UnhandledException += (_, __) => RestoreAndCleanup();
+        public List<Mon>? Monitors { get; set; }    // danh sách màn hình & độ phân giải
+        public int? MMTaskbarEnabled { get; set; }  // 0/1
+        public TextScaleUtil.Snapshot TextScale { get; set; }
+        public Dictionary<string, int> PerMonitorTextScale { get; set; } = new(); // monitor name -> original percent
+        public string? VddInstanceId { get; set; }  // PNPDeviceID
+        public bool? VddWasEnabled { get; set; }    // trạng thái driver tại thời điểm chụp
     }
 
-    public static void RestoreAndCleanup()
+    public class Mon
     {
-        try
+        public string Name { get; set; } = "";
+        public int Width { get; set; }
+        public int Height { get; set; }
+        // (tuỳ chọn) vị trí trong desktop topology nếu muốn:
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Refresh { get; set; } = 60;
+        public bool IsVirtual { get; set; }
+    }
+
+    // ==== API được Program.cs gọi ====
+
+    // Gọi sớm nhất có thể (trước các bước 1→6) để chụp trạng thái và tạo marker.
+    public static void CaptureSnapshotAtStartup()
+    {
+        Directory.CreateDirectory(DataDir);
+
+        // Nếu marker cũ còn => có thể phiên trước đã crash -> khôi phục trước rồi chụp mới
+        if (File.Exists(SessionMarker) && File.Exists(SnapshotPath))
         {
-            var snaps = _snapshot ?? DisplayUtil.LoadSnapshot(SnapPath);
-            if (snaps != null) DisplayUtil.RestoreFromSnapshot(snaps);
+            try { Console.WriteLine("[Guard] Detected stale session. Restoring previous snapshot before new capture..."); RestoreInternal(readOnly: true, disableVdd: true); }
+            catch (Exception ex) { Console.WriteLine("[Guard] Pre-restore failed: " + ex.Message); }
+            try { File.Delete(SessionMarker); } catch { }
         }
-        catch { }
 
-        // try
-        // {
-        //     if (File.Exists(PerMonDpiMarkerPath))
-        //     {
-        //         var snaps = _perMonDpiSnapshot ?? DpiPerMonitorUtil.LoadSnapshot(PerMonDpiSnapPath);
-        //         if (snaps != null) DpiPerMonitorUtil.Restore(snaps);
-        //         if (RestartExplore) DpiUtil.RestartExplorerShell();
-
-        //         File.Delete(PerMonDpiMarkerPath);
-        //         if (File.Exists(PerMonDpiSnapPath)) File.Delete(PerMonDpiSnapPath);
-        //     }
-        // }
-        // catch { /* best-effort */ }
-
+        var snap = new Snapshot();
         try
         {
-            if (System.IO.File.Exists(TextMarkerPath))
+            // 1) Monitors & mode
+            var mons = WgcInterop.ListMonitorsDXGI();
+            var list = new List<Mon>();
+            foreach (var m in mons)
             {
-                var snap = _textSnap;
-                if (snap == null && System.IO.File.Exists(TextSnapPath))
-                    snap = System.Text.Json.JsonSerializer.Deserialize<TextScaleUtil.Snapshot>(System.IO.File.ReadAllText(TextSnapPath));
-
-                if (snap != null) TextScaleUtil.Restore(snap.Value);
-                if (RestartExplore) TextScaleUtil.RestartExplorerShell();
-
-                System.IO.File.Delete(TextMarkerPath);
-                if (System.IO.File.Exists(TextSnapPath)) System.IO.File.Delete(TextSnapPath);
+                var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(m.name);
+                list.Add(new Mon
+                {
+                    Name = m.name,
+                    Width = m.width,
+                    Height = m.height,
+                    X = ok ? x : 0,
+                    Y = ok ? y : 0,
+                    Refresh = 60,
+                    IsVirtual = DisplayUtil.IsVirtualDisplay(m.name, m.hmon)
+                });
             }
-        }
-        catch { /* best-effort */ }
+            snap.Monitors = list;
 
-        try
+            // 2) Taskbar multi-monitor flag
+            snap.MMTaskbarEnabled = ReadMMTaskbarEnabled();
+
+            // 3) Text size snapshot (global and per-monitor)
+            snap.TextScale = TextScaleUtil.Read();
+            
+            // 3b) Per-monitor text scale snapshot
+            foreach (var mon in mons)
+            {
+                int originalPercent = (int)(TextScaleUtil.GetMonitorDpi(mon.name) * 100 / 96);
+                snap.PerMonitorTextScale[mon.name] = originalPercent;
+                Console.WriteLine($"[Guard] Saved original text scale for {mon.name}: {originalPercent}%");
+            }
+
+            // 4) VDD PNP instance & trạng thái
+            var vddId = FindPnpInstanceIdByNameContains(DriverNameContains);
+            snap.VddInstanceId = vddId;
+            snap.VddWasEnabled = string.IsNullOrWhiteSpace(vddId) ? (bool?)null : !IsDeviceDisabled(vddId);
+
+            // Lưu ra file
+            File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(SessionMarker, DateTime.UtcNow.ToString("o"));
+            Console.WriteLine("[Guard] Snapshot captured.");
+        }
+        catch (Exception ex)
         {
-            // Xoá marker => báo là đã khôi phục OK
-            if (File.Exists(MarkerPath)) File.Delete(MarkerPath);
-
-            // Gỡ RunOnce (không cần chạy tự phục hồi nữa)
-            using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\RunOnce", true);
-            rk?.DeleteValue("RemotePlayServerDisplayRestore", false);
+            Console.WriteLine("[Guard] Capture snapshot failed: " + ex.Message);
         }
-        catch { }
     }
 
-    // Dành cho tham số --restore-if-needed (chạy sớm trong Main)
+    // Dùng khi khởi động với flag --restore-if-needed hoặc khi phát hiện marker còn sót
     public static void RestoreIfNeededOnStartup()
     {
         try
         {
-            if (!File.Exists(MarkerPath)) return; // phiên trước đã khôi phục OK
-            var snaps = DisplayUtil.LoadSnapshot(SnapPath);
-            if (snaps != null) DisplayUtil.RestoreFromSnapshot(snaps);
-            // Xoá marker sau khôi phục
-            File.Delete(MarkerPath);
+            if (File.Exists(SessionMarker) && File.Exists(SnapshotPath))
+            {
+                Console.WriteLine("[Guard] Restoring previous session state...");
+                RestoreInternal(readOnly: false, disableVdd: true);
+                File.Delete(SessionMarker);
+                Console.WriteLine("[Guard] Restore done.");
+            }
         }
-        catch { /* best-effort */ }
+        catch (Exception ex) { Console.WriteLine("[Guard] RestoreIfNeeded failed: " + ex.Message); }
+    }
 
-        // try
-        // {
-        //     if (File.Exists(PerMonDpiMarkerPath))
-        //     {
-        //         var snaps = DpiPerMonitorUtil.LoadSnapshot(PerMonDpiSnapPath);
-        //         if (snaps != null) DpiPerMonitorUtil.Restore(snaps);
-        //         if (RestartExplore) DpiUtil.RestartExplorerShell();
+    // Gọi ở shutdown bình thường: khôi phục & dọn dẹp marker/snapshot
+    public static void RestoreAndCleanup()
+    {
+        RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(30));
+    }
 
-        //         File.Delete(PerMonDpiMarkerPath);
-        //         if (File.Exists(PerMonDpiSnapPath)) File.Delete(PerMonDpiSnapPath);
-        //     }
-        // }
-        // catch { /* best-effort */ }
+    // Phiên bản với timeout protection để tránh deadlock
+    public static void RestoreAndCleanupWithTimeout(TimeSpan timeout)
+    {
+        try
+        {
+            if (File.Exists(SnapshotPath))
+            {
+                Console.WriteLine("[Guard] Restoring original state before exit...");
+
+                // Run restore in separate thread with timeout
+                using var cts = new CancellationTokenSource(timeout);
+                restoreTask = Task.Run(() => RestoreInternalSafe(readOnly: false, disableVdd: true, cts.Token), cts.Token);
+
+                if (restoreTask.Wait(timeout))
+                {
+                    Console.WriteLine("[Guard] Restore done.");
+                }
+                else
+                {
+                    Console.WriteLine("[Guard] Restore timeout - forcing basic cleanup only.");
+                    // Basic cleanup without VDD disable
+                    BasicCleanupOnly();
+                }
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Restore failed: " + ex.Message); }
+
+        try { if (File.Exists(SessionMarker)) File.Delete(SessionMarker); } catch { }
+        // Giữ snapshot để tham chiếu; nếu muốn xoá luôn:
+        // try { if (File.Exists(SnapshotPath)) File.Delete(SnapshotPath); } catch { }
+    }
+
+    static Task restoreTask = Task.CompletedTask;
+
+    static void RestoreInternalSafe(bool readOnly, bool disableVdd, CancellationToken cancellationToken)
+    {
+        if (!File.Exists(SnapshotPath)) return;
+
+        Snapshot? snap = null;
+        try
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+            snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Cannot read snapshot: " + ex.Message); return; }
+        if (snap == null) return;
 
         try
         {
-            if (System.IO.File.Exists(TextMarkerPath))
+            // 1) Khôi phục độ phân giải with timeout
+            if (cancellationToken.IsCancellationRequested) return;
+            RestoreMonitorModesSafe(snap);
+
+            // 2) Khôi phục taskbar flag
+            if (cancellationToken.IsCancellationRequested) return;
+            RestoreTaskbarFlagSafe(snap);
+
+            // 3) Khôi phục Text size
+            if (cancellationToken.IsCancellationRequested) return;
+            RestoreTextScaleSafe(snap);
+            
+            // 3b) Khôi phục per-monitor text scale for virtual monitor
+            if (cancellationToken.IsCancellationRequested) return;
+            RestorePerMonitorTextScaleSafe(snap);
+
+            // 4) Safe disable VDD (last step, most dangerous)
+            if (disableVdd && !cancellationToken.IsCancellationRequested)
             {
-                var snap = _textSnap;
-                if (snap == null && System.IO.File.Exists(TextSnapPath))
-                    snap = System.Text.Json.JsonSerializer.Deserialize<TextScaleUtil.Snapshot>(System.IO.File.ReadAllText(TextSnapPath));
-
-                if (snap != null) TextScaleUtil.Restore(snap.Value);
-                if (RestartExplore) TextScaleUtil.RestartExplorerShell();
-
-                System.IO.File.Delete(TextMarkerPath);
-                if (System.IO.File.Exists(TextSnapPath)) System.IO.File.Delete(TextSnapPath);
+                SafeDisableVdd(snap, cancellationToken);
             }
         }
-        catch { /* best-effort */ }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("[Guard] Restore cancelled due to timeout.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[Guard] RestoreInternalSafe error: " + ex.Message);
+            throw;
+        }
+        finally
+        {
+            // Final settling time for all restored settings
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                Console.WriteLine("[Guard] Allowing system to settle after restore...");
+                Thread.Sleep(2000); // Give Windows time to apply all registry changes
+                Console.WriteLine("[Guard] ✅ All settings restored and system settled.");
+            }
+        }
     }
+
+    static void RestoreMonitorModesSafe(Snapshot snap)
+    {
+        try
+        {
+            if (snap.Monitors != null)
+            {
+                var current = WgcInterop.ListMonitorsDXGI();
+                foreach (var m in snap.Monitors)
+                {
+                    var cur = current.FirstOrDefault(c => string.Equals(c.name, m.Name, StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrEmpty(cur.name) && m.Width > 0 && m.Height > 0)
+                    {
+                        DisplayUtil.ForceResolution(cur.name, m.Width, m.Height, Math.Max(30, m.Refresh));
+                        Thread.Sleep(200); // Small delay between resolution changes
+                    }
+                }
+                Console.WriteLine("[Guard] Monitor modes restored.");
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Restore monitor modes failed: " + ex.Message); }
+    }
+
+    static void RestoreTaskbarFlagSafe(Snapshot snap)
+    {
+        try
+        {
+            if (snap.MMTaskbarEnabled is int v)
+            {
+                using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
+                             ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
+                rk.SetValue("MMTaskbarEnabled", v, RegistryValueKind.DWord);
+                Console.WriteLine($"[Guard] Taskbar multi-monitor flag restored to {v}.");
+                Console.WriteLine("[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).");
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Taskbar flag restore failed: " + ex.Message); }
+    }
+
+    static void RestoreTextScaleSafe(Snapshot snap)
+    {
+        try
+        {
+            Console.WriteLine("[Guard] Restoring original text size...");
+            
+            // Restore original text scale
+            TextScaleUtil.Restore(snap.TextScale);
+            Thread.Sleep(500);
+            
+            // Verify restore success
+            var current = TextScaleUtil.Read();
+            bool success = (current.K1 == snap.TextScale.K1 || current.K2 == snap.TextScale.K2) || 
+                          (current.K1 == null && current.K2 == null && snap.TextScale.K1 == null && snap.TextScale.K2 == null);
+            
+            if (success)
+            {
+                Console.WriteLine("[Guard] ✓ Text size restored successfully.");
+            }
+            else
+            {
+                Console.WriteLine("[Guard] ⚠ Text size may not have been restored properly.");
+                Console.WriteLine($"[Guard] Expected: K1={snap.TextScale.K1}, K2={snap.TextScale.K2}");
+                Console.WriteLine($"[Guard] Current: K1={current.K1}, K2={current.K2}");
+                
+                // Khuyến nghị thủ công thay vì tự động restart
+                Console.WriteLine("[Guard] Text size may require Explorer restart to fully restore.");
+                Console.WriteLine("[Guard] You can restart Explorer manually if needed:");
+                Console.WriteLine("[Guard]   • Press Ctrl+Shift+Right Click on Start -> Restart Explorer");
+                Console.WriteLine("[Guard]   • Or run: taskkill /f /im explorer.exe && start explorer.exe");
+                
+                // Thử broadcast lại một lần nữa với các messages mạnh hơn
+                try
+                {
+                    Console.WriteLine("[Guard] Attempting enhanced broadcast refresh...");
+                    TextScaleUtil.EnhancedBroadcastAndRefresh();
+                    
+                    // Final verification
+                    var current2 = TextScaleUtil.Read();
+                    success = (current2.K1 == snap.TextScale.K1 || current2.K2 == snap.TextScale.K2) || 
+                              (current2.K1 == null && current2.K2 == null && snap.TextScale.K1 == null && snap.TextScale.K2 == null);
+                    Console.WriteLine(success ? 
+                        "[Guard] ✓ Text size restored after enhanced refresh." :
+                        $"[Guard] ⚠ May need manual Explorer restart. Final state: K1={current2.K1}, K2={current2.K2}");
+                }
+                catch (Exception ex2)
+                {
+                    Console.WriteLine("[Guard] Enhanced refresh failed: " + ex2.Message);
+                }
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Text size restore failed: " + ex.Message); }
+    }
+
+    static void RestorePerMonitorTextScaleSafe(Snapshot snap)
+    {
+        try
+        {
+            Console.WriteLine("[Guard] Restoring per-monitor text scale...");
+            
+            // Find virtual monitor
+            var monsNow = WgcInterop.ListMonitorsDXGI();
+            int virtMid = MonitorDetect.PickVirtualMid(monsNow);
+            
+            if (virtMid >= 0)
+            {
+                string virtualMonitorName = monsNow[virtMid].name;
+                Console.WriteLine($"[Guard] Restoring text scale for virtual monitor: {virtualMonitorName}");
+                
+                // Get original percent from snapshot
+                if (snap.PerMonitorTextScale.TryGetValue(virtualMonitorName, out int originalPercent))
+                {
+                    bool success = TextScaleUtil.RestorePerMonitorTextScale(virtualMonitorName, originalPercent);
+                    
+                    if (success)
+                    {
+                        Console.WriteLine($"[Guard] ✓ Virtual monitor text scale restored to {originalPercent}%");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[Guard] ⚠ Virtual monitor text scale may need manual restoration");
+                        Console.WriteLine($"[Guard] Expected: {originalPercent}%, Current: {TextScaleUtil.GetMonitorDpi(virtualMonitorName) * 100 / 96}%");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[Guard] No saved text scale for {virtualMonitorName}, assuming 100%");
+                    TextScaleUtil.RestorePerMonitorTextScale(virtualMonitorName, 100);
+                }
+            }
+            
+            Console.WriteLine("[Guard] Per-monitor text scale restoration completed.");
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Per-monitor text scale restore failed: " + ex.Message); }
+    }
+
+    static void SafeDisableVdd(Snapshot snap, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var id = snap.VddInstanceId;
+            if (string.IsNullOrWhiteSpace(id)) id = FindPnpInstanceIdByNameContains(DriverNameContains);
+
+            if (!string.IsNullOrWhiteSpace(id) && !IsDeviceDisabled(id))
+            {
+                if (cancellationToken.IsCancellationRequested) return;
+
+                var monsNow = WgcInterop.ListMonitorsDXGI();
+                int virt = -1; var phys = new List<int>();
+                for (int i = 0; i < monsNow.Count; i++)
+                {
+                    if (DisplayUtil.IsVirtualDisplay(monsNow[i].name, monsNow[i].hmon)) virt = i;
+                    else phys.Add(i);
+                }
+
+                if (phys.Count == 0)
+                {
+                    Console.WriteLine("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
+                    return;
+                }
+
+                // Try to set physical monitor as primary
+                string physPrimary = phys.Select(i => monsNow[i].name)
+                                         .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                                         .FirstOrDefault() ?? monsNow[phys[0]].name;
+
+                if (!string.IsNullOrEmpty(physPrimary) && TryMakePrimary(physPrimary))
+                {
+                    Console.WriteLine($"[Guard] Set primary = {physPrimary}");
+                    SleepQuiet(1200);
+                }
+
+                if (cancellationToken.IsCancellationRequested) return;
+
+                // Disable VDD with smaller timeout
+                RunPnputilWithTimeout($"/disable-device \"{id}\"", TimeSpan.FromSeconds(10));
+                Console.WriteLine("[Guard] Virtual Display Driver disabled safely.");
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] SafeDisableVdd failed: " + ex.Message); }
+    }
+
+    static void BasicCleanupOnly()
+    {
+        try
+        {
+            // Only clean up basic stuff, skip VDD disable which can hang
+            Console.WriteLine("[Guard] Basic cleanup only - skipping VDD disable.");
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Basic cleanup failed: " + ex.Message); }
+    }
+
+    static void RunPnputilWithTimeout(string args, TimeSpan timeout)
+    {
+        Console.WriteLine("[pnputil] " + args);
+        var psi = new ProcessStartInfo("pnputil", args)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            Verb = "runas"
+        };
+
+        using var p = Process.Start(psi)!;
+
+        // Wait with timeout
+        if (!p.WaitForExit((int)timeout.TotalMilliseconds))
+        {
+            Console.WriteLine("[pnputil] Timeout - killing process");
+            try { p.Kill(); } catch { }
+            throw new TimeoutException("pnputil operation timed out");
+        }
+
+        Console.WriteLine(p.StandardOutput.ReadToEnd());
+        var err = p.StandardError.ReadToEnd();
+        if (!string.IsNullOrWhiteSpace(err)) Console.WriteLine(err);
+    }
+
+    // ==== Thao tác chi tiết ====
+    static void RestoreInternal(bool readOnly, bool disableVdd)
+    {
+        if (!File.Exists(SnapshotPath)) return;
+
+        Snapshot? snap = null;
+        try { snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath)); }
+        catch (Exception ex) { Console.WriteLine("[Guard] Cannot read snapshot: " + ex.Message); return; }
+        if (snap == null) return;
+
+        // 1) Khôi phục độ phân giải từng màn TRƯỚC (để đảm bảo có màn vật lý usable)
+        try
+        {
+            if (snap.Monitors != null)
+            {
+                var current = WgcInterop.ListMonitorsDXGI();
+                foreach (var m in snap.Monitors)
+                {
+                    var cur = current.FirstOrDefault(c => string.Equals(c.name, m.Name, StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrEmpty(cur.name) && m.Width > 0 && m.Height > 0)
+                    {
+                        DisplayUtil.ForceResolution(cur.name, m.Width, m.Height, Math.Max(30, m.Refresh));
+                    }
+                }
+                Console.WriteLine("[Guard] Monitor modes restored.");
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Restore monitor modes failed: " + ex.Message); }
+
+        // 2) Khôi phục cờ Taskbar multi-monitor
+        try
+        {
+            if (snap.MMTaskbarEnabled is int v)
+            {
+                using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
+                             ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
+                rk.SetValue("MMTaskbarEnabled", v, RegistryValueKind.DWord);
+                Console.WriteLine($"[Guard] Taskbar multi-monitor flag restored to {v}.");
+                Console.WriteLine("[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.");
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("[Guard] Taskbar flag restore failed: " + ex.Message); }
+
+        // 3) Khôi phục Text size (global)
+        try { TextScaleUtil.Restore(snap.TextScale); Console.WriteLine("[Guard] Text size restored."); }
+        catch (Exception ex) { Console.WriteLine("[Guard] Text size restore failed: " + ex.Message); }
+
+        // 4) SAFE DISABLE VDD (nếu có màn vật lý; tránh disable khi màn ảo còn primary)
+        if (disableVdd)
+        {
+            try
+            {
+                var id = snap.VddInstanceId;
+                if (string.IsNullOrWhiteSpace(id)) id = FindPnpInstanceIdByNameContains(DriverNameContains);
+
+                if (!string.IsNullOrWhiteSpace(id) && !IsDeviceDisabled(id))
+                {
+                    var monsNow = WgcInterop.ListMonitorsDXGI();
+                    int virt = -1; var phys = new List<int>();
+                    for (int i = 0; i < monsNow.Count; i++)
+                    {
+                        if (DisplayUtil.IsVirtualDisplay(monsNow[i].name, monsNow[i].hmon)) virt = i;
+                        else phys.Add(i);
+                    }
+
+                    if (phys.Count == 0)
+                    {
+                        Console.WriteLine("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
+                    }
+                    else
+                    {
+                        // Đảm bảo 1 màn vật lý là primary trước khi disable VDD
+                        // Ưu tiên \\.\DISPLAY1 nếu là vật lý, nếu không chọn phys[0]
+                        string physPrimary = phys.Select(i => monsNow[i].name)
+                                                 .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                                                 .FirstOrDefault() ?? monsNow[phys[0]].name;
+
+                        if (!string.IsNullOrEmpty(physPrimary))
+                        {
+                            if (TryMakePrimary(physPrimary))
+                            {
+                                Console.WriteLine($"[Guard] Set primary = {physPrimary}");
+                                SleepQuiet(1200); // chờ topology ổn định
+                            }
+                        }
+
+                        RunPnputil($"/disable-device \"{id}\"");
+                        Console.WriteLine("[Guard] Virtual Display Driver disabled safely.");
+                    }
+                }
+            }
+            catch (Exception ex) { Console.WriteLine("[Guard] Disable VDD failed: " + ex.Message); }
+        }
+    }
+
+    // ==== Helpers: Taskbar, Explorer, pnputil, v.v. ====
+    static int? ReadMMTaskbarEnabled()
+    {
+        try
+        {
+            using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", false);
+            var v = rk?.GetValue("MMTaskbarEnabled");
+            if (v is int iv) return iv;
+        }
+        catch { }
+        return null;
+    }
+
+    static string FindPnpInstanceIdByNameContains(string nameContains)
+    {
+        try
+        {
+            var txt = RunAndRead("pnputil", "/enum-devices /connected");
+            string found = "";
+            foreach (var blk in txt.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (blk.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    foreach (var line in blk.Split('\n'))
+                    {
+                        var i = line.IndexOf("Instance ID:", StringComparison.OrdinalIgnoreCase);
+                        if (i >= 0) { found = line.Substring(i + 12).Trim(); break; }
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(found)) break;
+            }
+            return found;
+        }
+        catch { return ""; }
+    }
+
+    static bool IsDeviceDisabled(string instanceId)
+    {
+        var txt = RunAndRead("pnputil", "/enum-devices /connected");
+        var i = txt.IndexOf(instanceId, StringComparison.OrdinalIgnoreCase);
+        if (i < 0) return false;
+        var around = txt.Substring(Math.Max(0, i - 200), Math.Min(400, txt.Length - Math.Max(0, i - 200)));
+        return around.IndexOf("Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    static string RunAndRead(string exe, string args)
+    {
+        var psi = new ProcessStartInfo(exe, args)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        using var p = Process.Start(psi)!;
+        string s = p.StandardOutput.ReadToEnd() + "\n" + p.StandardError.ReadToEnd();
+        p.WaitForExit(4000);
+        return s;
+    }
+
+    static void RunPnputil(string args)
+    {
+        Console.WriteLine("[pnputil] " + args);
+        var psi = new ProcessStartInfo("pnputil", args)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            Verb = "runas"
+        };
+        using var p = Process.Start(psi)!;
+        Console.WriteLine(p.StandardOutput.ReadToEnd());
+        var err = p.StandardError.ReadToEnd();
+        if (!string.IsNullOrWhiteSpace(err)) Console.WriteLine(err);
+        p.WaitForExit();
+    }
+
+    // ===== Helpers to switch primary display safely =====
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DEVMODE
+    {
+        private const int CCHDEVICENAME = 32;
+        private const int CCHFORMNAME = 32;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)] public string dmDeviceName;
+        public short dmSpecVersion, dmDriverVersion, dmSize, dmDriverExtra;
+        public int dmFields;
+        public int dmPositionX, dmPositionY;
+        public int dmDisplayOrientation, dmDisplayFixedOutput;
+        public short dmColor, dmDuplex, dmYResolution, dmTTOption, dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)] public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel, dmPelsWidth, dmPelsHeight, dmDisplayFlags, dmDisplayFrequency;
+        public int dmICMMethod, dmICMIntent, dmMediaType, dmDitherType, dmReserved1, dmReserved2;
+        public int dmPanningWidth, dmPanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern int ChangeDisplaySettingsEx(string? lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, uint dwflags, IntPtr lParam);
+
+    const int DM_POSITION = 0x00000020;
+    const int DM_PELSWIDTH = 0x00080000;
+    const int DM_PELSHEIGHT = 0x00100000;
+    const int DM_DISPLAYFREQUENCY = 0x00400000;
+    const int CDS_UPDATEREGISTRY = 0x00000001;
+    const int CDS_NORESET = 0x10000000;
+    const int CDS_SET_PRIMARY = 0x00000010;
+
+    static bool TryMakePrimary(string displayName) // "\\.\DISPLAY1"
+    {
+        try
+        {
+            var dm = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>(), dmFields = DM_POSITION };
+            // Set primary: position 0,0 + CDS_SET_PRIMARY
+            dm.dmPositionX = 0; dm.dmPositionY = 0;
+            int r = ChangeDisplaySettingsEx(displayName, ref dm, IntPtr.Zero, CDS_SET_PRIMARY | CDS_NORESET, IntPtr.Zero);
+            if (r != 0) return false;
+
+            // Áp thay đổi
+            dm = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+            r = ChangeDisplaySettingsEx(null, ref dm, IntPtr.Zero, 0, IntPtr.Zero);
+            return r == 0;
+        }
+        catch { return false; }
+    }
+
+    static void SleepQuiet(int ms) { try { System.Threading.Thread.Sleep(ms); } catch { } }
 }
