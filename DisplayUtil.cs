@@ -194,7 +194,7 @@ static class DisplayUtil
         
         // Simple and reliable: Any high-numbered display (> 10) is very likely virtual
         // Extract display number from device name: \\.\DISPLAY22 -> 22
-        var displayNumMatch = System.Text.RegularExpressions.Regex.Match(deviceString, @"DISPLAY(\d+)");
+        var displayNumMatch = System.Text.RegularExpressions.Regex.Match(deviceString ?? "", @"DISPLAY(\d+)");
         if (displayNumMatch.Success && int.TryParse(displayNumMatch.Groups[1].Value, out int displayNum))
         {
             if (displayNum > 10)

@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if WINDOWS
 using Microsoft.Win32;
 
 static class DisplayGuard
@@ -87,7 +89,7 @@ static class DisplayGuard
 
             // 3) Text size snapshot (global and per-monitor)
             snap.TextScale = TextScaleUtil.Read();
-            
+
             // 3b) Per-monitor text scale snapshot
             foreach (var mon in mons)
             {
@@ -194,7 +196,7 @@ static class DisplayGuard
             // 3) Khôi phục Text size
             if (cancellationToken.IsCancellationRequested) return;
             RestoreTextScaleSafe(snap);
-            
+
             // 3b) Khôi phục per-monitor text scale for virtual monitor
             if (cancellationToken.IsCancellationRequested) return;
             RestorePerMonitorTextScaleSafe(snap);
@@ -255,8 +257,7 @@ static class DisplayGuard
         {
             if (snap.MMTaskbarEnabled is int v)
             {
-                using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
-                             ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
+                using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true) ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
                 rk.SetValue("MMTaskbarEnabled", v, RegistryValueKind.DWord);
                 Console.WriteLine($"[Guard] Taskbar multi-monitor flag restored to {v}.");
                 Console.WriteLine("[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).");
@@ -270,16 +271,16 @@ static class DisplayGuard
         try
         {
             Console.WriteLine("[Guard] Restoring original text size...");
-            
+
             // Restore original text scale
             TextScaleUtil.Restore(snap.TextScale);
             Thread.Sleep(500);
-            
+
             // Verify restore success
             var current = TextScaleUtil.Read();
-            bool success = (current.K1 == snap.TextScale.K1 || current.K2 == snap.TextScale.K2) || 
+            bool success = (current.K1 == snap.TextScale.K1 || current.K2 == snap.TextScale.K2) ||
                           (current.K1 == null && current.K2 == null && snap.TextScale.K1 == null && snap.TextScale.K2 == null);
-            
+
             if (success)
             {
                 Console.WriteLine("[Guard] ✓ Text size restored successfully.");
@@ -289,24 +290,24 @@ static class DisplayGuard
                 Console.WriteLine("[Guard] ⚠ Text size may not have been restored properly.");
                 Console.WriteLine($"[Guard] Expected: K1={snap.TextScale.K1}, K2={snap.TextScale.K2}");
                 Console.WriteLine($"[Guard] Current: K1={current.K1}, K2={current.K2}");
-                
+
                 // Khuyến nghị thủ công thay vì tự động restart
                 Console.WriteLine("[Guard] Text size may require Explorer restart to fully restore.");
                 Console.WriteLine("[Guard] You can restart Explorer manually if needed:");
                 Console.WriteLine("[Guard]   • Press Ctrl+Shift+Right Click on Start -> Restart Explorer");
                 Console.WriteLine("[Guard]   • Or run: taskkill /f /im explorer.exe && start explorer.exe");
-                
+
                 // Thử broadcast lại một lần nữa với các messages mạnh hơn
                 try
                 {
                     Console.WriteLine("[Guard] Attempting enhanced broadcast refresh...");
                     TextScaleUtil.EnhancedBroadcastAndRefresh();
-                    
+
                     // Final verification
                     var current2 = TextScaleUtil.Read();
-                    success = (current2.K1 == snap.TextScale.K1 || current2.K2 == snap.TextScale.K2) || 
+                    success = (current2.K1 == snap.TextScale.K1 || current2.K2 == snap.TextScale.K2) ||
                               (current2.K1 == null && current2.K2 == null && snap.TextScale.K1 == null && snap.TextScale.K2 == null);
-                    Console.WriteLine(success ? 
+                    Console.WriteLine(success ?
                         "[Guard] ✓ Text size restored after enhanced refresh." :
                         $"[Guard] ⚠ May need manual Explorer restart. Final state: K1={current2.K1}, K2={current2.K2}");
                 }
@@ -324,21 +325,21 @@ static class DisplayGuard
         try
         {
             Console.WriteLine("[Guard] Restoring per-monitor text scale...");
-            
-            // Find virtual monitor
+
+            // Find virtual monitor (last monitor in list)
             var monsNow = WgcInterop.ListMonitorsDXGI();
-            int virtMid = MonitorDetect.PickVirtualMid(monsNow);
-            
+            int virtMid = monsNow.Count > 0 ? monsNow.Count - 1 : 0;
+
             if (virtMid >= 0)
             {
                 string virtualMonitorName = monsNow[virtMid].name;
                 Console.WriteLine($"[Guard] Restoring text scale for virtual monitor: {virtualMonitorName}");
-                
+
                 // Get original percent from snapshot
                 if (snap.PerMonitorTextScale.TryGetValue(virtualMonitorName, out int originalPercent))
                 {
                     bool success = TextScaleUtil.RestorePerMonitorTextScale(virtualMonitorName, originalPercent);
-                    
+
                     if (success)
                     {
                         Console.WriteLine($"[Guard] ✓ Virtual monitor text scale restored to {originalPercent}%");
@@ -355,7 +356,7 @@ static class DisplayGuard
                     TextScaleUtil.RestorePerMonitorTextScale(virtualMonitorName, 100);
                 }
             }
-            
+
             Console.WriteLine("[Guard] Per-monitor text scale restoration completed.");
         }
         catch (Exception ex) { Console.WriteLine("[Guard] Per-monitor text scale restore failed: " + ex.Message); }
@@ -667,3 +668,4 @@ static class DisplayGuard
 
     static void SleepQuiet(int ms) { try { System.Threading.Thread.Sleep(ms); } catch { } }
 }
+#endif

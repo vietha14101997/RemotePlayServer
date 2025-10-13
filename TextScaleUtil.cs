@@ -1,10 +1,12 @@
 #nullable enable
-using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+
+#if WINDOWS
+using Microsoft.Win32;
 
 static class TextScaleUtil
 {
@@ -273,7 +275,7 @@ static class TextScaleUtil
             try
             {
                 using var rk2 = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
-                rk2.SetValue("LogPixels", dpi, RegistryValueKind.DWord);
+                rk2?.SetValue("LogPixels", dpi, RegistryValueKind.DWord);
                 Console.WriteLine("[TextScale] Desktop LogPixels updated");
                 registrySuccess = true;
             }
@@ -365,8 +367,8 @@ static class TextScaleUtil
                 {
                     // Final attempt with system-wide DPI change simulation
                     using var rk = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
-                    rk.SetValue("LogPixels", dpi, RegistryValueKind.DWord);
-                    rk.SetValue("Win8DpiScaling", 1, RegistryValueKind.DWord);
+                    rk?.SetValue("LogPixels", dpi, RegistryValueKind.DWord);
+                    rk?.SetValue("Win8DpiScaling", 1, RegistryValueKind.DWord);
                     
                     // Force system-wide refresh
                     System.Diagnostics.Process.Start("cmd.exe", "/c timeout /t 2 >nul && rundll32.exe user32.dll,UpdatePerUserSystemParameters");
@@ -513,3 +515,4 @@ static class TextScaleUtil
         return sb.ToString();
     }
 }
+#endif

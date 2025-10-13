@@ -1,9 +1,12 @@
 #nullable enable
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Runtime.InteropServices;
+
+#if WINDOWS
+using Microsoft.Win32;
 
 static class DpiPerMonitorUtil
 {
@@ -52,8 +55,7 @@ static class DpiPerMonitorUtil
     public static void SetAllMonitorsScalePercent(int percent)
     {
         int logPixels = (int)Math.Round(96 * (percent / 100.0)); // 100%=96, 125%=120, 150%=144...
-        using var root = Registry.CurrentUser.OpenSubKey(PER_MONITOR_KEY, writable: true)
-                      ?? Registry.CurrentUser.CreateSubKey(PER_MONITOR_KEY, true);
+        using var root = Registry.CurrentUser.OpenSubKey(PER_MONITOR_KEY, writable: true) ?? Registry.CurrentUser.CreateSubKey(PER_MONITOR_KEY, true);
         foreach (var sub in root.GetSubKeyNames())
         {
             try
@@ -64,14 +66,13 @@ static class DpiPerMonitorUtil
             catch { /* best-effort */ }
         }
 
-        // phát tín hiệu cập nhật — nhiều thành phần vẫn cần restart explorer để áp ngay
-        DpiUtil.BroadcastForSettingsChange();
+        // phát tín hiệu cập nhật
+        BroadcastForSettingsChange();
     }
 
     public static void Restore(List<PerMonDpi> snaps)
     {
-        using var root = Registry.CurrentUser.OpenSubKey(PER_MONITOR_KEY, writable: true)
-                      ?? Registry.CurrentUser.CreateSubKey(PER_MONITOR_KEY, true);
+        using var root = Registry.CurrentUser.OpenSubKey(PER_MONITOR_KEY, writable: true) ?? Registry.CurrentUser.CreateSubKey(PER_MONITOR_KEY, true);
         foreach (var s in snaps)
         {
             try
@@ -83,6 +84,24 @@ static class DpiPerMonitorUtil
             catch { /* best-effort */ }
         }
 
-        DpiUtil.BroadcastForSettingsChange();
+        BroadcastForSettingsChange();
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
+    const uint WM_SETTINGCHANGE = 0x001A;
+    const uint HWND_BROADCAST = 0xFFFF;
+    const uint SMTO_ABORTIFHUNG = 0x0002;
+
+    static void BroadcastForSettingsChange()
+    {
+        try
+        {
+            IntPtr result;
+            SendMessageTimeout((IntPtr)HWND_BROADCAST, WM_SETTINGCHANGE, IntPtr.Zero, "WindowMetrics", SMTO_ABORTIFHUNG, 5000, out result);
+        }
+        catch { /* ignore */ }
     }
 }
+#endif
