@@ -24,71 +24,64 @@ Select number of monitors [1-6, default=3]: 2
 │  6. 960x540 (qHD)                                      │
 └───────────────────────────────────────────────────────────────┘
   💡 Recommended for 2 monitors: 1920x1080 (total width ≤ 4096)
-Select resolution [1-6, default=3]: 3
-  → Selected: 1366x768
+Select resolution [1-6, default=3]: 1
+  → Selected: 1920x1080
+
+┌─ Stream FPS ────────────────────────────────────────────────┐
+│  1. 60 fps - Smooth (requires low resolution)          │
+│  2. 30 fps - Balanced (recommended)                    ★ │
+│  3. 24 fps - Cinematic                                 │
+│  4. 20 fps - Low bandwidth                             │
+└───────────────────────────────────────────────────────────────┘
+Select FPS [1-4, default=2 (30fps)]: 2
+  → Selected: 30 fps
 
 ┌─ Configuration Summary ─────────────────────────────────────┐
 │  Monitors:     2                                             │
-│  Resolution:   1366x768                                     │
-│  Total Width:  2733 pixels ✓                          │
+│  Resolution:   1920x1080                                    │
+│  Stream FPS:   30                                            │
+│  Total Width:  3841 pixels ✓                          │
+│  Throughput:   ~124 Mpixels/sec                               │
 └───────────────────────────────────────────────────────────────┘
 
 Press ENTER to continue with setup...
 
 === RemotePlayServer (with startup steps 1→6) ===
-[Config] 2 monitors @ 1366x768
-[TextScale] Actual DPI for \\.\DISPLAY26: 96
-[Guard] Saved original text scale for \\.\DISPLAY26: 100%
+[Config] 2 monitors @ 1920x1080
+[TextScale] Actual DPI for \\.\DISPLAY6: 96
+[Guard] Saved original text scale for \\.\DISPLAY6: 100%
+[TextScale] Actual DPI for \\.\DISPLAY5: 96
+[Guard] Saved original text scale for \\.\DISPLAY5: 100%
 [Guard] Snapshot captured.
 [Setup] Step 1/4 completed - State captured.
 [Setup] Step 2/4: Configuring Virtual Display Driver...
-[VDD] Physical monitor found: \\.\DISPLAY26 (1920x1080)
-[VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 1 (target total: 2)
-[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
-[VDD] Resolution already present.
-[pnputil] /scan-devices
+[VDD] Temporarily disabling VDD to count physical monitors...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
 
-Scanning for device hardware changes.
-Scan complete.
+Failed to disable device:  ROOT\DISPLAY\0000
+The device is not connected.
 
 
-[pnputil] /enable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Enabling device:          ROOT\DISPLAY\0000
-Device enabled successfully.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
+[VDD] Physical monitor found: \\.\DISPLAY6 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY5 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 0 (target total: 2)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Setup] VDD configuration completed.
 === Monitors ===
-  0: \\.\DISPLAY26  1920x1080
-  1: \\.\DISPLAY60  4082x1532
+  0: \\.\DISPLAY6  1920x1080
+  1: \\.\DISPLAY5  1920x1080
 [Setup] Step 3/4: Setting up monitors (resolution + primary)...
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY26 [PHYSICAL] -> 1366x768@60
-[Display] Setting \\.\DISPLAY60 [PHYSICAL] -> 1366x768@60
-[Display] Setting \\.\DISPLAY26 as PRIMARY display
-[Display] ✓ \\.\DISPLAY26 set as primary
+[Display] Setting \\.\DISPLAY6 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY5 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY6 as PRIMARY display
+[Display] ✓ \\.\DISPLAY6 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY26 1366x768 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY60 1366x768 [PHYSICAL]
+[Display]   • \\.\DISPLAY6 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY5 1920x1080 [PHYSICAL]
 [Setup] Monitor setup completed.
 [Setup] Step 4/4: Applying 125% text scale...
 [DPI/TEXT] Setting 125% text scale globally for all monitors...
@@ -96,7 +89,7 @@ Scan complete.
 [DPI/TEXT] Writing text scale to primary registry key...
 [DPI/TEXT] Writing text scale to secondary registry key...
 [DPI/TEXT] Broadcasting text scale changes...
-[DPI/TEXT] Refresh triggered on \\.\DISPLAY26
+[DPI/TEXT] Refresh triggered on \\.\DISPLAY6
 [DPI/TEXT] ✓ 125% text scale applied globally.
 [DPI/TEXT] All monitors now use 125% text scale.
 [DPI/TEXT] 💡 For immediate effect, restart Explorer:
@@ -110,44 +103,38 @@ Scan complete.
 3: x=0 y=766 w=1360 h=765
 4: x=1361 y=766 w=1360 h=765
 5: x=2722 y=766 w=1360 h=765
-  0: F:\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\publish\RemotePlayServer.exe
-  1: publish
-  2: VRWorkSpace - MainScene - Android - Unity 2022.3.62f3 <DX11>
-  3: Program.cs - RemotePlayServer - Visual Studio Code
-  4: C:\Windows\System32\cmd.exe
-  5: ClusterAutoBinder.cs - VRWorkSpace - Visual Studio Code
-  6: Factory - Google Chrome
-  7: logs
-  8: Downloads
-  9: Zalo
- 10: VRWorkSpace
- 11: GitHub Desktop
- 12: UltraViewer
- 13: Steam
+  0: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+  1: net9.0-windows10.0.26100.0 - File Explorer
+  2: log.txt - RemotePlayServer - Visual Studio Code
+  3: Mai Anh | Messenger - Brave
+  4: #trà-đá🍵 | Chillspace - Discord
+  5: logs - File Explorer
+  6: VRWorkSpace - MainScene - Android - Unity 2022.3.62f2* <DX11>
+  7: GitHub Desktop
 [HTTP] http://+:8288/
    • http://localhost:8288/api/layout
-   • ws://192.168.1.20:8288/signal?mid=<id>   hoặc   ws://192.168.1.20:8288/signal?wid=<id>
+   • ws://192.168.1.2:8288/signal?mid=<id>   hoặc   ws://192.168.1.2:8288/signal?wid=<id>
    • http://localhost:8288/api/windows
    • http://localhost:8288/api/monitors
    • http://localhost:8288/api/cluster
 Server is running. Press ENTER to exit.
-[HTTP] /api/layout -> {"frameWidth":2733,"frameHeight":768,"cellWidth":1366,"cellHeight":768,"gap":1,"monitors":2}
-[Signal] Cluster client connected 09119599-30c4-43d1-ba58-fed52291165d
+[HTTP] /api/layout -> {"frameWidth":3841,"frameHeight":1080,"cellWidth":1920,"cellHeight":1080,"gap":1,"monitors":2}
+[Signal] Cluster client connected b3723a92-bda7-4540-8a71-04534d286192
 ---- REMOTE OFFER SDP ----
 v=0
-o=- 5269338824597315720 2 IN IP4 127.0.0.1
+o=- 5299374048557692736 2 IN IP4 127.0.0.1
 s=-
 t=0 0
 a=group:BUNDLE 0
 a=extmap-allow-mixed
 a=msid-semantic: WMS
-m=video 9 UDP/TLS/RTP/SAVPF 123 115 122 114 121 111 120 109 127 118 125 117 124 116 35 36 37 38 39 40 41 42 63 62 119 43
+m=video 9 UDP/TLS/RTP/SAVPF 127 122 125 121 124 120 35 36 37 38 39 40 41 42 119 118 123 43
 c=IN IP4 0.0.0.0
 a=rtcp:9 IN IP4 0.0.0.0
-a=ice-ufrag:q76m
-a=ice-pwd:trK86mqCN6e9Mzy/y8JKe7U+
+a=ice-ufrag:dMsD
+a=ice-pwd:F8xsc9hZ+/F8c/mMyBIrpWNn
 a=ice-options:trickle
-a=fingerprint:sha-256 CF:0C:48:B3:58:1E:01:FB:12:2F:06:F3:DA:E3:85:D3:41:0B:6F:25:96:44:BB:1B:CD:3F:41:71:80:68:6E:AF
+a=fingerprint:sha-256 67:EE:5E:2F:9B:8B:9A:9F:A8:93:57:14:6F:2D:74:4C:D0:A9:27:9C:A8:54:7A:99:DC:D6:D3:F9:80:01:E0:79
 a=setup:actpass
 a=mid:0
 a=extmap:1 urn:ietf:params:rtp-hdrext:toffset
@@ -164,42 +151,6 @@ a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
 a=recvonly
 a=rtcp-mux
 a=rtcp-rsize
-a=rtpmap:123 H264/90000
-a=rtcp-fb:123 goog-remb
-a=rtcp-fb:123 transport-cc
-a=rtcp-fb:123 ccm fir
-a=rtcp-fb:123 nack
-a=rtcp-fb:123 nack pli
-a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-a=rtpmap:115 rtx/90000
-a=fmtp:115 apt=123
-a=rtpmap:122 H264/90000
-a=rtcp-fb:122 goog-remb
-a=rtcp-fb:122 transport-cc
-a=rtcp-fb:122 ccm fir
-a=rtcp-fb:122 nack
-a=rtcp-fb:122 nack pli
-a=fmtp:122 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420033
-a=rtpmap:114 rtx/90000
-a=fmtp:114 apt=122
-a=rtpmap:121 H264/90000
-a=rtcp-fb:121 goog-remb
-a=rtcp-fb:121 transport-cc
-a=rtcp-fb:121 ccm fir
-a=rtcp-fb:121 nack
-a=rtcp-fb:121 nack pli
-a=fmtp:121 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640033
-a=rtpmap:111 rtx/90000
-a=fmtp:111 apt=121
-a=rtpmap:120 H264/90000
-a=rtcp-fb:120 goog-remb
-a=rtcp-fb:120 transport-cc
-a=rtcp-fb:120 ccm fir
-a=rtcp-fb:120 nack
-a=rtcp-fb:120 nack pli
-a=fmtp:120 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d0033
-a=rtpmap:109 rtx/90000
-a=fmtp:109 apt=120
 a=rtpmap:127 VP8/90000
 a=rtcp-fb:127 goog-remb
 a=rtcp-fb:127 transport-cc
@@ -207,8 +158,8 @@ a=rtcp-fb:127 ccm fir
 a=rtcp-fb:127 nack
 a=rtcp-fb:127 nack pli
 a=fmtp:127 implementation_name=Internal
-a=rtpmap:118 rtx/90000
-a=fmtp:118 apt=127
+a=rtpmap:122 rtx/90000
+a=fmtp:122 apt=127
 a=rtpmap:125 VP9/90000
 a=rtcp-fb:125 goog-remb
 a=rtcp-fb:125 transport-cc
@@ -216,8 +167,8 @@ a=rtcp-fb:125 ccm fir
 a=rtcp-fb:125 nack
 a=rtcp-fb:125 nack pli
 a=fmtp:125 implementation_name=Internal;profile-id=0
-a=rtpmap:117 rtx/90000
-a=fmtp:117 apt=125
+a=rtpmap:121 rtx/90000
+a=fmtp:121 apt=125
 a=rtpmap:124 VP9/90000
 a=rtcp-fb:124 goog-remb
 a=rtcp-fb:124 transport-cc
@@ -225,8 +176,8 @@ a=rtcp-fb:124 ccm fir
 a=rtcp-fb:124 nack
 a=rtcp-fb:124 nack pli
 a=fmtp:124 implementation_name=Internal;profile-id=2
-a=rtpmap:116 rtx/90000
-a=fmtp:116 apt=124
+a=rtpmap:120 rtx/90000
+a=fmtp:120 apt=124
 a=rtpmap:35 VP9/90000
 a=rtcp-fb:35 goog-remb
 a=rtcp-fb:35 transport-cc
@@ -263,336 +214,114 @@ a=rtcp-fb:41 nack pli
 a=fmtp:41 implementation_name=Internal;profile=1
 a=rtpmap:42 rtx/90000
 a=fmtp:42 apt=41
-a=rtpmap:63 red/90000
-a=rtpmap:62 rtx/90000
-a=fmtp:62 apt=63
-a=rtpmap:119 ulpfec/90000
+a=rtpmap:119 red/90000
+a=rtpmap:118 rtx/90000
+a=fmtp:118 apt=119
+a=rtpmap:123 ulpfec/90000
 a=rtpmap:43 flexfec-03/90000
 a=rtcp-fb:43 goog-remb
 a=rtcp-fb:43 transport-cc
 a=fmtp:43 repair-window=10000000
 
-NEGOTIATED VIDEO FORMATS:
-  SIPSorceryMedia.Abstractions.VideoFormat
-  SIPSorceryMedia.Abstractions.VideoFormat
-  SIPSorceryMedia.Abstractions.VideoFormat
-  SIPSorceryMedia.Abstractions.VideoFormat
-canSend(H264) = True
-[RTC] ice = checking
 [ClusterCapture] Starting combined capture for 2 monitors
-[ClusterCapture] Combined frame: 2733x768, 2 monitors, gap=1
-[ClusterCapture] Using adapter: NVIDIA GeForce GTX 1660 Ti
-[RTC] ice = connected
-[RTC] TEMP ENABLE SEND FOR DIAG
-[RTC] pc.state = connecting
-[RTC] pc.state = connected
-[ClusterCapture] Added monitor: \\.\DISPLAY26 at offset x=0
-[ClusterCapture] Added monitor: \\.\DISPLAY60 at offset x=1367
+[ClusterCapture] Combined frame: 3841x1080, 2 monitors, gap=1
+[ClusterCapture] Using adapter: AMD Radeon RX 7600
+[ClusterCapture] Added monitor: \\.\DISPLAY6 at offset x=0
+[ClusterCapture] Added monitor: \\.\DISPLAY5 at offset x=1921
 [ClusterCapture] Initialized with 2 monitor duplications
 [ClusterCapture] Capture started
-[ClusterCapture] Frame #1: 2733x768
-[ClusterCapture->RTC] Frame #1: 2733x768
-[FFMPEG][probe h264_nvenc] exit=0
-[Parsed_color_0 @ 000002567f031140] size:640x360 rate:25/1 duration:-1.000000 sar:1/1
+[ClusterCapture] Target 30fps, frame interval 33ms
+[ClusterCapture] Frame #1: 3841x1080
+[ClusterCapture->RTC] Frame #1: 3841x1080
+[FFMPEG] Detected GPU vendor: AMD (AMD Radeon RX 7600)
+[FFMPEG][probe h264_amf] exit=0
+[Parsed_color_0 @ 000001d2037b1dc0] size:640x360 rate:25/1 duration:-1.000000 sar:1/1
 Input #0, lavfi, from 'color=c=black:s=640x360':
   Duration: N/A, start: 0.000000, bitrate: N/A
   Stream #0:0: Video: wrapped_avframe, 1 reference frame, yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 25 tbn
-[out#0/null @ 000002567f02b180] No explicit maps, mapping streams automatically...
-[vost#0:0/h264_nvenc @ 000002567f08b240] Created video stream from input stream 0:0
+[out#0/null @ 000001d2037b4500] No explicit maps, mapping streams automatically...
+[vost#0:0/h264_amf @ 000001d20380dd00] Created video stream from input stream 0:0
 Stream mapping:
-  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (h264_nvenc))
-[vost#0:0/h264_nvenc @ 000002567f08b240] Starting thread...
-[vf#0:0 @ 000002567f4fac40] Starting thread...
-[vist#0:0/wrapped_avframe @ 000002567f032900] [dec:wrapped_avframe @ 000002567f08ac40] Starting thread...
-[in#0/lavfi @ 000002567f02ee00] Starting thread...
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (h264_amf))
+[vost#0:0/h264_amf @ 000001d20380dd00] Starting thread...
+[vf#0:0 @ 000001d20380e780] Starting thread...
+[vist#0:0/wrapped_avframe @ 000001d20380b4c0] [dec:wrapped_avframe @ 000001d205542980] Starting thread...
+[in#0/lavfi @ 000001d2037a99c0] Starting thread...
 Press [q] to stop, [?] for help
-[graph -1 input from stream 0:0 @ 000002567f032400] w:640 h:360 pixfmt:yuv420p tb:1/25 fr:25/1 sar:1/1 csp:unknown range:unknown
-[graph -1 input from stream 0:0 @ 000002567f032400] video frame properties congruent with link at pts_time: 0
-[h264_nvenc @ 000002567f08d980] Loaded Nvenc version 13.0
-[h264_nvenc @ 000002567f08d980] Nvenc initialized successfully
-[h264_nvenc @ 000002567f08d980] 1 CUDA capable devices found
-[h264_nvenc @ 000002567f08d980] [ GPU #0 - < NVIDIA GeForce GTX 1660 Ti > has Compute SM 7.5 ]
-[h264_nvenc @ 000002567f08d980] supports NVENC
+[graph -1 input from stream 0:0 @ 000001d2037ac940] w:640 h:360 pixfmt:yuv420p tb:1/25 fr:25/1 sar:1/1 csp:unknown range:unknown
+[graph -1 input from stream 0:0 @ 000001d2037ac940] video frame properties congruent with link at pts_time: 0
+[h264_amf @ 000001d20380df80] AMF initialisation succeeded via D3D11.
+[h264_amf @ 000001d20380e340] rate control mode is PEAK_CONSTRAINED_VBR but rc_max_rate is not set
 Output #0, null, to 'pipe:':
   Metadata:
     encoder         : Lavf61.7.100
-  Stream #0:0: Video: h264 (Main), 1 reference frame, yuv420p(tv, progressive), 640x360 [SAR 1:1 DAR 16:9], q=2-31, 2000 kb/s, 25 fps, 25 tbn
+  Stream #0:0: Video: h264, 1 reference frame, yuv420p(tv, progressive), 640x360 [SAR 1:1 DAR 16:9], q=2-31, 25 fps, 25 tbn
       Metadata:
-        encoder         : Lavc61.19.101 h264_nvenc
-      Side data:
-        cpb: bitrate max/min/avg: 0/0/2000000 buffer size: 4000000 vbv_delay: N/A
-[out#0/null @ 000002567f02b180] Starting thread...
-[vf#0:0 @ 000002567f4fac40] All consumers returned EOF
-[vist#0:0/wrapped_avframe @ 000002567f032900] [dec:wrapped_avframe @ 000002567f08ac40] Decoder returned EOF, finishing
-[vist#0:0/wrapped_avframe @ 000002567f032900] [dec:wrapped_avframe @ 000002567f08ac40] Terminating thread with return code 0 (success)
-[vf#0:0 @ 000002567f4fac40] Terminating thread with return code 0 (success)
-[vist#0:0/wrapped_avframe @ 000002567f032900] All consumers of this stream are done
-[in#0/lavfi @ 000002567f02ee00] All consumers are done
-[in#0/lavfi @ 000002567f02ee00] Terminating thread with return code 0 (success)
-[vost#0:0/h264_nvenc @ 000002567f08b240] Encoder thread received EOF
-[vost#0:0/h264_nvenc @ 000002567f08b240] Terminating thread with return code 0 (success)
-[out#0/null @ 000002567f02b180] All streams finished
-[out#0/null @ 000002567f02b180] Terminating thread with return code 0 (success)
-[out#0/null @ 000002567f02b180] Output file #0 (pipe:):
-[out#0/null @ 000002567f02b180]   Output stream #0:0 (video): 1 frames encoded; 1 packets muxed (176 bytes);
-[out#0/null @ 000002567f02b180]   Total: 1 packets (176 bytes) muxed
-[out#0/null @ 000002567f02b180] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
-frame=    1 fps=0.0 q=11.0 Lsize=N/A time=-00:00:00.08 bitrate=N/A speed=N/A
-[h264_nvenc @ 000002567f08d980] Nvenc unloaded
-[in#0/lavfi @ 000002567f02ee00] Input file #0 (color=c=black:s=640x360):
-[in#0/lavfi @ 000002567f02ee00]   Input stream #0:0 (video): 19 packets read (8360 bytes); 10 frames decoded; 0 decode errors;
-[in#0/lavfi @ 000002567f02ee00]   Total: 19 packets (8360 bytes) demuxed
+        encoder         : Lavc61.19.101 h264_amf
+[out#0/null @ 000001d2037b4500] Starting thread...
+[vf#0:0 @ 000001d20380e780] All consumers returned EOF
+[vf#0:0 @ 000001d20380e780] Terminating thread with return code 0 (success)
+[vist#0:0/wrapped_avframe @ 000001d20380b4c0] [dec:wrapped_avframe @ 000001d205542980] Decoder returned EOF, finishing
+[vist#0:0/wrapped_avframe @ 000001d20380b4c0] [dec:wrapped_avframe @ 000001d205542980] Terminating thread with return code 0 (success)
+[vist#0:0/wrapped_avframe @ 000001d20380b4c0] All consumers of this stream are done
+[in#0/lavfi @ 000001d2037a99c0] All consumers are done
+[in#0/lavfi @ 000001d2037a99c0] Terminating thread with return code 0 (success)
+[vost#0:0/h264_amf @ 000001d20380dd00] Encoder thread received EOF
+[vost#0:0/h264_amf @ 000001d20380dd00] Terminating thread with return code 0 (success)
+[out#0/null @ 000001d2037b4500] All streams finished
+[out#0/null @ 000001d2037b4500] Terminating thread with return code 0 (success)
+[out#0/null @ 000001d2037b4500] Output file #0 (pipe:):
+[out#0/null @ 000001d2037b4500]   Output stream #0:0 (video): 1 frames encoded; 1 packets muxed (137 bytes);
+[out#0/null @ 000001d2037b4500]   Total: 1 packets (137 bytes) muxed
+[out#0/null @ 000001d2037b4500] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.00 bitrate=N/A speed=   0x
+[in#0/lavfi @ 000001d2037a99c0] Input file #0 (color=c=black:s=640x360):
+[in#0/lavfi @ 000001d2037a99c0]   Input stream #0:0 (video): 19 packets read (8360 bytes); 10 frames decoded; 0 decode errors;
+[in#0/lavfi @ 000001d2037a99c0]   Total: 19 packets (8360 bytes) demuxed
 
-[FFMPEG] chosen encoder = NVENC
-[FFMPEG] exe=F:\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\publish\bin\ffmpeg.exe
-[RTC] ffmpeg started 2733x768 60fps 6000kbps CBR
+[FFMPEG] chosen encoder = AMF
+[FFMPEG] exe=C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin\ffmpeg.exe
+[RTC] ffmpeg started 3841x1080 30fps 4000kbps CBR
 Input #0, rawvideo, from 'fd:':
-  Duration: N/A, start: 1764928624.283333, bitrate: 4029972 kb/s
-  Stream #0:0: Video: rawvideo (BGRA / 0x41524742), bgra, 2733x768, 4029972 kb/s, 60 tbr, 60 tbn
+  Duration: N/A, start: 1764941835.600000, bitrate: 3982348 kb/s
+  Stream #0:0: Video: rawvideo (BGRA / 0x41524742), bgra, 3841x1080, 3982348 kb/s, 30 tbr, 30 tbn
 Stream mapping:
-  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_nvenc))
+  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_amf))
+[h264_amf @ 000002188e9bf340] Maxium number of B frames needs to be specified.
 Output #0, h264, to 'pipe:':
   Metadata:
     encoder         : Lavf61.7.100
-  Stream #0:0: Video: h264 (Baseline), nv12(tv, progressive), 2733x768, q=2-31, 6000 kb/s, 60 fps, 60 tbn
+  Stream #0:0: Video: h264, nv12(tv, progressive), 3842x1080, q=2-31, 4000 kb/s, 30 fps, 30 tbn
       Metadata:
-        encoder         : Lavc61.19.101 h264_nvenc
-      Side data:
-        cpb: bitrate max/min/avg: 6000000/0/6000000 buffer size: 6000000 vbv_delay: N/A
-[H264] AU has IDR (SPS=True, PPS=True)
-[INJECT] 16:57:04.885 SetCursorPos x=2079 y=389e=00:00:00.08 bitrate=8630.6kbits/s speed=0.162x
-[INJECT] 16:57:04.891 SetCursorPos x=2102 y=390
-[INJECT] 16:57:04.905 SetCursorPos x=2159 y=395
-[INJECT] 16:57:04.922 SetCursorPos x=2221 y=401
-[INJECT] 16:57:04.938 SetCursorPos x=2325 y=409
-[INJECT] 16:57:04.955 SetCursorPos x=2395 y=415
-[INJECT] 16:57:04.971 SetCursorPos x=2450 y=422
-[INJECT] 16:57:04.988 SetCursorPos x=2491 y=430
-[INJECT] 16:57:05.005 SetCursorPos x=2514 y=439
-[INJECT] 16:57:05.022 SetCursorPos x=2528 y=449
-[INJECT] 16:57:05.038 SetCursorPos x=2532 y=464
-[INJECT] 16:57:05.055 SetCursorPos x=2538 y=489
-[INJECT] 16:57:05.071 SetCursorPos x=2540 y=522
-[INJECT] 16:57:05.088 SetCursorPos x=2542 y=557
-[INJECT] 16:57:05.105 SetCursorPos x=2542 y=602
-[INJECT] 16:57:05.123 SetCursorPos x=2544 y=644
-[INJECT] 16:57:05.139 SetCursorPos x=2551 y=685
-[INJECT] 16:57:05.156 SetCursorPos x=2553 y=722
-[INJECT] 16:57:05.172 SetCursorPos x=2553 y=757
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[INJECT] 16:57:05.189 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.205 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.225 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.238 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.255 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.272 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.288 SetCursorPos x=2553 y=767
-[INJECT] 16:57:05.438 SetCursorPos x=2551 y=761e=00:00:00.41 bitrate=5760.1kbits/s speed=0.404x
-[INJECT] 16:57:05.455 SetCursorPos x=2540 y=753
-[INJECT] 16:57:05.472 SetCursorPos x=2526 y=744
-[INJECT] 16:57:05.488 SetCursorPos x=2516 y=736
-[INJECT] 16:57:05.505 SetCursorPos x=2501 y=728
-[INJECT] 16:57:05.522 SetCursorPos x=2483 y=715
-[INJECT] 16:57:05.539 SetCursorPos x=2479 y=711
-[INJECT] 16:57:05.555 SetCursorPos x=2458 y=691
-[INJECT] 16:57:05.572 SetCursorPos x=2448 y=679
-[INJECT] 16:57:05.590 SetCursorPos x=2432 y=664
-[INJECT] 16:57:05.607 SetCursorPos x=2413 y=648
-[INJECT] 16:57:05.622 SetCursorPos x=2393 y=632
-[RTC] q=enq:42 deq:41 sent:35
-[INJECT] 16:57:05.639 SetCursorPos x=2370 y=614
-[INJECT] 16:57:05.656 SetCursorPos x=2348 y=600
-[INJECT] 16:57:05.672 SetCursorPos x=2323 y=588
-[INJECT] 16:57:05.688 SetCursorPos x=2303 y=579
-[INJECT] 16:57:05.706 SetCursorPos x=2280 y=569
-[INJECT] 16:57:05.723 SetCursorPos x=2255 y=559
-[INJECT] 16:57:05.739 SetCursorPos x=2217 y=544
-[INJECT] 16:57:05.754 SetCursorPos x=2194 y=535
-[INJECT] 16:57:05.771 SetCursorPos x=2178 y=530
-[INJECT] 16:57:05.788 SetCursorPos x=2167 y=529
-[INJECT] 16:57:05.804 SetCursorPos x=2163 y=528
-[INJECT] 16:57:05.822 SetCursorPos x=2159 y=527
-[ClusterCapture] Frame #60: 2733x768 563KiB time=00:00:00.78 bitrate=5889.7kbits/s speed=0.503x
-[ClusterCapture->RTC] Frame #60: 2733x768
-[INJECT] 16:57:05.939 SetCursorPos x=2157 y=527
-[INJECT] 16:57:05.971 SetCursorPos x=2153 y=527
-[INJECT] 16:57:05.989 SetCursorPos x=2149 y=527
-[INJECT] 16:57:06.006 SetCursorPos x=2147 y=527
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[INJECT] 16:57:06.055 SetCursorPos x=2145 y=527
-[INJECT] 16:57:06.088 SetCursorPos x=2143 y=527
-[INJECT] 16:57:06.105 SetCursorPos x=2137 y=527
-[INJECT] 16:57:06.122 SetCursorPos x=2133 y=527
-[INJECT] 16:57:06.138 SetCursorPos x=2128 y=528
-[INJECT] 16:57:06.154 SetCursorPos x=2126 y=528
-[INJECT] 16:57:06.189 SetCursorPos x=2120 y=530
-[H264] AU has IDR (SPS=True, PPS=True)
-[INJECT] 16:57:06.222 SetCursorPos x=2116 y=530
-[INJECT] 16:57:06.239 SetCursorPos x=2114 y=530
-[INJECT] 16:57:06.254 SetCursorPos x=2108 y=530
-[INJECT] 16:57:06.271 SetCursorPos x=2104 y=531
-[SendAuLoop] AU received=65, _canSend=True, _running=True, _pc=OK
-[INJECT] 16:57:06.288 SetCursorPos x=2098 y=531
-[INJECT] 16:57:06.305 SetCursorPos x=2094 y=531
-[INJECT] 16:57:06.321 SetCursorPos x=2085 y=532
-[INJECT] 16:57:06.338 SetCursorPos x=2077 y=534
-[INJECT] 16:57:06.355 SetCursorPos x=2071 y=535
-[INJECT] 16:57:06.372 SetCursorPos x=2063 y=537e=00:00:01.13 bitrate=7308.6kbits/s speed=0.548x
-[INJECT] 16:57:06.388 SetCursorPos x=2051 y=538
-[INJECT] 16:57:06.405 SetCursorPos x=2042 y=539
-[INJECT] 16:57:06.422 SetCursorPos x=2032 y=542
-[INJECT] 16:57:06.439 SetCursorPos x=2030 y=542
-[INJECT] 16:57:06.455 SetCursorPos x=2024 y=543
-[INJECT] 16:57:06.472 SetCursorPos x=2020 y=543
-[INJECT] 16:57:06.490 SetCursorPos x=2010 y=545
-[INJECT] 16:57:06.506 SetCursorPos x=1999 y=545
-[INJECT] 16:57:06.522 SetCursorPos x=1983 y=549
-[INJECT] 16:57:06.539 SetCursorPos x=1964 y=551
-[INJECT] 16:57:06.556 SetCursorPos x=1954 y=553
-[INJECT] 16:57:06.571 SetCursorPos x=1942 y=556
-[INJECT] 16:57:06.588 SetCursorPos x=1924 y=559
-[INJECT] 16:57:06.605 SetCursorPos x=1905 y=560
-[INJECT] 16:57:06.621 SetCursorPos x=1883 y=561
-[INJECT] 16:57:06.639 SetCursorPos x=1860 y=562
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[INJECT] 16:57:06.655 SetCursorPos x=1840 y=565
-[INJECT] 16:57:06.673 SetCursorPos x=1819 y=566
-[INJECT] 16:57:06.688 SetCursorPos x=1796 y=568
-[INJECT] 16:57:06.706 SetCursorPos x=1768 y=571
-[INJECT] 16:57:06.723 SetCursorPos x=1727 y=574
-[INJECT] 16:57:06.739 SetCursorPos x=1696 y=576
-[INJECT] 16:57:06.756 SetCursorPos x=1667 y=579
-[INJECT] 16:57:06.772 SetCursorPos x=1637 y=583
-[INJECT] 16:57:06.788 SetCursorPos x=1608 y=588
-[INJECT] 16:57:06.805 SetCursorPos x=1581 y=591
-[INJECT] 16:57:06.822 SetCursorPos x=1553 y=596
-[INJECT] 16:57:06.839 SetCursorPos x=1530 y=600
-[INJECT] 16:57:06.856 SetCursorPos x=1512 y=603
-[INJECT] 16:57:06.872 SetCursorPos x=1499 y=605e=00:00:01.61 bitrate=5938.2kbits/s speed=0.626x
-[INJECT] 16:57:06.889 SetCursorPos x=1495 y=606
-[INJECT] 16:57:06.922 SetCursorPos x=1493 y=606
-[INJECT] 16:57:06.939 SetCursorPos x=1487 y=607
-[INJECT] 16:57:06.956 SetCursorPos x=1481 y=607
-[INJECT] 16:57:06.972 SetCursorPos x=1471 y=611
-[INJECT] 16:57:06.988 SetCursorPos x=1467 y=612
-[INJECT] 16:57:07.004 SetCursorPos x=1458 y=613
-[INJECT] 16:57:07.022 SetCursorPos x=1450 y=614
-[INJECT] 16:57:07.038 SetCursorPos x=1438 y=617
-[ClusterCapture] Frame #120: 2733x768
-[ClusterCapture->RTC] Frame #120: 2733x768
-[INJECT] 16:57:07.055 SetCursorPos x=1426 y=619
-[INJECT] 16:57:07.071 SetCursorPos x=1409 y=620
-[INJECT] 16:57:07.088 SetCursorPos x=1399 y=622
-[INJECT] 16:57:07.105 SetCursorPos x=1387 y=625
-[INJECT] 16:57:07.122 SetCursorPos x=1372 y=627
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[INJECT] 16:57:07.339 SetCursorPos x=1432 y=742
-[INJECT] 16:57:07.355 SetCursorPos x=1475 y=759
-[INJECT] 16:57:07.371 SetCursorPos x=1512 y=767
-[INJECT] 16:57:07.388 SetCursorPos x=1555 y=767=00:00:01.95 bitrate=5948.7kbits/s speed=0.63x
-[INJECT] 16:57:07.404 SetCursorPos x=1604 y=767
-[INJECT] 16:57:07.422 SetCursorPos x=1649 y=767
-[INJECT] 16:57:07.438 SetCursorPos x=1696 y=767
-[INJECT] 16:57:07.455 SetCursorPos x=1733 y=767
-[INJECT] 16:57:07.471 SetCursorPos x=1760 y=767
-[INJECT] 16:57:07.489 SetCursorPos x=1772 y=767
-[INJECT] 16:57:07.505 SetCursorPos x=1772 y=767
-[INJECT] 16:57:07.523 SetCursorPos x=1758 y=767
-[INJECT] 16:57:07.538 SetCursorPos x=1733 y=767
-[H264] AU has IDR (SPS=True, PPS=True)
-[INJECT] 16:57:07.557 SetCursorPos x=1702 y=767
-[INJECT] 16:57:07.572 SetCursorPos x=1667 y=767
-[INJECT] 16:57:07.587 SetCursorPos x=1628 y=767
-[INJECT] 16:57:07.605 SetCursorPos x=1571 y=767
-[INJECT] 16:57:07.621 SetCursorPos x=1501 y=764
-[RTC] q=enq:131 deq:130 sent:124
-[INJECT] 16:57:07.638 SetCursorPos x=1419 y=754
-[SendAuLoop] AU received=136, _canSend=True, _running=True, _pc=OKte=6557.5kbits/s speed=0.605x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:02.30 bitrate=6436.8kbits/s speed=0.556x
-[RTC] q=enq:159 deq:158 sent:152    1983KiB time=00:00:02.51 bitrate=6456.3kbits/s speed=0.488x
-[ClusterCapture] Frame #180: 2733x768992KiB time=00:00:02.61 bitrate=6237.5kbits/s speed=0.461x
-[ClusterCapture->RTC] Frame #180: 2733x768
-[SendAuLoop] AU received=162, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:02.83 bitrate=6164.7kbits/s speed=0.423x
-[RTC] q=enq:184 deq:183 sent:177    2137KiB time=00:00:02.93 bitrate=5969.1kbits/s speed=0.407x
-[H264] AU has IDR (SPS=True, PPS=True)
-[SendAuLoop] AU received=188, _canSend=True, _running=True, _pc=OKte=6807.1kbits/s speed=0.394x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:03.36 bitrate=6306.7kbits/s speed=0.363x
-[RTC] q=enq:210 deq:209 sent:203
-[SendAuLoop] AU received=215, _canSend=True, _running=True, _pc=OKte=6274.4kbits/s speed=0.355x
-[ClusterCapture] Frame #240: 2733x768686KiB time=00:00:03.60 bitrate=6111.1kbits/s speed=0.349x
-[ClusterCapture->RTC] Frame #240: 2733x768
-[RTC] q=enq:236 deq:235 sent:229    2797KiB time=00:00:03.83 bitrate=5977.3kbits/s speed=0.338x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[H264] AU has IDR (SPS=True, PPS=True)82KiB time=00:00:03.95 bitrate=5977.0kbits/s speed=0.333x
-[SendAuLoop] AU received=242, _canSend=True, _running=True, _pc=OK
-[RTC] q=enq:263 deq:262 sent:256    3310KiB time=00:00:04.16 bitrate=6507.4kbits/s speed=0.323x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:04.28 bitrate=6332.3kbits/s speed=0.32x
-[SendAuLoop] AU received=268, _canSend=True, _running=True, _pc=OKte=6220.6kbits/s speed=0.316x
-[ClusterCapture] Frame #300: 2733x768422KiB time=00:00:04.61 bitrate=6072.5kbits/s speed=0.309x
-[ClusterCapture->RTC] Frame #300: 2733x768
-[RTC] q=enq:289 deq:288 sent:282
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:04.83 bitrate=5981.4kbits/s speed=0.302x
-[SendAuLoop] AU received=295, _canSend=True, _running=True, _pc=OK
-[H264] AU has IDR (SPS=True, PPS=True)13KiB time=00:00:04.95 bitrate=5979.8kbits/s speed= 0.3x
-[RTC] q=enq:315 deq:314 sent:308    3996KiB time=00:00:05.06 bitrate=6460.2kbits/s speed=0.298x
-[SendAuLoop] AU received=321, _canSend=True, _running=True, _pc=OKte=6245.4kbits/s speed=0.294x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[RTC] q=enq:341 deq:340 sent:334    4098KiB time=00:00:05.50 bitrate=6104.3kbits/s speed=0.288x
-[ClusterCapture] Frame #360: 2733x768105KiB time=00:00:05.61 bitrate=5986.8kbits/s speed=0.287x
-[ClusterCapture->RTC] Frame #360: 2733x768
-[SendAuLoop] AU received=348, _canSend=True, _running=True, _pc=OKte=5983.4kbits/s speed=0.285x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:05.85 bitrate=5982.9kbits/s speed=0.284x
-[RTC] q=enq:367 deq:366 sent:360    4346KiB time=00:00:05.95 bitrate=5983.2kbits/s speed=0.281x
-[H264] AU has IDR (SPS=True, PPS=True)
-[SendAuLoop] AU received=374, _canSend=True, _running=True, _pc=OKte=6381.1kbits/s speed=0.278x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:06.28 bitrate=6263.9kbits/s speed=0.277x
-[RTC] q=enq:392 deq:391 sent:385    4838KiB time=00:00:06.40 bitrate=6193.3kbits/s speed=0.276x
-[ClusterCapture] Frame #420: 2733x768958KiB time=00:00:06.61 bitrate=6138.6kbits/s speed=0.273x
-[ClusterCapture->RTC] Frame #420: 2733x768
-[SendAuLoop] AU received=400, _canSend=True, _running=True, _pc=OK
-[RTC] q=enq:419 deq:418 sent:412    5045KiB time=00:00:06.85 bitrate=6033.9kbits/s speed=0.271x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[H264] AU has IDR (SPS=True, PPS=True)88KiB time=00:00:06.95 bitrate=5997.2kbits/s speed=0.27x
-[SendAuLoop] AU received=426, _canSend=True, _running=True, _pc=OKte=6328.8kbits/s speed=0.268x
-[RTC] q=enq:444 deq:443 sent:437    5485KiB time=00:00:07.28 bitrate=6169.2kbits/s speed=0.266x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:07.38 bitrate=6115.9kbits/s speed=0.265x
-[SendAuLoop] AU received=453, _canSend=True, _running=True, _pc=OKte=6058.8kbits/s speed=0.264x
-[ClusterCapture] Frame #480: 2733x768611KiB time=00:00:07.61 bitrate=6034.8kbits/s speed=0.264x
-[ClusterCapture->RTC] Frame #480: 2733x768
-[RTC] q=enq:470 deq:469 sent:463    5643KiB time=00:00:07.71 bitrate=5990.4kbits/s speed=0.263x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:07.81 bitrate=6015.3kbits/s speed=0.261x
-[SendAuLoop] AU received=478, _canSend=True, _running=True, _pc=OKte=5987.4kbits/s speed=0.261x
-[H264] AU has IDR (SPS=True, PPS=True)
-[RTC] q=enq:495 deq:494 sent:488    6183KiB time=00:00:08.03 bitrate=6305.2kbits/s speed=0.26x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:08.36 bitrate=6100.9kbits/s speed=0.258x
-[SendAuLoop] AU received=504, _canSend=True, _running=True, _pc=OK
-[RTC] q=enq:521 deq:520 sent:514    6329KiB time=00:00:08.48 bitrate=6111.8kbits/s speed=0.257x
-[ClusterCapture] Frame #540: 2733x768343KiB time=00:00:08.60 bitrate=6042.4kbits/s speed=0.257x
-[ClusterCapture->RTC] Frame #540: 2733x768
-[SendAuLoop] AU received=531, _canSend=True, _running=True, _pc=OKte=5990.7kbits/s speed=0.255x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[RTC] q=enq:547 deq:546 sent:540    6532KiB time=00:00:08.93 bitrate=5989.9kbits/s speed=0.255x
-[H264] AU has IDR (SPS=True, PPS=True)
-[SendAuLoop] AU received=557, _canSend=True, _running=True, _pc=OKte=6126.0kbits/s speed=0.253x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:09.36 bitrate=6070.9kbits/s speed=0.252x
-[RTC] q=enq:573 deq:572 sent:566
-[ClusterCapture] Frame #600: 2733x768057KiB time=00:00:09.65 bitrate=5991.0kbits/s speed=0.253x
-[ClusterCapture->RTC] Frame #600: 2733x768
-[SendAuLoop] AU received=587, _canSend=True, _running=True, _pc=OKte=5998.6kbits/s speed=0.253x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:09.86 bitrate=5994.3kbits/s speed=0.252x
-[RTC] q=enq:602 deq:601 sent:595
-[H264] AU has IDR (SPS=True, PPS=True)00KiB time=00:00:09.98 bitrate=5990.0kbits/s speed=0.251x
-[SendAuLoop] AU received=613, _canSend=True, _running=True, _pc=OKte=6247.6kbits/s speed=0.25x
-[RTC] q=enq:629 deq:628 sent:622    7795KiB time=00:00:10.31 bitrate=6189.6kbits/s speed=0.25x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[ClusterCapture] Frame #660: 2733x768891KiB time=00:00:10.66 bitrate=6060.6kbits/s speed=0.249x
-[ClusterCapture->RTC] Frame #660: 2733x768
-[SendAuLoop] AU received=640, _canSend=True, _running=True, _pc=OK
-[RTC] q=enq:657 deq:656 sent:650    8011KiB time=00:00:10.80 bitrate=6076.1kbits/s speed=0.249x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[H264] AU has IDR (SPS=True, PPS=True)99KiB time=00:00:11.01 bitrate=6022.4kbits/s speed=0.248x
-[SendAuLoop] AU received=667, _canSend=True, _running=True, _pc=OKte=6144.3kbits/s speed=0.248x
-[RTC] q=enq:682 deq:681 sent:675    8391KiB time=00:00:11.23 bitrate=6118.9kbits/s speed=0.248x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:11.35 bitrate=6082.4kbits/s speed=0.247x
-[SendAuLoop] AU received=693, _canSend=True, _running=True, _pc=OKte=6052.3kbits/s speed=0.247x
+        encoder         : Lavc61.19.101 h264_amf
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:00.56 bitrate=4440.2kbits/s speed=0.554x
+[RTC] q=enq:37 deq:36 sent:0ize=     375KiB time=00:00:00.93 bitrate=3295.3kbits/s speed=0.606x
+[SendAuLoop] AU received=37, _canSend=False, _running=True, _pc=OK
+[ClusterCapture] Frame #60: 3841x1080423KiB time=00:00:01.23 bitrate=2811.9kbits/s speed= 0.6x
+[ClusterCapture->RTC] Frame #60: 3841x1080
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:01.56 bitrate=2738.9kbits/s speed=0.507x
+[RTC] q=enq:60 deq:59 sent:0ize=     565KiB time=00:00:01.76 bitrate=2621.7kbits/s speed=0.489x
+[SendAuLoop] AU received=60, _canSend=False, _running=True, _pc=OK
+[RTC] q=enq:83 deq:82 sent:0ize=     895KiB time=00:00:02.40 bitrate=3053.3kbits/s speed=0.465x
+[SendAuLoop] AU received=82, _canSend=False, _running=True, _pc=OKte=3100.8kbits/s speed=0.452x
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:02.73 bitrate=3041.3kbits/s speed=0.442x
+[ClusterCapture] Frame #120: 3841x108076KiB time=00:00:03.06 bitrate=2874.7kbits/s speed=0.425x
+[ClusterCapture->RTC] Frame #120: 3841x1080
+[RTC] q=enq:104 deq:103 sent:0
+[SendAuLoop] AU received=103, _canSend=False, _running=True, _pc=OKe=2989.1kbits/s speed=0.423x
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:03.60 bitrate=3025.7kbits/s speed=0.411x
+[RTC] q=enq:125 deq:124 sent:0e=    1368KiB time=00:00:03.80 bitrate=2948.2kbits/s speed=0.41x
+[SendAuLoop] AU received=125, _canSend=False, _running=True, _pc=OKe=2864.9kbits/s speed=0.405x
+[RTC] q=enq:146 deq:145 sent:0e=    1644KiB time=00:00:04.50 bitrate=2993.2kbits/s speed=0.397x
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:04.70 bitrate=2973.9kbits/s speed=0.396x
+[SendAuLoop] AU received=146, _canSend=False, _running=True, _pc=OK
+[ClusterCapture] Frame #180: 3841x108056KiB time=00:00:05.03 bitrate=2857.9kbits/s speed=0.391x
+[ClusterCapture->RTC] Frame #180: 3841x1080
+[RTC] q=enq:166 deq:165 sent:0e=    1869KiB time=00:00:05.20 bitrate=2944.7kbits/s speed=0.388x
+[SendAuLoop] AU received=167, _canSend=False, _running=True, _pc=OKe=2967.0kbits/s speed=0.385x
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:05.56 bitrate=2993.1kbits/s speed=0.386x
+[RTC] q=enq:188 deq:187 sent:0e=    2102KiB time=00:00:05.96 bitrate=2885.7kbits/s speed=0.386x
+[SendAuLoop] AU received=189, _canSend=False, _running=True, _pc=OKe=2936.7kbits/s speed=0.384x
+[RTC] enqueue tick (w=3841, h=1080, stride=15364)00:00:06.73 bitrate=2981.2kbits/s speed=0.384x
+[RTC] q=enq:211 deq:210 sent:0
+[SendAuLoop] AU received=212, _canSend=False, _running=True, _pc=OKe=2919.1kbits/s speed=0.384x

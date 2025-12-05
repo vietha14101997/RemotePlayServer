@@ -90,8 +90,16 @@ public class WebRTCStreamer_H264 : IDisposable
     /// <summary>Khởi tạo PC, thương lượng H.264 (pt=102, 90kHz, packetization-mode=1).</summary>
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
     {
-        var cfg = new RTCConfiguration { iceServers = new() };
+        var cfg = new RTCConfiguration
+        {
+            iceServers = new List<RTCIceServer>
+            {
+                new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
+                new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
+            }
+        };
         _pc = new RTCPeerConnection(cfg);
+        Console.WriteLine("[RTC] PeerConnection created with STUN servers");
 
         _pc.onconnectionstatechange += st =>
         {
@@ -105,13 +113,25 @@ public class WebRTCStreamer_H264 : IDisposable
                 OnPeerDisconnected?.Invoke();
             }
         };
+        
+        _pc.onicegatheringstatechange += st =>
+        {
+            Console.WriteLine($"[RTC] ice gathering = {st}");
+        };
+        
+        _pc.onicecandidate += cand =>
+        {
+            if (cand != null)
+                Console.WriteLine($"[RTC] ice candidate: {cand.type} {cand.address}:{cand.port}");
+        };
+        
         _pc.oniceconnectionstatechange += st =>
         {
-            Console.WriteLine($"[RTC] ice = {st}");
+            Console.WriteLine($"[RTC] ice connection = {st}");
             if (st == RTCIceConnectionState.connected)
             {
-                Console.WriteLine("[RTC] TEMP ENABLE SEND FOR DIAG");
-                _canSend = true; // CHỈ test chẩn đoán
+                Console.WriteLine("[RTC] ICE CONNECTED - enabling send");
+                _canSend = true;
             }
         };
 

@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
+using Vortice.DXGI;
 
 #region Minimal FFmpeg pipe encoder (control real bitrate/fps via libx264)
 // Encoder chạy ffmpeg qua stdin/stdout để KHÓA thật fps/bitrate/CRF.
@@ -40,8 +42,54 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     private readonly string _exePath;
     byte[]? _lastSps, _lastPps;
     enum GpuEnc { None, NVENC, QSV, AMF }
+    enum GpuVendor { Unknown, NVIDIA, AMD, Intel }
     static GpuEnc _chosenGpu = GpuEnc.None;
+    static GpuVendor _detectedVendor = GpuVendor.Unknown;
     static Dictionary<string, bool> _filterCache = new(StringComparer.OrdinalIgnoreCase);
+
+    static GpuVendor DetectGpuVendor()
+    {
+        if (_detectedVendor != GpuVendor.Unknown) return _detectedVendor;
+        try
+        {
+            using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+            for (uint i = 0; ; i++)
+            {
+                if (factory.EnumAdapters1(i, out var adapter).Failure) break;
+                var desc = adapter.Description;
+                adapter.Dispose();
+                
+                string name = desc.Description.ToUpperInvariant();
+                // Skip Microsoft Basic Render Driver
+                if (name.Contains("MICROSOFT") || name.Contains("BASIC")) continue;
+                
+                if (name.Contains("NVIDIA") || name.Contains("GEFORCE") || name.Contains("GTX") || name.Contains("RTX"))
+                {
+                    _detectedVendor = GpuVendor.NVIDIA;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: NVIDIA ({desc.Description})");
+                    return _detectedVendor;
+                }
+                if (name.Contains("AMD") || name.Contains("RADEON") || name.Contains("RX "))
+                {
+                    _detectedVendor = GpuVendor.AMD;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: AMD ({desc.Description})");
+                    return _detectedVendor;
+                }
+                if (name.Contains("INTEL") || name.Contains("UHD") || name.Contains("IRIS"))
+                {
+                    _detectedVendor = GpuVendor.Intel;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: Intel ({desc.Description})");
+                    return _detectedVendor;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FFMPEG] GPU detection error: {ex.Message}");
+        }
+        Console.WriteLine("[FFMPEG] GPU vendor: Unknown, will probe all encoders");
+        return GpuVendor.Unknown;
+    }
 
     bool ProbeFilter(string filterName)
     {
@@ -130,9 +178,34 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     void EnsureChosenEncoder()
     {
         if (_chosenGpu != 0) return; // đã chọn
-        if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
-        if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
-        if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+        
+        var vendor = DetectGpuVendor();
+        
+        // Probe theo thứ tự ưu tiên dựa trên GPU vendor
+        switch (vendor)
+        {
+            case GpuVendor.AMD:
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                break;
+            case GpuVendor.NVIDIA:
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                break;
+            case GpuVendor.Intel:
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                break;
+            default:
+                // Unknown - probe all
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                break;
+        }
         _chosenGpu = GpuEnc.None;
     }
 
@@ -297,9 +370,47 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         .Replace("{FPS}", FPS.ToString());
                 }
             case GpuEnc.AMF:
-                return $"-hwaccel dxva2 -c:v h264_amf " +
-                       $"-usage transcoding -profile high -g {g} " +
-                       $"-time_base 1/{FPS} -r {FPS}";
+                {
+                    // input: raw BGRA qua stdin (giống NVENC/QSV)
+                    var inPart =
+                        "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
+                        $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+
+                    // Pad width to even number if needed (AMF requirement) + convert to NV12
+                    int padW = (Width % 2 == 0) ? Width : Width + 1;
+                    var vfPart = (Width % 2 != 0)
+                        ? $"-vf pad={padW}:{{Height}}:0:0,format=nv12"
+                        : "-vf format=nv12";
+
+                    // Rate control: CBR nếu có BitrateKbps, ngược lại dùng CQP
+                    string rc;
+                    if (BitrateKbps > 0)
+                    {
+                        int vbv = Math.Max(BitrateKbps, 1000);
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                    }
+                    else
+                    {
+                        int cq = (CRF >= 0 ? CRF : 23);
+                        rc = $"-rc cqp -qp_i {cq} -qp_p {cq + 2}";
+                    }
+
+                    // low-latency: explicit B-frame = 0 for AMF
+                    var outPart =
+                        "-an -c:v h264_amf -usage lowlatency -quality balanced " +
+                        "-profile:v main " +
+                        // AMF requires explicit bf option
+                        "-bf 0 " +
+                        $"-g {g} " + rc + " " +
+                        // Chèn AUD để tách AU ổn định
+                        "-bsf:v h264_metadata=aud=insert " +
+                        "-f h264 -";
+
+                    return (inPart + vfPart + " " + outPart)
+                        .Replace("{Width}", Width.ToString())
+                        .Replace("{Height}", Height.ToString())
+                        .Replace("{FPS}", FPS.ToString());
+                }
             case GpuEnc.None:
                 {
                     var x264Params =
