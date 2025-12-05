@@ -139,6 +139,20 @@ static class DisplayGuard
     // Phiên bản với timeout protection để tránh deadlock
     public static void RestoreAndCleanupWithTimeout(TimeSpan timeout)
     {
+        Console.WriteLine("[Guard] RestoreAndCleanupWithTimeout called...");
+        Console.WriteLine($"[Guard] SnapshotPath exists: {File.Exists(SnapshotPath)}");
+        
+        // Luôn cố gắng disable VDD trước, bất kể snapshot có tồn tại không
+        try
+        {
+            Console.WriteLine("[Guard] Attempting to disable VDD...");
+            ForceDisableVdd();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Guard] Force disable VDD failed: {ex.Message}");
+        }
+
         try
         {
             if (File.Exists(SnapshotPath))
@@ -147,7 +161,7 @@ static class DisplayGuard
 
                 // Run restore in separate thread with timeout
                 using var cts = new CancellationTokenSource(timeout);
-                restoreTask = Task.Run(() => RestoreInternalSafe(readOnly: false, disableVdd: true, cts.Token), cts.Token);
+                restoreTask = Task.Run(() => RestoreInternalSafe(readOnly: false, disableVdd: false, cts.Token), cts.Token);
 
                 if (restoreTask.Wait(timeout))
                 {
@@ -155,17 +169,82 @@ static class DisplayGuard
                 }
                 else
                 {
-                    Console.WriteLine("[Guard] Restore timeout - forcing basic cleanup only.");
-                    // Basic cleanup without VDD disable
-                    BasicCleanupOnly();
+                    Console.WriteLine("[Guard] Restore timeout.");
                 }
             }
         }
         catch (Exception ex) { Console.WriteLine("[Guard] Restore failed: " + ex.Message); }
 
         try { if (File.Exists(SessionMarker)) File.Delete(SessionMarker); } catch { }
-        // Giữ snapshot để tham chiếu; nếu muốn xoá luôn:
-        // try { if (File.Exists(SnapshotPath)) File.Delete(SnapshotPath); } catch { }
+    }
+
+    /// <summary>
+    /// Force disable VDD - gọi trực tiếp không phụ thuộc snapshot
+    /// </summary>
+    public static void ForceDisableVdd()
+    {
+        try
+        {
+            Console.WriteLine("[Guard] ForceDisableVdd: Finding VDD instance...");
+            var id = FindPnpInstanceIdByNameContains(DriverNameContains);
+            
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                Console.WriteLine("[Guard] ForceDisableVdd: VDD not found - nothing to disable.");
+                return;
+            }
+
+            Console.WriteLine($"[Guard] ForceDisableVdd: Found VDD ID: {id}");
+
+            bool isDisabled = IsDeviceDisabled(id);
+            Console.WriteLine($"[Guard] ForceDisableVdd: VDD is currently {(isDisabled ? "DISABLED" : "ENABLED")}");
+
+            if (isDisabled)
+            {
+                Console.WriteLine("[Guard] ForceDisableVdd: Already disabled.");
+                return;
+            }
+
+            // Đảm bảo physical monitor là primary trước khi disable VDD
+            var monsNow = WgcInterop.ListMonitorsDXGI();
+            var physNames = monsNow
+                .Where(m => !DisplayUtil.IsVirtualDisplay(m.name, m.hmon))
+                .Select(m => m.name)
+                .ToList();
+
+            Console.WriteLine($"[Guard] ForceDisableVdd: Physical monitors: {string.Join(", ", physNames)}");
+
+            if (physNames.Count == 0)
+            {
+                Console.WriteLine("[Guard] ForceDisableVdd: No physical monitors - SKIP disable to avoid black screen!");
+                return;
+            }
+
+            // Set physical làm primary
+            string primaryName = physNames.OrderBy(n => n).First();
+            Console.WriteLine($"[Guard] ForceDisableVdd: Setting {primaryName} as primary...");
+            TryMakePrimary(primaryName);
+            Thread.Sleep(1000);
+
+            // Disable VDD
+            Console.WriteLine($"[Guard] ForceDisableVdd: Disabling VDD...");
+            RunPnputil($"/disable-device \"{id}\"");
+            Thread.Sleep(1500);
+
+            // Verify
+            if (IsDeviceDisabled(id))
+            {
+                Console.WriteLine("[Guard] ForceDisableVdd: ✓ VDD disabled successfully!");
+            }
+            else
+            {
+                Console.WriteLine("[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Guard] ForceDisableVdd error: {ex.Message}");
+        }
     }
 
     static Task restoreTask = Task.CompletedTask;
@@ -366,43 +445,78 @@ static class DisplayGuard
     {
         try
         {
+            Console.WriteLine("[Guard] Starting VDD disable process...");
+            
             var id = snap.VddInstanceId;
-            if (string.IsNullOrWhiteSpace(id)) id = FindPnpInstanceIdByNameContains(DriverNameContains);
-
-            if (!string.IsNullOrWhiteSpace(id) && !IsDeviceDisabled(id))
+            if (string.IsNullOrWhiteSpace(id)) 
             {
-                if (cancellationToken.IsCancellationRequested) return;
+                id = FindPnpInstanceIdByNameContains(DriverNameContains);
+                Console.WriteLine($"[Guard] Found VDD instance ID: {id}");
+            }
 
-                var monsNow = WgcInterop.ListMonitorsDXGI();
-                int virt = -1; var phys = new List<int>();
-                for (int i = 0; i < monsNow.Count; i++)
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                Console.WriteLine("[Guard] VDD instance ID not found - skipping disable.");
+                return;
+            }
+
+            bool isDisabled = IsDeviceDisabled(id);
+            Console.WriteLine($"[Guard] VDD current state: {(isDisabled ? "DISABLED" : "ENABLED")}");
+
+            if (isDisabled)
+            {
+                Console.WriteLine("[Guard] VDD already disabled - nothing to do.");
+                return;
+            }
+
+            if (cancellationToken.IsCancellationRequested) return;
+
+            var monsNow = WgcInterop.ListMonitorsDXGI();
+            var phys = new List<int>();
+            for (int i = 0; i < monsNow.Count; i++)
+            {
+                if (!DisplayUtil.IsVirtualDisplay(monsNow[i].name, monsNow[i].hmon))
+                    phys.Add(i);
+            }
+
+            Console.WriteLine($"[Guard] Physical monitors found: {phys.Count}");
+
+            if (phys.Count == 0)
+            {
+                Console.WriteLine("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
+                return;
+            }
+
+            // Set physical monitor as primary before disabling VDD
+            string physPrimary = phys.Select(i => monsNow[i].name)
+                                     .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                                     .FirstOrDefault() ?? monsNow[phys[0]].name;
+
+            if (!string.IsNullOrEmpty(physPrimary))
+            {
+                Console.WriteLine($"[Guard] Setting primary monitor to: {physPrimary}");
+                if (TryMakePrimary(physPrimary))
                 {
-                    if (DisplayUtil.IsVirtualDisplay(monsNow[i].name, monsNow[i].hmon)) virt = i;
-                    else phys.Add(i);
+                    Console.WriteLine($"[Guard] ✓ Primary set to {physPrimary}");
+                    SleepQuiet(1500);
                 }
+            }
 
-                if (phys.Count == 0)
-                {
-                    Console.WriteLine("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
-                    return;
-                }
+            if (cancellationToken.IsCancellationRequested) return;
 
-                // Try to set physical monitor as primary
-                string physPrimary = phys.Select(i => monsNow[i].name)
-                                         .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-                                         .FirstOrDefault() ?? monsNow[phys[0]].name;
-
-                if (!string.IsNullOrEmpty(physPrimary) && TryMakePrimary(physPrimary))
-                {
-                    Console.WriteLine($"[Guard] Set primary = {physPrimary}");
-                    SleepQuiet(1200);
-                }
-
-                if (cancellationToken.IsCancellationRequested) return;
-
-                // Disable VDD with smaller timeout
-                RunPnputilWithTimeout($"/disable-device \"{id}\"", TimeSpan.FromSeconds(10));
-                Console.WriteLine("[Guard] Virtual Display Driver disabled safely.");
+            // Disable VDD
+            Console.WriteLine($"[Guard] Disabling VDD: {id}");
+            RunPnputilWithTimeout($"/disable-device \"{id}\"", TimeSpan.FromSeconds(15));
+            SleepQuiet(1000);
+            
+            // Verify VDD is disabled
+            if (IsDeviceDisabled(id))
+            {
+                Console.WriteLine("[Guard] ✓ Virtual Display Driver disabled successfully.");
+            }
+            else
+            {
+                Console.WriteLine("[Guard] ⚠ VDD may not have been disabled properly.");
             }
         }
         catch (Exception ex) { Console.WriteLine("[Guard] SafeDisableVdd failed: " + ex.Message); }

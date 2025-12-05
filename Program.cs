@@ -16,8 +16,151 @@ using System.Diagnostics;
 #if WINDOWS
 using Microsoft.Win32;
 
+/// <summary>
+/// User-configurable display settings
+/// </summary>
+static class DisplayConfig
+{
+    public static int MonitorCount = 3;
+    public static int MonitorWidth = 1366;
+    public static int MonitorHeight = 768;
+    public static int RefreshRate = 60;
+    public static int StreamFps = 30;
+    
+    public static readonly (int w, int h, string label)[] Resolutions = new[]
+    {
+        (1920, 1080, "1920x1080 (Full HD)"),
+        (1600, 900,  "1600x900"),
+        (1366, 768,  "1366x768 (HD)"),
+        (1280, 720,  "1280x720 (720p) - Recommended for 3 monitors"),
+        (1024, 576,  "1024x576 - Best performance"),
+        (960,  540,  "960x540 (qHD)"),
+    };
+    
+    public static readonly (int fps, string label)[] FpsOptions = new[]
+    {
+        (60, "60 fps - Smooth (requires low resolution)"),
+        (30, "30 fps - Balanced (recommended)"),
+        (24, "24 fps - Cinematic"),
+        (20, "20 fps - Low bandwidth"),
+    };
+}
+
 partial class Program
 {
+    static void ShowConfigMenu()
+    {
+        Console.Clear();
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║           RemotePlayServer - Display Configuration           ║");
+        Console.WriteLine("╠══════════════════════════════════════════════════════════════╣");
+        Console.WriteLine("║  Configure your virtual display setup before starting        ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
+        Console.WriteLine();
+
+        // Select number of monitors
+        Console.WriteLine("┌─ Number of Monitors ─────────────────────────────────────────┐");
+        Console.WriteLine("│  1. 1 monitor                                                │");
+        Console.WriteLine("│  2. 2 monitors                                               │");
+        Console.WriteLine("│  3. 3 monitors (default)                                     │");
+        Console.WriteLine("│  4. 4 monitors                                               │");
+        Console.WriteLine("│  5. 5 monitors                                               │");
+        Console.WriteLine("│  6. 6 monitors                                               │");
+        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
+        Console.Write("Select number of monitors [1-6, default=3]: ");
+        
+        var monInput = Console.ReadLine()?.Trim();
+        if (int.TryParse(monInput, out int monCount) && monCount >= 1 && monCount <= 6)
+            DisplayConfig.MonitorCount = monCount;
+        else
+            DisplayConfig.MonitorCount = 3;
+        
+        Console.WriteLine($"  → Selected: {DisplayConfig.MonitorCount} monitors");
+        Console.WriteLine();
+
+        // Select resolution
+        Console.WriteLine("┌─ Monitor Resolution ────────────────────────────────────────┐");
+        for (int i = 0; i < DisplayConfig.Resolutions.Length; i++)
+        {
+            var (w, h, label) = DisplayConfig.Resolutions[i];
+            string marker = (w == 1280 && h == 720) ? " ★" : "";
+            Console.WriteLine($"│  {i + 1}. {label,-50}{marker} │");
+        }
+        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
+        
+        // Calculate recommended resolution based on NVENC limit
+        int nvencMaxWidth = 4096;
+        int recommendedIdx = -1;
+        for (int i = 0; i < DisplayConfig.Resolutions.Length; i++)
+        {
+            var (w, _, _) = DisplayConfig.Resolutions[i];
+            int calcWidth = w * DisplayConfig.MonitorCount + (DisplayConfig.MonitorCount - 1);
+            if (calcWidth <= nvencMaxWidth)
+            {
+                recommendedIdx = i;
+                break;
+            }
+        }
+        
+        if (recommendedIdx >= 0)
+        {
+            var (rw, rh, _) = DisplayConfig.Resolutions[recommendedIdx];
+            Console.WriteLine($"  💡 Recommended for {DisplayConfig.MonitorCount} monitors: {rw}x{rh} (total width ≤ {nvencMaxWidth})");
+        }
+        
+        Console.Write($"Select resolution [1-{DisplayConfig.Resolutions.Length}, default=3]: ");
+        
+        var resInput = Console.ReadLine()?.Trim();
+        int resIdx = 2; // default to 1366x768
+        if (int.TryParse(resInput, out int ri) && ri >= 1 && ri <= DisplayConfig.Resolutions.Length)
+            resIdx = ri - 1;
+        
+        DisplayConfig.MonitorWidth = DisplayConfig.Resolutions[resIdx].w;
+        DisplayConfig.MonitorHeight = DisplayConfig.Resolutions[resIdx].h;
+        
+        Console.WriteLine($"  → Selected: {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
+        Console.WriteLine();
+
+        // Select FPS
+        Console.WriteLine("┌─ Stream FPS ────────────────────────────────────────────────┐");
+        for (int i = 0; i < DisplayConfig.FpsOptions.Length; i++)
+        {
+            var (fps, label) = DisplayConfig.FpsOptions[i];
+            string marker = (fps == 30) ? " ★" : "";
+            Console.WriteLine($"│  {i + 1}. {label,-50}{marker} │");
+        }
+        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
+        Console.Write($"Select FPS [1-{DisplayConfig.FpsOptions.Length}, default=2 (30fps)]: ");
+        
+        var fpsInput = Console.ReadLine()?.Trim();
+        int fpsIdx = 1; // default to 30fps
+        if (int.TryParse(fpsInput, out int fi) && fi >= 1 && fi <= DisplayConfig.FpsOptions.Length)
+            fpsIdx = fi - 1;
+        
+        DisplayConfig.StreamFps = DisplayConfig.FpsOptions[fpsIdx].fps;
+        Console.WriteLine($"  → Selected: {DisplayConfig.StreamFps} fps");
+        Console.WriteLine();
+
+        // Show summary
+        int totalWidth = DisplayConfig.MonitorWidth * DisplayConfig.MonitorCount + (DisplayConfig.MonitorCount - 1);
+        bool exceedsNvenc = totalWidth > nvencMaxWidth;
+        int totalPixels = totalWidth * DisplayConfig.MonitorHeight;
+        int pixelsPerSec = totalPixels * DisplayConfig.StreamFps / 1000000;
+        
+        Console.WriteLine("┌─ Configuration Summary ─────────────────────────────────────┐");
+        Console.WriteLine($"│  Monitors:     {DisplayConfig.MonitorCount,-45} │");
+        Console.WriteLine($"│  Resolution:   {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight,-39} │");
+        Console.WriteLine($"│  Stream FPS:   {DisplayConfig.StreamFps,-45} │");
+        Console.WriteLine($"│  Total Width:  {totalWidth} pixels{(exceedsNvenc ? " ⚠ EXCEEDS NVENC LIMIT" : " ✓"),-27} │");
+        Console.WriteLine($"│  Throughput:   ~{pixelsPerSec} Mpixels/sec{"",-30} │");
+        if (exceedsNvenc)
+            Console.WriteLine($"│  Note: Will crop to {nvencMaxWidth}px width for encoding{"",-15} │");
+        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
+        Console.WriteLine();
+        Console.WriteLine("Press ENTER to continue with setup...");
+        Console.ReadLine();
+    }
+
     static async Task Main()
     {
         // Khôi phục nếu phiên trước bị dừng đột ngột (marker còn tồn tại)
@@ -29,22 +172,23 @@ partial class Program
 
         WinRT.ComWrappersSupport.InitializeComWrappers();
         Console.OutputEncoding = Encoding.UTF8;
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 0: Configuration Menu
+        // ═══════════════════════════════════════════════════════════════
+        ShowConfigMenu();
+        
         Console.WriteLine("=== RemotePlayServer (with startup steps 1→6) ===");
+        Console.WriteLine($"[Config] {DisplayConfig.MonitorCount} monitors @ {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
 
         // Chụp trạng thái ban đầu và tạo marker phiên
         DisplayGuard.CaptureSnapshotAtStartup();
-        Console.WriteLine("[Setup] Step 1/5 completed - State captured.");
+        Console.WriteLine("[Setup] Step 1/4 completed - State captured.");
         Thread.Sleep(1000); // Allow system to stabilize
 
-        // ---------------- STEP 1 ----------------
-        Console.WriteLine("[Setup] Step 2/5: Configuring multi-monitor taskbar...");
-        StartupSteps.DisableMultiMonitorTaskbar(); // KHÔNG restart explorer
-        Console.WriteLine("[Setup] Taskbar settings updated.");
-        Thread.Sleep(1500); // Allow taskbar settings to settle
-
         // ---------------- STEP 2 ----------------
-        Console.WriteLine("[Setup] Step 3/5: Configuring Virtual Display Driver...");
-        StartupSteps.EnsureVddResolutionThenToggleDriver(); // C:\VirtualDisplayDriver\vdd_settings.xml
+        Console.WriteLine("[Setup] Step 2/4: Configuring Virtual Display Driver...");
+        StartupSteps.EnsureVddResolutionThenToggleDriver();
         Console.WriteLine("[Setup] VDD configuration completed.");
         Thread.Sleep(2000); // Let display driver settle
 
@@ -55,13 +199,13 @@ partial class Program
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
 
         // ---------------- STEP 3 ----------------
-        Console.WriteLine("[Setup] Step 4/5: Extending desktop with virtual monitor...");
+        Console.WriteLine("[Setup] Step 3/4: Setting up monitors (resolution + primary)...");
         StartupSteps.EnsureExtendDesktopWithVirtual();
-        Console.WriteLine("[Setup] Desktop extension completed.");
+        Console.WriteLine("[Setup] Monitor setup completed.");
         Thread.Sleep(2000); // Allow display topology to settle
 
         // ---------------- STEP 4 ----------------
-        Console.WriteLine("[Setup] Step 5/5: Applying 125% text scale...");
+        Console.WriteLine("[Setup] Step 4/4: Applying 125% text scale...");
         StartupSteps.SetTextScale125_Global();
         Console.WriteLine("[Setup] Text scale configuration completed.");
         Thread.Sleep(1000); // Allow text scale to settle
@@ -155,15 +299,105 @@ static class StartupSteps
 {
     const string DRIVER_NAME = "Virtual Display Driver";
     const string MONITOR_NAME = "Virtual Desktop Monitor";
+    
+    // Use DisplayConfig values instead of constants
+    static int TARGET_TOTAL_MONITORS => DisplayConfig.MonitorCount;
+    static int MONITOR_WIDTH => DisplayConfig.MonitorWidth;
+    static int MONITOR_HEIGHT => DisplayConfig.MonitorHeight;
+    static int MONITOR_REFRESH => DisplayConfig.RefreshRate;
 
-    // (1) Bổ sung 4082×1532@30 vào C:\VirtualDisplayDriver\vdd_settings.xml + enable adapter & monitor
+    /// <summary>
+    /// Đếm số màn hình vật lý hiện có (không bao gồm Virtual Display Driver monitors)
+    /// </summary>
+    public static int CountPhysicalMonitors()
+    {
+        int physicalCount = 0;
+        var monitors = WgcInterop.ListMonitorsDXGI();
+        foreach (var mon in monitors)
+        {
+            if (!DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
+            {
+                physicalCount++;
+                Console.WriteLine($"[VDD] Physical monitor found: {mon.name} ({mon.width}x{mon.height})");
+            }
+        }
+        return physicalCount;
+    }
+
+    /// <summary>
+    /// Cập nhật số lượng màn hình ảo trong vdd_settings.xml
+    /// </summary>
+    public static void SetVddMonitorCount(string settingsPath, int count)
+    {
+        if (!File.Exists(settingsPath))
+        {
+            Console.WriteLine("[VDD] File not found: " + settingsPath);
+            return;
+        }
+
+        var doc = XDocument.Load(settingsPath, LoadOptions.PreserveWhitespace);
+        var root = doc.Root ?? new XElement("vdd_settings");
+        
+        var monitorsElement = root.Element("monitors");
+        if (monitorsElement == null)
+        {
+            monitorsElement = new XElement("monitors");
+            root.AddFirst(monitorsElement);
+        }
+
+        var countElement = monitorsElement.Element("count");
+        if (countElement == null)
+        {
+            countElement = new XElement("count", count);
+            monitorsElement.Add(countElement);
+        }
+        else
+        {
+            countElement.Value = count.ToString();
+        }
+
+        doc.Save(settingsPath);
+        Console.WriteLine($"[VDD] Set monitor count to {count} in {settingsPath}");
+    }
+
+    // (1) Cấu hình VDD để tạo hệ thống 3 màn hình
     public static void EnsureVddResolutionThenToggleDriver(
         string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
     {
         try
         {
-            // Đảm bảo 4082x1532@30
-            EnsureResolutionInVddXml(settingsPath, 4082, 1532, 30);
+            // Bước 1: Đếm số màn hình vật lý hiện có (trước khi enable VDD)
+            // Disable VDD tạm thời để đếm chính xác
+            var adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
+            if (string.IsNullOrWhiteSpace(adapterId))
+                adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
+
+            if (!string.IsNullOrWhiteSpace(adapterId) && !IsDeviceDisabled(adapterId))
+            {
+                Console.WriteLine("[VDD] Temporarily disabling VDD to count physical monitors...");
+                RunPnputil($"/disable-device \"{adapterId}\"");
+                Thread.Sleep(1500);
+            }
+
+            // Đếm màn hình vật lý
+            int physicalCount = CountPhysicalMonitors();
+            Console.WriteLine($"[VDD] Physical monitors detected: {physicalCount}");
+
+            // Bước 2: Tính số màn hình ảo cần tạo
+            int virtualNeeded = Math.Max(0, TARGET_TOTAL_MONITORS - physicalCount);
+            Console.WriteLine($"[VDD] Virtual monitors needed: {virtualNeeded} (target total: {TARGET_TOTAL_MONITORS})");
+
+            if (virtualNeeded == 0)
+            {
+                Console.WriteLine("[VDD] No virtual monitors needed - you already have 3+ physical monitors.");
+                return;
+            }
+
+            // Bước 3: Cập nhật vdd_settings.xml
+            SetVddMonitorCount(settingsPath, virtualNeeded);
+            
+            // Đảm bảo có resolution phù hợp cho màn hình ảo
+            EnsureResolutionInVddXml(settingsPath, MONITOR_WIDTH, MONITOR_HEIGHT, MONITOR_REFRESH);
         }
         catch (Exception ex)
         {
@@ -172,41 +406,34 @@ static class StartupSteps
 
         try
         {
-            // Ưu tiên enable ADAPTER dưới "Display adapters"
+            // Bước 4: Enable VDD adapter
             var adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
             if (string.IsNullOrWhiteSpace(adapterId))
-            {
-                // fallback: tìm theo tên bất kể class
                 adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
-            }
 
             if (!string.IsNullOrWhiteSpace(adapterId))
             {
                 RunPnputil("/scan-devices"); Thread.Sleep(500);
-                bool isDisabled = IsDeviceDisabled(adapterId);
-                if (isDisabled)
-                {
-                    RunPnputil($"/enable-device \"{adapterId}\"");
-                }
-                else
-                {
-                    RunPnputil($"/disable-device \"{adapterId}\"");
-                    RunPnputil($"/enable-device \"{adapterId}\"");
-                }
+                RunPnputil($"/enable-device \"{adapterId}\"");
                 RunPnputil("/scan-devices");
+                Thread.Sleep(2000); // Chờ driver load và tạo màn hình ảo
             }
             else
             {
                 Console.WriteLine("[VDD] Adapter not found. Check if the driver is installed under Display adapters.");
             }
 
-            // Sau khi bật adapter, thử enable luôn MONITOR (dưới "Monitors") nếu có
-            var monitorId = FindDeviceInstanceIdByNameAndClass(MONITOR_NAME, "Monitors");
-            if (!string.IsNullOrWhiteSpace(monitorId) && IsDeviceDisabled(monitorId))
+            // Enable tất cả MONITOR (dưới "Monitors") nếu có
+            for (int i = 0; i < TARGET_TOTAL_MONITORS; i++)
             {
-                RunPnputil($"/enable-device \"{monitorId}\"");
-                RunPnputil("/scan-devices");
+                var monitorId = FindDeviceInstanceIdByNameAndClass(MONITOR_NAME, "Monitors");
+                if (!string.IsNullOrWhiteSpace(monitorId) && IsDeviceDisabled(monitorId))
+                {
+                    RunPnputil($"/enable-device \"{monitorId}\"");
+                    Thread.Sleep(500);
+                }
             }
+            RunPnputil("/scan-devices");
 
             // Ép Windows apply topology: extend
             TryExtendDesktop();
@@ -362,39 +589,126 @@ static class StartupSteps
 
 
 
-    // (3) Đảm bảo Extend Desktop với Virtual Monitor
+    // (3) Thiết lập hệ thống 3 màn hình: set resolution và primary
     public static void EnsureExtendDesktopWithVirtual()
     {
-        Console.WriteLine("[Display] Ensuring Extend Desktop with Virtual Monitor...");
+        Console.WriteLine("[Display] Setting up 3-monitor system...");
 
-        // Lấy danh sách monitors
         var mons = WgcInterop.ListMonitorsDXGI();
-
-        // Sử dụng monitor cuối cùng trong list làm virtual monitor
-        if (mons.Count > 0)
+        if (mons.Count == 0)
         {
-            var lastMonitor = mons[mons.Count - 1];
-            Console.WriteLine($"[Display] Using last monitor as virtual: {lastMonitor.name} (currently {lastMonitor.width}x{lastMonitor.height})");
-
-            // Đặt resolution 4082x1532@60 cho monitor cuối cùng
-            Console.WriteLine($"[Display] Setting virtual monitor {lastMonitor.name} -> 4082x1532@60");
-            bool ok = DisplayUtil.ForceResolution(lastMonitor.name, 4082, 1532, 60);
-            Console.WriteLine(ok ? "[Display] ✓ Virtual monitor resolution set" : "[Display] ⚠ Failed to set virtual resolution");
-
-            Console.WriteLine("[Display] ✓ Extended desktop with virtual monitor ready");
-            Console.WriteLine($"[Display] Total monitors detected: {mons.Count}");
-            for (int i = 0; i < mons.Count; i++)
-            {
-                var mon = mons[i];
-                string type = (i == mons.Count - 1) ? "VIRTUAL" : "PHYSICAL";
-                Console.WriteLine($"[Display]   • {mon.name} {mon.width}x{mon.height} [{type}]");
-            }
+            Console.WriteLine("[Display] ⚠ No monitors detected!");
+            return;
         }
-        else
+
+        // Phân loại màn hình vật lý và ảo
+        var physicalMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
+        var virtualMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
+
+        foreach (var mon in mons)
         {
-            Console.WriteLine("[Display] ⚠ No monitors detected - operating in single monitor mode");
+            if (DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
+                virtualMonitors.Add(mon);
+            else
+                physicalMonitors.Add(mon);
+        }
+
+        Console.WriteLine($"[Display] Physical monitors: {physicalMonitors.Count}, Virtual monitors: {virtualMonitors.Count}");
+
+        // Set resolution 1366x768 cho TẤT CẢ màn hình
+        foreach (var mon in mons)
+        {
+            string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "VIRTUAL" : "PHYSICAL";
+            Console.WriteLine($"[Display] Setting {mon.name} [{type}] -> {MONITOR_WIDTH}x{MONITOR_HEIGHT}@{MONITOR_REFRESH}");
+            DisplayUtil.ForceResolution(mon.name, MONITOR_WIDTH, MONITOR_HEIGHT, MONITOR_REFRESH);
+            Thread.Sleep(300);
+        }
+
+        Thread.Sleep(1000);
+
+        // Set physical monitor làm primary (main display)
+        if (physicalMonitors.Count > 0)
+        {
+            var primaryMon = physicalMonitors[0];
+            Console.WriteLine($"[Display] Setting {primaryMon.name} as PRIMARY display");
+            SetAsPrimaryDisplay(primaryMon.name);
+        }
+
+        // In kết quả
+        Console.WriteLine("[Display] ✓ 3-monitor system configured:");
+        mons = WgcInterop.ListMonitorsDXGI();
+        foreach (var mon in mons)
+        {
+            var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(mon.name);
+            string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "VIRTUAL" : "PHYSICAL";
+            bool isPrimary = DisplayUtil.IsPrimary(mon.name);
+            Console.WriteLine($"[Display]   • {mon.name} {w}x{h} [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
     }
+
+    /// <summary>
+    /// Set một màn hình làm primary display
+    /// </summary>
+    static void SetAsPrimaryDisplay(string deviceName)
+    {
+        try
+        {
+            var dm = new DEVMODE();
+            dm.dmSize = (short)Marshal.SizeOf<DEVMODE>();
+            dm.dmDeviceName = new string('\0', 32);
+            dm.dmFormName = new string('\0', 32);
+            dm.dmFields = DM_POSITION;
+            dm.dmPositionX = 0;
+            dm.dmPositionY = 0;
+
+            int result = ChangeDisplaySettingsExA(deviceName, ref dm, IntPtr.Zero, CDS_SET_PRIMARY | CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+            if (result == 0)
+            {
+                // Apply changes
+                var dmApply = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+                ChangeDisplaySettingsExA(null, ref dmApply, IntPtr.Zero, 0, IntPtr.Zero);
+                Console.WriteLine($"[Display] ✓ {deviceName} set as primary");
+            }
+            else
+            {
+                Console.WriteLine($"[Display] ⚠ Failed to set primary (error: {result})");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Display] Error setting primary: {ex.Message}");
+        }
+    }
+
+    // P/Invoke cho ChangeDisplaySettingsEx
+    const int DM_POSITION = 0x00000020;
+    const uint CDS_UPDATEREGISTRY = 0x00000001;
+    const uint CDS_NORESET = 0x10000000;
+    const uint CDS_SET_PRIMARY = 0x00000010;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    struct DEVMODE
+    {
+        private const int CCHDEVICENAME = 32;
+        private const int CCHFORMNAME = 32;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
+        public string dmDeviceName;
+        public short dmSpecVersion, dmDriverVersion, dmSize, dmDriverExtra;
+        public int dmFields;
+        public int dmPositionX, dmPositionY;
+        public int dmDisplayOrientation, dmDisplayFixedOutput;
+        public short dmColor, dmDuplex, dmYResolution, dmTTOption, dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)]
+        public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel, dmPelsWidth, dmPelsHeight, dmDisplayFlags, dmDisplayFrequency;
+        public int dmICMMethod, dmICMIntent, dmMediaType, dmDitherType, dmReserved1, dmReserved2;
+        public int dmPanningWidth, dmPanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern int ChangeDisplaySettingsExA(string? lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, uint dwflags, IntPtr lParam);
 
     // (4) Đặt Text size = 125% global
     public static void SetTextScale125_Global()
@@ -508,6 +822,70 @@ public class SignalAndRestServer
                 ctx.Response.ContentType = "application/json"; ctx.Response.OutputStream.Write(b, 0, b.Length); ctx.Response.Close(); continue;
             }
 
+            // /api/layout - trả về layout của combined frame cho cluster mode
+            if (path == "/api/layout" && ctx.Request.HttpMethod == "GET")
+            {
+                var monsNow = WgcInterop.ListMonitorsDXGI();
+                _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+                
+                if (_monitors.Count == 0)
+                {
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.Close();
+                    continue;
+                }
+
+                // Calculate combined frame dimensions (all monitors side-by-side)
+                int gap = 1;
+                int rawFrameWidth = 0;
+                int maxHeight = 0;
+                
+                foreach (var mon in _monitors)
+                {
+                    rawFrameWidth += mon.w;
+                    if (mon.h > maxHeight) maxHeight = mon.h;
+                }
+                rawFrameWidth += (_monitors.Count - 1) * gap;
+
+                // Apply NVENC limit - use CROP (not scale) for better performance
+                const int NVENC_MAX_WIDTH = 4096;
+                int frameWidth, frameHeight, cellWidth, cellHeight, finalGap;
+                
+                if (rawFrameWidth > NVENC_MAX_WIDTH)
+                {
+                    int excess = rawFrameWidth - NVENC_MAX_WIDTH;
+                    int trimPerMonitor = (excess + _monitors.Count - 1) / _monitors.Count;
+                    
+                    cellWidth = _monitors[0].w - trimPerMonitor;
+                    cellHeight = maxHeight;
+                    frameWidth = cellWidth * _monitors.Count + (_monitors.Count - 1) * gap;
+                    frameHeight = maxHeight;
+                    finalGap = gap;
+                    
+                    if (frameWidth > NVENC_MAX_WIDTH)
+                    {
+                        frameWidth = NVENC_MAX_WIDTH;
+                        cellWidth = (NVENC_MAX_WIDTH - (_monitors.Count - 1) * gap) / _monitors.Count;
+                    }
+                }
+                else
+                {
+                    frameWidth = rawFrameWidth;
+                    frameHeight = maxHeight;
+                    cellWidth = _monitors[0].w;
+                    cellHeight = _monitors[0].h;
+                    finalGap = gap;
+                }
+                
+                string json = $"{{\"frameWidth\":{frameWidth},\"frameHeight\":{frameHeight},\"cellWidth\":{cellWidth},\"cellHeight\":{cellHeight},\"gap\":{finalGap},\"monitors\":{_monitors.Count}}}";
+                var b = Encoding.UTF8.GetBytes(json);
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.OutputStream.Write(b, 0, b.Length);
+                ctx.Response.Close();
+                Console.WriteLine($"[HTTP] /api/layout -> {json}");
+                continue;
+            }
+
             if (path == "/api/cluster" && ctx.Request.HttpMethod == "GET")
             {
                 var monsNow = WgcInterop.ListMonitorsDXGI();
@@ -527,6 +905,17 @@ public class SignalAndRestServer
                 int wid = -1, mid = -1;
                 int.TryParse(qs.Get("wid"), out wid);
                 int.TryParse(qs.Get("mid"), out mid);
+                string mode = qs.Get("mode") ?? "";
+
+                // mode=cluster: combined stream của tất cả monitors
+                if (mode.Equals("cluster", StringComparison.OrdinalIgnoreCase))
+                {
+                    var clusterWsCtx = await ctx.AcceptWebSocketAsync(null);
+                    var clusterId = Guid.NewGuid();
+                    Console.WriteLine($"[Signal] Cluster client connected {clusterId}");
+                    _ = Task.Run(() => HandleClusterClient(clusterId, clusterWsCtx.WebSocket, qs));
+                    continue;
+                }
 
                 if (wid < 0 && mid < 0) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
                 if (wid >= _windows.Count && mid >= _monitors.Count) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
@@ -723,6 +1112,196 @@ public class SignalAndRestServer
     }
 
     static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
+
+    // Cluster capture instance (shared)
+    private ClusterCapture? _clusterCapture;
+    private readonly object _clusterLock = new();
+
+    /// <summary>
+    /// Handle cluster mode: combined stream of all monitors
+    /// </summary>
+    private async Task HandleClusterClient(Guid id, System.Net.WebSockets.WebSocket ws,
+        System.Collections.Specialized.NameValueCollection qs)
+    {
+        CancellationTokenSource? stopCapture = null;
+        Thread? capThread = null;
+        var offerTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        // RX loop (offer + input)
+        var rxLoop = Task.Run(async () =>
+        {
+            var buf = new byte[128 * 1024];
+            var ms = new System.IO.MemoryStream();
+            while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+            {
+                var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
+                if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
+                ms.Write(buf, 0, res.Count);
+                if (!res.EndOfMessage) continue;
+                var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
+
+                if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                {
+                    offerTcs.TrySetResult(text.Substring(6));
+                    continue;
+                }
+
+                // Handle input messages for cluster mode
+                if (text.StartsWith("{\"input\":"))
+                {
+                    try
+                    {
+                        if (text.Contains("\"input\":\"move_uv\""))
+                            text = System.Text.RegularExpressions.Regex.Replace(text, "(?<=\\d),(?=\\d)", ".");
+                        var obj = System.Text.Json.JsonDocument.Parse(text).RootElement;
+                        string kind = obj.GetProperty("input").GetString() ?? "";
+
+                        if (kind == "move_uv")
+                        {
+                            float u = obj.GetProperty("u").GetSingle();
+                            float v = 1f - obj.GetProperty("v").GetSingle();
+
+                            // Map UV from combined frame to desktop coordinates
+                            // u spans all monitors: 0..0.33 = mon0, 0.33..0.66 = mon1, 0.66..1 = mon2
+                            if (_monitors.Count > 0 && _clusterCapture != null)
+                            {
+                                int frameW = _clusterCapture.FrameWidth;
+                                int frameH = _clusterCapture.FrameHeight;
+                                int cellW = _clusterCapture.CellWidth;
+                                int gap = _clusterCapture.Gap;
+
+                                // Pixel position in combined frame
+                                int px = (int)(u * frameW);
+                                int py = (int)(v * frameH);
+
+                                // Determine which monitor
+                                int monIdx = 0;
+                                int xInMon = px;
+                                int accX = 0;
+                                for (int i = 0; i < _monitors.Count; i++)
+                                {
+                                    int monW = _monitors[i].w;
+                                    if (px < accX + monW)
+                                    {
+                                        monIdx = i;
+                                        xInMon = px - accX;
+                                        break;
+                                    }
+                                    accX += monW + gap;
+                                }
+
+                                // Get monitor desktop position and map
+                                string activeDisplay = _monitors[monIdx].name;
+                                var (mx, my, mw, mh, ok) = DisplayUtil.TryGetLayout(activeDisplay);
+                                if (ok)
+                                {
+                                    int deskX = mx + Math.Clamp(xInMon, 0, mw - 1);
+                                    int deskY = my + Math.Clamp(py, 0, mh - 1);
+                                    InputInjector.MoveAbsolute(deskX, deskY);
+                                }
+                            }
+                        }
+                        else if (kind == "down") InputInjector.Click(true, obj.TryGetProperty("btn", out var b) && b.GetString() == "right");
+                        else if (kind == "up") InputInjector.Click(false, obj.TryGetProperty("btn", out var b2) && b2.GetString() == "right");
+                        else if (kind == "wheel") InputInjector.Wheel(obj.GetProperty("delta").GetInt32(),
+                                                                       obj.TryGetProperty("h", out var hv) && hv.GetBoolean());
+                        else if (kind == "key") InputInjector.Key((ushort)obj.GetProperty("vk").GetInt32(),
+                                                                     obj.GetProperty("down").GetBoolean());
+                        else if (kind == "text") InputInjector.Text(obj.GetProperty("text").GetString() ?? "");
+                    }
+                    catch (Exception ex) { Console.WriteLine("[CLUSTER INPUT] " + ex.Message); }
+                }
+            }
+        });
+
+        try
+        {
+            string offer = await offerTcs.Task;
+
+            int fps = TryParseInt(qs.Get("fps"), 30, 5, 120);  // Default 30fps for combined stream
+            int kbps = TryParseInt(qs.Get("kbps"), 6000, 0, 100000);
+            int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
+            string preset = qs.Get("preset") ?? "veryfast";
+            bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
+
+            var streamer = new WebRTCStreamer_H264(fps: fps, targetKbps: kbps, crf: crf, preset: preset, zerolatency: zerolat);
+            await streamer.StartAsync();
+            var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
+            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("answer:" + answer)),
+                System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+            _streams[id] = streamer;
+
+            stopCapture = new CancellationTokenSource();
+            capThread = new Thread(() =>
+            {
+                try { RoInitialize(1); } catch { }
+                try { WinRT.ComWrappersSupport.InitializeComWrappers(); } catch { }
+                try
+                {
+                    Console.WriteLine($"[ClusterCapture] Starting combined capture for {_monitors.Count} monitors");
+
+                    // Create or reuse cluster capture
+                    ClusterCapture clusterCap;
+                    lock (_clusterLock)
+                    {
+                        if (_clusterCapture == null)
+                        {
+                            _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps);
+                        }
+                        clusterCap = _clusterCapture;
+                    }
+
+                    long frameCount = 0;
+                    clusterCap.OnFrame += (buf, w, h, stride) =>
+                    {
+                        frameCount++;
+                        if (frameCount == 1 || frameCount % 60 == 0)
+                            Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h}");
+                        try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                        catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
+                    };
+
+                    streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
+
+                    clusterCap.Start();
+                    _captures[id] = (-1, false, -1, clusterCap);
+                    stopCapture.Token.WaitHandle.WaitOne();
+                }
+                catch (Exception ex) { Console.WriteLine("[ClusterCapture] ERROR: " + ex.Message + "\n" + ex.StackTrace); }
+            })
+            { IsBackground = true, Name = "Cluster-Capture" };
+            capThread.Start();
+
+            while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(200);
+            await rxLoop;
+        }
+        catch (Exception ex) { Console.WriteLine($"[Cluster Signal] {ex.Message}"); }
+        finally
+        {
+            try { stopCapture?.Cancel(); } catch { }
+            try { capThread?.Join(500); } catch { }
+
+            if (_streams.TryRemove(id, out var st)) { try { st.StopAsync().Wait(500); } catch { } try { st.Dispose(); } catch { } }
+            if (_captures.TryRemove(id, out var cap))
+            {
+                // Don't dispose cluster capture - it might be shared
+                // Only stop it if no other clients
+                lock (_clusterLock)
+                {
+                    bool hasOtherClients = _captures.Values.Any(c => c.cap == _clusterCapture);
+                    if (!hasOtherClients && _clusterCapture != null)
+                    {
+                        _clusterCapture.Stop();
+                        _clusterCapture.Dispose();
+                        _clusterCapture = null;
+                    }
+                }
+            }
+
+            try { await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None); } catch { }
+            Console.WriteLine($"[Signal] Cluster client disconnected {id}");
+        }
+    }
 
     public static async Task ForceCleanupResources()
     {
