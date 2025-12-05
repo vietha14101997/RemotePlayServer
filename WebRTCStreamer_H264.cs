@@ -277,6 +277,8 @@ public class WebRTCStreamer_H264 : IDisposable
         var ct = _cts.Token;
         var sw = Stopwatch.StartNew();
         long nextDueMs = sw.ElapsedMilliseconds;
+        long _auReceived = 0;
+        long _lastDebugMs = 0;
 
         try
         {
@@ -287,9 +289,15 @@ public class WebRTCStreamer_H264 : IDisposable
                 // Lấy AU mới nhất (bỏ backlog)
                 if (!_auChan.Reader.TryRead(out var item)) continue;
                 while (_auChan.Reader.TryRead(out var newer)) item = newer;
+                _auReceived++;
 
-                // Một số packetiser kén AUD => lược bỏ AUD đầu (nếu có)
-                // var au = StripLeadingAud(item.au);
+                // Debug log mỗi 2 giây
+                var nowDebug = sw.ElapsedMilliseconds;
+                if (nowDebug - _lastDebugMs > 2000)
+                {
+                    Console.WriteLine($"[SendAuLoop] AU received={_auReceived}, _canSend={_canSend}, _running={_running}, _pc={((_pc != null) ? "OK" : "NULL")}");
+                    _lastDebugMs = nowDebug;
+                }
 
                 // Pace theo delta thực (durMs) thay vì cố định theo fps
                 var nowMs = sw.ElapsedMilliseconds;

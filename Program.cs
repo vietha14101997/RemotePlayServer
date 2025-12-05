@@ -473,7 +473,7 @@ public class SignalAndRestServer
 {
     private readonly HttpListener _listener;
     private readonly ConcurrentDictionary<Guid, WebRTCStreamer_H264> _streams = new();
-    private readonly ConcurrentDictionary<Guid, (int wid, bool isMonitor, int mid, WgcCapture cap)> _captures = new();
+    private readonly ConcurrentDictionary<Guid, (int wid, bool isMonitor, int mid, IDisposable cap)> _captures = new();
 
     private List<Win32.WindowInfo> _windows = new();
     private List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
@@ -645,22 +645,62 @@ public class SignalAndRestServer
                 try
                 {
                     bool isMonitor = (mid >= 0 && mid < _monitors.Count);
-                    WgcCapture cap = isMonitor
-                        ? new WgcCapture(_monitors[mid].hmon, isMonitor: true)
-                        : new WgcCapture(_windows[wid].hwnd);
-
-                    _captures[id] = (wid, isMonitor, mid, cap);
-                    cap.OnFrame += (buf, w, h, stride) =>
+                    bool isWindow = (wid >= 0 && wid < _windows.Count);
+                    
+                    Console.WriteLine($"[Capture] mid={mid}, wid={wid}, isMonitor={isMonitor}, isWindow={isWindow}, monitors.Count={_monitors.Count}, windows.Count={_windows.Count}");
+                    
+                    if (!isMonitor && !isWindow)
                     {
-                        try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
-                        catch (Exception ex) { Console.WriteLine("[WGC->RTC] " + ex.Message); }
-                    };
-                    streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
+                        Console.WriteLine($"[Capture] ERROR: Invalid mid={mid} or wid={wid}. No valid capture target!");
+                        return;
+                    }
+                    
+                    IDisposable capture;
+                    long frameCount = 0;
+                    
+                    if (isMonitor)
+                    {
+                        Console.WriteLine($"[Capture] Starting MONITOR capture (DXGI): {_monitors[mid].name} ({_monitors[mid].w}x{_monitors[mid].h})");
+                        var dxgiCap = new DxgiCapture(_monitors[mid].hmon);
+                        dxgiCap.OnFrame += (buf, w, h, stride) =>
+                        {
+                            frameCount++;
+                            if (frameCount == 1 || frameCount % 60 == 0)
+                                Console.WriteLine($"[DXGI] Frame #{frameCount}: {w}x{h}, stride={stride}");
+                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                            catch (Exception ex) { Console.WriteLine("[DXGI->RTC] " + ex.Message); }
+                        };
+                        streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
+                        
+                        Console.WriteLine("[Capture] Calling dxgiCap.Start()...");
+                        dxgiCap.Start();
+                        Console.WriteLine("[Capture] dxgiCap.Start() completed, waiting for stop signal...");
+                        capture = dxgiCap;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[Capture] Starting WINDOW capture (WGC): {_windows[wid].title}");
+                        var wgcCap = new WgcCapture(_windows[wid].hwnd);
+                        wgcCap.OnFrame += (buf, w, h, stride) =>
+                        {
+                            frameCount++;
+                            if (frameCount == 1 || frameCount % 60 == 0)
+                                Console.WriteLine($"[WGC] Frame #{frameCount}: {w}x{h}, stride={stride}");
+                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                            catch (Exception ex) { Console.WriteLine("[WGC->RTC] " + ex.Message); }
+                        };
+                        streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
+                        
+                        Console.WriteLine("[Capture] Calling wgcCap.Start()...");
+                        wgcCap.Start();
+                        Console.WriteLine("[Capture] wgcCap.Start() completed, waiting for stop signal...");
+                        capture = wgcCap;
+                    }
 
-                    cap.Start();
+                    _captures[id] = (wid, isMonitor, mid, capture);
                     stopCapture.Token.WaitHandle.WaitOne();
                 }
-                catch (Exception ex) { Console.WriteLine("[Capture] " + ex.Message); }
+                catch (Exception ex) { Console.WriteLine("[Capture] ERROR: " + ex.Message + "\n" + ex.StackTrace); }
             })
             { IsBackground = true, Name = $"WGC-Capture-{(mid >= 0 ? $"mid{mid}" : $"wid{wid}")}" };
             capThread.Start();
