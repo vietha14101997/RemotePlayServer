@@ -1,0 +1,105 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>RemotePlay WebRTC Test</title>
+<style>
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 20px; }
+  video { width: 960px; max-width: 100%; background:#000; }
+  pre { white-space: pre-wrap; background:#111; color:#0f0; padding:8px; }
+  .row{display:flex; gap:16px; align-items:center;}
+</style>
+<div class="row">
+  <button id="btn">Connect & Play</button>
+  <label>WS URL:</label>
+  <input id="ws" size="60" value="ws://localhost:8288/signal?mode=cluster&fps=30&kbps=6000" />
+</div>
+<p>Status: <span id="st">idle</span></p>
+<video id="v" autoplay playsinline muted></video>
+<pre id="log"></pre>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+const log = (...a)=>{$('log').textContent += a.join(' ') + '\n';};
+const setSt = (s)=>$('st').textContent = s;
+
+async function run() {
+  const WS_URL = $('ws').value.trim();
+  const ws = new WebSocket(WS_URL);
+  setSt('ws: connecting'); log('WS →', WS_URL);
+
+  // --- Create RTCPeerConnection (with STUN to be safe)
+  const pc = new RTCPeerConnection({
+    iceServers: [{urls:'stun:stun.l.google.com:19302'}]
+  });
+
+  // Prefer H264 first if available
+  try {
+    const trans = pc.addTransceiver('video', {direction:'recvonly'});
+	if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
+    const caps = RTCRtpReceiver.getCapabilities('video');
+    const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
+    const others = caps.codecs.filter(c => !h264.some(h => h.mimeType===c.mimeType && h.clockRate===c.clockRate));
+    const prefer = h264.concat(others);
+    if (trans.setCodecPreferences) trans.setCodecPreferences(prefer);
+    log('Codecs (H264 first):', prefer.map(c=>c.mimeType).join(', '));
+  } catch(e){ log('Codec pref note:', e.message); }
+
+  pc.oniceconnectionstatechange = ()=>{ setSt('ice: ' + pc.iceConnectionState); log('ICE =', pc.iceConnectionState); };
+  pc.onconnectionstatechange =    ()=>{ log('PC  =', pc.connectionState); };
+
+  pc.ontrack = ev => {
+    log('ontrack kind=', ev.track.kind);
+    $('v').srcObject = ev.streams[0] || new MediaStream([ev.track]);
+  };
+
+  // Trickle ICE out
+  pc.onicecandidate = ev => {
+    if (ev.candidate) {
+      const s = ev.candidate.candidate;
+      ws.readyState === 1 && ws.send(s);
+      log('→ cand', s);
+    } else {
+      ws.readyState === 1 && ws.send('end-of-candidates');
+      log('→ end-of-candidates');
+    }
+  };
+
+  ws.onopen = async () => {
+    setSt('ws: open → creating offer');
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    ws.send('offer:' + offer.sdp);
+    log('→ offer sent, length=', offer.sdp.length);
+  };
+
+  ws.onmessage = async (ev) => {
+    const text = ev.data;
+    if (text.startsWith('answer:')) {
+      const sdp = text.slice('answer:'.length);
+      // Ensure SAVPF just in case
+      const fixed = sdp.replace(/UDP\/TLS\/RTP\/SAVP\b/g, 'UDP/TLS/RTP/SAVPF');
+      await pc.setRemoteDescription({type:'answer', sdp: fixed});
+      log('← answer set (chars=', sdp.length, ')');
+    } else if (text.startsWith('candidate:')) {
+      // Accept UDP candidates; keep sdpMid/mLine auto
+      const cand = 'candidate:' + text.slice('candidate:'.length).trim();
+      await pc.addIceCandidate({candidate: cand, sdpMLineIndex:0, sdpMid:'0'});
+      log('← cand', cand);
+    } else if (text.startsWith('end-of-candidates')) {
+      log('← end-of-candidates');
+    } else {
+      log('←', text);
+    }
+  };
+
+  ws.onclose = () => setSt('ws: closed');
+  ws.onerror = (e) => log('WS error:', e.message || e);
+
+  // Debug helper
+  window.getRTCStats = async () => {
+    const stats = await pc.getStats();
+    stats.forEach(r => { if (r.type==='inbound-rtp' && r.kind==='video') log('stats inbound-rtp:', JSON.stringify(r, null, 2)); });
+  };
+}
+
+$('btn').onclick = run;
+</script>
