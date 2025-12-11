@@ -13,7 +13,8 @@ public enum EncoderType
     Auto,           // Auto-detect best encoder
     MediaFoundation, // Use Media Foundation
     MediaFoundationZeroCopy, // Use Media Foundation with zero-copy GPU pipeline
-    FFmpeg          // Use FFmpeg pipe (fallback)
+    FFmpeg,         // Use FFmpeg pipe (BGRA input)
+    FFmpegNV12      // Use FFmpeg with GPU Video Processor (NV12 input - best for AMD)
 }
 
 /// <summary>
@@ -227,6 +228,50 @@ public class WebRTCStreamerZeroCopyWrapper : IWebRTCStreamer
     
     /// <summary>
     /// Push D3D11 texture directly (zero-copy GPU path)
+    /// </summary>
+    public void PushTexture(Vortice.Direct3D11.ID3D11Texture2D texture, int width, int height, Vortice.Direct3D11.ID3D11Device? sourceDevice = null)
+        => _streamer.PushTexture(texture, width, height, sourceDevice);
+    
+    public void Dispose() => _streamer.Dispose();
+}
+
+/// <summary>
+/// Wrapper for FFmpeg NV12 streamer (GPU Video Processor + FFmpeg h264_amf)
+/// Best for AMD GPUs where MF encoder doesn't work
+/// </summary>
+public class WebRTCStreamerFFmpegNV12Wrapper : IWebRTCStreamer
+{
+    private readonly WebRTCStreamer_FFmpegNV12 _streamer;
+
+    public bool IsRunning => _streamer.IsRunning;
+    public bool IsZeroCopyEnabled => _streamer.IsZeroCopyEnabled;
+
+    public event Action? OnPeerDisconnected
+    {
+        add => _streamer.OnPeerDisconnected += value;
+        remove => _streamer.OnPeerDisconnected -= value;
+    }
+
+    public WebRTCStreamerFFmpegNV12Wrapper(int fps, int kbps)
+    {
+        _streamer = new WebRTCStreamer_FFmpegNV12(fps, kbps);
+    }
+
+    public Task StartAsync() => _streamer.StartAsync();
+    public Task StopAsync()
+    {
+        _streamer.Stop();
+        return Task.CompletedTask;
+    }
+    public Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
+        => _streamer.SetRemoteOfferAndCreateAnswerAsync(offerSdp);
+    
+    // CPU path - not used for this encoder (needs texture input)
+    public Task PushBgraBytesAsync(byte[] src, int width, int height, int stride)
+        => Task.CompletedTask; // No-op, this encoder requires texture input
+    
+    /// <summary>
+    /// Push D3D11 texture directly (GPU path with NV12 conversion)
     /// </summary>
     public void PushTexture(Vortice.Direct3D11.ID3D11Texture2D texture, int width, int height, Vortice.Direct3D11.ID3D11Device? sourceDevice = null)
         => _streamer.PushTexture(texture, width, height, sourceDevice);

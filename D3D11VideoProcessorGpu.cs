@@ -23,10 +23,15 @@ public sealed class D3D11VideoProcessorGpu : IDisposable
     private ID3D11Texture2D? _nv12Texture;
     private IntPtr _outputView;
 
+    // Staging texture for CPU readback
+    private ID3D11Texture2D? _stagingTexture;
+
     private readonly int _width;
     private readonly int _height;
     private bool _disposed;
     private bool _initialized;
+    private bool _debugLogOnce = true;
+    private bool _debugVpBlt = true;
 
     public ID3D11Texture2D? OutputTexture => _nv12Texture;
     public bool IsAvailable => _initialized;
@@ -260,6 +265,21 @@ public sealed class D3D11VideoProcessorGpu : IDisposable
 
                 // Process (blit) - convert BGRA to NV12
                 hr = VideoProcessorBlt(_videoContext, _videoProcessor, _outputView, 0, 1, ref stream);
+                
+                // Debug: log first time
+                if (_debugVpBlt)
+                {
+                    _debugVpBlt = false;
+                    Console.WriteLine($"[VP-GPU] VideoProcessorBlt result: 0x{hr:X8} (success={hr >= 0})");
+                    Console.WriteLine($"[VP-GPU] Input texture ptr: 0x{bgraPtr:X16}");
+                    Console.WriteLine($"[VP-GPU] Input view ptr: 0x{inputView:X16}");
+                    Console.WriteLine($"[VP-GPU] Output view ptr: 0x{_outputView:X16}");
+                    
+                    // Get input texture description
+                    var desc = bgraTexture.Description;
+                    Console.WriteLine($"[VP-GPU] Input texture: {desc.Width}x{desc.Height}, Format={desc.Format}, Usage={desc.Usage}, BindFlags={desc.BindFlags}");
+                }
+                
                 if (hr < 0)
                 {
                     Console.WriteLine($"[VP-GPU] VideoProcessorBlt failed: 0x{hr:X8}");
@@ -282,6 +302,97 @@ public sealed class D3D11VideoProcessorGpu : IDisposable
             return null;
         }
     }
+
+    /// <summary>
+    /// Convert BGRA texture to NV12 and copy to CPU memory.
+    /// Returns NV12 data in contiguous format (Y plane + UV plane).
+    /// This is optimized for sending to FFmpeg h264_amf encoder.
+    /// </summary>
+    public byte[]? ProcessBgraToNv12Cpu(ID3D11Texture2D bgraTexture)
+    {
+        // First convert to NV12 on GPU
+        var nv12Tex = ProcessBgraToNv12(bgraTexture);
+        if (nv12Tex == null) return null;
+
+        // Ensure staging texture exists
+        if (_stagingTexture == null)
+        {
+            _stagingTexture = _device.CreateTexture2D(new Texture2DDescription
+            {
+                Width = (uint)_width,
+                Height = (uint)_height,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = Format.NV12,
+                SampleDescription = new SampleDescription(1, 0),
+                Usage = ResourceUsage.Staging,
+                BindFlags = BindFlags.None,
+                CPUAccessFlags = CpuAccessFlags.Read,
+                MiscFlags = ResourceOptionFlags.None
+            });
+        }
+
+        // Copy NV12 texture to staging
+        _context.CopyResource(_stagingTexture, nv12Tex);
+
+        // Map staging texture and read data
+        // D3D11 NV12: Y plane is at subresource 0, UV plane follows Y in same mapped resource
+        // Total mapped height = Height * 1.5 (Height for Y + Height/2 for UV)
+        int nv12Size = _width * _height * 3 / 2;
+        var result = new byte[nv12Size];
+
+        var mapped = _context.Map(_stagingTexture, 0, MapMode.Read);
+        try
+        {
+            int rowPitch = (int)mapped.RowPitch;
+            int ySize = _width * _height;
+            int uvHeight = _height / 2;
+
+            // Debug: log first time
+            if (_debugLogOnce)
+            {
+                _debugLogOnce = false;
+                Console.WriteLine($"[VP-GPU] NV12 readback: {_width}x{_height}, rowPitch={rowPitch}, ySize={ySize}, uvHeight={uvHeight}");
+                Console.WriteLine($"[VP-GPU] UV offset: rowPitch*height = {rowPitch * _height}");
+                
+                // Print first 16 bytes of Y plane to check if data is valid
+                byte[] sample = new byte[16];
+                Marshal.Copy(mapped.DataPointer, sample, 0, 16);
+                Console.WriteLine($"[VP-GPU] Y plane first 16 bytes: {BitConverter.ToString(sample)}");
+                
+                // Print first 16 bytes of UV plane
+                IntPtr uvSample = mapped.DataPointer + rowPitch * _height;
+                Marshal.Copy(uvSample, sample, 0, 16);
+                Console.WriteLine($"[VP-GPU] UV plane first 16 bytes: {BitConverter.ToString(sample)}");
+            }
+
+            // Copy Y plane (Height rows of Width bytes each)
+            for (int y = 0; y < _height; y++)
+            {
+                Marshal.Copy(mapped.DataPointer + y * rowPitch, result, y * _width, _width);
+            }
+
+            // Copy UV plane 
+            // In D3D11 NV12, UV plane starts immediately after Y plane in the mapped resource
+            // UV plane offset = rowPitch * Height (not _width * Height!)
+            IntPtr uvStart = mapped.DataPointer + rowPitch * _height;
+            for (int y = 0; y < uvHeight; y++)
+            {
+                Marshal.Copy(uvStart + y * rowPitch, result, ySize + y * _width, _width);
+            }
+        }
+        finally
+        {
+            _context.Unmap(_stagingTexture, 0);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get NV12 size in bytes for current resolution
+    /// </summary>
+    public int GetNv12Size() => _width * _height * 3 / 2;
 
     #region Native Method Delegates
 
@@ -375,6 +486,9 @@ public sealed class D3D11VideoProcessorGpu : IDisposable
         _videoDevice = IntPtr.Zero;
         _nv12Texture = null;
 
+        var stagingTexture = _stagingTexture;
+        _stagingTexture = null;
+
         // Only release if initialization was successful
         // This prevents crashes when trying to release invalid pointers
         if (_initialized)
@@ -387,8 +501,9 @@ public sealed class D3D11VideoProcessorGpu : IDisposable
             SafeRelease(videoDevice);
         }
 
-        // Dispose Vortice texture (this is safe)
+        // Dispose Vortice textures (this is safe)
         try { nv12Texture?.Dispose(); } catch { }
+        try { stagingTexture?.Dispose(); } catch { }
 
         Console.WriteLine("[VP-GPU] Disposed");
     }

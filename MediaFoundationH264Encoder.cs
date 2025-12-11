@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Vortice.Direct3D11;
@@ -154,11 +155,17 @@ public sealed class MediaFoundationH264Encoder : IDisposable
             return false;
         }
 
+        // Track AMD encoder failures for better diagnostics
+        bool amdEncoderFailed = false;
+
         foreach (var (activate, name, isHardware) in encoders)
         {
             try
             {
                 Console.WriteLine($"[MF-H264] Trying encoder: {name} (HW={isHardware})");
+                
+                // Check for AMD encoder - they have known issues with MF interface
+                bool isAmdEncoder = name.Contains("AMD", StringComparison.OrdinalIgnoreCase);
 
                 // Activate the encoder
                 var iid = MFInterop.IID_IMFTransform;
@@ -171,8 +178,9 @@ public sealed class MediaFoundationH264Encoder : IDisposable
 
                 _encoder = (IMFTransform)encoderObj;
 
-                // Set D3D manager if available
-                if (_dxgiManager != null)
+                // Set D3D manager if available - BUT skip for AMD encoders (causes issues)
+                bool skipD3DManager = isAmdEncoder;
+                if (_dxgiManager != null && !skipD3DManager)
                 {
                     IntPtr managerPtr = Marshal.GetIUnknownForObject(_dxgiManager);
                     hr = _encoder.ProcessMessage(MFInterop.MFT_MESSAGE_SET_D3D_MANAGER, managerPtr);
@@ -183,6 +191,10 @@ public sealed class MediaFoundationH264Encoder : IDisposable
                         Console.WriteLine("[MF-H264] D3D manager set on encoder");
                     }
                 }
+                else if (isAmdEncoder)
+                {
+                    Console.WriteLine("[MF-H264] Skipping D3D manager for AMD encoder (testing without)");
+                }
 
                 // Configure encoder
                 if (ConfigureEncoder())
@@ -191,6 +203,12 @@ public sealed class MediaFoundationH264Encoder : IDisposable
                     EncoderName = name;
                     Console.WriteLine($"[MF-H264] Encoder configured successfully: {name}");
                     return true;
+                }
+
+                // Track AMD failures for diagnostics
+                if (isAmdEncoder)
+                {
+                    amdEncoderFailed = true;
                 }
 
                 // Failed to configure, release and try next
@@ -206,6 +224,14 @@ public sealed class MediaFoundationH264Encoder : IDisposable
                     _encoder = null;
                 }
             }
+        }
+
+        // Provide helpful diagnostics if AMD encoder failed
+        if (amdEncoderFailed)
+        {
+            Console.WriteLine("[MF-H264] ⚠ AMD hardware encoder failed to initialize.");
+            Console.WriteLine("[MF-H264] This is usually caused by missing AMD AMF Runtime (amfrt64.dll).");
+            Console.WriteLine("[MF-H264] Please ensure AMD Adrenalin drivers are installed and up to date.");
         }
 
         return false;
@@ -248,7 +274,29 @@ public sealed class MediaFoundationH264Encoder : IDisposable
                     name = allocName;
                 }
 
-                // Check if it supports H.264 output
+                // Filter: only include H.264 encoders
+                // Skip H.265/HEVC, AV1, VP9 encoders
+                string nameLower = name.ToLowerInvariant();
+                bool isH264Encoder = nameLower.Contains("h264") || nameLower.Contains("h.264") || 
+                                     nameLower.Contains("264") && !nameLower.Contains("265");
+                
+                // Software H264 Encoder MFT is always valid
+                if (name == "H264 Encoder MFT") isH264Encoder = true;
+                
+                // Skip non-H.264 encoders
+                if (nameLower.Contains("hevc") || nameLower.Contains("h265") || nameLower.Contains("h.265") ||
+                    nameLower.Contains("av1") || nameLower.Contains("vp9") || nameLower.Contains("vp8") ||
+                    nameLower.Contains("heif"))
+                {
+                    isH264Encoder = false;
+                }
+
+                if (!isH264Encoder)
+                {
+                    Marshal.ReleaseComObject(activate);
+                    continue;
+                }
+
                 result.Add((activate, name, isHardware));
             }
         }
@@ -264,13 +312,6 @@ public sealed class MediaFoundationH264Encoder : IDisposable
 
         try
         {
-            // Configure output type (H.264) first
-            int hr = MFInterop.MFCreateMediaType(out IntPtr outputTypePtr);
-            if (hr < 0) return false;
-
-            var outputType = (IMFMediaType)Marshal.GetObjectForIUnknown(outputTypePtr);
-            Marshal.Release(outputTypePtr);
-
             var majorType = MFInterop.MF_MT_MAJOR_TYPE;
             var subType = MFInterop.MF_MT_SUBTYPE;
             var frameSize = MFInterop.MF_MT_FRAME_SIZE;
@@ -279,88 +320,212 @@ public sealed class MediaFoundationH264Encoder : IDisposable
             var interlace = MFInterop.MF_MT_INTERLACE_MODE;
             var pixelAspect = MFInterop.MF_MT_PIXEL_ASPECT_RATIO;
             var profile = MFInterop.MF_MT_MPEG2_PROFILE;
-
             var videoType = MFInterop.MFMediaType_Video;
             var h264Type = MFInterop.MFVideoFormat_H264;
 
-            outputType.SetGUID(ref majorType, ref videoType);
-            outputType.SetGUID(ref subType, ref h264Type);
-            outputType.SetUINT64(ref frameSize, (ulong)MFInterop.PackSize(_width, _height));
-            outputType.SetUINT64(ref frameRate, (ulong)MFInterop.PackSize(_fps, 1));
-            outputType.SetUINT32(ref avgBitrate, (uint)_bitrate);
-            outputType.SetUINT32(ref interlace, 2); // MFVideoInterlace_Progressive
-            outputType.SetUINT64(ref pixelAspect, (ulong)MFInterop.PackSize(1, 1));
-            outputType.SetUINT32(ref profile, 66); // eAVEncH264VProfile_Base (Baseline)
-
-            hr = _encoder.SetOutputType(0, outputType, 0);
-            Marshal.ReleaseComObject(outputType);
-
-            if (hr < 0)
+            // Try different profiles: Main (77) first for better AMD compatibility, then High (100), then Baseline (66)
+            var profiles = new[] { (77, "Main"), (100, "High"), (66, "Baseline") };
+            
+            foreach (var (profileValue, profileName) in profiles)
             {
-                Console.WriteLine($"[MF-H264] SetOutputType failed: 0x{hr:X8}");
-                return false;
-            }
+                // Configure output type (H.264)
+                int hr = MFInterop.MFCreateMediaType(out IntPtr outputTypePtr);
+                if (hr < 0) return false;
 
-            // Configure input type - try NV12 first, then ARGB32
-            var inputFormats = new[] {
-                (MFInterop.MFVideoFormat_NV12, "NV12"),
-                (MFInterop.MFVideoFormat_ARGB32, "ARGB32"),
-                (MFInterop.MFVideoFormat_RGB32, "RGB32")
-            };
+                var outputType = (IMFMediaType)Marshal.GetObjectForIUnknown(outputTypePtr);
+                Marshal.Release(outputTypePtr);
 
-            bool inputTypeSet = false;
-            foreach (var (formatGuid, formatName) in inputFormats)
-            {
-                hr = MFInterop.MFCreateMediaType(out IntPtr inputTypePtr);
-                if (hr < 0) continue;
+                outputType.SetGUID(ref majorType, ref videoType);
+                outputType.SetGUID(ref subType, ref h264Type);
+                outputType.SetUINT64(ref frameSize, (ulong)MFInterop.PackSize(_width, _height));
+                outputType.SetUINT64(ref frameRate, (ulong)MFInterop.PackSize(_fps, 1));
+                outputType.SetUINT32(ref avgBitrate, (uint)_bitrate);
+                outputType.SetUINT32(ref interlace, 2); // MFVideoInterlace_Progressive
+                outputType.SetUINT64(ref pixelAspect, (ulong)MFInterop.PackSize(1, 1));
+                outputType.SetUINT32(ref profile, (uint)profileValue);
 
-                var inputType = (IMFMediaType)Marshal.GetObjectForIUnknown(inputTypePtr);
-                Marshal.Release(inputTypePtr);
+                hr = _encoder.SetOutputType(0, outputType, 0);
+                Marshal.ReleaseComObject(outputType);
 
-                var inputFormat = formatGuid;
-                inputType.SetGUID(ref majorType, ref videoType);
-                inputType.SetGUID(ref subType, ref inputFormat);
-                inputType.SetUINT64(ref frameSize, (ulong)MFInterop.PackSize(_width, _height));
-                inputType.SetUINT64(ref frameRate, (ulong)MFInterop.PackSize(_fps, 1));
-                inputType.SetUINT32(ref interlace, 2);
-                inputType.SetUINT64(ref pixelAspect, (ulong)MFInterop.PackSize(1, 1));
-
-                hr = _encoder.SetInputType(0, inputType, 0);
-                Marshal.ReleaseComObject(inputType);
-
-                if (hr >= 0)
+                if (hr < 0)
                 {
-                    _inputFormat = formatName;
-                    Console.WriteLine($"[MF-H264] Input format set: {formatName}");
-                    inputTypeSet = true;
-                    break;
+                    Console.WriteLine($"[MF-H264] SetOutputType failed with {profileName} profile: 0x{hr:X8}");
+                    continue;
+                }
+
+                // First, enumerate available input types from encoder
+                Console.WriteLine($"[MF-H264] Enumerating available input types for {profileName} profile...");
+                var availableInputTypes = new List<(Guid format, string name)>();
+                for (uint i = 0; i < 20; i++)
+                {
+                    hr = _encoder.GetInputAvailableType(0, i, out IMFMediaType? availType);
+                    if (hr < 0) break;
+                    if (availType == null) continue;
+
+                    try
+                    {
+                        var subTypeGuid = MFInterop.MF_MT_SUBTYPE;
+                        hr = availType.GetGUID(ref subTypeGuid, out Guid formatGuid);
+                        if (hr >= 0)
+                        {
+                            string formatName = GetFormatName(formatGuid);
+                            availableInputTypes.Add((formatGuid, formatName));
+                            Console.WriteLine($"[MF-H264]   Available input: {formatName}");
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(availType);
+                    }
+                }
+
+                // Try to set input type - PREFER NV12 since Video Processor outputs NV12
+                bool inputTypeSet = false;
+                
+                // First: try NV12 if available (this is what Video Processor outputs)
+                if (availableInputTypes.Any(t => t.name == "NV12"))
+                {
+                    if (TrySetInputType(MFInterop.MFVideoFormat_NV12, "NV12"))
+                    {
+                        inputTypeSet = true;
+                    }
+                }
+                
+                // Second: try other available types
+                if (!inputTypeSet && availableInputTypes.Count > 0)
+                {
+                    // Prefer formats in order: NV12, ARGB32, RGB32, then others
+                    var preferredOrder = new[] { "NV12", "ARGB32", "RGB32" };
+                    var sortedTypes = availableInputTypes
+                        .OrderBy(t => {
+                            int idx = Array.IndexOf(preferredOrder, t.name);
+                            return idx >= 0 ? idx : 100;
+                        })
+                        .ToList();
+                    
+                    foreach (var (formatGuid, formatName) in sortedTypes)
+                    {
+                        if (TrySetInputType(formatGuid, formatName))
+                        {
+                            inputTypeSet = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback: try common formats directly
+                if (!inputTypeSet)
+                {
+                    var fallbackFormats = new[] {
+                        (MFInterop.MFVideoFormat_NV12, "NV12"),
+                        (MFInterop.MFVideoFormat_ARGB32, "ARGB32"),
+                        (MFInterop.MFVideoFormat_RGB32, "RGB32")
+                    };
+
+                    foreach (var (formatGuid, formatName) in fallbackFormats)
+                    {
+                        if (TrySetInputType(formatGuid, formatName))
+                        {
+                            inputTypeSet = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (inputTypeSet)
+                {
+                    Console.WriteLine($"[MF-H264] Using {profileName} profile");
+                    return true;
                 }
             }
 
-            if (!inputTypeSet)
-            {
-                Console.WriteLine($"[MF-H264] SetInputType failed for all formats");
-                return false;
-            }
-
-            // Configure encoder settings via ICodecAPI if available
-            try
-            {
-                var codecApi = (ICodecAPI)_encoder;
-                ConfigureCodecApi(codecApi);
-            }
-            catch
-            {
-                Console.WriteLine("[MF-H264] ICodecAPI not available");
-            }
-
-            return true;
+            Console.WriteLine($"[MF-H264] SetInputType failed for all formats and profiles");
+            return false;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[MF-H264] ConfigureEncoder error: {ex.Message}");
             return false;
         }
+    }
+
+    private bool TrySetInputType(Guid formatGuid, string formatName)
+    {
+        if (_encoder == null) return false;
+
+        var majorType = MFInterop.MF_MT_MAJOR_TYPE;
+        var subType = MFInterop.MF_MT_SUBTYPE;
+        var frameSize = MFInterop.MF_MT_FRAME_SIZE;
+        var frameRate = MFInterop.MF_MT_FRAME_RATE;
+        var interlace = MFInterop.MF_MT_INTERLACE_MODE;
+        var pixelAspect = MFInterop.MF_MT_PIXEL_ASPECT_RATIO;
+        var videoType = MFInterop.MFMediaType_Video;
+
+        int hr = MFInterop.MFCreateMediaType(out IntPtr inputTypePtr);
+        if (hr < 0) return false;
+
+        var inputType = (IMFMediaType)Marshal.GetObjectForIUnknown(inputTypePtr);
+        Marshal.Release(inputTypePtr);
+
+        try
+        {
+            var inputFormat = formatGuid;
+            inputType.SetGUID(ref majorType, ref videoType);
+            inputType.SetGUID(ref subType, ref inputFormat);
+            inputType.SetUINT64(ref frameSize, (ulong)MFInterop.PackSize(_width, _height));
+            inputType.SetUINT64(ref frameRate, (ulong)MFInterop.PackSize(_fps, 1));
+            inputType.SetUINT32(ref interlace, 2);
+            inputType.SetUINT64(ref pixelAspect, (ulong)MFInterop.PackSize(1, 1));
+
+            hr = _encoder.SetInputType(0, inputType, 0);
+            if (hr >= 0)
+            {
+                _inputFormat = formatName;
+                Console.WriteLine($"[MF-H264] Input format set: {formatName}");
+                
+                // Configure encoder settings via ICodecAPI
+                try
+                {
+                    var codecApi = (ICodecAPI)_encoder;
+                    ConfigureCodecApi(codecApi);
+                }
+                catch
+                {
+                    Console.WriteLine("[MF-H264] ICodecAPI not available");
+                }
+                
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"[MF-H264] SetInputType({formatName}) failed: 0x{hr:X8}");
+                return false;
+            }
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(inputType);
+        }
+    }
+
+    private static string GetFormatName(Guid formatGuid)
+    {
+        if (formatGuid == MFInterop.MFVideoFormat_NV12) return "NV12";
+        if (formatGuid == MFInterop.MFVideoFormat_ARGB32) return "ARGB32";
+        if (formatGuid == MFInterop.MFVideoFormat_RGB32) return "RGB32";
+        
+        // Check for other common formats by FourCC
+        byte[] bytes = formatGuid.ToByteArray();
+        uint fourcc = BitConverter.ToUInt32(bytes, 0);
+        
+        // Common FourCC codes
+        if (fourcc == 0x56555949) return "IYUV";  // 'IYUV'
+        if (fourcc == 0x32595559) return "YUY2";  // 'YUY2'
+        if (fourcc == 0x59565955) return "UYVY";  // 'UYVY'
+        if (fourcc == 0x50313234) return "P010";  // 'P010'
+        if (fourcc == 0x36313050) return "P016";  // 'P016'
+        
+        return formatGuid.ToString().Substring(0, 8);
     }
 
     private void ConfigureCodecApi(ICodecAPI codecApi)

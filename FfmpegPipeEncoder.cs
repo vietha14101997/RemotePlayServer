@@ -18,6 +18,8 @@ using Vortice.DXGI;
 // Đầu vào: raw BGRA; Đầu ra: Annex-B H.264 (có AUD) -> tách theo AU và bắn qua WebRTC.
 internal sealed class FfmpegPipeEncoder : IDisposable
 {
+    public enum InputFormat { BGRA, NV12 }
+    
     public int Width { get; private set; }
     public int Height { get; private set; }
     public int FPS { get; private set; }
@@ -25,6 +27,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     public int CRF { get; private set; }           // <0 => off
     public string Preset { get; private set; }
     public bool ZeroLatency { get; private set; }
+    public InputFormat PixelFormat { get; private set; } = InputFormat.BGRA;
 
     public event Action<uint, byte[]>? OnEncodedAccessUnit;
 
@@ -278,13 +281,14 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         return "ffmpeg";
     }
 
-    public FfmpegPipeEncoder(int w, int h, int fps, int bitrateKbps, int crf, string preset, bool zerolatency, string? ffmpegExe = null)
+    public FfmpegPipeEncoder(int w, int h, int fps, int bitrateKbps, int crf, string preset, bool zerolatency, string? ffmpegExe = null, InputFormat inputFormat = InputFormat.BGRA)
     {
         Width = w; Height = h; FPS = Math.Max(5, fps);
         BitrateKbps = Math.Max(0, bitrateKbps);
         CRF = crf < 0 ? -1 : crf;
         Preset = string.IsNullOrWhiteSpace(preset) ? "veryfast" : preset;
         ZeroLatency = zerolatency;
+        PixelFormat = inputFormat;
         _exePath = ResolveFFmpeg(ffmpegExe);
     }
 
@@ -371,23 +375,46 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                 }
             case GpuEnc.AMF:
                 {
-                    // input: raw BGRA qua stdin (giống NVENC/QSV)
-                    var inPart =
-                        "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
-                        $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                    // Input configuration based on pixel format
+                    string inPart;
+                    string vfPart;
+                    
+                    if (PixelFormat == InputFormat.NV12)
+                    {
+                        // NV12 input - no format conversion needed (fastest path)
+                        // NV12 is already the native format for h264_amf
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-thread_queue_size 2048 " +  // Larger queue for high throughput
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt nv12 -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = ""; // No conversion needed
+                        Console.WriteLine("[FFMPEG-AMF] Using NV12 input (zero-copy friendly)");
+                    }
+                    else
+                    {
+                        // BGRA input - needs format conversion
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-thread_queue_size 1024 " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        
+                        // Pad width to even if needed + convert to NV12
+                        int padW = (Width % 2 == 0) ? Width : Width + 1;
+                        if (Width % 2 != 0)
+                            vfPart = $"-vf pad={padW}:{{Height}}:0:0,format=nv12 ";
+                        else
+                            vfPart = "-vf format=nv12 ";
+                    }
 
-                    // Pad width to even number if needed (AMF requirement) + convert to NV12
-                    int padW = (Width % 2 == 0) ? Width : Width + 1;
-                    var vfPart = (Width % 2 != 0)
-                        ? $"-vf pad={padW}:{{Height}}:0:0,format=nv12"
-                        : "-vf format=nv12";
-
-                    // Rate control: CBR nếu có BitrateKbps, ngược lại dùng CQP
+                    // Rate control: CBR with minimal buffer
                     string rc;
                     if (BitrateKbps > 0)
                     {
-                        int vbv = Math.Max(BitrateKbps, 1000);
-                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                        // Use 1-2 frames of buffer for CBR
+                        int bufsize = Math.Max(BitrateKbps / 15, 200); // ~66ms buffer
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {bufsize}k";
                     }
                     else
                     {
@@ -395,18 +422,26 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         rc = $"-rc cqp -qp_i {cq} -qp_p {cq + 2}";
                     }
 
-                    // low-latency: explicit B-frame = 0 for AMF
+                    // Ultra-low-latency AMF encoder settings
                     var outPart =
-                        "-an -c:v h264_amf -usage lowlatency -quality balanced " +
+                        "-an -c:v h264_amf " +
+                        "-usage ultralowlatency " +
+                        "-quality speed " +
                         "-profile:v main " +
-                        // AMF requires explicit bf option
-                        "-bf 0 " +
-                        $"-g {g} " + rc + " " +
-                        // Chèn AUD để tách AU ổn định
+                        "-level 4.1 " +
+                        "-preanalysis false " +
+                        "-vbaq false " +
+                        "-enforce_hrd false " +
+                        "-filler_data false " +
+                        "-frame_skipping false " +
+                        "-bf:v 0 " +
+                        "-g " + g + " " +
+                        "-keyint_min " + g + " " +
+                        rc + " " +
                         "-bsf:v h264_metadata=aud=insert " +
                         "-f h264 -";
 
-                    return (inPart + vfPart + " " + outPart)
+                    return (inPart + vfPart + outPart)
                         .Replace("{Width}", Width.ToString())
                         .Replace("{Height}", Height.ToString())
                         .Replace("{FPS}", FPS.ToString());
@@ -521,6 +556,75 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     var row = bgra.Slice(y * strideBytes, rowBytes);
                     _stdin.Write(row);
                 }
+            }
+            _lastDurationMs = durationMs;
+        }
+    }
+
+    /// <summary>
+    /// Push NV12 frame to encoder. NV12 format is Y plane followed by interleaved UV plane.
+    /// Total size: Width * Height * 1.5 bytes
+    /// Y plane: Width * Height bytes (full resolution)
+    /// UV plane: Width * Height / 2 bytes (half resolution, interleaved U and V)
+    /// </summary>
+    public void PushNV12Frame(ReadOnlySpan<byte> nv12, int yStride, int uvStride, uint durationMs)
+    {
+        lock (_sync)
+        {
+            if (_stdin == null) return;
+            
+            // Y plane: Height rows of Width bytes each
+            int yRowBytes = Width;
+            // UV plane: Height/2 rows of Width bytes each (interleaved UV)
+            int uvRowBytes = Width;
+            int uvHeight = Height / 2;
+            
+            // Write Y plane
+            if (yStride == yRowBytes)
+            {
+                _stdin.Write(nv12.Slice(0, yRowBytes * Height));
+            }
+            else
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    var row = nv12.Slice(y * yStride, yRowBytes);
+                    _stdin.Write(row);
+                }
+            }
+            
+            // Write UV plane (starts after Y plane in input buffer)
+            int uvOffset = yStride * Height;
+            if (uvStride == uvRowBytes)
+            {
+                _stdin.Write(nv12.Slice(uvOffset, uvRowBytes * uvHeight));
+            }
+            else
+            {
+                for (int y = 0; y < uvHeight; y++)
+                {
+                    var row = nv12.Slice(uvOffset + y * uvStride, uvRowBytes);
+                    _stdin.Write(row);
+                }
+            }
+            
+            _lastDurationMs = durationMs;
+        }
+    }
+
+    /// <summary>
+    /// Push NV12 frame from contiguous buffer (Y and UV planes stored sequentially)
+    /// </summary>
+    public void PushNV12FrameContiguous(ReadOnlySpan<byte> nv12, uint durationMs)
+    {
+        lock (_sync)
+        {
+            if (_stdin == null) return;
+            // NV12 contiguous: Width * Height * 1.5 bytes total
+            int expectedSize = Width * Height * 3 / 2;
+            if (nv12.Length >= expectedSize)
+            {
+                _stdin.Write(nv12.Slice(0, expectedSize));
             }
             _lastDurationMs = durationMs;
         }

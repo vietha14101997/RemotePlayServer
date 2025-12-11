@@ -161,8 +161,77 @@ partial class Program
         Console.ReadLine();
     }
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern IntPtr LoadLibrary(string lpFileName);
+    
+    [DllImport("kernel32.dll")]
+    static extern bool FreeLibrary(IntPtr hModule);
+
+    static void CheckAmfRuntime()
+    {
+        Console.WriteLine("[AMF] Checking AMD AMF Runtime availability...");
+        
+        // Check common paths for amfrt64.dll
+        var searchPaths = new[]
+        {
+            "amfrt64.dll",  // System PATH
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "amfrt64.dll"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "AMD", "AMF", "amfrt64.dll"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Common Files", "ATI Technologies", "Multimedia", "amfrt64.dll"),
+        };
+
+        bool found = false;
+        foreach (var path in searchPaths)
+        {
+            try
+            {
+                IntPtr handle = LoadLibrary(path);
+                if (handle != IntPtr.Zero)
+                {
+                    FreeLibrary(handle);
+                    Console.WriteLine($"[AMF] ✓ AMD AMF Runtime found: {path}");
+                    found = true;
+                    break;
+                }
+            }
+            catch { }
+        }
+
+        if (!found)
+        {
+            Console.WriteLine("[AMF] ⚠ AMD AMF Runtime (amfrt64.dll) NOT FOUND!");
+            Console.WriteLine("[AMF] Hardware H.264 encoding will fall back to CPU software encoder (slower).");
+            Console.WriteLine("[AMF] To enable AMD hardware encoding:");
+            Console.WriteLine("[AMF]   1. Install/Update AMD Adrenalin Software from https://www.amd.com/support");
+            Console.WriteLine("[AMF]   2. Ensure 'AMD Radeon RX 7600' drivers are up to date");
+            Console.WriteLine("[AMF]   3. The AMF runtime should be installed automatically with drivers");
+            Console.WriteLine();
+        }
+    }
+
     static async Task Main()
     {
+        // === GLOBAL EXCEPTION HANDLERS FOR CRASH LOGGING ===
+        var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
+        Directory.CreateDirectory(logDir);
+        var crashLogPath = Path.Combine(logDir, "crash.log");
+        
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            var ex = e.ExceptionObject as Exception;
+            var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNHANDLED EXCEPTION (IsTerminating={e.IsTerminating}):\n{ex}\n\n";
+            Console.WriteLine(msg);
+            try { File.AppendAllText(crashLogPath, msg); } catch { }
+        };
+        
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNOBSERVED TASK EXCEPTION:\n{e.Exception}\n\n";
+            Console.WriteLine(msg);
+            try { File.AppendAllText(crashLogPath, msg); } catch { }
+            e.SetObserved();
+        };
+
         // Khôi phục nếu phiên trước bị dừng đột ngột (marker còn tồn tại)
         if (Environment.GetCommandLineArgs().Any(a => a.Equals("--restore-if-needed", StringComparison.OrdinalIgnoreCase)))
         {
@@ -172,6 +241,9 @@ partial class Program
 
         WinRT.ComWrappersSupport.InitializeComWrappers();
         Console.OutputEncoding = Encoding.UTF8;
+        
+        // === CHECK AMD AMF RUNTIME AVAILABILITY ===
+        CheckAmfRuntime();
         
         // ═══════════════════════════════════════════════════════════════
         // STEP 0: Configuration Menu
@@ -1013,7 +1085,7 @@ public class SignalAndRestServer
         {
             string offer = await offerTcs.Task;
 
-            int fps = TryParseInt(qs.Get("fps"), 60, 5, 120);
+            int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);
             int kbps = TryParseInt(qs.Get("kbps"), 12000, 0, 100000);
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
@@ -1242,7 +1314,7 @@ public class SignalAndRestServer
         {
             string offer = await offerTcs.Task;
 
-            int fps = TryParseInt(qs.Get("fps"), 30, 5, 120);  // Default 30fps for combined stream
+            int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);  // Use configured FPS
             int kbps = TryParseInt(qs.Get("kbps"), 6000, 0, 100000);
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
@@ -1266,6 +1338,13 @@ public class SignalAndRestServer
             {
                 Console.WriteLine("[Cluster Signal] Using FFmpeg encoder (requested)");
                 streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
+            }
+            else if (encoderParam.Equals("ffmpegnv12", StringComparison.OrdinalIgnoreCase) ||
+                     encoderParam.Equals("nv12", StringComparison.OrdinalIgnoreCase) ||
+                     encoderParam.Equals("amf", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("[Cluster Signal] Using FFmpeg NV12 encoder (GPU Video Processor + h264_amf)");
+                streamer = new WebRTCStreamerFFmpegNV12Wrapper(fps, kbps);
             }
             else
             {
@@ -1301,7 +1380,7 @@ public class SignalAndRestServer
 
                     long frameCount = 0;
                     
-                    // Check if using zero-copy streamer
+                    // Check if using zero-copy streamer or FFmpeg NV12 streamer (both use texture)
                     if (streamer is WebRTCStreamerZeroCopyWrapper zcStreamer)
                     {
                         // Zero-copy path: use texture directly
@@ -1316,6 +1395,20 @@ public class SignalAndRestServer
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC-ZC] " + ex.Message); }
                         };
                         Console.WriteLine("[ClusterCapture] Using zero-copy GPU path");
+                    }
+                    else if (streamer is WebRTCStreamerFFmpegNV12Wrapper nv12Streamer)
+                    {
+                        // FFmpeg NV12 path: use GPU Video Processor for BGRA->NV12, then FFmpeg
+                        var captureDevice = clusterCap.Device;
+                        clusterCap.OnTextureFrame += (texture, w, h) =>
+                        {
+                            frameCount++;
+                            if (frameCount == 1 || frameCount % 60 == 0)
+                                Console.WriteLine($"[ClusterCapture->RTC-NV12] Frame #{frameCount}: {w}x{h} (GPU NV12)");
+                            try { if (nv12Streamer.IsRunning) nv12Streamer.PushTexture(texture, w, h, captureDevice); }
+                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC-NV12] " + ex.Message); }
+                        };
+                        Console.WriteLine("[ClusterCapture] Using FFmpeg NV12 GPU path (Video Processor + h264_amf)");
                     }
                     else
                     {

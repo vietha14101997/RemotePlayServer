@@ -140,10 +140,31 @@
   
   <label>Encoder:</label>
   <select id="encoder">
-    <option value="zerocopy" selected>Zero-Copy GPU (fastest)</option>
+    <option value="ffmpegnv12" selected>FFmpeg NV12 (AMD - Best)</option>
+    <option value="zerocopy">Zero-Copy GPU</option>
     <option value="mf">Media Foundation</option>
-    <option value="ffmpeg">FFmpeg</option>
+    <option value="ffmpeg">FFmpeg BGRA</option>
     <option value="auto">Auto</option>
+  </select>
+  
+  <label>Bitrate:</label>
+  <select id="bitrate">
+    <option value="2000">2 Mbps (Low)</option>
+    <option value="4000">4 Mbps</option>
+    <option value="6000" selected>6 Mbps (Default)</option>
+    <option value="8000">8 Mbps</option>
+    <option value="10000">10 Mbps</option>
+    <option value="12000">12 Mbps</option>
+    <option value="15000">15 Mbps</option>
+    <option value="20000">20 Mbps (High)</option>
+  </select>
+  
+  <label>FPS:</label>
+  <select id="fps">
+    <option value="20">20 fps</option>
+    <option value="24">24 fps</option>
+    <option value="30" selected>30 fps</option>
+    <option value="60">60 fps</option>
   </select>
   
   <button id="btn">Connect & Play</button>
@@ -158,7 +179,11 @@
   <button onclick="setPreset('single', 'zerocopy', 2)">Mon 2 ZeroCopy</button>
 </div>
 
-<div class="status">Status: <span id="st">idle</span></div>
+<div class="status">
+  Status: <span id="st">idle</span> | 
+  Video: <span id="videoStats">--</span> | 
+  Frames: <span id="frameStats">--</span>
+</div>
 
 <video id="v" autoplay playsinline muted></video>
 
@@ -190,6 +215,8 @@
     const port = $('port').value.trim() || '8288';
     const mode = $('mode').value;
     const encoder = $('encoder').value;
+    const bitrate = $('bitrate').value || '6000';
+    const fps = $('fps').value || '30';
     const mid = $('mid').value || '0';
     
     let url = `ws://${host}:${port}/signal?`;
@@ -198,7 +225,7 @@
     } else {
       url += `mid=${mid}`;
     }
-    url += `&encoder=${encoder}`;
+    url += `&encoder=${encoder}&kbps=${bitrate}&fps=${fps}`;
     return url;
   }
 
@@ -273,8 +300,40 @@
       }
     };
 
-    ws.onclose = () => setSt('ws: closed');
     ws.onerror = (e) => log('WS error:', e.message || e);
+
+    // Stats update loop
+    let lastBytes = 0, lastFrames = 0, lastTime = Date.now();
+    const statsInterval = setInterval(async () => {
+      if (pc.connectionState !== 'connected') return;
+      try {
+        const stats = await pc.getStats();
+        stats.forEach(r => {
+          if (r.type === 'inbound-rtp' && r.kind === 'video') {
+            const now = Date.now();
+            const elapsed = (now - lastTime) / 1000;
+            const bytes = r.bytesReceived || 0;
+            const frames = r.framesDecoded || 0;
+            
+            const bitrate = Math.round((bytes - lastBytes) * 8 / elapsed / 1000);
+            const fps = Math.round((frames - lastFrames) / elapsed);
+            
+            $('videoStats').textContent = `${bitrate} kbps`;
+            $('frameStats').textContent = `${fps} fps, ${frames} total`;
+            
+            lastBytes = bytes;
+            lastFrames = frames;
+            lastTime = now;
+          }
+        });
+      } catch (e) {}
+    }, 1000);
+
+    // Cleanup on close
+    ws.onclose = () => {
+      setSt('ws: closed');
+      clearInterval(statsInterval);
+    };
 
     // Debug helper
     window.getRTCStats = async () => {
