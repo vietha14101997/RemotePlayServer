@@ -24,8 +24,8 @@ Select number of monitors [1-6, default=3]: 2
 │  6. 960x540 (qHD)                                      │
 └───────────────────────────────────────────────────────────────┘
   💡 Recommended for 2 monitors: 1920x1080 (total width ≤ 4096)
-Select resolution [1-6, default=3]: 3
-  → Selected: 1366x768
+Select resolution [1-6, default=3]: 2
+  → Selected: 1600x900
 
 ┌─ Stream FPS ────────────────────────────────────────────────┐
 │  1. 60 fps - Smooth (requires low resolution)          │
@@ -38,50 +38,81 @@ Select FPS [1-4, default=2 (30fps)]: 1
 
 ┌─ Configuration Summary ─────────────────────────────────────┐
 │  Monitors:     2                                             │
-│  Resolution:   1366x768                                     │
+│  Resolution:   1600x900                                     │
 │  Stream FPS:   60                                            │
-│  Total Width:  2733 pixels ✓                          │
-│  Throughput:   ~125 Mpixels/sec                               │
+│  Total Width:  3201 pixels ✓                          │
+│  Throughput:   ~172 Mpixels/sec                               │
 └───────────────────────────────────────────────────────────────┘
 
 Press ENTER to continue with setup...
 
 === RemotePlayServer (with startup steps 1→6) ===
-[Config] 2 monitors @ 1366x768
-[TextScale] Actual DPI for \\.\DISPLAY6: 96
-[Guard] Saved original text scale for \\.\DISPLAY6: 100%
-[TextScale] Actual DPI for \\.\DISPLAY5: 96
-[Guard] Saved original text scale for \\.\DISPLAY5: 100%
-[Guard] Snapshot captured.
-[Setup] Step 1/4 completed - State captured.
-[Setup] Step 2/4: Configuring Virtual Display Driver...
-[VDD] Temporarily disabling VDD to count physical monitors...
+[Config] 2 monitors @ 1600x900
+[Guard] Detected stale session. Restoring previous snapshot before new capture...
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
+[Guard] Text size restored.
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
 
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
 
 
-[VDD] Physical monitor found: \\.\DISPLAY6 (1920x1080)
-[VDD] Physical monitor found: \\.\DISPLAY5 (1920x1080)
-[VDD] Physical monitors detected: 2
-[VDD] Virtual monitors needed: 0 (target total: 2)
-[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Guard] Virtual Display Driver disabled safely.
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+[Setup] Step 1/4 completed - State captured.
+[Setup] Step 2/4: Configuring Virtual Display Driver...
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
 [Setup] VDD configuration completed.
 === Monitors ===
-  0: \\.\DISPLAY6  1920x1080
-  1: \\.\DISPLAY5  1920x1080
+  0: \\.\DISPLAY1  1920x1080
+  1: \\.\DISPLAY29  1600x900
 [Setup] Step 3/4: Setting up monitors (resolution + primary)...
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY6 [PHYSICAL] -> 1366x768@60
-[Display] Setting \\.\DISPLAY5 [PHYSICAL] -> 1366x768@60
-[Display] Setting \\.\DISPLAY6 as PRIMARY display
-[Display] ✓ \\.\DISPLAY6 set as primary
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY29 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY6 1366x768 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY5 1366x768 [PHYSICAL]
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY29 1600x900 [PHYSICAL]
 [Setup] Monitor setup completed.
 [Setup] Step 4/4: Applying 125% text scale...
 [DPI/TEXT] Setting 125% text scale globally for all monitors...
@@ -89,7 +120,7 @@ The device is not connected.
 [DPI/TEXT] Writing text scale to primary registry key...
 [DPI/TEXT] Writing text scale to secondary registry key...
 [DPI/TEXT] Broadcasting text scale changes...
-[DPI/TEXT] Refresh triggered on \\.\DISPLAY6
+[DPI/TEXT] Refresh triggered on \\.\DISPLAY1
 [DPI/TEXT] ✓ 125% text scale applied globally.
 [DPI/TEXT] All monitors now use 125% text scale.
 [DPI/TEXT] 💡 For immediate effect, restart Explorer:
@@ -103,387 +134,100 @@ The device is not connected.
 3: x=0 y=766 w=1360 h=765
 4: x=1361 y=766 w=1360 h=765
 5: x=2722 y=766 w=1360 h=765
-  0: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-  1: net9.0-windows10.0.26100.0 - File Explorer
-  2: log.txt - VRWorkspaceProjects - Visual Studio Code
-  3: VRWorkSpace - File Explorer
-  4: RemotePlay WebRTC Test - Brave
-  5: VRWorkSpace - MainScene - Android - Unity 2022.3.62f3 <DX11>
-  6: Download - File Explorer
-  7: #trà-đá🍵 | Chillspace - Discord
+  0: F:\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+  1: net9.0-windows10.0.26100.0
+  2: RemotePlay WebRTC Test - Google Chrome
+  3: C:\Windows\System32\cmd.exe
+  4: log.txt - RemotePlayServer - Visual Studio Code
+  5: *new 2 - Notepad++
+  6: #trà-đá🍵 | Chillspace - Discord
+  7: Zalo
+  8: GitHub Desktop
+  9: mods
+ 10: Termius - server md2
+ 11: Steam
+ 12: UltraViewer
 [HTTP] http://+:8288/
    • http://localhost:8288/api/layout
-   • ws://192.168.1.6:8288/signal?mid=<id>   hoặc   ws://192.168.1.6:8288/signal?wid=<id>
+   • ws://10.199.24.2:8288/signal?mid=<id>   hoặc   ws://10.199.24.2:8288/signal?wid=<id>
+   • ws://192.168.1.20:8288/signal?mid=<id>   hoặc   ws://192.168.1.20:8288/signal?wid=<id>
    • http://localhost:8288/api/windows
    • http://localhost:8288/api/monitors
    • http://localhost:8288/api/cluster
 Server is running. Press ENTER to exit.
-[Signal] Cluster client connected 8d667efc-e156-483c-a997-5aa558cf5678
-[RTC] PeerConnection created with STUN servers
-[RTC] ice gathering = gathering
----- REMOTE OFFER SDP ----
-v=0
-o=- 6848743901507116468 2 IN IP4 127.0.0.1
-s=-
-t=0 0
-a=group:BUNDLE 0
-a=extmap-allow-mixed
-a=msid-semantic: WMS
-m=video 9 UDP/TLS/RTP/SAVPF 103 104 107 108 109 114 115 116 117 118 39 40 41 42 43 44 119 120 121 122 96 97 98 99 100 101 35 36 37 38 45 46 47 48 49 50 51 52 123 124 125 53
-c=IN IP4 0.0.0.0
-a=rtcp:9 IN IP4 0.0.0.0
-a=ice-ufrag:kl69
-a=ice-pwd:mlZMi/VDAP1O4SG4kKDziVg6
-a=ice-options:trickle
-a=fingerprint:sha-256 89:81:83:1C:E7:CE:A9:EE:91:27:1A:30:B5:7A:77:88:7A:3E:05:CB:8F:F6:E0:05:2B:C9:01:D6:D3:7D:EC:F6
-a=setup:actpass
-a=mid:0
-a=extmap:1 urn:ietf:params:rtp-hdrext:toffset
-a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
-a=extmap:3 urn:3gpp:video-orientation
-a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
-a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
-a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
-a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
-a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
-a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
-a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
-a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
-a=recvonly
-a=rtcp-mux
-a=rtcp-rsize
-a=rtpmap:103 H264/90000
-a=rtcp-fb:103 goog-remb
-a=rtcp-fb:103 transport-cc
-a=rtcp-fb:103 ccm fir
-a=rtcp-fb:103 nack
-a=rtcp-fb:103 nack pli
-a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
-a=rtpmap:104 rtx/90000
-a=fmtp:104 apt=103
-a=rtpmap:107 H264/90000
-a=rtcp-fb:107 goog-remb
-a=rtcp-fb:107 transport-cc
-a=rtcp-fb:107 ccm fir
-a=rtcp-fb:107 nack
-a=rtcp-fb:107 nack pli
-a=fmtp:107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
-a=rtpmap:108 rtx/90000
-a=fmtp:108 apt=107
-a=rtpmap:109 H264/90000
-a=rtcp-fb:109 goog-remb
-a=rtcp-fb:109 transport-cc
-a=rtcp-fb:109 ccm fir
-a=rtcp-fb:109 nack
-a=rtcp-fb:109 nack pli
-a=fmtp:109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-a=rtpmap:114 rtx/90000
-a=fmtp:114 apt=109
-a=rtpmap:115 H264/90000
-a=rtcp-fb:115 goog-remb
-a=rtcp-fb:115 transport-cc
-a=rtcp-fb:115 ccm fir
-a=rtcp-fb:115 nack
-a=rtcp-fb:115 nack pli
-a=fmtp:115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
-a=rtpmap:116 rtx/90000
-a=fmtp:116 apt=115
-a=rtpmap:117 H264/90000
-a=rtcp-fb:117 goog-remb
-a=rtcp-fb:117 transport-cc
-a=rtcp-fb:117 ccm fir
-a=rtcp-fb:117 nack
-a=rtcp-fb:117 nack pli
-a=fmtp:117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
-a=rtpmap:118 rtx/90000
-a=fmtp:118 apt=117
-a=rtpmap:39 H264/90000
-a=rtcp-fb:39 goog-remb
-a=rtcp-fb:39 transport-cc
-a=rtcp-fb:39 ccm fir
-a=rtcp-fb:39 nack
-a=rtcp-fb:39 nack pli
-a=fmtp:39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
-a=rtpmap:40 rtx/90000
-a=fmtp:40 apt=39
-a=rtpmap:41 H264/90000
-a=rtcp-fb:41 goog-remb
-a=rtcp-fb:41 transport-cc
-a=rtcp-fb:41 ccm fir
-a=rtcp-fb:41 nack
-a=rtcp-fb:41 nack pli
-a=fmtp:41 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=f4001f
-a=rtpmap:42 rtx/90000
-a=fmtp:42 apt=41
-a=rtpmap:43 H264/90000
-a=rtcp-fb:43 goog-remb
-a=rtcp-fb:43 transport-cc
-a=rtcp-fb:43 ccm fir
-a=rtcp-fb:43 nack
-a=rtcp-fb:43 nack pli
-a=fmtp:43 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=f4001f
-a=rtpmap:44 rtx/90000
-a=fmtp:44 apt=43
-a=rtpmap:119 H264/90000
-a=rtcp-fb:119 goog-remb
-a=rtcp-fb:119 transport-cc
-a=rtcp-fb:119 ccm fir
-a=rtcp-fb:119 nack
-a=rtcp-fb:119 nack pli
-a=fmtp:119 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f
-a=rtpmap:120 rtx/90000
-a=fmtp:120 apt=119
-a=rtpmap:121 H264/90000
-a=rtcp-fb:121 goog-remb
-a=rtcp-fb:121 transport-cc
-a=rtcp-fb:121 ccm fir
-a=rtcp-fb:121 nack
-a=rtcp-fb:121 nack pli
-a=fmtp:121 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=64001f
-a=rtpmap:122 rtx/90000
-a=fmtp:122 apt=121
-a=rtpmap:96 VP8/90000
-a=rtcp-fb:96 goog-remb
-a=rtcp-fb:96 transport-cc
-a=rtcp-fb:96 ccm fir
-a=rtcp-fb:96 nack
-a=rtcp-fb:96 nack pli
-a=rtpmap:97 rtx/90000
-a=fmtp:97 apt=96
-a=rtpmap:98 VP9/90000
-a=rtcp-fb:98 goog-remb
-a=rtcp-fb:98 transport-cc
-a=rtcp-fb:98 ccm fir
-a=rtcp-fb:98 nack
-a=rtcp-fb:98 nack pli
-a=fmtp:98 profile-id=0
-a=rtpmap:99 rtx/90000
-a=fmtp:99 apt=98
-a=rtpmap:100 VP9/90000
-a=rtcp-fb:100 goog-remb
-a=rtcp-fb:100 transport-cc
-a=rtcp-fb:100 ccm fir
-a=rtcp-fb:100 nack
-a=rtcp-fb:100 nack pli
-a=fmtp:100 profile-id=2
-a=rtpmap:101 rtx/90000
-a=fmtp:101 apt=100
-a=rtpmap:35 VP9/90000
-a=rtcp-fb:35 goog-remb
-a=rtcp-fb:35 transport-cc
-a=rtcp-fb:35 ccm fir
-a=rtcp-fb:35 nack
-a=rtcp-fb:35 nack pli
-a=fmtp:35 profile-id=1
-a=rtpmap:36 rtx/90000
-a=fmtp:36 apt=35
-a=rtpmap:37 VP9/90000
-a=rtcp-fb:37 goog-remb
-a=rtcp-fb:37 transport-cc
-a=rtcp-fb:37 ccm fir
-a=rtcp-fb:37 nack
-a=rtcp-fb:37 nack pli
-a=fmtp:37 profile-id=3
-a=rtpmap:38 rtx/90000
-a=fmtp:38 apt=37
-a=rtpmap:45 AV1/90000
-a=rtcp-fb:45 goog-remb
-a=rtcp-fb:45 transport-cc
-a=rtcp-fb:45 ccm fir
-a=rtcp-fb:45 nack
-a=rtcp-fb:45 nack pli
-a=fmtp:45 level-idx=5;profile=0;tier=0
-a=rtpmap:46 rtx/90000
-a=fmtp:46 apt=45
-a=rtpmap:47 AV1/90000
-a=rtcp-fb:47 goog-remb
-a=rtcp-fb:47 transport-cc
-a=rtcp-fb:47 ccm fir
-a=rtcp-fb:47 nack
-a=rtcp-fb:47 nack pli
-a=fmtp:47 level-idx=5;profile=1;tier=0
-a=rtpmap:48 rtx/90000
-a=fmtp:48 apt=47
-a=rtpmap:49 H265/90000
-a=rtcp-fb:49 goog-remb
-a=rtcp-fb:49 transport-cc
-a=rtcp-fb:49 ccm fir
-a=rtcp-fb:49 nack
-a=rtcp-fb:49 nack pli
-a=fmtp:49 level-id=180;profile-id=1;tier-flag=0;tx-mode=SRST
-a=rtpmap:50 rtx/90000
-a=fmtp:50 apt=49
-a=rtpmap:51 H265/90000
-a=rtcp-fb:51 goog-remb
-a=rtcp-fb:51 transport-cc
-a=rtcp-fb:51 ccm fir
-a=rtcp-fb:51 nack
-a=rtcp-fb:51 nack pli
-a=fmtp:51 level-id=180;profile-id=2;tier-flag=0;tx-mode=SRST
-a=rtpmap:52 rtx/90000
-a=fmtp:52 apt=51
-a=rtpmap:123 red/90000
-a=rtpmap:124 rtx/90000
-a=fmtp:124 apt=123
-a=rtpmap:125 ulpfec/90000
-a=rtpmap:53 flexfec-03/90000
-a=rtcp-fb:53 goog-remb
-a=rtcp-fb:53 transport-cc
-a=fmtp:53 repair-window=10000000
-
-NEGOTIATED VIDEO FORMATS:
+[Signal] Cluster client connected 839dcd3b-e262-4178-bdc4-3d1a11ebee9d
+[Cluster Signal] Using Zero-Copy GPU encoder (requested)
+[RTC-ZC] PeerConnection created
+NEGOTIATED VIDEO FORMATS (ZC):
   SIPSorceryMedia.Abstractions.VideoFormat
   SIPSorceryMedia.Abstractions.VideoFormat
   SIPSorceryMedia.Abstractions.VideoFormat
   SIPSorceryMedia.Abstractions.VideoFormat
   SIPSorceryMedia.Abstractions.VideoFormat
 canSend(H264) = True
-[RTC] ice connection = checking
-[RTC] ice candidate: host 2402:800:610d:265a:c29e:1bd7:cf8d:4ee1:63246
-[RTC] ice candidate: host 2402:800:610d:265a:ac57:5966:902d:ad14:63246
-[RTC] ice candidate: host 192.168.1.6:63246
+[RTC-ZC] ice connection = checking
+[RTC-ZC] ice candidate: host 2402:800:6d62:428c:916f:821c:56f7:eb83:58398
+[RTC-ZC] ice candidate: host 2402:800:6d62:428c:4c1:eb2c:d513:633f:58398
+[RTC-ZC] ice candidate: host 192.168.1.20:58398
 [ClusterCapture] Starting combined capture for 2 monitors
-[ClusterCapture] Combined frame: 2733x768, 2 monitors, gap=1
-[ClusterCapture] Using adapter: AMD Radeon RX 7600
-[RTC] ice connection = connected
-[RTC] ICE CONNECTED - enabling send
-[RTC] pc.state = connecting
-[ClusterCapture] Added monitor: \\.\DISPLAY6 at offset x=0
-[ClusterCapture] Added monitor: \\.\DISPLAY5 at offset x=1367
-[ClusterCapture] Initialized with 2 monitor duplications
+[ClusterCapture] Aligned FrameWidth to even: 3200
+[ClusterCapture] Combined frame: 3200x900, 2 monitors, gap=1
+[ClusterCapture] Using adapter: NVIDIA GeForce GTX 1660 Ti
+[RTC-ZC] ice connection = connected
+[RTC-ZC] ICE CONNECTED - enabling send
+[RTC-ZC] pc.state = connecting
+[RTC-ZC] ice candidate: srflx 27.72.102.134:58398
+[RTC-ZC] ice gathering = complete
+[RTC-ZC] pc.state = connected
+[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=0
+[ClusterCapture] Added monitor: \\.\DISPLAY29 at offset x=1601
+[ClusterCapture] Initialized with 2 monitor duplications (zero-copy enabled)
+[ClusterCapture] Using zero-copy GPU path
 [ClusterCapture] Capture started
 [ClusterCapture] Target 30fps, frame interval 33ms
-[ClusterCapture] Frame #1: 2733x768
-[ClusterCapture->RTC] Frame #1: 2733x768
-[RTC] ice candidate: srflx 171.241.38.173:63246
-[RTC] ice gathering = complete
-[FFMPEG] Detected GPU vendor: AMD (AMD Radeon RX 7600)
-[RTC] pc.state = connected
-[FFMPEG][probe h264_amf] exit=0
-[Parsed_color_0 @ 000001935a051dc0] size:640x360 rate:25/1 duration:-1.000000 sar:1/1
-Input #0, lavfi, from 'color=c=black:s=640x360':
-  Duration: N/A, start: 0.000000, bitrate: N/A
-  Stream #0:0: Video: wrapped_avframe, 1 reference frame, yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 25 tbn
-[out#0/null @ 000001935a054500] No explicit maps, mapping streams automatically...
-[vost#0:0/h264_amf @ 000001935a0add00] Created video stream from input stream 0:0
-Stream mapping:
-  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (h264_amf))
-[vost#0:0/h264_amf @ 000001935a0add00] Starting thread...
-[vf#0:0 @ 000001935a0ae780] Starting thread...
-[vist#0:0/wrapped_avframe @ 000001935a0ab4c0] [dec:wrapped_avframe @ 000001935a522980] Starting thread...
-[in#0/lavfi @ 000001935a0499c0] Starting thread...
-Press [q] to stop, [?] for help
-[graph -1 input from stream 0:0 @ 000001935a04c940] w:640 h:360 pixfmt:yuv420p tb:1/25 fr:25/1 sar:1/1 csp:unknown range:unknown
-[graph -1 input from stream 0:0 @ 000001935a04c940] video frame properties congruent with link at pts_time: 0
-[h264_amf @ 000001935a0adf80] AMF initialisation succeeded via D3D11.
-[h264_amf @ 000001935a0ae340] rate control mode is PEAK_CONSTRAINED_VBR but rc_max_rate is not set
-Output #0, null, to 'pipe:':
-  Metadata:
-    encoder         : Lavf61.7.100
-  Stream #0:0: Video: h264, 1 reference frame, yuv420p(tv, progressive), 640x360 [SAR 1:1 DAR 16:9], q=2-31, 25 fps, 25 tbn
-      Metadata:
-        encoder         : Lavc61.19.101 h264_amf
-[out#0/null @ 000001935a054500] Starting thread...
-[vf#0:0 @ 000001935a0ae780] All consumers returned EOF
-[vf#0:0 @ 000001935a0ae780] Terminating thread with return code 0 (success)
-[vist#0:0/wrapped_avframe @ 000001935a0ab4c0] [dec:wrapped_avframe @ 000001935a522980] Decoder returned EOF, finishing
-[vist#0:0/wrapped_avframe @ 000001935a0ab4c0] [dec:wrapped_avframe @ 000001935a522980] Terminating thread with return code 0 (success)
-[vist#0:0/wrapped_avframe @ 000001935a0ab4c0] All consumers of this stream are done
-[in#0/lavfi @ 000001935a0499c0] All consumers are done
-[in#0/lavfi @ 000001935a0499c0] Terminating thread with return code 0 (success)
-[vost#0:0/h264_amf @ 000001935a0add00] Encoder thread received EOF
-[vost#0:0/h264_amf @ 000001935a0add00] Terminating thread with return code 0 (success)
-[out#0/null @ 000001935a054500] All streams finished
-[out#0/null @ 000001935a054500] Terminating thread with return code 0 (success)
-[out#0/null @ 000001935a054500] Output file #0 (pipe:):
-[out#0/null @ 000001935a054500]   Output stream #0:0 (video): 1 frames encoded; 1 packets muxed (137 bytes);
-[out#0/null @ 000001935a054500]   Total: 1 packets (137 bytes) muxed
-[out#0/null @ 000001935a054500] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
-frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.00 bitrate=N/A speed=   0x
-[in#0/lavfi @ 000001935a0499c0] Input file #0 (color=c=black:s=640x360):
-[in#0/lavfi @ 000001935a0499c0]   Input stream #0:0 (video): 19 packets read (8360 bytes); 10 frames decoded; 0 decode errors;
-[in#0/lavfi @ 000001935a0499c0]   Total: 19 packets (8360 bytes) demuxed
-
-[FFMPEG] chosen encoder = AMF
-[FFMPEG] exe=C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin\ffmpeg.exe
-[RTC] ffmpeg started 2733x768 30fps 6000kbps CBR
-Input #0, rawvideo, from 'fd:':
-  Duration: N/A, start: 1765087728.466667, bitrate: 2014986 kb/s
-  Stream #0:0: Video: rawvideo (BGRA / 0x41524742), bgra, 2733x768, 2014986 kb/s, 30 tbr, 30 tbn
-Stream mapping:
-  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_amf))
-[h264_amf @ 0000021886c6f340] Maxium number of B frames needs to be specified.
-Output #0, h264, to 'pipe:':
-  Metadata:
-    encoder         : Lavf61.7.100
-  Stream #0:0: Video: h264, nv12(tv, progressive), 2734x768, q=2-31, 6000 kb/s, 30 fps, 30 tbn
-      Metadata:
-        encoder         : Lavc61.19.101 h264_amf
-[H264] AU has IDR (SPS=True, PPS=True)
-[RTC] q=enq:22 deq:22 sent:18ze=     537KiB time=00:00:00.53 bitrate=8250.1kbits/s speed=0.345x
-[SendAuLoop] AU received=22, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:00.73 bitrate=7575.8kbits/s speed=0.356x
-[RTC] q=enq:44 deq:44 sent:40ze=    1074KiB time=00:00:01.30 bitrate=6769.0kbits/s speed=0.36x
-[SendAuLoop] AU received=43, _canSend=True, _running=True, _pc=OK
-[ClusterCapture] Frame #60: 2733x7681109KiB time=00:00:01.46 bitrate=6196.5kbits/s speed=0.355x
-[ClusterCapture->RTC] Frame #60: 2733x768
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:01.83 bitrate=5904.2kbits/s speed=0.356x
-[RTC] q=enq:69 deq:69 sent:65ze=    1440KiB time=00:00:02.10 bitrate=5619.1kbits/s speed=0.37x
-[SendAuLoop] AU received=70, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:02.66 bitrate=5267.9kbits/s speed=0.398x
-[ClusterCapture] Frame #120: 2733x768813KiB time=00:00:02.96 bitrate=5007.5kbits/s speed=0.411x
-[ClusterCapture->RTC] Frame #120: 2733x768
-[RTC] q=enq:101 deq:101 sent:97=    1976KiB time=00:00:03.20 bitrate=5059.8kbits/s speed=0.414x
-[SendAuLoop] AU received=103, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:03.76 bitrate=4846.7kbits/s speed=0.429x
-[RTC] q=enq:138 deq:138 sent:134    2545KiB time=00:00:04.46 bitrate=4667.5kbits/s speed=0.456x
-[SendAuLoop] AU received=140, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:04.80 bitrate=4626.1kbits/s speed=0.465x
-[ClusterCapture] Frame #180: 2733x768
-[ClusterCapture->RTC] Frame #180: 2733x768
-[RTC] q=enq:176 deq:176 sent:172    3090KiB time=00:00:05.46 bitrate=4631.2kbits/s speed=0.482x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:05.73 bitrate=4764.5kbits/s speed=0.484x
-[SendAuLoop] AU received=177, _canSend=True, _running=True, _pc=OK
-[ClusterCapture] Frame #240: 2733x768477KiB time=00:00:06.23 bitrate=4569.6kbits/s speed=0.483x
-[ClusterCapture->RTC] Frame #240: 2733x768
-[RTC] q=enq:205 deq:205 sent:201    3522KiB time=00:00:06.50 bitrate=4439.2kbits/s speed=0.485x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:06.73 bitrate=4435.2kbits/s speed=0.484x
-[SendAuLoop] AU received=207, _canSend=True, _running=True, _pc=OK
-[RTC] q=enq:237 deq:237 sent:233    3799KiB time=00:00:07.56 bitrate=4113.5kbits/s speed=0.489x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:07.83 bitrate=4084.6kbits/s speed=0.49x
-[SendAuLoop] AU received=239, _canSend=True, _running=True, _pc=OK
-[ClusterCapture] Frame #300: 2733x768989KiB time=00:00:08.10 bitrate=4034.5kbits/s speed=0.491x
-[ClusterCapture->RTC] Frame #300: 2733x768
-[RTC] q=enq:268 deq:268 sent:264    4401KiB time=00:00:08.63 bitrate=4176.0kbits/s speed=0.492x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[SendAuLoop] AU received=270, _canSend=True, _running=True, _pc=OKte=4234.5kbits/s speed=0.493x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:09.70 bitrate=4423.4kbits/s speed=0.495x
-[RTC] q=enq:300 deq:300 sent:296
-[ClusterCapture] Frame #360: 2733x768477KiB time=00:00:10.03 bitrate=4472.3kbits/s speed=0.499x
-[ClusterCapture->RTC] Frame #360: 2733x768
-[SendAuLoop] AU received=304, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:10.76 bitrate=4608.4kbits/s speed=0.509x
-[RTC] q=enq:339 deq:339 sent:335    6287KiB time=00:00:11.10 bitrate=4640.1kbits/s speed=0.513x
-[SendAuLoop] AU received=343, _canSend=True, _running=True, _pc=OKte=4676.6kbits/s speed=0.512x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:11.73 bitrate=4753.3kbits/s speed=0.517x
-[ClusterCapture] Frame #420: 2733x768934KiB time=00:00:11.90 bitrate=4773.6kbits/s speed=0.513x
-[ClusterCapture->RTC] Frame #420: 2733x768
-[RTC] q=enq:371 deq:371 sent:367    7082KiB time=00:00:12.13 bitrate=4781.2kbits/s speed=0.511x
-[SendAuLoop] AU received=375, _canSend=True, _running=True, _pc=OKte=4793.1kbits/s speed=0.514x
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:12.73 bitrate=4855.8kbits/s speed=0.514x
-[RTC] q=enq:398 deq:398 sent:394    7787KiB time=00:00:13.10 bitrate=4869.8kbits/s speed=0.508x
-[SendAuLoop] AU received=399, _canSend=True, _running=True, _pc=OK
-[ClusterCapture] Frame #480: 2733x768093KiB time=00:00:13.53 bitrate=4898.8kbits/s speed=0.505x
-[ClusterCapture->RTC] Frame #480: 2733x768
-[RTC] enqueue tick (w=2733, h=768, stride=10932)
-[RTC] q=enq:430 deq:430 sent:426    9182KiB time=00:00:14.16 bitrate=5309.5kbits/s speed=0.509x
-[SendAuLoop] AU received=432, _canSend=True, _running=True, _pc=OK
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:14.63 bitrate=5343.5kbits/s speed=0.507x
-[RTC] q=enq:457 deq:457 sent:452    9771KiB time=00:00:14.90 bitrate=5371.9kbits/s speed=0.507x
-[SendAuLoop] AU received=459, _canSend=True, _running=True, _pc=OKte=5410.1kbits/s speed=0.505x
-[ClusterCapture] Frame #540: 2733x768127KiB time=00:00:15.30 bitrate=5422.4kbits/s speed=0.503x
-[ClusterCapture->RTC] Frame #540: 2733x768
-[RTC] enqueue tick (w=2733, h=768, stride=10932)=00:00:15.56 bitrate=5448.4kbits/s speed=0.503x
-[RTC] q=enq:488 deq:488 sent:483   10596KiB time=00:00:15.90 bitrate=5459.4kbits/s speed=0.506x
-[SendAuLoop] AU received=492, _canSend=True, _running=True, _pc=OKte=5562.4kbits/s speed=0.506x
-[vost#0:0/h264_amf @ 0000021886c6ee00][RTC] pc.state = closedbitrate=5565.8kbits/s speed=0.506x
+[ClusterCapture] Frame #1: 3200x900 (GPU composited)
+[ClusterCapture->RTC-ZC] Frame #1: 3200x900 (zero-copy)
+[RTC-ZC] Using source D3D11 device for zero-copy
+[MF-H264] Initializing encoder: 3200x900@30fps, 6000kbps
+[MF-H264] Multithread protection enabled
+[MF-H264] DXGI Device Manager created, token=117179640
+[MF-H264] Trying encoder: NVIDIA HEVC Encoder MFT (HW=True)
+[MF-H264] SetOutputType failed: 0xC00D36BD
+[MF-H264] Trying encoder: NVIDIA H.264 Encoder MFT (HW=True)
+[MF-H264] SetInputType failed for all formats
+[MF-H264] Trying encoder: VP9VideoExtensionEncoder (HW=False)
+[MF-H264] SetOutputType failed: 0xC00D36B4
+[MF-H264] Trying encoder: HEIFImageExtension (HW=False)
+[MF-H264] SetOutputType failed: 0x80004001
+[MF-H264] Trying encoder: H264 Encoder MFT (HW=False)
+[MF-H264] Input format set: NV12
+[MF-H264] Low latency mode enabled
+[MF-H264] GOP size set to 30
+[MF-H264] Rate control set to CBR
+[MF-H264] CABAC disabled
+[MF-H264] Encoder configured successfully: H264 Encoder MFT
+[MF-H264] Encoder initialized: 3200x900, HW=False, Name=H264 Encoder MFT
+[MF-H264] Encoder started
+[VP-GPU] Video processor created successfully
+[VP-GPU] Initialized: 3200x900 BGRA→NV12
+[RTC-ZC] Encoder: 3200x900@30fps 6000kbps HW=False ZeroCopy=True
+[MF-H264] GPU texture path not supported (0x80070057), falling back to CPU
+[MF-H264] Created NV12 staging texture for CPU fallback
+Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication that other memory is corrupt.
+   at System.SpanHelpers.Memmove(Byte ByRef, Byte ByRef, UIntPtr)
+   at System.Runtime.InteropServices.Marshal.CopyToManaged[[System.Byte, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]](IntPtr, Byte[], Int32, Int32)
+   at MediaFoundationH264Encoder.EncodeNv12TextureViaCpu(Vortice.Direct3D11.ID3D11Texture2D)
+   at MediaFoundationH264Encoder.EncodeNv12Texture(Vortice.Direct3D11.ID3D11Texture2D)
+   at WebRTCStreamer_ZeroCopy+<ProcessLoop>d__40.MoveNext()
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[WebRTCStreamer_ZeroCopy+<ProcessLoop>d__40, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].ExecutionContextCallback(System.Object)
+   at System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[WebRTCStreamer_ZeroCopy+<ProcessLoop>d__40, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].MoveNext(System.Threading.Thread)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[WebRTCStreamer_ZeroCopy+<ProcessLoop>d__40, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].MoveNext()
+   at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(System.Runtime.CompilerServices.IAsyncStateMachineBox, Boolean)
+   at System.Threading.Tasks.Task.RunContinuations(System.Object)
+   at System.Threading.Tasks.Task.TrySetResult()
+   at System.Threading.Tasks.Task+DelayPromise.CompleteTimedOut()
+   at System.Threading.TimerQueueTimer.Fire(Boolean)
+   at System.Threading.TimerQueue.FireNextTimers()
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()
+   at System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()

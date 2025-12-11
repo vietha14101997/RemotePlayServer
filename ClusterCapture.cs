@@ -6,11 +6,13 @@ using System.Threading;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using Vortice.Mathematics;
 
 /// <summary>
 /// Captures multiple monitors and combines them into a single side-by-side frame.
 /// Uses single NVENC encoder for optimal performance.
 /// Layout: [Monitor0 | Monitor1 | Monitor2] horizontally
+/// Supports zero-copy GPU path via OnTextureFrame event.
 /// </summary>
 public sealed class ClusterCapture : IDisposable
 {
@@ -31,6 +33,8 @@ public sealed class ClusterCapture : IDisposable
     private readonly List<ID3D11Texture2D> _stagings = new();
     private readonly List<(int x, int y, int w, int h)> _monitorLayouts = new();
     
+    // GPU combined texture for zero-copy path
+    private readonly ID3D11Texture2D _combinedTexture;
     private readonly ID3D11Texture2D _combinedStaging;
     private readonly byte[] _combinedBuffer;
     private readonly int _combinedStride;
@@ -38,7 +42,14 @@ public sealed class ClusterCapture : IDisposable
     private volatile bool _running;
     private Thread? _captureThread;
 
+    /// <summary>CPU frame callback (copies to system memory)</summary>
     public event Action<byte[], int, int, int>? OnFrame;
+    
+    /// <summary>GPU texture callback (zero-copy path, no CPU memory access)</summary>
+    public event Action<ID3D11Texture2D, int, int>? OnTextureFrame;
+    
+    /// <summary>Expose D3D11 device for encoder initialization</summary>
+    public ID3D11Device Device => _device;
 
     public ClusterCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int gap = 1, int targetFps = 30)
     {
@@ -87,6 +98,27 @@ public sealed class ClusterCapture : IDisposable
             FrameHeight = maxHeight;
             CellWidth = monitors[0].w;
             CellHeight = monitors[0].h;
+        }
+        
+        // H.264 and Video Processor require even dimensions (multiple of 2)
+        // Align down to even numbers
+        if (FrameWidth % 2 != 0)
+        {
+            FrameWidth = FrameWidth - 1;
+            Console.WriteLine($"[ClusterCapture] Aligned FrameWidth to even: {FrameWidth}");
+        }
+        if (FrameHeight % 2 != 0)
+        {
+            FrameHeight = FrameHeight - 1;
+            Console.WriteLine($"[ClusterCapture] Aligned FrameHeight to even: {FrameHeight}");
+        }
+        if (CellWidth % 2 != 0)
+        {
+            CellWidth = CellWidth - 1;
+        }
+        if (CellHeight % 2 != 0)
+        {
+            CellHeight = CellHeight - 1;
         }
         
         Gap = gap;
@@ -195,7 +227,22 @@ public sealed class ClusterCapture : IDisposable
             Console.WriteLine($"[ClusterCapture] Added monitor: {mon.name} at offset x={_monitorLayouts[^1].x}");
         }
 
-        // Create combined staging texture
+        // Create GPU combined texture for zero-copy compositing
+        // Video processor input view requires RenderTarget bind flag
+        _combinedTexture = _device.CreateTexture2D(new Texture2DDescription
+        {
+            Width = (uint)FrameWidth,
+            Height = (uint)FrameHeight,
+            MipLevels = 1,
+            ArraySize = 1,
+            Format = Format.B8G8R8A8_UNorm,
+            SampleDescription = new SampleDescription(1, 0),
+            Usage = ResourceUsage.Default,
+            BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
+            CPUAccessFlags = CpuAccessFlags.None
+        });
+
+        // Create combined staging texture for CPU readback (only used when OnFrame has listeners)
         _combinedStaging = _device.CreateTexture2D(new Texture2DDescription
         {
             Width = (uint)FrameWidth,
@@ -206,10 +253,10 @@ public sealed class ClusterCapture : IDisposable
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Staging,
             BindFlags = BindFlags.None,
-            CPUAccessFlags = CpuAccessFlags.Write
+            CPUAccessFlags = CpuAccessFlags.Read
         });
 
-        Console.WriteLine($"[ClusterCapture] Initialized with {_duplications.Count} monitor duplications");
+        Console.WriteLine($"[ClusterCapture] Initialized with {_duplications.Count} monitor duplications (zero-copy enabled)");
     }
 
     public void Start()
@@ -247,15 +294,13 @@ public sealed class ClusterCapture : IDisposable
         {
             try
             {
-                // DON'T clear buffer every frame - keep previous frame data to avoid flickering
                 bool anyFrameCaptured = false;
                 int dstXOffset = 0;
 
-                // Capture each monitor and copy directly to combined buffer (with crop if needed)
+                // Capture each monitor and composite directly on GPU
                 for (int i = 0; i < _duplications.Count; i++)
                 {
                     var dup = _duplications[i];
-                    var staging = _stagings[i];
                     var layout = _monitorLayouts[i];
 
                     var result = dup.AcquireNextFrame(50, out var frameInfo, out var desktopResource);
@@ -265,43 +310,21 @@ public sealed class ClusterCapture : IDisposable
                         try
                         {
                             using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
-                            _context.CopyResource(staging, texture);
+                            
+                            // GPU compositing: copy region from source texture to combined texture
+                            int copyWidth = Math.Min(CellWidth, layout.w);
+                            int copyHeight = Math.Min(FrameHeight, layout.h);
+                            
+                            // CopySubresourceRegion: copy from source texture to destination region
+                            var srcBox = new Box(0, 0, 0, copyWidth, copyHeight, 1);
+                            _context.CopySubresourceRegion(
+                                _combinedTexture, 0,      // dst texture, subresource
+                                (uint)dstXOffset, 0, 0,   // dst x, y, z
+                                texture, 0,               // src texture, subresource
+                                srcBox                    // src region
+                            );
 
-                            var mapped = _context.Map(staging, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                            try
-                            {
-                                int srcStride = (int)mapped.RowPitch;
-                                int copyWidth = Math.Min(CellWidth, layout.w);
-                                int copyHeight = Math.Min(FrameHeight, layout.h);
-                                int copyBytes = copyWidth * 4;
-
-                                unsafe
-                                {
-                                    byte* src = (byte*)mapped.DataPointer;
-                                    
-                                    fixed (byte* dstBase = _combinedBuffer)
-                                    {
-                                        byte* dst = dstBase + dstXOffset * 4;
-                                        
-                                        // Fast bulk copy using Buffer.MemoryCopy
-                                        for (int y = 0; y < copyHeight; y++)
-                                        {
-                                            Buffer.MemoryCopy(
-                                                src + y * srcStride,
-                                                dst + y * _combinedStride,
-                                                copyBytes,
-                                                copyBytes
-                                            );
-                                        }
-                                    }
-                                }
-
-                                anyFrameCaptured = true;
-                            }
-                            finally
-                            {
-                                _context.Unmap(staging, 0);
-                            }
+                            anyFrameCaptured = true;
                         }
                         finally
                         {
@@ -311,7 +334,7 @@ public sealed class ClusterCapture : IDisposable
                     }
                     else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                     {
-                        // No new frame, keep previous content
+                        // No new frame, keep previous content in combined texture
                         anyFrameCaptured = true;
                     }
 
@@ -324,10 +347,47 @@ public sealed class ClusterCapture : IDisposable
                     frameCount++;
                     if (frameCount == 1 || frameCount % 60 == 0)
                     {
-                        Console.WriteLine($"[ClusterCapture] Frame #{frameCount}: {FrameWidth}x{FrameHeight}");
+                        Console.WriteLine($"[ClusterCapture] Frame #{frameCount}: {FrameWidth}x{FrameHeight} (GPU composited)");
                     }
 
-                    OnFrame?.Invoke(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                    // Zero-copy path: invoke texture callback first
+                    OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight);
+
+                    // CPU path: only copy to staging if OnFrame has listeners
+                    if (OnFrame != null)
+                    {
+                        // Copy combined GPU texture to staging for CPU readback
+                        _context.CopyResource(_combinedStaging, _combinedTexture);
+                        
+                        var mapped = _context.Map(_combinedStaging, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                        try
+                        {
+                            unsafe
+                            {
+                                byte* src = (byte*)mapped.DataPointer;
+                                int srcStride = (int)mapped.RowPitch;
+                                
+                                fixed (byte* dstBase = _combinedBuffer)
+                                {
+                                    for (int y = 0; y < FrameHeight; y++)
+                                    {
+                                        Buffer.MemoryCopy(
+                                            src + y * srcStride,
+                                            dstBase + y * _combinedStride,
+                                            _combinedStride,
+                                            _combinedStride
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            _context.Unmap(_combinedStaging, 0);
+                        }
+
+                        OnFrame(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                    }
                 }
             }
             catch (Exception ex)
@@ -351,6 +411,7 @@ public sealed class ClusterCapture : IDisposable
         Stop();
         foreach (var dup in _duplications) try { dup?.Dispose(); } catch { }
         foreach (var stg in _stagings) try { stg?.Dispose(); } catch { }
+        try { _combinedTexture?.Dispose(); } catch { }
         try { _combinedStaging?.Dispose(); } catch { }
         try { _context?.Dispose(); } catch { }
         try { _device?.Dispose(); } catch { }
