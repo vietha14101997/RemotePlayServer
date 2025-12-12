@@ -1090,31 +1090,9 @@ public class SignalAndRestServer
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
             bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
-            string encoderParam = qs.Get("encoder") ?? "auto";
-
-            // Select encoder based on query param or auto-detect
-            IWebRTCStreamer streamer;
-            if (encoderParam.Equals("zerocopy", StringComparison.OrdinalIgnoreCase) ||
-                encoderParam.Equals("zc", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Signal] Using Zero-Copy GPU encoder (requested)");
-                streamer = new WebRTCStreamerZeroCopyWrapper(fps, kbps);
-            }
-            else if (encoderParam.Equals("mf", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Signal] Using Media Foundation encoder (requested)");
-                streamer = new WebRTCStreamerMFWrapper(fps, kbps);
-            }
-            else if (encoderParam.Equals("ffmpeg", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Signal] Using FFmpeg encoder (requested)");
-                streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
-            }
-            else
-            {
-                // Auto-detect best encoder
-                streamer = EncoderFactory.CreateStreamer(fps, kbps, crf, preset, zerolat);
-            }
+            // Always use FFmpeg encoder
+            Console.WriteLine("[Signal] Using FFmpeg encoder");
+            IWebRTCStreamer streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
 
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
@@ -1319,38 +1297,9 @@ public class SignalAndRestServer
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
             bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
-            string encoderParam = qs.Get("encoder") ?? "auto";
-
-            // Select encoder based on query param or auto-detect
-            IWebRTCStreamer streamer;
-            if (encoderParam.Equals("zerocopy", StringComparison.OrdinalIgnoreCase) ||
-                encoderParam.Equals("zc", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Cluster Signal] Using Zero-Copy GPU encoder (requested)");
-                streamer = new WebRTCStreamerZeroCopyWrapper(fps, kbps);
-            }
-            else if (encoderParam.Equals("mf", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Cluster Signal] Using Media Foundation encoder (requested)");
-                streamer = new WebRTCStreamerMFWrapper(fps, kbps);
-            }
-            else if (encoderParam.Equals("ffmpeg", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Cluster Signal] Using FFmpeg encoder (requested)");
-                streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
-            }
-            else if (encoderParam.Equals("ffmpegnv12", StringComparison.OrdinalIgnoreCase) ||
-                     encoderParam.Equals("nv12", StringComparison.OrdinalIgnoreCase) ||
-                     encoderParam.Equals("amf", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("[Cluster Signal] Using FFmpeg NV12 encoder (GPU Video Processor + h264_amf)");
-                streamer = new WebRTCStreamerFFmpegNV12Wrapper(fps, kbps);
-            }
-            else
-            {
-                // Auto-detect best encoder
-                streamer = EncoderFactory.CreateStreamer(fps, kbps, crf, preset, zerolat);
-            }
+            // Always use FFmpeg encoder
+            Console.WriteLine("[Cluster Signal] Using FFmpeg encoder");
+            IWebRTCStreamer streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
 
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
@@ -1380,48 +1329,15 @@ public class SignalAndRestServer
 
                     long frameCount = 0;
                     
-                    // Check if using zero-copy streamer or FFmpeg NV12 streamer (both use texture)
-                    if (streamer is WebRTCStreamerZeroCopyWrapper zcStreamer)
+                    // FFmpeg path: use BGRA byte buffer
+                    clusterCap.OnFrame += (buf, w, h, stride) =>
                     {
-                        // Zero-copy path: use texture directly
-                        // Pass source device so encoder uses same D3D11 device as capture
-                        var captureDevice = clusterCap.Device;
-                        clusterCap.OnTextureFrame += (texture, w, h) =>
-                        {
-                            frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[ClusterCapture->RTC-ZC] Frame #{frameCount}: {w}x{h} (zero-copy)");
-                            try { if (zcStreamer.IsRunning) zcStreamer.PushTexture(texture, w, h, captureDevice); }
-                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC-ZC] " + ex.Message); }
-                        };
-                        Console.WriteLine("[ClusterCapture] Using zero-copy GPU path");
-                    }
-                    else if (streamer is WebRTCStreamerFFmpegNV12Wrapper nv12Streamer)
-                    {
-                        // FFmpeg NV12 path: use GPU Video Processor for BGRA->NV12, then FFmpeg
-                        var captureDevice = clusterCap.Device;
-                        clusterCap.OnTextureFrame += (texture, w, h) =>
-                        {
-                            frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[ClusterCapture->RTC-NV12] Frame #{frameCount}: {w}x{h} (GPU NV12)");
-                            try { if (nv12Streamer.IsRunning) nv12Streamer.PushTexture(texture, w, h, captureDevice); }
-                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC-NV12] " + ex.Message); }
-                        };
-                        Console.WriteLine("[ClusterCapture] Using FFmpeg NV12 GPU path (Video Processor + h264_amf)");
-                    }
-                    else
-                    {
-                        // CPU path: use byte buffer
-                        clusterCap.OnFrame += (buf, w, h, stride) =>
-                        {
-                            frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h}");
-                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
-                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
-                        };
-                    }
+                        frameCount++;
+                        if (frameCount == 1 || frameCount % 60 == 0)
+                            Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h}");
+                        try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                        catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
+                    };
 
                     streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
 

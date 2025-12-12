@@ -1,0 +1,14 @@
+F:\RemotePlayServer>dotnet build -c release
+Restore complete (0.6s)
+  RemotePlayServer succeeded with 9 warning(s) (4.1s) → bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.dll
+    F:\RemotePlayServer\D3D11VideoProcessorGpu.cs(145,60): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+    F:\RemotePlayServer\D3D11VideoProcessorGpu.cs(154,61): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+    F:\RemotePlayServer\MediaFoundationH264Encoder.cs(94,78): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+    F:\RemotePlayServer\WebRTCStreamer_ZeroCopy.cs(347,43): warning CS8602: Dereference of a possibly null reference.
+    F:\RemotePlayServer\WebRTCStreamer_ZeroCopy.cs(351,38): warning CS8602: Dereference of a possibly null reference.
+    F:\RemotePlayServer\WebRTCStreamer_ZeroCopy.cs(68,19): warning CS0169: The field 'WebRTCStreamer_ZeroCopy._encodeTask' is never used
+    F:\RemotePlayServer\DxgiCaptureGpu.cs(24,30): warning CS0649: Field 'DxgiCaptureGpu._currentTexture' is never assigned to, and will always have its default value null
+    F:\RemotePlayServer\MediaFoundationH264Encoder.cs(25,20): warning CS0649: Field 'MediaFoundationH264Encoder._deviceHandle' is never assigned to, and will always have its default value
+    F:\RemotePlayServer\WebRTCStreamer_MF.cs(44,18): warning CS0414: The field 'WebRTCStreamer_MF._lastSendTsMs' is assigned but its value is never used
+
+Build succeeded with 9 warning(s) in 4.9s

@@ -138,15 +138,6 @@
     <input type="number" id="mid" value="0" min="0" max="10" style="width: 50px;" />
   </span>
   
-  <label>Encoder:</label>
-  <select id="encoder">
-    <option value="ffmpegnv12" selected>FFmpeg NV12 (AMD - Best)</option>
-    <option value="zerocopy">Zero-Copy GPU</option>
-    <option value="mf">Media Foundation</option>
-    <option value="ffmpeg">FFmpeg BGRA</option>
-    <option value="auto">Auto</option>
-  </select>
-  
   <label>Bitrate:</label>
   <select id="bitrate">
     <option value="2000">2 Mbps (Low)</option>
@@ -172,11 +163,10 @@
 
 <div class="presets">
   <span style="color:#888;margin-right:8px;">Quick:</span>
-  <button onclick="setPreset('cluster', 'zerocopy')">Cluster ZeroCopy</button>
-  <button onclick="setPreset('cluster', 'mf')">Cluster MF</button>
-  <button onclick="setPreset('single', 'zerocopy', 0)">Mon 0 ZeroCopy</button>
-  <button onclick="setPreset('single', 'zerocopy', 1)">Mon 1 ZeroCopy</button>
-  <button onclick="setPreset('single', 'zerocopy', 2)">Mon 2 ZeroCopy</button>
+  <button onclick="setPreset('cluster')">Cluster (All Monitors)</button>
+  <button onclick="setPreset('single', 0)">Monitor 0</button>
+  <button onclick="setPreset('single', 1)">Monitor 1</button>
+  <button onclick="setPreset('single', 2)">Monitor 2</button>
 </div>
 
 <div class="status">
@@ -198,9 +188,8 @@
   };
   const setSt = (s) => $('st').textContent = s;
 
-  function setPreset(mode, encoder, mid = 0) {
+  function setPreset(mode, mid = 0) {
     $('mode').value = mode;
-    $('encoder').value = encoder;
     $('mid').value = mid;
     onModeChange();
   }
@@ -214,7 +203,6 @@
     const host = $('host').value.trim() || 'localhost';
     const port = $('port').value.trim() || '8288';
     const mode = $('mode').value;
-    const encoder = $('encoder').value;
     const bitrate = $('bitrate').value || '6000';
     const fps = $('fps').value || '30';
     const mid = $('mid').value || '0';
@@ -225,7 +213,7 @@
     } else {
       url += `mid=${mid}`;
     }
-    url += `&encoder=${encoder}&kbps=${bitrate}&fps=${fps}`;
+    url += `&encoder=auto&kbps=${bitrate}&fps=${fps}`;
     return url;
   }
 
