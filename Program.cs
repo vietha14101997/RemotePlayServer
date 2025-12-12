@@ -245,58 +245,32 @@ partial class Program
         // === CHECK AMD AMF RUNTIME AVAILABILITY ===
         CheckAmfRuntime();
         
-        // ═══════════════════════════════════════════════════════════════
-        // STEP 0: Configuration Menu
-        // ═══════════════════════════════════════════════════════════════
-        ShowConfigMenu();
-        
-        Console.WriteLine("=== RemotePlayServer (with startup steps 1→6) ===");
-        Console.WriteLine($"[Config] {DisplayConfig.MonitorCount} monitors @ {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
+        Console.WriteLine("=== RemotePlayServer ===");
+        Console.WriteLine("[Info] Display configuration will be applied when client connects.");
+        Console.WriteLine($"[Info] Default config: {DisplayConfig.MonitorCount} monitors @ {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
 
         // Chụp trạng thái ban đầu và tạo marker phiên
         DisplayGuard.CaptureSnapshotAtStartup();
-        Console.WriteLine("[Setup] Step 1/4 completed - State captured.");
-        Thread.Sleep(1000); // Allow system to stabilize
+        Console.WriteLine("[Setup] Display state captured for restoration on exit.");
 
-        // ---------------- STEP 2 ----------------
-        Console.WriteLine("[Setup] Step 2/4: Configuring Virtual Display Driver...");
-        StartupSteps.EnsureVddResolutionThenToggleDriver();
-        Console.WriteLine("[Setup] VDD configuration completed.");
-        Thread.Sleep(2000); // Let display driver settle
-
-        // Liệt kê monitor sau khi toggle/taskbar
+        // Liệt kê monitor hiện tại
         var monitors = WgcInterop.ListMonitorsDXGI();
-        Console.WriteLine("=== Monitors ===");
+        Console.WriteLine("=== Current Monitors ===");
         for (int i = 0; i < monitors.Count; i++)
             Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
-
-        // ---------------- STEP 3 ----------------
-        Console.WriteLine("[Setup] Step 3/4: Setting up monitors (resolution + primary)...");
-        StartupSteps.EnsureExtendDesktopWithVirtual();
-        Console.WriteLine("[Setup] Monitor setup completed.");
-        Thread.Sleep(2000); // Allow display topology to settle
-
-        // ---------------- STEP 4 ----------------
-        Console.WriteLine("[Setup] Step 4/4: Applying 125% text scale...");
-        StartupSteps.SetTextScale125_Global();
-        Console.WriteLine("[Setup] Text scale configuration completed.");
-        Thread.Sleep(1000); // Allow text scale to settle
-
-        Console.WriteLine("[Setup] ✅ All configuration steps completed successfully!");
-
-        // ---------------- STEP 5 ----------------
-        var tiles = StartupSteps.GetSixTiles_1360x765_with_1px_gutter();
-        Console.WriteLine("=== Six tiles (ID 0..5, 1360x765, sep=1) ===");
-        for (int i = 0; i < tiles.Count; i++)
-            Console.WriteLine($"{i}: x={tiles[i].x} y={tiles[i].y} w={tiles[i].w} h={tiles[i].h}");
 
         // Chuẩn bị server
         var windows = Win32.ListTopLevelWindows()
             .Where(w => !string.IsNullOrWhiteSpace(w.title))
             .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
             .ToList();
-        for (int i = 0; i < windows.Count; i++) Console.WriteLine($"{i,3}: {windows[i].title}");
-        if (windows.Count == 0) Console.WriteLine("(!) Không tìm thấy cửa sổ.");
+        if (windows.Count > 0)
+        {
+            Console.WriteLine("=== Available Windows ===");
+            for (int i = 0; i < Math.Min(10, windows.Count); i++) 
+                Console.WriteLine($"{i,3}: {windows[i].title}");
+            if (windows.Count > 10) Console.WriteLine($"... and {windows.Count - 10} more");
+        }
 
         monitors = WgcInterop.ListMonitorsDXGI(); // refresh lần nữa
         int port = 8288;
@@ -971,49 +945,43 @@ public class SignalAndRestServer
                 ctx.Response.ContentType = "application/json"; ctx.Response.OutputStream.Write(b, 0, b.Length); ctx.Response.Close(); continue;
             }
 
-            if (ctx.Request.IsWebSocketRequest && path == "/signal")
+            // API: Toggle cursor visibility
+            if (path == "/api/cursor")
             {
                 var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
-                int wid = -1, mid = -1;
-                int.TryParse(qs.Get("wid"), out wid);
-                int.TryParse(qs.Get("mid"), out mid);
-                string mode = qs.Get("mode") ?? "";
-
-                // mode=cluster: combined stream của tất cả monitors
-                if (mode.Equals("cluster", StringComparison.OrdinalIgnoreCase))
+                string? showParam = qs.Get("show");
+                
+                if (showParam != null)
                 {
-                    var clusterWsCtx = await ctx.AcceptWebSocketAsync(null);
-                    var clusterId = Guid.NewGuid();
-                    Console.WriteLine($"[Signal] Cluster client connected {clusterId}");
-                    _ = Task.Run(() => HandleClusterClient(clusterId, clusterWsCtx.WebSocket, qs));
-                    continue;
-                }
-
-                if (wid < 0 && mid < 0) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
-                if (wid >= _windows.Count && mid >= _monitors.Count) { ctx.Response.StatusCode = 400; ctx.Response.Close(); continue; }
-
-                // ---------------- STEP 6: Enforce single-stream for the VIRTUAL monitor ----------------
-                if (mid >= 0 && mid < _monitors.Count)
-                {
-                    bool isVirtual = DisplayUtil.IsVirtualDisplay(_monitors[mid].name, _monitors[mid].hmon);
-                    if (isVirtual)
+                    bool show = showParam.Equals("true", StringComparison.OrdinalIgnoreCase) || showParam == "1";
+                    lock (_clusterLock)
                     {
-                        foreach (var kv in _captures.ToArray())
+                        if (_clusterCapture != null)
                         {
-                            if (kv.Value.isMonitor && kv.Value.mid == mid)
-                            {
-                                Console.WriteLine("[Remote] Closing previous virtual-monitor stream to enforce single-stream.");
-                                try { if (_streams.TryRemove(kv.Key, out var st)) { st.StopAsync().Wait(200); st.Dispose(); } } catch { }
-                                try { if (_captures.TryRemove(kv.Key, out var cap)) { cap.cap.Dispose(); } } catch { }
-                            }
+                            _clusterCapture.ShowCursor = show;
+                            Console.WriteLine($"[API] Cursor visibility set to: {show}");
                         }
                     }
                 }
+                
+                bool currentState = false;
+                lock (_clusterLock) { currentState = _clusterCapture?.ShowCursor ?? true; }
+                
+                string json = $"{{\"cursor\":{currentState.ToString().ToLower()}}}";
+                var b = Encoding.UTF8.GetBytes(json);
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.OutputStream.Write(b, 0, b.Length);
+                ctx.Response.Close();
+                continue;
+            }
 
+            if (ctx.Request.IsWebSocketRequest && path == "/signal")
+            {
+                var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
                 var wsCtx = await ctx.AcceptWebSocketAsync(null);
-                var id = Guid.NewGuid();
-                Console.WriteLine($"[Signal] Client connected {id}, wid={wid}, mid={mid}");
-                _ = Task.Run(() => HandleClient(id, wid, mid, wsCtx.WebSocket, qs));
+                var clientId = Guid.NewGuid();
+                Console.WriteLine($"[Signal] Client connected {clientId}");
+                _ = Task.Run(() => HandleClusterClient(clientId, wsCtx.WebSocket, qs));
                 continue;
             }
 
@@ -1022,168 +990,6 @@ public class SignalAndRestServer
     }
 
     [DllImport("combase.dll")] static extern int RoInitialize(uint initType); // 1 = RO_INIT_MULTITHREADED
-
-    private async Task HandleClient(Guid id, int wid, int mid,
-        System.Net.WebSockets.WebSocket ws,
-        System.Collections.Specialized.NameValueCollection qs)
-    {
-        CancellationTokenSource? stopCapture = null;
-        Thread? capThread = null;
-        var offerTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        // ---- RX loop (offer + input) ----
-        var rxLoop = Task.Run(async () =>
-        {
-            var buf = new byte[128 * 1024];
-            var ms = new System.IO.MemoryStream();
-            while (ws.State == System.Net.WebSockets.WebSocketState.Open)
-            {
-                var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
-                if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
-                ms.Write(buf, 0, res.Count);
-                if (!res.EndOfMessage) continue;
-                var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
-
-                if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase)) { offerTcs.TrySetResult(text.Substring(6)); continue; }
-                if (text.Equals("ping", StringComparison.OrdinalIgnoreCase))
-                {
-                    await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")),
-                        System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
-                    continue;
-                }
-
-                if (text.StartsWith("{\"input\":"))
-                {
-                    try
-                    {
-                        if (text.Contains("\"input\":\"move_uv\""))
-                            text = System.Text.RegularExpressions.Regex.Replace(text, "(?<=\\d),(?=\\d)", ".");
-                        var obj = System.Text.Json.JsonDocument.Parse(text).RootElement;
-                        string kind = obj.GetProperty("input").GetString() ?? "";
-                        if (kind == "move_uv")
-                        {
-                            float u = obj.GetProperty("u").GetSingle();
-                            float v = 1f - obj.GetProperty("v").GetSingle(); // đảo V
-                            string activeDisplay = (mid >= 0 && mid < _monitors.Count) ? _monitors[mid].name : "";
-                            var (px, py) = InputInjector.UvToDesktop(activeDisplay, u, v);
-                            InputInjector.MoveAbsolute(px, py);
-                        }
-                        else if (kind == "down") InputInjector.Click(true, (obj.TryGetProperty("btn", out var b) && b.GetString() == "right"));
-                        else if (kind == "up") InputInjector.Click(false, (obj.TryGetProperty("btn", out var b2) && b2.GetString() == "right"));
-                        else if (kind == "wheel") InputInjector.Wheel(obj.GetProperty("delta").GetInt32(),
-                                                                       obj.TryGetProperty("h", out var hv) && hv.GetBoolean());
-                        else if (kind == "key") InputInjector.Key((ushort)obj.GetProperty("vk").GetInt32(),
-                                                                     obj.GetProperty("down").GetBoolean());
-                        else if (kind == "text") InputInjector.Text(obj.GetProperty("text").GetString() ?? "");
-                    }
-                    catch (Exception ex) { Console.WriteLine("[INPUT] " + ex.Message); }
-                }
-            }
-        });
-
-        try
-        {
-            string offer = await offerTcs.Task;
-
-            int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);
-            int kbps = TryParseInt(qs.Get("kbps"), 12000, 0, 100000);
-            int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
-            string preset = qs.Get("preset") ?? "veryfast";
-            bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
-            // Always use FFmpeg encoder
-            Console.WriteLine("[Signal] Using FFmpeg encoder");
-            IWebRTCStreamer streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
-
-            await streamer.StartAsync();
-            var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
-            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("answer:" + answer)),
-                System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
-            _streams[id] = streamer;
-
-            stopCapture = new CancellationTokenSource();
-            capThread = new Thread(() =>
-            {
-                try { RoInitialize(1); } catch { }
-                try { WinRT.ComWrappersSupport.InitializeComWrappers(); } catch { }
-                try
-                {
-                    bool isMonitor = (mid >= 0 && mid < _monitors.Count);
-                    bool isWindow = (wid >= 0 && wid < _windows.Count);
-                    
-                    Console.WriteLine($"[Capture] mid={mid}, wid={wid}, isMonitor={isMonitor}, isWindow={isWindow}, monitors.Count={_monitors.Count}, windows.Count={_windows.Count}");
-                    
-                    if (!isMonitor && !isWindow)
-                    {
-                        Console.WriteLine($"[Capture] ERROR: Invalid mid={mid} or wid={wid}. No valid capture target!");
-                        return;
-                    }
-                    
-                    IDisposable capture;
-                    long frameCount = 0;
-                    
-                    if (isMonitor)
-                    {
-                        Console.WriteLine($"[Capture] Starting MONITOR capture (DXGI): {_monitors[mid].name} ({_monitors[mid].w}x{_monitors[mid].h})");
-                        var dxgiCap = new DxgiCapture(_monitors[mid].hmon);
-                        dxgiCap.OnFrame += (buf, w, h, stride) =>
-                        {
-                            frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[DXGI] Frame #{frameCount}: {w}x{h}, stride={stride}");
-                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
-                            catch (Exception ex) { Console.WriteLine("[DXGI->RTC] " + ex.Message); }
-                        };
-                        streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
-                        
-                        Console.WriteLine("[Capture] Calling dxgiCap.Start()...");
-                        dxgiCap.Start();
-                        Console.WriteLine("[Capture] dxgiCap.Start() completed, waiting for stop signal...");
-                        capture = dxgiCap;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[Capture] Starting WINDOW capture (WGC): {_windows[wid].title}");
-                        var wgcCap = new WgcCapture(_windows[wid].hwnd);
-                        wgcCap.OnFrame += (buf, w, h, stride) =>
-                        {
-                            frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[WGC] Frame #{frameCount}: {w}x{h}, stride={stride}");
-                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
-                            catch (Exception ex) { Console.WriteLine("[WGC->RTC] " + ex.Message); }
-                        };
-                        streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
-                        
-                        Console.WriteLine("[Capture] Calling wgcCap.Start()...");
-                        wgcCap.Start();
-                        Console.WriteLine("[Capture] wgcCap.Start() completed, waiting for stop signal...");
-                        capture = wgcCap;
-                    }
-
-                    _captures[id] = (wid, isMonitor, mid, capture);
-                    stopCapture.Token.WaitHandle.WaitOne();
-                }
-                catch (Exception ex) { Console.WriteLine("[Capture] ERROR: " + ex.Message + "\n" + ex.StackTrace); }
-            })
-            { IsBackground = true, Name = $"WGC-Capture-{(mid >= 0 ? $"mid{mid}" : $"wid{wid}")}" };
-            capThread.Start();
-
-            while (ws.State == System.Net.WebSockets.WebSocketState.Open) await Task.Delay(200);
-            await rxLoop;
-        }
-        catch (Exception ex) { Console.WriteLine($"[Signal] {ex.Message}"); }
-        finally
-        {
-            try { if (stopCapture != null) stopCapture.Cancel(); } catch { }
-            try { if (capThread != null && capThread.IsAlive) capThread.Join(500); } catch { }
-
-            if (_streams.TryRemove(id, out var st)) { try { st.StopAsync().Wait(500); } catch { } try { st.Dispose(); } catch { } }
-            if (_captures.TryRemove(id, out var cap)) { try { cap.cap.Dispose(); } catch { } }
-
-            try { await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None); } catch { }
-            Console.WriteLine($"[Signal] Client disconnected {id}");
-        }
-    }
 
     static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
 
@@ -1206,97 +1012,151 @@ public class SignalAndRestServer
         {
             var buf = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
-            while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+            try
             {
-                var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
-                if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
-                ms.Write(buf, 0, res.Count);
-                if (!res.EndOfMessage) continue;
-                var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
-
-                if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                while (ws.State == System.Net.WebSockets.WebSocketState.Open)
                 {
-                    offerTcs.TrySetResult(text.Substring(6));
-                    continue;
-                }
+                    var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
+                    if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
+                    ms.Write(buf, 0, res.Count);
+                    if (!res.EndOfMessage) continue;
+                    var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
 
-                // Handle input messages for cluster mode
-                if (text.StartsWith("{\"input\":"))
-                {
-                    try
+                    if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (text.Contains("\"input\":\"move_uv\""))
-                            text = System.Text.RegularExpressions.Regex.Replace(text, "(?<=\\d),(?=\\d)", ".");
-                        var obj = System.Text.Json.JsonDocument.Parse(text).RootElement;
-                        string kind = obj.GetProperty("input").GetString() ?? "";
+                        offerTcs.TrySetResult(text.Substring(6));
+                        continue;
+                    }
 
-                        if (kind == "move_uv")
+                    // Handle input messages for cluster mode
+                    if (text.StartsWith("{\"input\":"))
+                    {
+                        try
                         {
-                            float u = obj.GetProperty("u").GetSingle();
-                            float v = 1f - obj.GetProperty("v").GetSingle();
+                            if (text.Contains("\"input\":\"move_uv\""))
+                                text = System.Text.RegularExpressions.Regex.Replace(text, "(?<=\\d),(?=\\d)", ".");
+                            var obj = System.Text.Json.JsonDocument.Parse(text).RootElement;
+                            string kind = obj.GetProperty("input").GetString() ?? "";
 
-                            // Map UV from combined frame to desktop coordinates
-                            // u spans all monitors: 0..0.33 = mon0, 0.33..0.66 = mon1, 0.66..1 = mon2
-                            if (_monitors.Count > 0 && _clusterCapture != null)
+                            if (kind == "move_uv")
                             {
-                                int frameW = _clusterCapture.FrameWidth;
-                                int frameH = _clusterCapture.FrameHeight;
-                                int cellW = _clusterCapture.CellWidth;
-                                int gap = _clusterCapture.Gap;
+                                float u = obj.GetProperty("u").GetSingle();
+                                float v = 1f - obj.GetProperty("v").GetSingle();
 
-                                // Pixel position in combined frame
-                                int px = (int)(u * frameW);
-                                int py = (int)(v * frameH);
-
-                                // Determine which monitor
-                                int monIdx = 0;
-                                int xInMon = px;
-                                int accX = 0;
-                                for (int i = 0; i < _monitors.Count; i++)
+                                // Map UV from combined frame to desktop coordinates
+                                // u spans all monitors: 0..0.33 = mon0, 0.33..0.66 = mon1, 0.66..1 = mon2
+                                if (_monitors.Count > 0 && _clusterCapture != null)
                                 {
-                                    int monW = _monitors[i].w;
-                                    if (px < accX + monW)
+                                    int frameW = _clusterCapture.FrameWidth;
+                                    int frameH = _clusterCapture.FrameHeight;
+                                    int cellW = _clusterCapture.CellWidth;
+                                    int gap = _clusterCapture.Gap;
+
+                                    // Pixel position in combined frame
+                                    int px = (int)(u * frameW);
+                                    int py = (int)(v * frameH);
+
+                                    // Determine which monitor
+                                    int monIdx = 0;
+                                    int xInMon = px;
+                                    int accX = 0;
+                                    for (int i = 0; i < _monitors.Count; i++)
                                     {
-                                        monIdx = i;
-                                        xInMon = px - accX;
-                                        break;
+                                        int monW = _monitors[i].w;
+                                        if (px < accX + monW)
+                                        {
+                                            monIdx = i;
+                                            xInMon = px - accX;
+                                            break;
+                                        }
+                                        accX += monW + gap;
                                     }
-                                    accX += monW + gap;
-                                }
 
-                                // Get monitor desktop position and map
-                                string activeDisplay = _monitors[monIdx].name;
-                                var (mx, my, mw, mh, ok) = DisplayUtil.TryGetLayout(activeDisplay);
-                                if (ok)
-                                {
-                                    int deskX = mx + Math.Clamp(xInMon, 0, mw - 1);
-                                    int deskY = my + Math.Clamp(py, 0, mh - 1);
-                                    InputInjector.MoveAbsolute(deskX, deskY);
+                                    // Get monitor desktop position and map
+                                    string activeDisplay = _monitors[monIdx].name;
+                                    var (mx, my, mw, mh, ok) = DisplayUtil.TryGetLayout(activeDisplay);
+                                    if (ok)
+                                    {
+                                        int deskX = mx + Math.Clamp(xInMon, 0, mw - 1);
+                                        int deskY = my + Math.Clamp(py, 0, mh - 1);
+                                        InputInjector.MoveAbsolute(deskX, deskY);
+                                    }
                                 }
                             }
+                            else if (kind == "down") InputInjector.Click(true, obj.TryGetProperty("btn", out var b) && b.GetString() == "right");
+                            else if (kind == "up") InputInjector.Click(false, obj.TryGetProperty("btn", out var b2) && b2.GetString() == "right");
+                            else if (kind == "wheel") InputInjector.Wheel(obj.GetProperty("delta").GetInt32(),
+                                                                           obj.TryGetProperty("h", out var hv) && hv.GetBoolean());
+                            else if (kind == "key") InputInjector.Key((ushort)obj.GetProperty("vk").GetInt32(),
+                                                                         obj.GetProperty("down").GetBoolean());
+                            else if (kind == "text") InputInjector.Text(obj.GetProperty("text").GetString() ?? "");
                         }
-                        else if (kind == "down") InputInjector.Click(true, obj.TryGetProperty("btn", out var b) && b.GetString() == "right");
-                        else if (kind == "up") InputInjector.Click(false, obj.TryGetProperty("btn", out var b2) && b2.GetString() == "right");
-                        else if (kind == "wheel") InputInjector.Wheel(obj.GetProperty("delta").GetInt32(),
-                                                                       obj.TryGetProperty("h", out var hv) && hv.GetBoolean());
-                        else if (kind == "key") InputInjector.Key((ushort)obj.GetProperty("vk").GetInt32(),
-                                                                     obj.GetProperty("down").GetBoolean());
-                        else if (kind == "text") InputInjector.Text(obj.GetProperty("text").GetString() ?? "");
+                        catch (Exception ex) { Console.WriteLine("[CLUSTER INPUT] " + ex.Message); }
                     }
-                    catch (Exception ex) { Console.WriteLine("[CLUSTER INPUT] " + ex.Message); }
                 }
             }
+            catch (System.Net.Sockets.SocketException) { /* Normal disconnect */ }
+            catch (System.Net.WebSockets.WebSocketException) { /* Normal disconnect */ }
+            catch (OperationCanceledException) { /* Normal cancellation */ }
+            catch (Exception ex) { Console.WriteLine($"[Cluster RX Loop] Error: {ex.Message}"); }
         });
 
         try
         {
             string offer = await offerTcs.Task;
 
-            int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);  // Use configured FPS
+            int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);
             int kbps = TryParseInt(qs.Get("kbps"), 6000, 0, 100000);
             int crf = TryParseInt(qs.Get("crf"), 20, 0, 40);
             string preset = qs.Get("preset") ?? "veryfast";
             bool zerolat = TryParseInt(qs.Get("zerolat"), 1, 0, 1) == 1;
+            
+            // Read display config from client
+            int reqMonitors = TryParseInt(qs.Get("monitors"), 3, 1, 6);
+            int reqResW = TryParseInt(qs.Get("resW"), 1366, 640, 1920);
+            int reqResH = TryParseInt(qs.Get("resH"), 768, 480, 1080);
+            
+            // Apply display configuration if changed
+            bool configChanged = (reqMonitors != DisplayConfig.MonitorCount ||
+                                  reqResW != DisplayConfig.MonitorWidth ||
+                                  reqResH != DisplayConfig.MonitorHeight ||
+                                  fps != DisplayConfig.StreamFps);
+            
+            if (configChanged)
+            {
+                Console.WriteLine($"[Cluster Signal] Applying new display config: {reqMonitors} monitors @ {reqResW}x{reqResH}, {fps} fps");
+                
+                // Stop existing cluster capture if running
+                lock (_clusterLock)
+                {
+                    if (_clusterCapture != null)
+                    {
+                        _clusterCapture.Stop();
+                        _clusterCapture.Dispose();
+                        _clusterCapture = null;
+                    }
+                }
+                
+                // Update config
+                DisplayConfig.MonitorCount = reqMonitors;
+                DisplayConfig.MonitorWidth = reqResW;
+                DisplayConfig.MonitorHeight = reqResH;
+                DisplayConfig.StreamFps = fps;
+                
+                // Apply VDD and resolution changes
+                await Task.Run(() => {
+                    StartupSteps.EnsureVddResolutionThenToggleDriver();
+                    Thread.Sleep(2000);
+                    StartupSteps.EnsureExtendDesktopWithVirtual();
+                    Thread.Sleep(1000);
+                });
+                
+                // Refresh monitors list
+                var monsNow = WgcInterop.ListMonitorsDXGI();
+                _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+                Console.WriteLine($"[Cluster Signal] Monitors after config: {_monitors.Count}");
+            }
+            
             // Always use FFmpeg encoder
             Console.WriteLine("[Cluster Signal] Using FFmpeg encoder");
             IWebRTCStreamer streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
@@ -1322,6 +1182,9 @@ public class SignalAndRestServer
                     {
                         if (_clusterCapture == null)
                         {
+                            // Refresh monitors again in capture thread
+                            var mons = WgcInterop.ListMonitorsDXGI();
+                            _monitors = mons.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
                             _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps);
                         }
                         clusterCap = _clusterCapture;

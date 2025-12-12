@@ -127,46 +127,54 @@
   <label>Port:</label>
   <input type="text" id="port" value="8288" style="width: 60px;" />
   
-  <label>Mode:</label>
-  <select id="mode" onchange="onModeChange()">
-    <option value="cluster" selected>Cluster (Multi-Monitor)</option>
-    <option value="single">Single Monitor</option>
+  <label>Monitors:</label>
+  <select id="monitors">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3" selected>3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
   </select>
   
-  <span id="midGroup" style="display:none;">
-    <label>Monitor ID:</label>
-    <input type="number" id="mid" value="0" min="0" max="10" style="width: 50px;" />
-  </span>
+  <label>Resolution:</label>
+  <select id="resolution">
+    <option value="1920x1080">1920x1080</option>
+    <option value="1600x900">1600x900</option>
+    <option value="1366x768" selected>1366x768</option>
+    <option value="1280x720">1280x720</option>
+    <option value="1024x576">1024x576</option>
+    <option value="960x540">960x540</option>
+  </select>
   
   <label>Bitrate:</label>
   <select id="bitrate">
-    <option value="2000">2 Mbps (Low)</option>
+    <option value="2000">2 Mbps</option>
     <option value="4000">4 Mbps</option>
-    <option value="6000" selected>6 Mbps (Default)</option>
+    <option value="6000" selected>6 Mbps</option>
     <option value="8000">8 Mbps</option>
     <option value="10000">10 Mbps</option>
     <option value="12000">12 Mbps</option>
     <option value="15000">15 Mbps</option>
-    <option value="20000">20 Mbps (High)</option>
+    <option value="20000">20 Mbps</option>
   </select>
   
   <label>FPS:</label>
   <select id="fps">
-    <option value="20">20 fps</option>
-    <option value="24">24 fps</option>
-    <option value="30" selected>30 fps</option>
-    <option value="60">60 fps</option>
+    <option value="20">20</option>
+    <option value="24">24</option>
+    <option value="30" selected>30</option>
+    <option value="60">60</option>
   </select>
   
-  <button id="btn">Connect & Play</button>
-</div>
-
-<div class="presets">
-  <span style="color:#888;margin-right:8px;">Quick:</span>
-  <button onclick="setPreset('cluster')">Cluster (All Monitors)</button>
-  <button onclick="setPreset('single', 0)">Monitor 0</button>
-  <button onclick="setPreset('single', 1)">Monitor 1</button>
-  <button onclick="setPreset('single', 2)">Monitor 2</button>
+  <label style="display:flex;align-items:center;gap:4px;">
+    <input type="checkbox" id="cursor" checked style="width:16px;height:16px;" />
+    Cursor
+  </label>
+  
+  <button id="btn">Connect</button>
+  <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;" onclick="disconnect()">Disconnect</button>
+  <button id="cursorBtn" style="background:#2a4a3a;padding:8px 16px;" onclick="toggleCursor()">Cursor: ON</button>
 </div>
 
 <div class="status">
@@ -187,46 +195,85 @@
     logEl.scrollTop = logEl.scrollHeight;
   };
   const setSt = (s) => $('st').textContent = s;
-
-  function setPreset(mode, mid = 0) {
-    $('mode').value = mode;
-    $('mid').value = mid;
-    onModeChange();
+  
+  let cursorEnabled = true;
+  let currentWs = null;
+  let currentPc = null;
+  let statsInterval = null;
+  
+  function getApiBase() {
+    const host = $('host').value.trim() || 'localhost';
+    const port = $('port').value.trim() || '8288';
+    return `http://${host}:${port}`;
   }
-
-  function onModeChange() {
-    const mode = $('mode').value;
-    $('midGroup').style.display = mode === 'single' ? 'inline' : 'none';
+  
+  async function toggleCursor() {
+    cursorEnabled = !cursorEnabled;
+    const btn = $('cursorBtn');
+    btn.textContent = cursorEnabled ? 'Cursor: ON' : 'Cursor: OFF';
+    btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
+    
+    try {
+      const resp = await fetch(`${getApiBase()}/api/cursor?show=${cursorEnabled}`);
+      const data = await resp.json();
+      log('Cursor:', data.cursor ? 'ON' : 'OFF');
+    } catch (e) {
+      log('Cursor toggle error:', e.message);
+    }
+  }
+  
+  async function initCursor() {
+    const show = $('cursor').checked;
+    try {
+      await fetch(`${getApiBase()}/api/cursor?show=${show}`);
+      cursorEnabled = show;
+      $('cursorBtn').textContent = show ? 'Cursor: ON' : 'Cursor: OFF';
+      $('cursorBtn').style.background = show ? '#2a4a3a' : '#4a2a3a';
+    } catch (e) { /* ignore */ }
+  }
+  
+  function disconnect() {
+    log('Disconnecting...');
+    if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    if (currentWs) { try { currentWs.close(); } catch(e){} currentWs = null; }
+    if (currentPc) { try { currentPc.close(); } catch(e){} currentPc = null; }
+    $('v').srcObject = null;
+    setSt('disconnected');
+    $('btn').style.display = '';
+    $('disconnectBtn').style.display = 'none';
+    log('Disconnected');
   }
 
   function buildWsUrl() {
     const host = $('host').value.trim() || 'localhost';
     const port = $('port').value.trim() || '8288';
-    const mode = $('mode').value;
+    const monitors = $('monitors').value || '3';
+    const resolution = $('resolution').value || '1366x768';
     const bitrate = $('bitrate').value || '6000';
     const fps = $('fps').value || '30';
-    const mid = $('mid').value || '0';
+    const [resW, resH] = resolution.split('x');
     
-    let url = `ws://${host}:${port}/signal?`;
-    if (mode === 'cluster') {
-      url += 'mode=cluster';
-    } else {
-      url += `mid=${mid}`;
-    }
-    url += `&encoder=auto&kbps=${bitrate}&fps=${fps}`;
-    return url;
+    return `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
   }
 
   async function run() {
+    // Disconnect existing connection first
+    if (currentWs || currentPc) disconnect();
+    
     const WS_URL = buildWsUrl();
     $('log').textContent = ''; // Clear log
+    $('btn').style.display = 'none';
+    $('disconnectBtn').style.display = '';
+    
     const ws = new WebSocket(WS_URL);
+    currentWs = ws;
     setSt('ws: connecting'); log('WS →', WS_URL);
 
     // --- Create RTCPeerConnection (with STUN to be safe)
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
+    currentPc = pc;
 
     // Prefer H264 first if available
     try {
@@ -262,6 +309,8 @@
 
     ws.onopen = async () => {
       setSt('ws: open → creating offer');
+      // Apply initial cursor setting
+      await initCursor();
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       ws.send('offer:' + offer.sdp);
@@ -292,7 +341,7 @@
 
     // Stats update loop
     let lastBytes = 0, lastFrames = 0, lastTime = Date.now();
-    const statsInterval = setInterval(async () => {
+    statsInterval = setInterval(async () => {
       if (pc.connectionState !== 'connected') return;
       try {
         const stats = await pc.getStats();
@@ -320,7 +369,11 @@
     // Cleanup on close
     ws.onclose = () => {
       setSt('ws: closed');
-      clearInterval(statsInterval);
+      if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+      currentWs = null;
+      currentPc = null;
+      $('btn').style.display = '';
+      $('disconnectBtn').style.display = 'none';
     };
 
     // Debug helper

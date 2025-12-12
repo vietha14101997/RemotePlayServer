@@ -33,6 +33,67 @@ public sealed class ClusterCapture : IDisposable
     private readonly List<ID3D11Texture2D> _stagings = new();
     private readonly List<(int x, int y, int w, int h)> _monitorLayouts = new();
     
+    // Cursor capture
+    private volatile bool _showCursor = true;
+    public bool ShowCursor { get => _showCursor; set => _showCursor = value; }
+    
+    // Cursor P/Invoke
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT { public int X, Y; }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CURSORINFO
+    {
+        public int cbSize;
+        public int flags;
+        public IntPtr hCursor;
+        public POINT ptScreenPos;
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ICONINFO
+    {
+        public bool fIcon;
+        public int xHotspot;
+        public int yHotspot;
+        public IntPtr hbmMask;
+        public IntPtr hbmColor;
+    }
+    
+    [DllImport("user32.dll")] private static extern bool GetCursorInfo(ref CURSORINFO pci);
+    [DllImport("user32.dll")] private static extern bool GetIconInfo(IntPtr hIcon, out ICONINFO piconinfo);
+    [DllImport("user32.dll")] private static extern bool DrawIconEx(IntPtr hdc, int x, int y, IntPtr hIcon, int w, int h, uint frame, IntPtr brush, uint flags);
+    [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr hObject);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+    [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr hdc);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO pbmi, uint usage, out IntPtr ppvBits, IntPtr hSection, uint offset);
+    [DllImport("gdi32.dll")] private static extern IntPtr SelectObject(IntPtr hdc, IntPtr h);
+    
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BITMAPINFOHEADER
+    {
+        public uint biSize;
+        public int biWidth;
+        public int biHeight;
+        public ushort biPlanes;
+        public ushort biBitCount;
+        public uint biCompression;
+        public uint biSizeImage;
+        public int biXPelsPerMeter;
+        public int biYPelsPerMeter;
+        public uint biClrUsed;
+        public uint biClrImportant;
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BITMAPINFO
+    {
+        public BITMAPINFOHEADER bmiHeader;
+    }
+    
+    private const uint DI_NORMAL = 0x0003;
+    private const int CURSOR_SHOWING = 0x00000001;
+    
     // GPU combined texture for zero-copy path
     private readonly ID3D11Texture2D _combinedTexture;
     private readonly ID3D11Texture2D _combinedStaging;
@@ -386,6 +447,12 @@ public sealed class ClusterCapture : IDisposable
                             _context.Unmap(_combinedStaging, 0);
                         }
 
+                        // Draw cursor if enabled
+                        if (_showCursor)
+                        {
+                            DrawCursorOnBuffer(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                        }
+
                         OnFrame(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
                     }
                 }
@@ -404,6 +471,129 @@ public sealed class ClusterCapture : IDisposable
                 Thread.Sleep(sleepTime);
             }
         }
+    }
+
+    private void DrawCursorOnBuffer(byte[] buffer, int width, int height, int stride)
+    {
+        try
+        {
+            var ci = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
+            if (!GetCursorInfo(ref ci) || (ci.flags & CURSOR_SHOWING) == 0 || ci.hCursor == IntPtr.Zero)
+                return;
+
+            // Get cursor hotspot
+            if (!GetIconInfo(ci.hCursor, out var iconInfo))
+                return;
+            
+            try
+            {
+                // Calculate cursor position in combined frame coordinates
+                // Screen position -> combined frame position
+                int cursorX = ci.ptScreenPos.X - iconInfo.xHotspot;
+                int cursorY = ci.ptScreenPos.Y - iconInfo.yHotspot;
+                
+                // Map screen coordinates to our combined frame
+                // Find which monitor the cursor is on
+                int frameX = -1, frameY = -1;
+                int accX = 0;
+                for (int i = 0; i < _monitorLayouts.Count; i++)
+                {
+                    var layout = _monitorLayouts[i];
+                    if (cursorX >= layout.x && cursorX < layout.x + layout.w &&
+                        cursorY >= layout.y && cursorY < layout.y + layout.h)
+                    {
+                        // Cursor is on this monitor
+                        frameX = accX + (cursorX - layout.x);
+                        frameY = cursorY - layout.y;
+                        
+                        // Clamp to cell bounds
+                        if (frameX >= accX + CellWidth) frameX = accX + CellWidth - 1;
+                        break;
+                    }
+                    accX += CellWidth + Gap;
+                }
+                
+                if (frameX < 0 || frameY < 0) return;
+                if (frameX >= width || frameY >= height) return;
+
+                // Draw cursor using GDI
+                const int cursorSize = 32;
+                var bmi = new BITMAPINFO
+                {
+                    bmiHeader = new BITMAPINFOHEADER
+                    {
+                        biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
+                        biWidth = cursorSize,
+                        biHeight = -cursorSize, // top-down
+                        biPlanes = 1,
+                        biBitCount = 32,
+                        biCompression = 0
+                    }
+                };
+
+                IntPtr hdc = CreateCompatibleDC(IntPtr.Zero);
+                IntPtr dib = CreateDIBSection(hdc, ref bmi, 0, out IntPtr bits, IntPtr.Zero, 0);
+                IntPtr oldBmp = SelectObject(hdc, dib);
+
+                // Draw cursor to DIB
+                DrawIconEx(hdc, 0, 0, ci.hCursor, cursorSize, cursorSize, 0, IntPtr.Zero, DI_NORMAL);
+
+                // Copy cursor pixels to buffer with alpha blending
+                if (bits != IntPtr.Zero)
+                {
+                    unsafe
+                    {
+                        byte* cursorData = (byte*)bits;
+                        fixed (byte* bufPtr = buffer)
+                        {
+                            for (int cy = 0; cy < cursorSize; cy++)
+                            {
+                                int destY = frameY + cy;
+                                if (destY < 0 || destY >= height) continue;
+                                
+                                for (int cx = 0; cx < cursorSize; cx++)
+                                {
+                                    int destX = frameX + cx;
+                                    if (destX < 0 || destX >= width) continue;
+                                    
+                                    int srcIdx = (cy * cursorSize + cx) * 4;
+                                    int dstIdx = destY * stride + destX * 4;
+                                    
+                                    byte a = cursorData[srcIdx + 3];
+                                    if (a == 0) continue;
+                                    
+                                    if (a == 255)
+                                    {
+                                        bufPtr[dstIdx + 0] = cursorData[srcIdx + 0]; // B
+                                        bufPtr[dstIdx + 1] = cursorData[srcIdx + 1]; // G
+                                        bufPtr[dstIdx + 2] = cursorData[srcIdx + 2]; // R
+                                        bufPtr[dstIdx + 3] = 255;
+                                    }
+                                    else
+                                    {
+                                        // Alpha blend
+                                        int invA = 255 - a;
+                                        bufPtr[dstIdx + 0] = (byte)((cursorData[srcIdx + 0] * a + bufPtr[dstIdx + 0] * invA) / 255);
+                                        bufPtr[dstIdx + 1] = (byte)((cursorData[srcIdx + 1] * a + bufPtr[dstIdx + 1] * invA) / 255);
+                                        bufPtr[dstIdx + 2] = (byte)((cursorData[srcIdx + 2] * a + bufPtr[dstIdx + 2] * invA) / 255);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                SelectObject(hdc, oldBmp);
+                DeleteObject(dib);
+                DeleteDC(hdc);
+            }
+            finally
+            {
+                if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
+                if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
+            }
+        }
+        catch { /* Ignore cursor drawing errors */ }
     }
 
     public void Dispose()

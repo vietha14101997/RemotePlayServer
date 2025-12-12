@@ -166,15 +166,16 @@ public class WebRTCStreamer_H264 : IDisposable
         // stats log
         _statsTask = Task.Run(async () =>
         {
-            while (_cts != null && !_cts.IsCancellationRequested)
+            try
             {
-                try
+                while (_cts != null && !_cts.IsCancellationRequested)
                 {
                     await Task.Delay(2000, _cts!.Token);
                     Console.WriteLine($"[RTC] q=enq:{Interlocked.Read(ref _enq)} deq:{Interlocked.Read(ref _deq)} sent:{Interlocked.Read(ref _sent)}");
                 }
-                catch (OperationCanceledException) { break; }
             }
+            catch (OperationCanceledException) { /* Normal cancellation */ }
+            catch (Exception ex) { Console.WriteLine($"[RTC Stats] Error: {ex.Message}"); }
         });
 
         // SDP
