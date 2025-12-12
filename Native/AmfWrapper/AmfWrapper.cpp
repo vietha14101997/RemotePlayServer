@@ -160,83 +160,7 @@ AMFWRAPPER_API int AmfSetEncodedDataCallback(
     return AMF_WRAPPER_OK;
 }
 
-// Encode texture
-AMFWRAPPER_API int AmfEncodeTexture(
-    AmfEncoderHandle handle,
-    ID3D11Texture2D* texture,
-    int forceKeyframe)
-{
-    if (!handle || !texture) {
-        g_lastError = "Invalid handle or texture";
-        return AMF_WRAPPER_INVALID_PARAM;
-    }
-    
-    auto ctx = static_cast<AmfEncoderContext*>(handle);
-    if (!ctx->initialized) {
-        g_lastError = "Encoder not initialized";
-        return AMF_WRAPPER_NOT_INITIALIZED;
-    }
-    
-    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
-    
-    AMF_RESULT res;
-    
-    // Create AMF surface from D3D11 texture (ZERO-COPY!)
-    amf::AMFSurfacePtr surface;
-    res = ctx->context->CreateSurfaceFromDX11Native(texture, &surface, nullptr);
-    if (res != AMF_OK || !surface) {
-        g_lastError = "CreateSurfaceFromDX11Native failed: " + std::to_string(res);
-        return AMF_WRAPPER_FAIL;
-    }
-    
-    // Set PTS
-    surface->SetPts(ctx->pts);
-    ctx->pts += 10000000 / ctx->fps;  // 100ns units
-    
-    // Force keyframe if requested
-    if (forceKeyframe) {
-        surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
-    }
-    
-    // Submit to encoder
-    res = ctx->encoder->SubmitInput(surface);
-    if (res != AMF_OK && res != AMF_INPUT_FULL) {
-        g_lastError = "SubmitInput failed: " + std::to_string(res);
-        return AMF_WRAPPER_FAIL;
-    }
-    
-    // Query output
-    amf::AMFDataPtr outputData;
-    res = ctx->encoder->QueryOutput(&outputData);
-    
-    if (res == AMF_OK && outputData) {
-        amf::AMFBufferPtr buffer(outputData);
-        if (buffer) {
-            uint8_t* data = static_cast<uint8_t*>(buffer->GetNative());
-            size_t size = buffer->GetSize();
-            int64_t pts = buffer->GetPts();
-            
-            // Check for keyframe (SPS NAL type 7)
-            int isKeyFrame = 0;
-            for (size_t i = 0; i + 4 < size; i++) {
-                if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-                    int nalType = data[i+4] & 0x1F;
-                    if (nalType == 7) {
-                        isKeyFrame = 1;
-                        break;
-                    }
-                }
-            }
-            
-            // Fire callback
-            if (ctx->callback) {
-                ctx->callback(data, static_cast<uint32_t>(size), pts, isKeyFrame, ctx->userData);
-            }
-        }
-    }
-    
-    return AMF_WRAPPER_OK;
-}
+// NOTE: AmfEncodeTexture is defined at the end of the file
 
 // Flush
 AMFWRAPPER_API int AmfFlush(AmfEncoderHandle handle) {
@@ -409,6 +333,83 @@ AMFWRAPPER_API int AmfDestroyEncoder(AmfEncoderHandle handle) {
     }
     
     delete ctx;
+    return AMF_WRAPPER_OK;
+}
+
+// TRUE ZERO-COPY: Encode directly from NV12 D3D11 texture
+AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv12Texture, int forceKeyframe)
+{
+    if (!handle || !nv12Texture) {
+        g_lastError = "Invalid parameters";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<AmfEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return AMF_WRAPPER_NOT_INITIALIZED;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    AMF_RESULT res;
+    
+    // Create AMF surface from D3D11 texture directly (TRUE ZERO-COPY!)
+    amf::AMFSurfacePtr surface;
+    res = ctx->context->CreateSurfaceFromDX11Native(nv12Texture, &surface, nullptr);
+    if (res != AMF_OK || !surface) {
+        g_lastError = "CreateSurfaceFromDX11Native failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Set PTS
+    surface->SetPts(ctx->pts);
+    ctx->pts += 10000000 / ctx->fps;  // 100ns units
+    
+    // Force keyframe if requested
+    if (forceKeyframe) {
+        surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+    }
+
+    // Submit to encoder
+    res = ctx->encoder->SubmitInput(surface);
+    if (res != AMF_OK && res != AMF_INPUT_FULL) {
+        g_lastError = "SubmitInput failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+    
+    // Release surface reference early
+    surface = nullptr;
+
+    // Query ALL pending outputs (drain buffer)
+    amf::AMFDataPtr outputData;
+    while (ctx->encoder->QueryOutput(&outputData) == AMF_OK && outputData) {
+        amf::AMFBufferPtr buffer(outputData);
+        if (buffer) {
+            uint8_t* data = static_cast<uint8_t*>(buffer->GetNative());
+            size_t size = buffer->GetSize();
+            int64_t pts = buffer->GetPts();
+            
+            // Check for keyframe (SPS NAL type 7 or IDR NAL type 5)
+            int isKeyFrame = 0;
+            for (size_t i = 0; i + 4 < size; i++) {
+                if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+                    int nalType = data[i+4] & 0x1F;
+                    if (nalType == 7 || nalType == 5) {
+                        isKeyFrame = 1;
+                        break;
+                    }
+                }
+            }
+            
+            // Fire callback
+            if (ctx->callback) {
+                ctx->callback(data, static_cast<uint32_t>(size), pts, isKeyFrame, ctx->userData);
+            }
+        }
+        outputData = nullptr;
+    }
+
     return AMF_WRAPPER_OK;
 }
 

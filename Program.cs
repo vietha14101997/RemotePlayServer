@@ -796,8 +796,9 @@ public class SignalAndRestServer
         CancellationTokenSource? stopCapture = null;
         Thread? capThread = null;
         var offerTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        IWebRTCStreamer? streamer = null;
 
-        // RX loop (offer + input)
+        // RX loop (offer + ICE candidates + input)
         var rxLoop = Task.Run(async () =>
         {
             var buf = new byte[128 * 1024];
@@ -815,6 +816,37 @@ public class SignalAndRestServer
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
                         offerTcs.TrySetResult(text.Substring(6));
+                        continue;
+                    }
+
+                    // Handle ICE candidates from client
+                    if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) || 
+                        text.StartsWith("a=candidate:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Extract candidate string
+                        string candStr = text;
+                        if (text.StartsWith("a=")) candStr = text.Substring(2);
+                        
+                        // Add to peer connection if streamer is ready
+                        if (streamer != null)
+                        {
+                            try
+                            {
+                                streamer.AddIceCandidate(candStr);
+                                Console.WriteLine($"[Cluster Signal] Added client ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[Cluster Signal] Add ICE error: {ex.Message}");
+                            }
+                        }
+                        continue;
+                    }
+
+                    // Handle end-of-candidates from client
+                    if (text.StartsWith("end-of-candidates", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("[Cluster Signal] Client sent end-of-candidates");
                         continue;
                     }
 
@@ -971,9 +1003,28 @@ public class SignalAndRestServer
             }
             
             // Create streamer with D3D11 device (enables AMF zero-copy on AMD)
-            IWebRTCStreamer streamer = useLibAv 
+            streamer = useLibAv 
                 ? EncoderFactory.CreateStreamer(fps, kbps, EncoderMode.LibAv, device: clusterCap.Device)
                 : new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat, useNV12: true);
+
+            // Hook ICE candidate forwarding to client via WebSocket
+            streamer.OnIceCandidate += async (candidate) =>
+            {
+                try
+                {
+                    if (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        string msg = candidate == "end-of-candidates" ? "end-of-candidates" : "candidate:" + candidate;
+                        await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
+                            System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        Console.WriteLine($"[Cluster Signal] Sent server ICE: {msg.Substring(0, Math.Min(50, msg.Length))}...");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Cluster Signal] Send ICE error: {ex.Message}");
+                }
+            };
 
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
@@ -997,10 +1048,27 @@ public class SignalAndRestServer
 
                     long frameCount = 0;
                     
-                    // Use NV12 GPU conversion if supported, otherwise BGRA
-                    if (streamer.UseNV12Input)
+                    // DISABLED: Texture zero-copy path has issues with AMF CreateSurfaceFromDX11Native
+                    // AMF doesn't correctly read P-frames from NV12 texture created by Video Processor
+                    // Result: video freezes after first keyframe
+                    // TODO: Investigate AMF texture requirements or use different approach
+                    const bool enableZeroCopyTexture = false;
+                    
+                    // Priority 1: TRUE ZERO-COPY - NV12 texture directly to encoder (DISABLED)
+                    if (enableZeroCopyTexture && streamer.UseTextureInput && streamer.UseNV12Input)
                     {
-                        // Enable NV12 output mode (GPU color conversion)
+                        Console.WriteLine("[ClusterCapture] Using TRUE ZERO-COPY texture path!");
+                        clusterCap.UseNV12Output = true;
+                        clusterCap.OnNV12TextureFrame += (texture, w, h) =>
+                        {
+                            frameCount++;
+                            try { if (streamer.IsRunning) streamer.PushTexture(texture, w, h); }
+                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
+                        };
+                    }
+                    // Priority 2: NV12 bytes path (GPU convert, CPU copy)
+                    else if (streamer.UseNV12Input)
+                    {
                         clusterCap.UseNV12Output = true;
                         clusterCap.OnNV12Frame += (buf, w, h) =>
                         {
@@ -1009,9 +1077,9 @@ public class SignalAndRestServer
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };
                     }
+                    // Priority 3: BGRA path (CPU color conversion in FFmpeg)
                     else
                     {
-                        // BGRA path (CPU color conversion in FFmpeg)
                         clusterCap.OnFrame += (buf, w, h, stride) =>
                         {
                             frameCount++;

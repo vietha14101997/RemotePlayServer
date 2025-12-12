@@ -1,0 +1,47 @@
+﻿**********************************************************************
+** Visual Studio 2022 Developer Command Prompt v17.14.22
+** Copyright (c) 2025 Microsoft Corporation
+**********************************************************************
+MSBuild version 17.14.23+b0019275e for .NET Framework
+Build started 12/13/2025 12:01:09 AM.
+
+Project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\AmfWrapper.vcxproj" on node 1 (Rebuild target(s)).
+_PrepareForClean:
+  Deleting file "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.tlog\AmfWrapper.lastbuildstate".
+PrepareForBuild:
+  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+InitializeBuildStatus:
+  Touching "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.tlog\unsuccessfulbuild".
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /IC:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\ /IC:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf /IC:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\include /IC:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /GL /D WIN32_LEAN_AND_MEAN /D NOMINMAX /D NDEBUG /D _WINDOWS /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\\" /Fd"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue AmfWrapper.cpp amf\public\common\AMFFactory.cpp amf\public\common\Thread.cpp amf\public\common\AMFSTL.cpp amf\public\common\TraceAdapter.cpp amf\public\common\Windows\ThreadWindows.cpp UtilsWindows_Patched.cpp
+  AmfWrapper.cpp
+  AMFFactory.cpp
+  Thread.cpp
+  AMFSTL.cpp
+  TraceAdapter.cpp
+  ThreadWindows.cpp
+  UtilsWindows_Patched.cpp
+Link:
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\..\..\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.dll" /NOLOGO d3d11.lib dxgi.lib ntdll.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\..\..\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /LTCGOUT:"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.iobj" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\..\..\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.lib" /MACHINE:X64 /DLL C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AMFFactory.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\Thread.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AMFSTL.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\TraceAdapter.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\ThreadWindows.obj
+  C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\UtilsWindows_Patched.obj
+     Creating library C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\..\..\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.lib and object C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\..\..\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.exp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 342 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  AmfWrapper.vcxproj -> C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\AmfWrapper.dll
+FinalizeBuildStatus:
+  Deleting file "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.tlog\unsuccessfulbuild".
+  Touching "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\obj\Release\AmfWrapper.tlog\AmfWrapper.lastbuildstate".
+Done Building Project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\AmfWrapper.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.20

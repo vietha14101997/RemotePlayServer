@@ -23,6 +23,7 @@ public class WebRTCStreamer_H264 : IDisposable
     private volatile bool _running = false;
     public bool IsRunning => _running;
     public event Action? OnPeerDisconnected;
+    public event Action<string>? OnIceCandidate;
 
     // ---- pacing & raw frame queue ----
     private readonly int _fps;
@@ -100,6 +101,21 @@ public class WebRTCStreamer_H264 : IDisposable
         return Task.CompletedTask;
     }
 
+    public void AddIceCandidate(string candidate)
+    {
+        if (_pc == null) return;
+        try
+        {
+            var init = new RTCIceCandidateInit { candidate = candidate, sdpMLineIndex = 0, sdpMid = "0" };
+            _pc.addIceCandidate(init);
+            Console.WriteLine($"[RTC] Added remote ICE: {candidate.Substring(0, Math.Min(50, candidate.Length))}...");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RTC] AddIceCandidate error: {ex.Message}");
+        }
+    }
+
     /// <summary>Khởi tạo PC, thương lượng H.264 (pt=102, 90kHz, packetization-mode=1).</summary>
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
     {
@@ -134,8 +150,16 @@ public class WebRTCStreamer_H264 : IDisposable
         
         _pc.onicecandidate += cand =>
         {
-            if (cand != null)
-                Console.WriteLine($"[RTC] ice candidate: {cand.type} {cand.address}:{cand.port}");
+            if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+            {
+                Console.WriteLine($"[RTC] Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
+                OnIceCandidate?.Invoke(cand.candidate);
+            }
+            else
+            {
+                Console.WriteLine("[RTC] ICE gathering complete");
+                OnIceCandidate?.Invoke("end-of-candidates");
+            }
         };
         
         _pc.oniceconnectionstatechange += st =>

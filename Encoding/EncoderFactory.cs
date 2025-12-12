@@ -239,13 +239,36 @@ public interface IWebRTCStreamer : IDisposable
 {
     bool IsRunning { get; }
     bool UseNV12Input { get; }
+    
+    /// <summary>
+    /// True if streamer supports zero-copy texture encoding
+    /// </summary>
+    bool UseTextureInput { get; }
+    
     event Action? OnPeerDisconnected;
+    
+    /// <summary>
+    /// Fired when a local ICE candidate is generated. Parameter is the candidate string.
+    /// </summary>
+    event Action<string>? OnIceCandidate;
+    
     Task StartAsync();
     Task StopAsync();
     Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp);
     Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
     Task PushNV12BytesAsync(byte[] src, int width, int height);
+    
+    /// <summary>
+    /// TRUE ZERO-COPY: Push NV12 texture directly for encoding
+    /// </summary>
+    void PushTexture(ID3D11Texture2D nv12Texture, int width, int height);
+    
     void SetDevice(ID3D11Device device);
+    
+    /// <summary>
+    /// Add a remote ICE candidate received from the client
+    /// </summary>
+    void AddIceCandidate(string candidate);
 }
 
 /// <summary>
@@ -258,10 +281,17 @@ public class WebRTCStreamerFFmpegWrapper : IWebRTCStreamer
 
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => _useNV12;
+    public bool UseTextureInput => false; // FFmpeg pipe doesn't support zero-copy
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
         remove => _streamer.OnPeerDisconnected -= value;
+    }
+
+    public event Action<string>? OnIceCandidate
+    {
+        add => _streamer.OnIceCandidate += value;
+        remove => _streamer.OnIceCandidate -= value;
     }
 
     public WebRTCStreamerFFmpegWrapper(int fps, int kbps, int crf, string preset, bool zerolatency, bool useNV12 = true)
@@ -278,7 +308,9 @@ public class WebRTCStreamerFFmpegWrapper : IWebRTCStreamer
         => _streamer.PushBgraBytesAsync(src, width, height, stride);
     public Task PushNV12BytesAsync(byte[] src, int width, int height)
         => _streamer.PushNV12BytesAsync(src, width, height);
+    public void PushTexture(ID3D11Texture2D nv12Texture, int width, int height) { /* Not supported */ }
     public void SetDevice(ID3D11Device device) { /* Not needed for pipe mode */ }
+    public void AddIceCandidate(string candidate) => _streamer.AddIceCandidate(candidate);
     public void Dispose() => _streamer.Dispose();
 }
 
@@ -292,10 +324,17 @@ public class WebRTCStreamerLibAvWrapper : IWebRTCStreamer
 
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => true; // LibAv always uses NV12
+    public bool UseTextureInput => false; // LibAv doesn't support zero-copy texture
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
         remove => _streamer.OnPeerDisconnected -= value;
+    }
+
+    public event Action<string>? OnIceCandidate
+    {
+        add => _streamer.OnIceCandidate += value;
+        remove => _streamer.OnIceCandidate -= value;
     }
 
     public WebRTCStreamerLibAvWrapper(int fps, int kbps, ID3D11Device? device = null)
@@ -311,6 +350,8 @@ public class WebRTCStreamerLibAvWrapper : IWebRTCStreamer
         => _streamer.PushBgraBytesAsync(src, width, height, stride);
     public Task PushNV12BytesAsync(byte[] src, int width, int height)
         => _streamer.PushNV12BytesAsync(src, width, height);
+    public void PushTexture(ID3D11Texture2D nv12Texture, int width, int height) { /* Not supported */ }
     public void SetDevice(ID3D11Device device) => _streamer.SetDevice(device);
+    public void AddIceCandidate(string candidate) => _streamer.AddIceCandidate(candidate);
     public void Dispose() => _streamer.Dispose();
 }

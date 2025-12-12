@@ -35,12 +35,17 @@ public class WebRTCStreamer_AmfNative : IDisposable
     private int _width;
     private int _height;
     
+    // Staging texture for zero-copy path to avoid race condition
+    private ID3D11Texture2D? _stagingNV12;
+    private ID3D11DeviceContext? _deviceContext;
+    
     private readonly object _lock = new();
 
     public bool IsRunning => _running;
     public bool UseNV12Input => true;
     
     public event Action? OnPeerDisconnected;
+    public event Action<string>? OnIceCandidate;
 
     public WebRTCStreamer_AmfNative(int fps, int kbps, ID3D11Device? device = null)
     {
@@ -65,6 +70,22 @@ public class WebRTCStreamer_AmfNative : IDisposable
     {
         Stop();
         await Task.CompletedTask;
+    }
+
+    public void AddIceCandidate(string candidate)
+    {
+        if (_pc == null) return;
+        try
+        {
+            // Parse candidate string and add to PeerConnection
+            var init = new RTCIceCandidateInit { candidate = candidate, sdpMLineIndex = 0, sdpMid = "0" };
+            _pc.addIceCandidate(init);
+            Console.WriteLine($"[RTC-AmfNative] Added remote ICE: {candidate.Substring(0, Math.Min(50, candidate.Length))}...");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RTC-AmfNative] AddIceCandidate error: {ex.Message}");
+        }
     }
 
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
@@ -102,6 +123,21 @@ public class WebRTCStreamer_AmfNative : IDisposable
         
         Console.WriteLine($"[RTC-AmfNative] canSend(H264) = {_pc.VideoLocalTrack != null}");
 
+        // Forward local ICE candidates to client
+        _pc.onicecandidate += (cand) =>
+        {
+            if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+            {
+                Console.WriteLine($"[RTC-AmfNative] Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
+                OnIceCandidate?.Invoke(cand.candidate);
+            }
+            else
+            {
+                Console.WriteLine("[RTC-AmfNative] ICE gathering complete");
+                OnIceCandidate?.Invoke("end-of-candidates");
+            }
+        };
+
         _pc.oniceconnectionstatechange += (state) =>
         {
             Console.WriteLine($"[RTC-AmfNative] ice = {state}");
@@ -129,6 +165,16 @@ public class WebRTCStreamer_AmfNative : IDisposable
         _cts = new CancellationTokenSource();
         _encodeTask = Task.Run(() => EncodeLoop(_cts.Token));
         
+        // Stats logging task for debugging
+        _ = Task.Run(async () =>
+        {
+            while (_running && !_cts.Token.IsCancellationRequested)
+            {
+                await Task.Delay(2000);
+                Console.WriteLine($"[RTC-AmfNative] stats: enq={_enqueueCount} sent={_sentCount}");
+            }
+        });
+        
         return answer.sdp ?? "";
     }
 
@@ -153,6 +199,58 @@ public class WebRTCStreamer_AmfNative : IDisposable
         
         await Task.CompletedTask;
     }
+    
+    /// <summary>
+    /// TRUE ZERO-COPY: Encode directly from NV12 GPU texture
+    /// Uses staging texture copy to avoid race condition with capture pipeline
+    /// </summary>
+    public void PushTexture(ID3D11Texture2D nv12Texture, int width, int height)
+    {
+        if (!_running || _disposed) return;
+        
+        lock (_lock)
+        {
+            if (_encoder == null)
+            {
+                InitializeEncoder(width, height);
+            }
+            
+            if (_encoder != null && _device != null)
+            {
+                // Create staging texture on first use or if size changed
+                if (_stagingNV12 == null || _width != width || _height != height)
+                {
+                    _stagingNV12?.Dispose();
+                    _deviceContext = _device.ImmediateContext;
+                    
+                    var desc = new Texture2DDescription
+                    {
+                        Width = (uint)width,
+                        Height = (uint)height,
+                        MipLevels = 1,
+                        ArraySize = 1,
+                        Format = Vortice.DXGI.Format.NV12,
+                        SampleDescription = new Vortice.DXGI.SampleDescription(1, 0),
+                        Usage = ResourceUsage.Default,
+                        BindFlags = BindFlags.None,
+                        CPUAccessFlags = CpuAccessFlags.None,
+                        MiscFlags = ResourceOptionFlags.None
+                    };
+                    _stagingNV12 = _device.CreateTexture2D(desc);
+                    _width = width;
+                    _height = height;
+                    Console.WriteLine($"[RTC-AmfNative] Created staging NV12 texture {width}x{height}");
+                }
+                
+                // Copy source texture to staging (prevents race condition)
+                _deviceContext?.CopyResource(_stagingNV12, nv12Texture);
+                
+                // Encode from staging texture
+                bool forceIdr = (Interlocked.Read(ref _sentCount) == 0);
+                _encoder.EncodeTexture(_stagingNV12, forceKeyframe: forceIdr);
+            }
+        }
+    }
 
     public void Stop()
     {
@@ -169,6 +267,9 @@ public class WebRTCStreamer_AmfNative : IDisposable
         
         _encoder?.Dispose();
         _encoder = null;
+        
+        _stagingNV12?.Dispose();
+        _stagingNV12 = null;
         
         Console.WriteLine("[RTC-AmfNative] Stopped");
     }
@@ -201,9 +302,14 @@ public class WebRTCStreamer_AmfNative : IDisposable
     {
         if (!_running || _pc == null) return;
         
-        // Pure send - no logging overhead
         _pc.SendVideo((uint)(90000 / _fps), nalData);
-        Interlocked.Increment(ref _sentCount);
+        long sent = Interlocked.Increment(ref _sentCount);
+        
+        // Debug: log first 5 frames and keyframes
+        if (sent <= 5 || isKeyframe)
+        {
+            Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {nalData.Length} bytes, keyframe={isKeyframe}");
+        }
     }
 
     private void EncodeLoop(CancellationToken ct)
@@ -253,11 +359,18 @@ public class WebRTCStreamerAmfNativeWrapper : IWebRTCStreamer
 
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => _streamer.UseNV12Input;
+    public bool UseTextureInput => true; // Native AMF supports TRUE zero-copy!
     
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
         remove => _streamer.OnPeerDisconnected -= value;
+    }
+
+    public event Action<string>? OnIceCandidate
+    {
+        add => _streamer.OnIceCandidate += value;
+        remove => _streamer.OnIceCandidate -= value;
     }
 
     public WebRTCStreamerAmfNativeWrapper(int fps, int kbps, ID3D11Device? device = null)
@@ -273,6 +386,9 @@ public class WebRTCStreamerAmfNativeWrapper : IWebRTCStreamer
         => _streamer.PushBgraBytesAsync(src, width, height, stride);
     public Task PushNV12BytesAsync(byte[] src, int width, int height)
         => _streamer.PushNV12BytesAsync(src, width, height);
+    public void PushTexture(ID3D11Texture2D nv12Texture, int width, int height)
+        => _streamer.PushTexture(nv12Texture, width, height);
     public void SetDevice(ID3D11Device device) => _streamer.SetDevice(device);
+    public void AddIceCandidate(string candidate) => _streamer.AddIceCandidate(candidate);
     public void Dispose() => _streamer.Dispose();
 }

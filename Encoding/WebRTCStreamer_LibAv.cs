@@ -25,6 +25,7 @@ public class WebRTCStreamer_LibAv : IDisposable
     private volatile bool _running = false;
     public bool IsRunning => _running;
     public event Action? OnPeerDisconnected;
+    public event Action<string>? OnIceCandidate;
 
     private readonly int _fps;
     private readonly int _minIntervalMs;
@@ -75,6 +76,21 @@ public class WebRTCStreamer_LibAv : IDisposable
         _device = device;
     }
 
+    public void AddIceCandidate(string candidate)
+    {
+        if (_pc == null) return;
+        try
+        {
+            var init = new RTCIceCandidateInit { candidate = candidate, sdpMLineIndex = 0, sdpMid = "0" };
+            _pc.addIceCandidate(init);
+            Console.WriteLine($"[RTC-LibAv] Added remote ICE: {candidate.Substring(0, Math.Min(50, candidate.Length))}...");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RTC-LibAv] AddIceCandidate error: {ex.Message}");
+        }
+    }
+
     public Task StartAsync()
     {
         _cts = new CancellationTokenSource();
@@ -95,6 +111,21 @@ public class WebRTCStreamer_LibAv : IDisposable
         };
         _pc = new RTCPeerConnection(cfg);
         Console.WriteLine("[RTC-LibAv] PeerConnection created");
+
+        // Forward local ICE candidates to client
+        _pc.onicecandidate += (cand) =>
+        {
+            if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+            {
+                Console.WriteLine($"[RTC-LibAv] Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
+                OnIceCandidate?.Invoke(cand.candidate);
+            }
+            else
+            {
+                Console.WriteLine("[RTC-LibAv] ICE gathering complete");
+                OnIceCandidate?.Invoke("end-of-candidates");
+            }
+        };
 
         _pc.onconnectionstatechange += st =>
         {

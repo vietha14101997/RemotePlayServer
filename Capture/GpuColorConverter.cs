@@ -29,6 +29,11 @@ public sealed class GpuColorConverter : IDisposable
     public int Width => _width;
     public int Height => _height;
     public int NV12Size => _width * _height * 3 / 2;
+    
+    /// <summary>
+    /// GPU NV12 texture for zero-copy encoding path
+    /// </summary>
+    public ID3D11Texture2D? NV12Texture => _nv12Texture;
 
     public GpuColorConverter(ID3D11Device device, int width, int height)
     {
@@ -178,6 +183,51 @@ public sealed class GpuColorConverter : IDisposable
         if (Convert(bgraTexture, _nv12Buffer))
             return _nv12Buffer;
         return null;
+    }
+    
+    /// <summary>
+    /// Convert BGRA texture to NV12 on GPU only (zero-copy path).
+    /// Returns the NV12 texture directly without CPU readback.
+    /// </summary>
+    public ID3D11Texture2D? ConvertToTexture(ID3D11Texture2D bgraTexture)
+    {
+        if (_disposed) return null;
+        
+        try
+        {
+            // Create input view for BGRA texture
+            var inputViewDesc = new VideoProcessorInputViewDescription
+            {
+                FourCC = 0,
+                ViewDimension = VideoProcessorInputViewDimension.Texture2D
+            };
+            inputViewDesc.Texture2D.MipSlice = 0;
+            inputViewDesc.Texture2D.ArraySlice = 0;
+            
+            using var inputView = _videoDevice.CreateVideoProcessorInputView(bgraTexture, _vpEnum, inputViewDesc);
+            
+            // Setup video processor stream
+            var stream = new VideoProcessorStream
+            {
+                Enable = true,
+                OutputIndex = 0,
+                InputFrameOrField = 0,
+                PastFrames = 0,
+                FutureFrames = 0,
+                InputSurface = inputView,
+                InputSurfaceRight = null
+            };
+            
+            // Perform color conversion on GPU (no CPU readback)
+            _videoContext.VideoProcessorBlt(_videoProcessor, _outputView!, 0, 1, new[] { stream });
+            
+            return _nv12Texture;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GpuColorConverter] ConvertToTexture error: {ex.Message}");
+            return null;
+        }
     }
     
     private void CopyNV12Data(MappedSubresource mapped, byte[] outputBuffer)

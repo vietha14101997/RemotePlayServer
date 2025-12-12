@@ -114,8 +114,11 @@ public sealed class ClusterCapture : IDisposable
     /// <summary>CPU frame callback for NV12 (GPU-converted, then copied to system memory)</summary>
     public event Action<byte[], int, int>? OnNV12Frame;
     
-    /// <summary>GPU texture callback (zero-copy path, no CPU memory access)</summary>
+    /// <summary>GPU texture callback for BGRA (zero-copy path, no CPU memory access)</summary>
     public event Action<ID3D11Texture2D, int, int>? OnTextureFrame;
+    
+    /// <summary>GPU texture callback for NV12 (TRUE ZERO-COPY: GPU-converted NV12 texture)</summary>
+    public event Action<ID3D11Texture2D, int, int>? OnNV12TextureFrame;
     
     /// <summary>Expose D3D11 device for encoder initialization</summary>
     public ID3D11Device Device => _device;
@@ -449,10 +452,26 @@ public sealed class ClusterCapture : IDisposable
                 {
                     frameCount++;
 
-                    // Zero-copy path: invoke texture callback first
+                    // Zero-copy BGRA path: invoke texture callback first
                     OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight);
+                    
+                    // TRUE ZERO-COPY NV12 path: GPU texture directly to encoder (no CPU copy!)
+                    if (_useNV12Output && OnNV12TextureFrame != null && _colorConverter != null && !_showCursor)
+                    {
+                        try
+                        {
+                            // Convert BGRA->NV12 on GPU and pass texture directly
+                            var nv12Texture = _colorConverter.ConvertToTexture(_combinedTexture);
+                            if (nv12Texture != null)
+                            {
+                                OnNV12TextureFrame(nv12Texture, FrameWidth, FrameHeight);
+                            }
+                        }
+                        catch (ObjectDisposedException) { }
+                        catch (NullReferenceException) { }
+                    }
 
-                    // NV12 GPU conversion path (fastest for NVENC)
+                    // NV12 CPU path: GPU conversion then copy to bytes (fallback)
                     if (_useNV12Output && OnNV12Frame != null && _colorConverter != null && _nv12Buffer != null)
                     {
                         try
