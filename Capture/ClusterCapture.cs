@@ -99,18 +99,56 @@ public sealed class ClusterCapture : IDisposable
     private readonly ID3D11Texture2D _combinedStaging;
     private readonly byte[] _combinedBuffer;
     private readonly int _combinedStride;
+    
+    // GPU color converter (BGRA -> NV12)
+    private GpuColorConverter? _colorConverter;
+    private byte[]? _nv12Buffer;
+    private bool _useNV12Output;
 
     private volatile bool _running;
     private Thread? _captureThread;
 
-    /// <summary>CPU frame callback (copies to system memory)</summary>
+    /// <summary>CPU frame callback for BGRA (copies to system memory)</summary>
     public event Action<byte[], int, int, int>? OnFrame;
+    
+    /// <summary>CPU frame callback for NV12 (GPU-converted, then copied to system memory)</summary>
+    public event Action<byte[], int, int>? OnNV12Frame;
     
     /// <summary>GPU texture callback (zero-copy path, no CPU memory access)</summary>
     public event Action<ID3D11Texture2D, int, int>? OnTextureFrame;
     
     /// <summary>Expose D3D11 device for encoder initialization</summary>
     public ID3D11Device Device => _device;
+    
+    /// <summary>Enable NV12 output mode (GPU color conversion)</summary>
+    public bool UseNV12Output
+    {
+        get => _useNV12Output;
+        set
+        {
+            _useNV12Output = value;
+            if (value && _colorConverter == null)
+            {
+                InitializeColorConverter();
+            }
+        }
+    }
+    
+    private void InitializeColorConverter()
+    {
+        try
+        {
+            _colorConverter = new GpuColorConverter(_device, FrameWidth, FrameHeight);
+            _nv12Buffer = new byte[FrameWidth * FrameHeight * 3 / 2];
+            Console.WriteLine("[ClusterCapture] GPU color converter initialized (BGRA->NV12)");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ClusterCapture] Failed to initialize GPU color converter: {ex.Message}");
+            _colorConverter = null;
+            _useNV12Output = false;
+        }
+    }
 
     public ClusterCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int gap = 1, int targetFps = 30)
     {
@@ -364,7 +402,10 @@ public sealed class ClusterCapture : IDisposable
                     var dup = _duplications[i];
                     var layout = _monitorLayouts[i];
 
-                    var result = dup.AcquireNextFrame(50, out var frameInfo, out var desktopResource);
+                    // Use very short timeout to avoid blocking on multiple monitors
+                    // With 3 monitors at 50ms each = 150ms blocking = only 6 fps
+                    // With 5ms x 3 = 15ms, we can achieve 30+ fps
+                    var result = dup.AcquireNextFrame(5, out var frameInfo, out var desktopResource);
 
                     if (result.Success && desktopResource != null)
                     {
@@ -414,8 +455,53 @@ public sealed class ClusterCapture : IDisposable
                     // Zero-copy path: invoke texture callback first
                     OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight);
 
-                    // CPU path: only copy to staging if OnFrame has listeners
-                    if (OnFrame != null)
+                    // NV12 GPU conversion path (fastest for NVENC)
+                    if (_useNV12Output && OnNV12Frame != null && _colorConverter != null && _nv12Buffer != null)
+                    {
+                        // Draw cursor on staging texture if enabled
+                        if (_showCursor)
+                        {
+                            // Copy to staging for cursor drawing
+                            _context.CopyResource(_combinedStaging, _combinedTexture);
+                            var mapped = _context.Map(_combinedStaging, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                            try
+                            {
+                                unsafe
+                                {
+                                    byte* src = (byte*)mapped.DataPointer;
+                                    int srcStride = (int)mapped.RowPitch;
+                                    fixed (byte* dstBase = _combinedBuffer)
+                                    {
+                                        for (int y = 0; y < FrameHeight; y++)
+                                        {
+                                            Buffer.MemoryCopy(src + y * srcStride, dstBase + y * _combinedStride, _combinedStride, _combinedStride);
+                                        }
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                _context.Unmap(_combinedStaging, 0);
+                            }
+                            
+                            // Draw cursor on BGRA buffer
+                            DrawCursorOnBuffer(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                            
+                            // Convert BGRA with cursor to NV12 via software (since we modified the buffer)
+                            ConvertBgraToNv12(_combinedBuffer, _nv12Buffer!, FrameWidth, FrameHeight, _combinedStride);
+                            OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
+                        }
+                        else
+                        {
+                            // No cursor - use fast GPU conversion
+                            if (_colorConverter.Convert(_combinedTexture, _nv12Buffer))
+                            {
+                                OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
+                            }
+                        }
+                    }
+                    // BGRA CPU path: only copy to staging if OnFrame has listeners
+                    else if (OnFrame != null)
                     {
                         // Copy combined GPU texture to staging for CPU readback
                         _context.CopyResource(_combinedStaging, _combinedTexture);
@@ -596,9 +682,71 @@ public sealed class ClusterCapture : IDisposable
         catch { /* Ignore cursor drawing errors */ }
     }
 
+    /// <summary>
+    /// Software BGRA to NV12 conversion (used when cursor is enabled)
+    /// </summary>
+    private static void ConvertBgraToNv12(byte[] bgra, byte[] nv12, int width, int height, int bgraStride)
+    {
+        int yPlaneSize = width * height;
+        int uvOffset = yPlaneSize;
+        
+        // Y plane
+        for (int y = 0; y < height; y++)
+        {
+            int bgraRowOffset = y * bgraStride;
+            int yRowOffset = y * width;
+            
+            for (int x = 0; x < width; x++)
+            {
+                int bgraIdx = bgraRowOffset + x * 4;
+                byte b = bgra[bgraIdx];
+                byte g = bgra[bgraIdx + 1];
+                byte r = bgra[bgraIdx + 2];
+                
+                // BT.601 Y conversion
+                int yVal = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
+                nv12[yRowOffset + x] = (byte)Math.Clamp(yVal, 0, 255);
+            }
+        }
+        
+        // UV plane (interleaved, subsampled 2x2)
+        for (int y = 0; y < height; y += 2)
+        {
+            int uvRowOffset = uvOffset + (y / 2) * width;
+            
+            for (int x = 0; x < width; x += 2)
+            {
+                // Average 2x2 block
+                int sumR = 0, sumG = 0, sumB = 0;
+                for (int dy = 0; dy < 2 && y + dy < height; dy++)
+                {
+                    for (int dx = 0; dx < 2 && x + dx < width; dx++)
+                    {
+                        int bgraIdx = (y + dy) * bgraStride + (x + dx) * 4;
+                        sumB += bgra[bgraIdx];
+                        sumG += bgra[bgraIdx + 1];
+                        sumR += bgra[bgraIdx + 2];
+                    }
+                }
+                int r = sumR / 4;
+                int g = sumG / 4;
+                int b = sumB / 4;
+                
+                // BT.601 U, V conversion
+                int u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
+                int v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
+                
+                int uvIdx = uvRowOffset + x;
+                nv12[uvIdx] = (byte)Math.Clamp(u, 0, 255);
+                nv12[uvIdx + 1] = (byte)Math.Clamp(v, 0, 255);
+            }
+        }
+    }
+
     public void Dispose()
     {
         Stop();
+        try { _colorConverter?.Dispose(); } catch { }
         foreach (var dup in _duplications) try { dup?.Dispose(); } catch { }
         foreach (var stg in _stagings) try { stg?.Dispose(); } catch { }
         try { _combinedTexture?.Dispose(); } catch { }

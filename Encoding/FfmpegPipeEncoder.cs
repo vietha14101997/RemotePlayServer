@@ -302,29 +302,33 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         {
             case GpuEnc.NVENC:
                 {
-                    // Ultra low latency NVENC settings with CUDA GPU color conversion
+                    // Ultra low latency NVENC settings with optimized pipeline
                     string inPart;
                     string vfPart = "";
                     
                     if (PixelFormat == InputFormat.NV12)
                     {
+                        // NV12 input: upload directly to CUDA - fastest path
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +
+                            "-init_hw_device cuda=cu:0 -filter_hw_device cu " +
                             $"-f rawvideo -pix_fmt nv12 -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = "-vf hwupload_cuda ";
                     }
                     else
                     {
-                        // Convert BGRA to YUV420P (strips alpha), then upload to CUDA for NVENC
-                        // This is faster than full CPU NV12 conversion because:
-                        // 1. YUV420P is 1.5 bytes/pixel vs BGRA 4 bytes/pixel - less data
-                        // 2. NVENC encodes YUV420P directly on GPU
+                        // BGRA input: CPU color conversion then GPU upload
+                        // Note: Full GPU pipeline requires either:
+                        //   1. FFmpeg with libnpp (scale_npp filter) 
+                        //   2. Capture in NV12 format directly (best option)
+                        // Pipeline: BGRA(CPU) -> format=nv12(CPU) -> hwupload_cuda -> NVENC
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +
                             "-init_hw_device cuda=cu:0 -filter_hw_device cu " +
                             $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
-                        vfPart = "-vf format=yuv420p,hwupload_cuda ";
+                        vfPart = "-vf format=nv12,hwupload_cuda ";
                     }
 
                     // Minimal buffer CBR for lowest latency
@@ -368,6 +372,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     
                     if (PixelFormat == InputFormat.NV12)
                     {
+                        // NV12 input: direct to QSV encoder
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +
@@ -376,6 +381,8 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     }
                     else
                     {
+                        // BGRA input: Convert to NV12 on CPU for QSV
+                        // Pipeline: BGRA(CPU) -> format=nv12(CPU) -> h264_qsv
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +
@@ -421,6 +428,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     
                     if (PixelFormat == InputFormat.NV12)
                     {
+                        // NV12 input: direct to AMF encoder
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +
@@ -430,6 +438,8 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     }
                     else
                     {
+                        // BGRA input: Convert to NV12 on CPU for AMF
+                        // Pipeline: BGRA(CPU) -> format=nv12(CPU) -> h264_amf
                         inPart =
                             "-fflags nobuffer -flags low_delay " +
                             "-probesize 32 -analyzeduration 0 " +

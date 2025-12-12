@@ -180,7 +180,8 @@
 <div class="status">
   Status: <span id="st">idle</span> | 
   Video: <span id="videoStats">--</span> | 
-  Frames: <span id="frameStats">--</span>
+  Frames: <span id="frameStats">--</span> |
+  <strong style="color:#ff9800;">Est. Bandwidth: <span id="estBandwidth">--</span></strong>
 </div>
 
 <video id="v" autoplay playsinline muted></video>
@@ -195,6 +196,14 @@
     logEl.scrollTop = logEl.scrollHeight;
   };
   const setSt = (s) => $('st').textContent = s;
+  
+  function updateBandwidthEstimate() {
+    const monitors = parseInt($('monitors').value) || 1;
+    const bitrate = parseInt($('bitrate').value) || 6000;
+    const totalKbps = monitors * bitrate;
+    const totalMbps = (totalKbps / 1000).toFixed(1);
+    $('estBandwidth').textContent = `${totalMbps} Mbps (${monitors} × ${bitrate/1000} Mbps)`;
+  }
   
   let cursorEnabled = true;
   let currentWs = null;
@@ -214,22 +223,33 @@
     btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
     
     try {
-      const resp = await fetch(`${getApiBase()}/api/cursor?show=${cursorEnabled}`);
+      log('Sending cursor toggle request: show=' + cursorEnabled);
+      const resp = await fetch(`${getApiBase()}/api/cursor?show=${cursorEnabled}`, { mode: 'cors' });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
-      log('Cursor:', data.cursor ? 'ON' : 'OFF');
+      log('Cursor response:', JSON.stringify(data));
     } catch (e) {
       log('Cursor toggle error:', e.message);
+      // Revert UI on error
+      cursorEnabled = !cursorEnabled;
+      btn.textContent = cursorEnabled ? 'Cursor: ON' : 'Cursor: OFF';
+      btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
     }
   }
   
   async function initCursor() {
     const show = $('cursor').checked;
     try {
-      await fetch(`${getApiBase()}/api/cursor?show=${show}`);
-      cursorEnabled = show;
-      $('cursorBtn').textContent = show ? 'Cursor: ON' : 'Cursor: OFF';
-      $('cursorBtn').style.background = show ? '#2a4a3a' : '#4a2a3a';
-    } catch (e) { /* ignore */ }
+      log('Initializing cursor: show=' + show);
+      const resp = await fetch(`${getApiBase()}/api/cursor?show=${show}`, { mode: 'cors' });
+      if (resp.ok) {
+        const data = await resp.json();
+        cursorEnabled = data.cursor;
+        $('cursorBtn').textContent = cursorEnabled ? 'Cursor: ON' : 'Cursor: OFF';
+        $('cursorBtn').style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
+        log('Cursor initialized:', cursorEnabled ? 'ON' : 'OFF');
+      }
+    } catch (e) { log('Cursor init error:', e.message); }
   }
   
   function disconnect() {
@@ -384,4 +404,11 @@
   }
 
   $('btn').onclick = run;
+  
+  // Update bandwidth estimate on change
+  $('monitors').onchange = updateBandwidthEstimate;
+  $('bitrate').onchange = updateBandwidthEstimate;
+  
+  // Initial calculation
+  updateBandwidthEstimate();
 </script>

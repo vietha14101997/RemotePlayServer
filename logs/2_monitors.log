@@ -1,0 +1,1686 @@
+=== RemotePlayServer ===
+[Encoder] NVIDIA NVENC (Hardware)
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.20:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.20","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████
+█████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▀██▀ ▀▄▄ █▄ █ ▀▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █  █▀▀ ▄▀▄  ▀ ▄█▀▄▄█▄██ █   █ ████
+████ █▄▄▄█ █▄▄▄▄▄▀███▀█▀▀█ ██▀▄▀▀█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ █ █▄▀▄▀▄█ ▀▄█ ▀ █▄█▄▄▄▄▄▄▄████
+█████▄█ ▀ ▄▀ ▄ █▀▀▄█▀ ▄ ▄▄▀▀▀ ▄ ▄  █ ▄ ▄▄████
+████▄▄█▄█▀▄ ▀▄███▄▀▀ ▄██▄▄▀▀ ▄▄█▀ ██ ▄██ ████
+████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
+█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
+███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
+████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
+████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
+████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
+████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
+█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
+███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
+████ ▄▄▄▄▄ █▀█▄▄ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ █   █ █▀▀ ▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+█████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected c4903dc1-5a16-4cbe-b320-c2d9bc367ba0
+[Cluster Signal] Applying new display config: 2 monitors @ 1920x1080, 60 fps
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY23 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY23 1920x1080 [PHYSICAL]
+[Cluster Signal] Monitors after config: 2
+[Cluster Signal] Using FFmpeg encoder
+[RTC] PeerConnection created with STUN servers
+[RTC] ice gathering = gathering
+---- REMOTE OFFER SDP ----
+v=0
+o=- 3572703090648477369 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=group:BUNDLE 0
+a=extmap-allow-mixed
+a=msid-semantic: WMS
+m=video 9 UDP/TLS/RTP/SAVPF 103 104 107 108 109 114 115 116 117 118 39 40 41 42 43 44 119 120 121 122 96 97 98 99 100 101 35 36 37 38 45 46 47 48 49 50 51 52 123 124 125 53
+c=IN IP4 0.0.0.0
+a=rtcp:9 IN IP4 0.0.0.0
+a=ice-ufrag:Pkie
+a=ice-pwd:VpyBadZLHWCFvjwXndUKK2nZ
+a=ice-options:trickle
+a=fingerprint:sha-256 F4:1B:B8:60:79:1C:0C:2F:8E:19:DB:DD:0B:0A:86:37:9E:96:DE:07:AC:46:51:B2:66:45:DA:2C:FD:3B:E6:04
+a=setup:actpass
+a=mid:0
+a=extmap:1 urn:ietf:params:rtp-hdrext:toffset
+a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=extmap:3 urn:3gpp:video-orientation
+a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
+a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
+a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
+a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
+a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+a=recvonly
+a=rtcp-mux
+a=rtcp-rsize
+a=rtpmap:103 H264/90000
+a=rtcp-fb:103 goog-remb
+a=rtcp-fb:103 transport-cc
+a=rtcp-fb:103 ccm fir
+a=rtcp-fb:103 nack
+a=rtcp-fb:103 nack pli
+a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+a=rtpmap:104 rtx/90000
+a=fmtp:104 apt=103
+a=rtpmap:107 H264/90000
+a=rtcp-fb:107 goog-remb
+a=rtcp-fb:107 transport-cc
+a=rtcp-fb:107 ccm fir
+a=rtcp-fb:107 nack
+a=rtcp-fb:107 nack pli
+a=fmtp:107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+a=rtpmap:108 rtx/90000
+a=fmtp:108 apt=107
+a=rtpmap:109 H264/90000
+a=rtcp-fb:109 goog-remb
+a=rtcp-fb:109 transport-cc
+a=rtcp-fb:109 ccm fir
+a=rtcp-fb:109 nack
+a=rtcp-fb:109 nack pli
+a=fmtp:109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+a=rtpmap:114 rtx/90000
+a=fmtp:114 apt=109
+a=rtpmap:115 H264/90000
+a=rtcp-fb:115 goog-remb
+a=rtcp-fb:115 transport-cc
+a=rtcp-fb:115 ccm fir
+a=rtcp-fb:115 nack
+a=rtcp-fb:115 nack pli
+a=fmtp:115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+a=rtpmap:116 rtx/90000
+a=fmtp:116 apt=115
+a=rtpmap:117 H264/90000
+a=rtcp-fb:117 goog-remb
+a=rtcp-fb:117 transport-cc
+a=rtcp-fb:117 ccm fir
+a=rtcp-fb:117 nack
+a=rtcp-fb:117 nack pli
+a=fmtp:117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+a=rtpmap:118 rtx/90000
+a=fmtp:118 apt=117
+a=rtpmap:39 H264/90000
+a=rtcp-fb:39 goog-remb
+a=rtcp-fb:39 transport-cc
+a=rtcp-fb:39 ccm fir
+a=rtcp-fb:39 nack
+a=rtcp-fb:39 nack pli
+a=fmtp:39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+a=rtpmap:40 rtx/90000
+a=fmtp:40 apt=39
+a=rtpmap:41 H264/90000
+a=rtcp-fb:41 goog-remb
+a=rtcp-fb:41 transport-cc
+a=rtcp-fb:41 ccm fir
+a=rtcp-fb:41 nack
+a=rtcp-fb:41 nack pli
+a=fmtp:41 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=f4001f
+a=rtpmap:42 rtx/90000
+a=fmtp:42 apt=41
+a=rtpmap:43 H264/90000
+a=rtcp-fb:43 goog-remb
+a=rtcp-fb:43 transport-cc
+a=rtcp-fb:43 ccm fir
+a=rtcp-fb:43 nack
+a=rtcp-fb:43 nack pli
+a=fmtp:43 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=f4001f
+a=rtpmap:44 rtx/90000
+a=fmtp:44 apt=43
+a=rtpmap:119 H264/90000
+a=rtcp-fb:119 goog-remb
+a=rtcp-fb:119 transport-cc
+a=rtcp-fb:119 ccm fir
+a=rtcp-fb:119 nack
+a=rtcp-fb:119 nack pli
+a=fmtp:119 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f
+a=rtpmap:120 rtx/90000
+a=fmtp:120 apt=119
+a=rtpmap:121 H264/90000
+a=rtcp-fb:121 goog-remb
+a=rtcp-fb:121 transport-cc
+a=rtcp-fb:121 ccm fir
+a=rtcp-fb:121 nack
+a=rtcp-fb:121 nack pli
+a=fmtp:121 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=64001f
+a=rtpmap:122 rtx/90000
+a=fmtp:122 apt=121
+a=rtpmap:96 VP8/90000
+a=rtcp-fb:96 goog-remb
+a=rtcp-fb:96 transport-cc
+a=rtcp-fb:96 ccm fir
+a=rtcp-fb:96 nack
+a=rtcp-fb:96 nack pli
+a=rtpmap:97 rtx/90000
+a=fmtp:97 apt=96
+a=rtpmap:98 VP9/90000
+a=rtcp-fb:98 goog-remb
+a=rtcp-fb:98 transport-cc
+a=rtcp-fb:98 ccm fir
+a=rtcp-fb:98 nack
+a=rtcp-fb:98 nack pli
+a=fmtp:98 profile-id=0
+a=rtpmap:99 rtx/90000
+a=fmtp:99 apt=98
+a=rtpmap:100 VP9/90000
+a=rtcp-fb:100 goog-remb
+a=rtcp-fb:100 transport-cc
+a=rtcp-fb:100 ccm fir
+a=rtcp-fb:100 nack
+a=rtcp-fb:100 nack pli
+a=fmtp:100 profile-id=2
+a=rtpmap:101 rtx/90000
+a=fmtp:101 apt=100
+a=rtpmap:35 VP9/90000
+a=rtcp-fb:35 goog-remb
+a=rtcp-fb:35 transport-cc
+a=rtcp-fb:35 ccm fir
+a=rtcp-fb:35 nack
+a=rtcp-fb:35 nack pli
+a=fmtp:35 profile-id=1
+a=rtpmap:36 rtx/90000
+a=fmtp:36 apt=35
+a=rtpmap:37 VP9/90000
+a=rtcp-fb:37 goog-remb
+a=rtcp-fb:37 transport-cc
+a=rtcp-fb:37 ccm fir
+a=rtcp-fb:37 nack
+a=rtcp-fb:37 nack pli
+a=fmtp:37 profile-id=3
+a=rtpmap:38 rtx/90000
+a=fmtp:38 apt=37
+a=rtpmap:45 AV1/90000
+a=rtcp-fb:45 goog-remb
+a=rtcp-fb:45 transport-cc
+a=rtcp-fb:45 ccm fir
+a=rtcp-fb:45 nack
+a=rtcp-fb:45 nack pli
+a=fmtp:45 level-idx=5;profile=0;tier=0
+a=rtpmap:46 rtx/90000
+a=fmtp:46 apt=45
+a=rtpmap:47 AV1/90000
+a=rtcp-fb:47 goog-remb
+a=rtcp-fb:47 transport-cc
+a=rtcp-fb:47 ccm fir
+a=rtcp-fb:47 nack
+a=rtcp-fb:47 nack pli
+a=fmtp:47 level-idx=5;profile=1;tier=0
+a=rtpmap:48 rtx/90000
+a=fmtp:48 apt=47
+a=rtpmap:49 H265/90000
+a=rtcp-fb:49 goog-remb
+a=rtcp-fb:49 transport-cc
+a=rtcp-fb:49 ccm fir
+a=rtcp-fb:49 nack
+a=rtcp-fb:49 nack pli
+a=fmtp:49 level-id=180;profile-id=1;tier-flag=0;tx-mode=SRST
+a=rtpmap:50 rtx/90000
+a=fmtp:50 apt=49
+a=rtpmap:51 H265/90000
+a=rtcp-fb:51 goog-remb
+a=rtcp-fb:51 transport-cc
+a=rtcp-fb:51 ccm fir
+a=rtcp-fb:51 nack
+a=rtcp-fb:51 nack pli
+a=fmtp:51 level-id=180;profile-id=2;tier-flag=0;tx-mode=SRST
+a=rtpmap:52 rtx/90000
+a=fmtp:52 apt=51
+a=rtpmap:123 red/90000
+a=rtpmap:124 rtx/90000
+a=fmtp:124 apt=123
+a=rtpmap:125 ulpfec/90000
+a=rtpmap:53 flexfec-03/90000
+a=rtcp-fb:53 goog-remb
+a=rtcp-fb:53 transport-cc
+a=fmtp:53 repair-window=10000000
+
+NEGOTIATED VIDEO FORMATS:
+  SIPSorceryMedia.Abstractions.VideoFormat
+  SIPSorceryMedia.Abstractions.VideoFormat
+  SIPSorceryMedia.Abstractions.VideoFormat
+  SIPSorceryMedia.Abstractions.VideoFormat
+  SIPSorceryMedia.Abstractions.VideoFormat
+canSend(H264) = True
+[RTC] ice connection = checking
+[RTC] ice candidate: host 2402:800:6d62:428c:916f:821c:56f7:eb83:54048
+[RTC] ice candidate: host 2402:800:6d62:428c:512e:989e:55b4:9146:54048
+[RTC] ice candidate: host 192.168.1.20:54048
+[ClusterCapture] Starting combined capture for 2 monitors
+[ClusterCapture] Aligned FrameWidth to even: 3840
+[ClusterCapture] Combined frame: 3840x1080, 2 monitors, gap=1
+[ClusterCapture] Using adapter: NVIDIA GeForce GTX 1660 Ti
+[RTC] ice connection = connected
+[RTC] ICE CONNECTED - enabling send
+[RTC] pc.state = connecting
+[RTC] ice candidate: srflx 27.72.102.134:54048
+[RTC] ice gathering = complete
+[RTC] pc.state = connected
+[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=0
+[ClusterCapture] Added monitor: \\.\DISPLAY23 at offset x=1921
+[ClusterCapture] Initialized with 2 monitor duplications (zero-copy enabled)
+[ClusterCapture] Capture started
+[ClusterCapture] Target 60fps, frame interval 16ms
+[ClusterCapture] Frame #1: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #1: 3840x1080
+[FFMPEG] Detected GPU vendor: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
+[FFMPEG][probe h264_nvenc] exit=0
+[Parsed_color_0 @ 000001d0d2821e40] size:640x360 rate:25/1 duration:-1.000000 sar:1/1
+Input #0, lavfi, from 'color=c=black:s=640x360':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, 1 reference frame, yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 25 tbn
+[out#0/null @ 000001d0d281b240] No explicit maps, mapping streams automatically...
+[vost#0:0/h264_nvenc @ 000001d0d2878e00] Created video stream from input stream 0:0
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (h264_nvenc))
+[vost#0:0/h264_nvenc @ 000001d0d2878e00] Starting thread...
+[vf#0:0 @ 000001d0d287ce00] Starting thread...
+[vist#0:0/wrapped_avframe @ 000001d0d2822300] [dec:wrapped_avframe @ 000001d0d2879640] Starting thread...
+[in#0/lavfi @ 000001d0d281ed40] Starting thread...
+Press [q] to stop, [?] for help
+[graph -1 input from stream 0:0 @ 000001d0d2d54d40] w:640 h:360 pixfmt:yuv420p tb:1/25 fr:25/1 sar:1/1 csp:unknown range:unknown
+[graph -1 input from stream 0:0 @ 000001d0d2d54d40] video frame properties congruent with link at pts_time: 0
+[h264_nvenc @ 000001d0d287ca40] Loaded Nvenc version 13.0
+[h264_nvenc @ 000001d0d287ca40] Nvenc initialized successfully
+[h264_nvenc @ 000001d0d287ca40] 1 CUDA capable devices found
+[h264_nvenc @ 000001d0d287ca40] [ GPU #0 - < NVIDIA GeForce GTX 1660 Ti > has Compute SM 7.5 ]
+[h264_nvenc @ 000001d0d287ca40] supports NVENC
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Video: h264 (Main), 1 reference frame, yuv420p(tv, progressive), 640x360 [SAR 1:1 DAR 16:9], q=2-31, 2000 kb/s, 25 fps, 25 tbn
+      Metadata:
+        encoder         : Lavc61.19.101 h264_nvenc
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/2000000 buffer size: 4000000 vbv_delay: N/A
+[out#0/null @ 000001d0d281b240] Starting thread...
+[vf#0:0 @ 000001d0d287ce00] All consumers returned EOF
+[vf#0:0 @ 000001d0d287ce00] Terminating thread with return code 0 (success)
+[vist#0:0/wrapped_avframe @ 000001d0d2822300] [dec:wrapped_avframe @ 000001d0d2879640] Decoder returned EOF, finishing
+[vist#0:0/wrapped_avframe @ 000001d0d2822300] [dec:wrapped_avframe @ 000001d0d2879640] Terminating thread with return code 0 (success)
+[vist#0:0/wrapped_avframe @ 000001d0d2822300] All consumers of this stream are done
+[in#0/lavfi @ 000001d0d281ed40] All consumers are done
+[in#0/lavfi @ 000001d0d281ed40] Terminating thread with return code 0 (success)
+[vost#0:0/h264_nvenc @ 000001d0d2878e00] Encoder thread received EOF
+[vost#0:0/h264_nvenc @ 000001d0d2878e00] Terminating thread with return code 0 (success)
+[out#0/null @ 000001d0d281b240] All streams finished
+[out#0/null @ 000001d0d281b240] Terminating thread with return code 0 (success)
+[out#0/null @ 000001d0d281b240] Output file #0 (pipe:):
+[out#0/null @ 000001d0d281b240]   Output stream #0:0 (video): 1 frames encoded; 1 packets muxed (176 bytes);
+[out#0/null @ 000001d0d281b240]   Total: 1 packets (176 bytes) muxed
+[out#0/null @ 000001d0d281b240] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=11.0 Lsize=N/A time=-00:00:00.08 bitrate=N/A speed=N/A
+[h264_nvenc @ 000001d0d287ca40] Nvenc unloaded
+[in#0/lavfi @ 000001d0d281ed40] Input file #0 (color=c=black:s=640x360):
+[in#0/lavfi @ 000001d0d281ed40]   Input stream #0:0 (video): 19 packets read (8360 bytes); 10 frames decoded; 0 decode errors;
+[in#0/lavfi @ 000001d0d281ed40]   Total: 19 packets (8360 bytes) demuxed
+
+[FFMPEG] chosen encoder = NVENC
+[FFMPEG] exe=F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin\ffmpeg.exe
+[RTC] ffmpeg started 3840x1080 60fps 6000kbps CBR
+Input #0, rawvideo, from 'fd:':
+  Duration: N/A, start: 0.000000, bitrate: 7962624 kb/s
+  Stream #0:0: Video: rawvideo (BGRA / 0x41524742), bgra, 3840x1080, 7962624 kb/s, 60 tbr, 60 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_nvenc))
+Output #0, h264, to 'pipe:':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Video: h264 (Main), cuda(tv, progressive), 3840x1080, q=2-31, 6000 kb/s, 60 fps, 60 tbn
+      Metadata:
+        encoder         : Lavc61.19.101 h264_nvenc
+      Side data:
+        cpb: bitrate max/min/avg: 6000000/0/6000000 buffer size: 200000 vbv_delay: N/A
+[RTC] q=enq:17 deq:16 sent:11ze=     122KiB time=00:00:00.18 bitrate=5454.8kbits/s speed=0.177x
+[SendAuLoop] OUTPUT: 8.4 fps, 706 kbps | AU total=1700:00.25 bitrate=5600.2kbits/s speed=0.162x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:00.36 bitrate=5746.8kbits/s speed=0.178x
+[RTC] q=enq:42 deq:41 sent:36ze=     440KiB time=00:00:00.60 bitrate=6001.1kbits/s speed=0.194x
+[SendAuLoop] OUTPUT: 12.4 fps, 1448 kbps | AU total=43:00.68 bitrate=6081.3kbits/s speed=0.189x
+[ClusterCapture] Frame #60: 3840x1080 (GPU composited):00.86 bitrate=6032.1kbits/s speed=0.187x
+[ClusterCapture->RTC] Frame #60: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:66 deq:65 sent:59ze=     786KiB time=00:00:01.00 bitrate=6442.6kbits/s speed=0.194x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 12.3 fps, 1390 kbps | AU total=68:01.10 bitrate=6888.3kbits/s speed=0.194x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:01.41 bitrate=6179.6kbits/s speed=0.196x
+[RTC] q=enq:90 deq:89 sent:83
+[SendAuLoop] OUTPUT: 12.2 fps, 1149 kbps | AU total=93:01.51 bitrate=6260.5kbits/s speed=0.196x
+[RTC] q=enq:114 deq:113 sent:108    1366KiB time=00:00:01.83 bitrate=6105.6kbits/s speed=0.197x
+[ClusterCapture] Frame #120: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #120: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 11.7 fps, 1062 kbps | AU total=11701.93 bitrate=6087.7kbits/s speed=0.197x
+[H264] AU has IDR (SPS=True, PPS=True)97KiB time=00:00:02.01 bitrate=6082.9kbits/s speed=0.196x
+[RTC] q=enq:138 deq:137 sent:131    1670KiB time=00:00:02.13 bitrate=6412.2kbits/s speed=0.197x
+[SendAuLoop] OUTPUT: 11.4 fps, 1190 kbps | AU total=14002.33 bitrate=6128.1kbits/s speed=0.197x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:160 deq:159 sent:154    1878KiB time=00:00:02.51 bitrate=6113.0kbits/s speed=0.195x
+[SendAuLoop] OUTPUT: 11.5 fps, 953 kbps | AU total=163:02.71 bitrate=5971.4kbits/s speed=0.195x
+[ClusterCapture] Frame #180: 3840x1080 (GPU composited)02.81 bitrate=5988.0kbits/s speed=0.195x
+[ClusterCapture->RTC] Frame #180: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:184 deq:183 sent:178    2148KiB time=00:00:02.93 bitrate=5998.4kbits/s speed=0.196x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 12.0 fps, 1610 kbps | AU total=18703.13 bitrate=6289.2kbits/s speed=0.196x
+[RTC] q=enq:208 deq:207 sent:201    2496KiB time=00:00:03.33 bitrate=6134.8kbits/s speed=0.196x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.0 fps, 980 kbps | AU total=211:03.43 bitrate=6078.7kbits/s speed=0.196x
+[RTC] q=enq:232 deq:231 sent:226    2769KiB time=00:00:03.73 bitrate=6075.7kbits/s speed=0.196x
+[ClusterCapture] Frame #240: 3840x1080 (GPU composited)03.85 bitrate=6055.7kbits/s speed=0.196x
+[ClusterCapture->RTC] Frame #240: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.2 fps, 993 kbps | AU total=236
+[H264] AU has IDR (SPS=True, PPS=True)95KiB time=00:00:03.96 bitrate=5978.1kbits/s speed=0.197x
+[RTC] q=enq:258 deq:257 sent:252    3168KiB time=00:00:04.18 bitrate=6203.8kbits/s speed=0.198x
+[SendAuLoop] OUTPUT: 13.0 fps, 1457 kbps | AU total=26204.31 bitrate=6135.2kbits/s speed=0.199x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:04.40 bitrate=6054.2kbits/s speed=0.198x
+[RTC] q=enq:281 deq:280 sent:275    3365KiB time=00:00:04.60 bitrate=5993.1kbits/s speed=0.198x
+[SendAuLoop] OUTPUT: 11.4 fps, 1055 kbps | AU total=28504.70 bitrate=5997.0kbits/s speed=0.198x
+[ClusterCapture] Frame #300: 3840x1080 (GPU composited)04.80 bitrate=6001.3kbits/s speed=0.198x
+[ClusterCapture->RTC] Frame #300: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:305 deq:304 sent:299    3690KiB time=00:00:05.00 bitrate=6045.0kbits/s speed=0.198x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 10.2 fps, 1383 kbps | AU total=30605.06 bitrate=6163.6kbits/s speed=0.196x
+[RTC] q=enq:322 deq:321 sent:315    3925KiB time=00:00:05.28 bitrate=6085.7kbits/s speed=0.193x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:05.40 bitrate=6051.7kbits/s speed=0.194x
+[SendAuLoop] OUTPUT: 10.7 fps, 726 kbps | AU total=328
+[RTC] q=enq:348 deq:347 sent:342    4129KiB time=00:00:05.63 bitrate=6004.8kbits/s speed=0.195x
+[SendAuLoop] OUTPUT: 11.8 fps, 1099 kbps | AU total=35205.81 bitrate=5991.0kbits/s speed=0.194x
+[ClusterCapture] Frame #360: 3840x1080 (GPU composited)05.91 bitrate=6004.5kbits/s speed=0.194x
+[ClusterCapture->RTC] Frame #360: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)95KiB time=00:00:06.00 bitrate=6000.2kbits/s speed=0.194x
+[RTC] q=enq:369 deq:368 sent:363
+[SendAuLoop] OUTPUT: 11.4 fps, 1336 kbps | AU total=37506.20 bitrate=6072.5kbits/s speed=0.194x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:06.33 bitrate=6043.3kbits/s speed=0.195x
+[RTC] q=enq:397 deq:396 sent:391    4749KiB time=00:00:06.46 bitrate=6016.1kbits/s speed=0.196x
+[SendAuLoop] OUTPUT: 13.9 fps, 1226 kbps | AU total=40306.68 bitrate=5993.5kbits/s speed=0.196x
+[ClusterCapture] Frame #420: 3840x1080 (GPU composited)06.90 bitrate=5993.9kbits/s speed=0.197x
+[ClusterCapture->RTC] Frame #420: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:422 deq:421 sent:415
+[H264] AU has IDR (SPS=True, PPS=True)24KiB time=00:00:07.00 bitrate=5996.2kbits/s speed=0.197x
+[SendAuLoop] OUTPUT: 12.0 fps, 1494 kbps | AU total=42807.10 bitrate=6134.7kbits/s speed=0.197x
+[RTC] q=enq:442 deq:441 sent:436    5389KiB time=00:00:07.26 bitrate=6075.6kbits/s speed=0.196x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:07.41 bitrate=6053.6kbits/s speed=0.194x
+[SendAuLoop] OUTPUT: 8.8 fps, 747 kbps | AU total=446
+[RTC] q=enq:467 deq:466 sent:461    5625KiB time=00:00:07.65 bitrate=6023.8kbits/s speed=0.195x
+[SendAuLoop] OUTPUT: 13.4 fps, 1199 kbps | AU total=47307.86 bitrate=5990.4kbits/s speed=0.195x
+[ClusterCapture] Frame #480: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #480: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)54KiB time=00:00:07.98 bitrate=6006.7kbits/s speed=0.196x
+[RTC] q=enq:491 deq:490 sent:485    6015KiB time=00:00:08.08 bitrate=6095.6kbits/s speed=0.196x
+[SendAuLoop] OUTPUT: 12.9 fps, 1501 kbps | AU total=49908.31 bitrate=6045.4kbits/s speed=0.197x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:517 deq:516 sent:511    6287KiB time=00:00:08.55 bitrate=6023.9kbits/s speed=0.197x
+[SendAuLoop] OUTPUT: 13.8 fps, 1181 kbps | AU total=52708.78 bitrate=5997.0kbits/s speed=0.198x
+[ClusterCapture] Frame #540: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #540: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)50KiB time=00:00:08.95 bitrate=5994.8kbits/s speed=0.199x
+[RTC] q=enq:548 deq:547 sent:541    6689KiB time=00:00:09.05 bitrate=6054.6kbits/s speed=0.199x
+[SendAuLoop] OUTPUT: 14.3 fps, 1828 kbps | AU total=55609.28 bitrate=6102.8kbits/s speed= 0.2x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:09.40 bitrate=6063.9kbits/s speed= 0.2x
+[RTC] q=enq:574 deq:573 sent:568
+[SendAuLoop] OUTPUT: 10.9 fps, 963 kbps | AU total=578:09.65 bitrate=6055.6kbits/s speed=0.199x
+[RTC] q=enq:597 deq:596 sent:590    7183KiB time=00:00:09.75 bitrate=6034.9kbits/s speed=0.199x
+[ClusterCapture] Frame #600: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #600: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:09.90 bitrate=6074.4kbits/s speed= 0.2x
+[H264] AU has IDR (SPS=True, PPS=True)71KiB time=00:00:10.00 bitrate=6038.2kbits/s speed= 0.2x
+[SendAuLoop] OUTPUT: 14.4 fps, 1710 kbps | AU total=607
+[RTC] q=enq:626 deq:625 sent:620    7633KiB time=00:00:10.28 bitrate=6080.9kbits/s speed=0.201x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:10.40 bitrate=6070.7kbits/s speed=0.202x
+[SendAuLoop] OUTPUT: 12.5 fps, 1134 kbps | AU total=63310.56 bitrate=6071.5kbits/s speed=0.201x
+[RTC] q=enq:647 deq:646 sent:641    7870KiB time=00:00:10.65 bitrate=6053.4kbits/s speed= 0.2x
+[ClusterCapture] Frame #660: 3840x1080 (GPU composited)10.90 bitrate=6060.4kbits/s speed=0.201x
+[ClusterCapture->RTC] Frame #660: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.0 fps, 946 kbps | AU total=657
+[H264] AU has IDR (SPS=True, PPS=True)16KiB time=00:00:11.00 bitrate=6044.6kbits/s speed=0.201x
+[RTC] q=enq:674 deq:673 sent:666    8281KiB time=00:00:11.08 bitrate=6121.0kbits/s speed=0.201x
+[SendAuLoop] OUTPUT: 12.4 fps, 1350 kbps | AU total=68211.30 bitrate=6099.9kbits/s speed=0.201x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:702 deq:701 sent:695    8603KiB time=00:00:11.56 bitrate=6092.8kbits/s speed=0.202x
+[ClusterCapture] Frame #720: 3840x1080 (GPU composited)11.83 bitrate=6030.7kbits/s speed=0.203x
+[ClusterCapture->RTC] Frame #720: 3840x1080
+[SendAuLoop] OUTPUT: 14.9 fps, 1365 kbps | AU total=713
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)76KiB time=00:00:11.95 bitrate=6015.9kbits/s speed=0.203x
+[RTC] q=enq:730 deq:729 sent:723    8912KiB time=00:00:12.06 bitrate=6050.6kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 12.8 fps, 1285 kbps | AU total=73912.26 bitrate=6032.6kbits/s speed=0.203x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:12.36 bitrate=6049.5kbits/s speed=0.203x
+[RTC] q=enq:753 deq:752 sent:747    9200KiB time=00:00:12.46 bitrate=6045.5kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 13.2 fps, 1111 kbps | AU total=76612.71 bitrate=6013.5kbits/s speed=0.204x
+[ClusterCapture] Frame #780: 3840x1080 (GPU composited)12.83 bitrate=5999.5kbits/s speed=0.204x
+[ClusterCapture->RTC] Frame #780: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:782 deq:781 sent:776    9464KiB time=00:00:12.93 bitrate=5994.3kbits/s speed=0.204x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 13.7 fps, 1494 kbps | AU total=79413.18 bitrate=6030.3kbits/s speed=0.204x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:13.28 bitrate=6010.3kbits/s speed=0.204x
+[RTC] q=enq:811 deq:810 sent:803
+[SendAuLoop] OUTPUT: 16.4 fps, 1697 kbps | AU total=82713.73 bitrate=6059.6kbits/s speed=0.206x
+[ClusterCapture] Frame #840: 3840x1080 (GPU composited)13.85 bitrate=6017.9kbits/s speed=0.206x
+[ClusterCapture->RTC] Frame #840: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:843 deq:842 sent:835
+[H264] AU has IDR (SPS=True, PPS=True)31KiB time=00:00:13.98 bitrate=5993.6kbits/s speed=0.207x
+[SendAuLoop] OUTPUT: 14.9 fps, 1446 kbps | AU total=85714.23 bitrate=6051.9kbits/s speed=0.207x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:14.38 bitrate=6021.9kbits/s speed=0.208x
+[RTC] q=enq:871 deq:870 sent:865
+[SendAuLoop] OUTPUT: 10.9 fps, 953 kbps | AU total=880:14.65 bitrate=6018.2kbits/s speed=0.207x
+[RTC] q=enq:892 deq:891 sent:885   10779KiB time=00:00:14.73 bitrate=5993.2kbits/s speed=0.207x
+[ClusterCapture] Frame #900: 3840x1080 (GPU composited)14.83 bitrate=6002.6kbits/s speed=0.207x
+[ClusterCapture->RTC] Frame #900: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)04KiB time=00:00:15.01 bitrate=6003.3kbits/s speed=0.206x
+[SendAuLoop] OUTPUT: 10.6 fps, 1425 kbps | AU total=902
+[RTC] q=enq:914 deq:913 sent:908   11195KiB time=00:00:15.10 bitrate=6073.3kbits/s speed=0.206x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:15.40 bitrate=6041.7kbits/s speed=0.206x
+[SendAuLoop] OUTPUT: 11.7 fps, 1276 kbps | AU total=926
+[RTC] q=enq:936 deq:935 sent:930   11445KiB time=00:00:15.50 bitrate=6048.6kbits/s speed=0.206x
+[SendAuLoop] OUTPUT: 9.7 fps, 652 kbps | AU total=9460:15.75 bitrate=5996.8kbits/s speed=0.205x
+[ClusterCapture] Frame #960: 3840x1080 (GPU composited)15.81 bitrate=6029.9kbits/s speed=0.204x
+[ClusterCapture->RTC] Frame #960: 3840x1080
+[RTC] q=enq:958 deq:957 sent:952
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)51KiB time=00:00:16.00 bitrate=6016.4kbits/s speed=0.205x
+[SendAuLoop] OUTPUT: 13.3 fps, 1514 kbps | AU total=97316.20 bitrate=6028.4kbits/s speed=0.205x
+[RTC] q=enq:982 deq:981 sent:976   11986KiB time=00:00:16.28 bitrate=6030.1kbits/s speed=0.205x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:16.36 bitrate=6023.1kbits/s speed=0.205x
+[SendAuLoop] OUTPUT: 9.5 fps, 584 kbps | AU total=9930:16.53 bitrate=6007.1kbits/s speed=0.204x
+[RTC] q=enq:1002 deq:1001 sent:995 12169KiB time=00:00:16.61 bitrate=5999.2kbits/s speed=0.204x
+[ClusterCapture] Frame #1020: 3840x1080 (GPU composited)6.80 bitrate=6003.9kbits/s speed=0.203x
+[ClusterCapture->RTC] Frame #1020: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:16.90 bitrate=5998.2kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 10.6 fps, 1121 kbps | AU total=1015
+[RTC] q=enq:1022 deq:1021 sent:1016
+[H264] AU has IDR (SPS=True, PPS=True)23KiB time=00:00:16.96 bitrate=5998.0kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 12.5 fps, 1375 kbps | AU total=10417.31 bitrate=6027.9kbits/s speed=0.203x
+[RTC] q=enq:1048 deq:1047 sent:1042
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:17.40 bitrate=6021.4kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 10.3 fps, 870 kbps | AU total=106217.68 bitrate=6003.8kbits/s speed=0.203x
+[RTC] q=enq:1068 deq:1067 sent:1062
+[ClusterCapture] Frame #1080: 3840x1080 (GPU composited)7.85 bitrate=5999.4kbits/s speed=0.202x
+[ClusterCapture->RTC] Frame #1080: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)25KiB time=00:00:17.93 bitrate=5995.4kbits/s speed=0.202x
+[SendAuLoop] OUTPUT: 11.8 fps, 1509 kbps | AU total=10868.05 bitrate=6024.3kbits/s speed=0.202x
+[RTC] q=enq:1094 deq:1093 sent:1087
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:18.31 bitrate=6019.7kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 14.3 fps, 1140 kbps | AU total=11158.55 bitrate=6012.6kbits/s speed=0.203x
+[RTC] q=enq:1121 deq:1120 sent:1115
+[ClusterCapture] Frame #1140: 3840x1080 (GPU composited)8.80 bitrate=6001.6kbits/s speed=0.204x
+[ClusterCapture->RTC] Frame #1140: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:18.90 bitrate=6004.4kbits/s speed=0.203x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:1151 deq:1150 sent:114514044KiB time=00:00:19.06 bitrate=6034.2kbits/s speed=0.204x
+[SendAuLoop] OUTPUT: 15.0 fps, 1772 kbps | AU total=1146
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:19.40 bitrate=6024.7kbits/s speed=0.204x
+[RTC] q=enq:1177 deq:1176 sent:117114296KiB time=00:00:19.50 bitrate=6005.9kbits/s speed=0.204x
+[SendAuLoop] OUTPUT: 12.6 fps, 1015 kbps | AU total=1172
+[ClusterCapture] Frame #1200: 3840x1080 (GPU composited)9.73 bitrate=6001.9kbits/s speed=0.204x
+[ClusterCapture->RTC] Frame #1200: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:19.85 bitrate=6001.7kbits/s speed=0.205x
+[H264] AU has IDR (SPS=True, PPS=True)50KiB time=00:00:20.00 bitrate=6000.6kbits/s speed=0.205x
+[RTC] q=enq:1206 deq:1205 sent:1200
+[SendAuLoop] OUTPUT: 14.5 fps, 1642 kbps | AU total=1202
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:20.30 bitrate=6011.2kbits/s speed=0.205x
+[RTC] q=enq:1231 deq:1230 sent:122514957KiB time=00:00:20.43 bitrate=5996.5kbits/s speed=0.205x
+[SendAuLoop] OUTPUT: 12.7 fps, 1143 kbps | AU total=1228
+[RTC] q=enq:1248 deq:1247 sent:124215183KiB time=00:00:20.73 bitrate=5998.9kbits/s speed=0.204x
+[SendAuLoop] OUTPUT: 7.9 fps, 669 kbps | AU total=1244
+[ClusterCapture] Frame #1260: 3840x1080 (GPU composited)0.78 bitrate=5997.1kbits/s speed=0.203x
+[ClusterCapture->RTC] Frame #1260: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:20.86 bitrate=6006.7kbits/s speed=0.203x
+[RTC] q=enq:1264 deq:1263 sent:125815335KiB time=00:00:20.93 bitrate=6001.1kbits/s speed=0.203x
+[H264] AU has IDR (SPS=True, PPS=True)79KiB time=00:00:21.00 bitrate=5999.1kbits/s speed=0.202x
+[SendAuLoop] OUTPUT: 8.9 fps, 1164 kbps | AU total=1262
+[RTC] q=enq:1289 deq:1288 sent:128315638KiB time=00:00:21.31 bitrate=6009.6kbits/s speed=0.203x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 11.8 fps, 893 kbps | AU total=128621.43 bitrate=5995.9kbits/s speed=0.203x
+[RTC] q=enq:1314 deq:1313 sent:130815948KiB time=00:00:21.75 bitrate=6006.8kbits/s speed=0.203x
+[ClusterCapture] Frame #1320: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #1320: 3840x1080
+[SendAuLoop] OUTPUT: 12.5 fps, 1258 kbps | AU total=13111.85 bitrate=6002.1kbits/s speed=0.203x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)98KiB time=00:00:21.96 bitrate=6003.5kbits/s speed=0.203x
+[RTC] q=enq:1342 deq:1341 sent:133516351KiB time=00:00:22.20 bitrate=6033.6kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 14.0 fps, 1970 kbps | AU total=13402.33 bitrate=6035.4kbits/s speed=0.203x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:1365 deq:1364 sent:135916747KiB time=00:00:22.63 bitrate=6061.4kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 11.5 fps, 1201 kbps | AU total=13632.73 bitrate=6048.3kbits/s speed=0.203x
+[ClusterCapture] Frame #1380: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #1380: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:22.85 bitrate=6035.5kbits/s speed=0.203x
+[H264] AU has IDR (SPS=True, PPS=True)30KiB time=00:00:22.96 bitrate=6038.8kbits/s speed=0.203x
+[RTC] q=enq:1391 deq:1390 sent:138517066KiB time=00:00:23.08 bitrate=6056.6kbits/s speed=0.203x
+[SendAuLoop] OUTPUT: 13.2 fps, 1139 kbps | AU total=13903.18 bitrate=6037.2kbits/s speed=0.203x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:23.41 bitrate=6026.7kbits/s speed=0.203x
+[RTC] q=enq:1418 deq:1417 sent:141217323KiB time=00:00:23.55 bitrate=6026.1kbits/s speed=0.204x
+[SendAuLoop] OUTPUT: 14.5 fps, 1260 kbps | AU total=1419
+[ClusterCapture] Frame #1440: 3840x1080 (GPU composited)3.71 bitrate=6014.9kbits/s speed=0.204x
+[ClusterCapture->RTC] Frame #1440: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:24.36 bitrate=6026.1kbits/s speed=0.208x
+[RTC] q=enq:1483 deq:1482 sent:147618100KiB time=00:00:24.60 bitrate=6027.3kbits/s speed=0.209x
+[ClusterCapture] Frame #1500: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #1500: 3840x1080
+[SendAuLoop] OUTPUT: 34.3 fps, 3501 kbps | AU total=1488
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:24.88 bitrate=6022.7kbits/s speed=0.211x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:25.21 bitrate=6025.1kbits/s speed=0.212x
+[ClusterCapture] Frame #1560: 3840x1080 (GPU composited)5.48 bitrate=6016.6kbits/s speed=0.214x
+[ClusterCapture->RTC] Frame #1560: 3840x1080
+[RTC] q=enq:1549 deq:1548 sent:154218898KiB time=00:00:25.71 bitrate=6019.8kbits/s speed=0.215x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 33.9 fps, 3115 kbps | AU total=1556
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:26.35 bitrate=6004.0kbits/s speed=0.218x
+[ClusterCapture] Frame #1620: 3840x1080 (GPU composited)6.63 bitrate=6003.4kbits/s speed=0.22x
+[ClusterCapture->RTC] Frame #1620: 3840x1080
+[RTC] q=enq:1615 deq:1614 sent:1609
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:26.86 bitrate=5998.7kbits/s speed=0.221x
+[SendAuLoop] OUTPUT: 32.0 fps, 3166 kbps | AU total=1620
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:27.38 bitrate=6015.5kbits/s speed=0.223x
+[ClusterCapture] Frame #1680: 3840x1080 (GPU composited)7.61 bitrate=6015.0kbits/s speed=0.224x
+[ClusterCapture->RTC] Frame #1680: 3840x1080
+[RTC] q=enq:1672 deq:1671 sent:1665
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:27.85 bitrate=6019.6kbits/s speed=0.225x
+[SendAuLoop] OUTPUT: 28.3 fps, 3034 kbps | AU total=1677
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:28.33 bitrate=6030.5kbits/s speed=0.227x
+[ClusterCapture] Frame #1740: 3840x1080 (GPU composited)8.60 bitrate=6027.4kbits/s speed=0.228x
+[ClusterCapture->RTC] Frame #1740: 3840x1080
+[RTC] q=enq:1732 deq:1731 sent:1725
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:28.86 bitrate=6026.4kbits/s speed=0.229x
+[SendAuLoop] OUTPUT: 29.3 fps, 3054 kbps | AU total=1736
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:29.38 bitrate=6038.4kbits/s speed=0.231x
+[ClusterCapture] Frame #1800: 3840x1080 (GPU composited)9.63 bitrate=6035.9kbits/s speed=0.232x
+[ClusterCapture->RTC] Frame #1800: 3840x1080
+[RTC] q=enq:1792 deq:1791 sent:1785
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:29.88 bitrate=6032.4kbits/s speed=0.233x
+[SendAuLoop] OUTPUT: 30.0 fps, 3136 kbps | AU total=1796
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:30.41 bitrate=6047.9kbits/s speed=0.236x
+[ClusterCapture] Frame #1860: 3840x1080 (GPU composited)0.65 bitrate=6055.4kbits/s speed=0.237x
+[ClusterCapture->RTC] Frame #1860: 3840x1080
+[RTC] q=enq:1851 deq:1850 sent:1844
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:30.90 bitrate=6052.9kbits/s speed=0.238x
+[SendAuLoop] OUTPUT: 29.5 fps, 3265 kbps | AU total=1855
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:31.16 bitrate=6071.5kbits/s speed=0.239x
+[ClusterCapture] Frame #1920: 3840x1080 (GPU composited)1.41 bitrate=6062.8kbits/s speed=0.24x
+[ClusterCapture->RTC] Frame #1920: 3840x1080
+[RTC] q=enq:1911 deq:1910 sent:190323450KiB time=00:00:31.66 bitrate=6066.4kbits/s speed=0.241x
+[SendAuLoop] OUTPUT: 28.5 fps, 3058 kbps | AU total=19121.90 bitrate=6064.1kbits/s speed=0.241x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:32.31 bitrate=6071.3kbits/s speed=0.243x
+[RTC] q=enq:1961 deq:1960 sent:195324120KiB time=00:00:32.53 bitrate=6073.4kbits/s speed=0.243x
+[ClusterCapture] Frame #1980: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #1980: 3840x1080
+[SendAuLoop] OUTPUT: 25.6 fps, 2649 kbps | AU total=1964
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:32.76 bitrate=6067.9kbits/s speed=0.244x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:33.28 bitrate=6066.5kbits/s speed=0.246x
+[RTC] q=enq:2020 deq:2019 sent:201324819KiB time=00:00:33.53 bitrate=6063.1kbits/s speed=0.247x
+[ClusterCapture] Frame #2040: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2040: 3840x1080
+[SendAuLoop] OUTPUT: 30.0 fps, 2873 kbps | AU total=2024
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:33.80 bitrate=6056.0kbits/s speed=0.248x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:34.36 bitrate=6052.8kbits/s speed=0.25x
+[RTC] q=enq:2084 deq:2083 sent:207825541KiB time=00:00:34.61 bitrate=6044.1kbits/s speed=0.251x
+[ClusterCapture] Frame #2100: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2100: 3840x1080
+[SendAuLoop] OUTPUT: 31.2 fps, 2882 kbps | AU total=2087
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:34.86 bitrate=6039.5kbits/s speed=0.252x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:35.30 bitrate=6041.9kbits/s speed=0.253x
+[RTC] q=enq:2141 deq:2140 sent:2134
+[ClusterCapture] Frame #2160: 3840x1080 (GPU composited)5.60 bitrate=6033.6kbits/s speed=0.255x
+[ClusterCapture->RTC] Frame #2160: 3840x1080
+[SendAuLoop] OUTPUT: 28.5 fps, 2638 kbps | AU total=2144
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:35.86 bitrate=6028.1kbits/s speed=0.256x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:36.16 bitrate=6035.8kbits/s speed=0.257x
+[ClusterCapture] Frame #2220: 3840x1080 (GPU composited)6.48 bitrate=6035.5kbits/s speed=0.258x
+[ClusterCapture->RTC] Frame #2220: 3840x1080
+[RTC] q=enq:2207 deq:2206 sent:2201
+[SendAuLoop] OUTPUT: 33.8 fps, 3392 kbps | AU total=22136.75 bitrate=6029.6kbits/s speed=0.259x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:37.31 bitrate=6027.8kbits/s speed=0.261x
+[ClusterCapture] Frame #2280: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2280: 3840x1080
+[RTC] q=enq:2276 deq:2275 sent:226927671KiB time=00:00:37.61 bitrate=6026.2kbits/s speed=0.262x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:37.91 bitrate=6019.8kbits/s speed=0.263x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 34.2 fps, 3433 kbps | AU total=2282
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:38.20 bitrate=6024.3kbits/s speed=0.264x
+[ClusterCapture] Frame #2340: 3840x1080 (GPU composited)8.46 bitrate=6025.4kbits/s speed=0.265x
+[ClusterCapture->RTC] Frame #2340: 3840x1080
+[RTC] q=enq:2338 deq:2337 sent:233228481KiB time=00:00:38.73 bitrate=6023.7kbits/s speed=0.266x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)39KiB time=00:00:38.96 bitrate=6020.8kbits/s speed=0.267x
+[SendAuLoop] OUTPUT: 29.4 fps, 2953 kbps | AU total=2341
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:39.40 bitrate=6027.1kbits/s speed=0.268x
+[ClusterCapture] Frame #2400: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2400: 3840x1080
+[RTC] q=enq:2393 deq:2392 sent:238629144KiB time=00:00:39.65 bitrate=6021.4kbits/s speed=0.269x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)44KiB time=00:00:39.98 bitrate=6012.1kbits/s speed=0.27x
+[SendAuLoop] OUTPUT: 31.2 fps, 3269 kbps | AU total=2404
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:40.25 bitrate=6026.5kbits/s speed=0.271x
+[ClusterCapture] Frame #2460: 3840x1080 (GPU composited)0.53 bitrate=6022.7kbits/s speed=0.272x
+[ClusterCapture->RTC] Frame #2460: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:40.78 bitrate=6018.3kbits/s speed=0.273x
+[RTC] q=enq:2460 deq:2459 sent:2454
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 30.3 fps, 3007 kbps | AU total=24651.06 bitrate=6032.2kbits/s speed=0.273x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:41.33 bitrate=6021.8kbits/s speed=0.274x
+[ClusterCapture] Frame #2520: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2520: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:41.88 bitrate=6015.5kbits/s speed=0.276x
+[RTC] q=enq:2524 deq:2523 sent:2518
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 33.0 fps, 2971 kbps | AU total=25322.20 bitrate=6019.4kbits/s speed=0.277x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:42.35 bitrate=6011.6kbits/s speed=0.277x
+[ClusterCapture] Frame #2580: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2580: 3840x1080
+[RTC] q=enq:2577 deq:2576 sent:257031351KiB time=00:00:42.81 bitrate=5998.3kbits/s speed=0.278x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 25.5 fps, 2486 kbps | AU total=25843.10 bitrate=6017.2kbits/s speed=0.279x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:43.38 bitrate=6008.8kbits/s speed=0.28x
+[ClusterCapture] Frame #2640: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2640: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:43.90 bitrate=6008.6kbits/s speed=0.282x
+[RTC] q=enq:2641 deq:2640 sent:2633
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 30.5 fps, 3397 kbps | AU total=2645
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:44.16 bitrate=6028.8kbits/s speed=0.282x
+[ClusterCapture] Frame #2700: 3840x1080 (GPU composited)4.46 bitrate=6023.9kbits/s speed=0.283x
+[ClusterCapture->RTC] Frame #2700: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:44.80 bitrate=6024.0kbits/s speed=0.285x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:2716 deq:2715 sent:2709
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:45.20 bitrate=6027.3kbits/s speed=0.286x
+[ClusterCapture] Frame #2760: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2760: 3840x1080
+[SendAuLoop] OUTPUT: 40.8 fps, 3946 kbps | AU total=2728
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:45.58 bitrate=6022.5kbits/s speed=0.288x
+[H264] AU has IDR (SPS=True, PPS=True)76KiB time=00:00:45.98 bitrate=6017.2kbits/s speed=0.289x
+[ClusterCapture] Frame #2820: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2820: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:46.36 bitrate=6017.4kbits/s speed=0.291x
+[RTC] q=enq:2805 deq:2804 sent:2797
+[SendAuLoop] OUTPUT: 41.5 fps, 4214 kbps | AU total=28116.73 bitrate=6019.8kbits/s speed=0.292x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)26KiB time=00:00:46.96 bitrate=6022.1kbits/s speed=0.293x
+[RTC] q=enq:2841 deq:2840 sent:283334722KiB time=00:00:47.18 bitrate=6028.4kbits/s speed=0.292x
+[ClusterCapture] Frame #2880: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #2880: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:47.36 bitrate=6027.1kbits/s speed=0.292x
+[SendAuLoop] OUTPUT: 21.9 fps, 2065 kbps | AU total=2855
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:47.73 bitrate=6024.0kbits/s speed=0.294x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #2940: 3840x1080 (GPU composited)8.08 bitrate=6034.1kbits/s speed=0.295x
+[ClusterCapture->RTC] Frame #2940: 3840x1080
+[RTC] q=enq:2907 deq:2906 sent:290035551KiB time=00:00:48.30 bitrate=6029.7kbits/s speed=0.295x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 30.5 fps, 3627 kbps | AU total=29168.45 bitrate=6046.9kbits/s speed=0.295x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:48.83 bitrate=6038.6kbits/s speed=0.297x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #3000: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3000: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:49.40 bitrate=6035.6kbits/s speed=0.298x
+[RTC] q=enq:2977 deq:2976 sent:2969
+[SendAuLoop] OUTPUT: 31.8 fps, 3072 kbps | AU total=29809.65 bitrate=6031.8kbits/s speed=0.299x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:49.83 bitrate=6034.9kbits/s speed=0.299x
+[H264] AU has IDR (SPS=True, PPS=True)34KiB time=00:00:50.01 bitrate=6032.8kbits/s speed=0.299x
+[ClusterCapture] Frame #3060: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3060: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:50.30 bitrate=6035.4kbits/s speed= 0.3x
+[RTC] q=enq:3030 deq:3029 sent:3021
+[SendAuLoop] OUTPUT: 27.5 fps, 2786 kbps | AU total=30360.56 bitrate=6034.2kbits/s speed=0.301x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:50.88 bitrate=6033.1kbits/s speed=0.301x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #3120: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3120: 3840x1080
+[RTC] q=enq:3084 deq:3083 sent:307637808KiB time=00:00:51.28 bitrate=6039.4kbits/s speed=0.302x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:51.40 bitrate=6041.6kbits/s speed=0.302x
+[SendAuLoop] OUTPUT: 23.4 fps, 2455 kbps | AU total=3084
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:51.70 bitrate=6036.6kbits/s speed=0.303x
+[ClusterCapture] Frame #3180: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3180: 3840x1080
+[H264] AU has IDR (SPS=True, PPS=True)19KiB time=00:00:52.00 bitrate=6036.8kbits/s speed=0.303x
+[RTC] q=enq:3144 deq:3143 sent:313638543KiB time=00:00:52.30 bitrate=6037.2kbits/s speed=0.304x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 29.9 fps, 3017 kbps | AU total=31452.43 bitrate=6042.0kbits/s speed=0.304x
+[RTC] q=enq:3174 deq:3173 sent:316538937KiB time=00:00:52.78 bitrate=6043.1kbits/s speed=0.303x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #3240: 3840x1080 (GPU composited)2.91 bitrate=6044.1kbits/s speed=0.303x
+[ClusterCapture->RTC] Frame #3240: 3840x1080
+[SendAuLoop] OUTPUT: 14.4 fps, 1519 kbps | AU total=3174
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:53.15 bitrate=6046.5kbits/s speed=0.304x
+[RTC] q=enq:3229 deq:3228 sent:322139644KiB time=00:00:53.75 bitrate=6042.1kbits/s speed=0.305x
+[ClusterCapture] Frame #3300: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3300: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)47KiB time=00:00:54.01 bitrate=6043.0kbits/s speed=0.306x
+[SendAuLoop] OUTPUT: 32.3 fps, 3348 kbps | AU total=3239
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:54.25 bitrate=6042.7kbits/s speed=0.306x
+[ClusterCapture] Frame #3360: 3840x1080 (GPU composited)4.55 bitrate=6044.6kbits/s speed=0.307x
+[ClusterCapture->RTC] Frame #3360: 3840x1080
+[RTC] q=enq:3299 deq:3298 sent:3291
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)33KiB time=00:00:54.95 bitrate=6042.6kbits/s speed=0.309x
+[SendAuLoop] OUTPUT: 39.2 fps, 3733 kbps | AU total=3318
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:55.38 bitrate=6037.7kbits/s speed=0.31x
+[ClusterCapture] Frame #3420: 3840x1080 (GPU composited)5.58 bitrate=6035.4kbits/s speed=0.31x
+[ClusterCapture->RTC] Frame #3420: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)89KiB time=00:00:55.96 bitrate=6028.9kbits/s speed=0.312x
+[RTC] q=enq:3380 deq:3379 sent:3371
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:56.33 bitrate=6035.0kbits/s speed=0.313x
+[SendAuLoop] OUTPUT: 40.0 fps, 3772 kbps | AU total=3398
+[ClusterCapture] Frame #3480: 3840x1080 (GPU composited)6.73 bitrate=6031.5kbits/s speed=0.314x
+[ClusterCapture->RTC] Frame #3480: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:57.35 bitrate=6029.5kbits/s speed=0.316x
+[RTC] q=enq:3457 deq:3456 sent:3449
+[ClusterCapture] Frame #3540: 3840x1080 (GPU composited)7.66 bitrate=6025.0kbits/s speed=0.317x
+[ClusterCapture->RTC] Frame #3540: 3840x1080
+[SendAuLoop] OUTPUT: 36.2 fps, 3509 kbps | AU total=3471
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)42KiB time=00:00:57.96 bitrate=6026.3kbits/s speed=0.317x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:58.25 bitrate=6024.1kbits/s speed=0.318x
+[ClusterCapture] Frame #3600: 3840x1080 (GPU composited)8.60 bitrate=6016.5kbits/s speed=0.319x
+[ClusterCapture->RTC] Frame #3600: 3840x1080
+[RTC] q=enq:3532 deq:3531 sent:3524
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)55KiB time=00:00:58.91 bitrate=6014.4kbits/s speed=0.32x
+[SendAuLoop] OUTPUT: 38.0 fps, 3504 kbps | AU total=3547
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:59.28 bitrate=6015.4kbits/s speed=0.321x
+[ClusterCapture] Frame #3660: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3660: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:00:59.90 bitrate=6012.1kbits/s speed=0.322x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:3608 deq:3607 sent:3599
+[SendAuLoop] OUTPUT: 35.9 fps, 3728 kbps | AU total=36200.20 bitrate=6017.8kbits/s speed=0.323x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #3720: 3840x1080 (GPU composited)0.51 bitrate=6020.6kbits/s speed=0.324x
+[ClusterCapture->RTC] Frame #3720: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:00.83 bitrate=6015.7kbits/s speed=0.325x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:3677 deq:3676 sent:366944893KiB time=00:01:01.11 bitrate=6017.3kbits/s speed=0.325x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:01.40 bitrate=6015.7kbits/s speed=0.326x
+[ClusterCapture] Frame #3780: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3780: 3840x1080
+[SendAuLoop] OUTPUT: 35.5 fps, 3383 kbps | AU total=3692
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:01.78 bitrate=6015.8kbits/s speed=0.327x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:3749 deq:3748 sent:374045780KiB time=00:01:02.33 bitrate=6016.5kbits/s speed=0.328x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #3840: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3840: 3840x1080
+[SendAuLoop] OUTPUT: 36.9 fps, 3672 kbps | AU total=37662.66 bitrate=6015.0kbits/s speed=0.329x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:03.36 bitrate=6015.2kbits/s speed=0.331x
+[ClusterCapture] Frame #3900: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3900: 3840x1080
+[RTC] q=enq:3825 deq:3824 sent:381546733KiB time=00:01:03.63 bitrate=6016.3kbits/s speed=0.331x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:03.90 bitrate=6013.2kbits/s speed=0.332x
+[SendAuLoop] OUTPUT: 34.4 fps, 3467 kbps | AU total=3836
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:04.23 bitrate=6015.3kbits/s speed=0.333x
+[ClusterCapture] Frame #3960: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #3960: 3840x1080
+[RTC] q=enq:3893 deq:3892 sent:388547584KiB time=00:01:04.80 bitrate=6015.5kbits/s speed=0.334x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 33.3 fps, 3462 kbps | AU total=39045.05 bitrate=6018.7kbits/s speed=0.334x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:05.30 bitrate=6016.5kbits/s speed=0.335x
+[ClusterCapture] Frame #4020: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4020: 3840x1080
+[RTC] q=enq:3958 deq:3957 sent:395048170KiB time=00:01:05.60 bitrate=6015.3kbits/s speed=0.335x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)76KiB time=00:01:05.91 bitrate=6012.0kbits/s speed=0.336x
+[SendAuLoop] OUTPUT: 36.0 fps, 3571 kbps | AU total=39766.26 bitrate=6018.1kbits/s speed=0.337x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #4080: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4080: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:06.60 bitrate=6015.1kbits/s speed=0.338x
+[H264] AU has IDR (SPS=True, PPS=True)97KiB time=00:01:07.00 bitrate=6015.2kbits/s speed=0.339x
+[RTC] q=enq:4039 deq:4038 sent:4031
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:07.30 bitrate=6017.4kbits/s speed=0.34x
+[ClusterCapture] Frame #4140: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4140: 3840x1080
+[SendAuLoop] OUTPUT: 38.5 fps, 4025 kbps | AU total=40537.58 bitrate=6020.7kbits/s speed=0.34x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:07.86 bitrate=6021.6kbits/s speed=0.341x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:4109 deq:4108 sent:410050148KiB time=00:01:08.18 bitrate=6025.1kbits/s speed=0.341x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #4200: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4200: 3840x1080
+[SendAuLoop] OUTPUT: 34.4 fps, 3596 kbps | AU total=41228.51 bitrate=6024.1kbits/s speed=0.342x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:08.76 bitrate=6025.5kbits/s speed=0.343x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4260: 3840x1080 (GPU composited)9.36 bitrate=6021.9kbits/s speed=0.344x
+[ClusterCapture->RTC] Frame #4260: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:4176 deq:4175 sent:4167
+[SendAuLoop] OUTPUT: 33.4 fps, 3170 kbps | AU total=41899.65 bitrate=6021.2kbits/s speed=0.344x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)77KiB time=00:01:09.91 bitrate=6019.7kbits/s speed=0.345x
+[ClusterCapture] Frame #4320: 3840x1080 (GPU composited)0.23 bitrate=6020.6kbits/s speed=0.345x
+[ClusterCapture->RTC] Frame #4320: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:4242 deq:4241 sent:423451832KiB time=00:01:10.51 bitrate=6021.4kbits/s speed=0.346x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:10.78 bitrate=6019.2kbits/s speed=0.346x
+[SendAuLoop] OUTPUT: 32.6 fps, 3294 kbps | AU total=4255
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4380: 3840x1080 (GPU composited)1.33 bitrate=6023.7kbits/s speed=0.347x
+[ClusterCapture->RTC] Frame #4380: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:4305 deq:4304 sent:429752613KiB time=00:01:11.58 bitrate=6021.1kbits/s speed=0.348x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:11.83 bitrate=6020.2kbits/s speed=0.348x
+[SendAuLoop] OUTPUT: 30.5 fps, 2984 kbps | AU total=4316
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4440: 3840x1080 (GPU composited)2.08 bitrate=6022.7kbits/s speed=0.348x
+[ClusterCapture->RTC] Frame #4440: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:12.35 bitrate=6020.5kbits/s speed=0.349x
+[RTC] q=enq:4366 deq:4365 sent:435853352KiB time=00:01:12.63 bitrate=6017.3kbits/s speed=0.349x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)58KiB time=00:01:12.93 bitrate=6015.8kbits/s speed=0.35x
+[SendAuLoop] OUTPUT: 33.5 fps, 3357 kbps | AU total=4383
+[ClusterCapture] Frame #4500: 3840x1080 (GPU composited)3.26 bitrate=6018.1kbits/s speed=0.351x
+[ClusterCapture->RTC] Frame #4500: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:4436 deq:4435 sent:442754236KiB time=00:01:13.83 bitrate=6017.6kbits/s speed=0.351x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 34.0 fps, 3575 kbps | AU total=44524.13 bitrate=6024.1kbits/s speed=0.352x
+[ClusterCapture] Frame #4560: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4560: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:14.41 bitrate=6024.5kbits/s speed=0.353x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:14.71 bitrate=6023.5kbits/s speed=0.353x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:4508 deq:4507 sent:4499
+[ClusterCapture] Frame #4620: 3840x1080 (GPU composited)5.06 bitrate=6023.2kbits/s speed=0.354x
+[ClusterCapture->RTC] Frame #4620: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:15.36 bitrate=6023.0kbits/s speed=0.354x
+[SendAuLoop] OUTPUT: 36.0 fps, 3601 kbps | AU total=4524
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:15.86 bitrate=6024.3kbits/s speed=0.355x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:4570 deq:4569 sent:4561
+[ClusterCapture] Frame #4680: 3840x1080 (GPU composited)6.13 bitrate=6024.1kbits/s speed=0.355x
+[ClusterCapture->RTC] Frame #4680: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 32.0 fps, 3164 kbps | AU total=45886.46 bitrate=6022.3kbits/s speed=0.356x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:16.78 bitrate=6019.0kbits/s speed=0.357x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4740: 3840x1080 (GPU composited)7.11 bitrate=6023.2kbits/s speed=0.357x
+[ClusterCapture->RTC] Frame #4740: 3840x1080
+[RTC] q=enq:4647 deq:4646 sent:4638
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 35.2 fps, 3305 kbps | AU total=46597.68 bitrate=6017.7kbits/s speed=0.358x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:17.90 bitrate=6016.4kbits/s speed=0.359x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4800: 3840x1080 (GPU composited)8.16 bitrate=6018.6kbits/s speed=0.359x
+[ClusterCapture->RTC] Frame #4800: 3840x1080
+[RTC] q=enq:4705 deq:4704 sent:4696
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 31.2 fps, 3221 kbps | AU total=47228.75 bitrate=6019.0kbits/s speed=0.36x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4860: 3840x1080 (GPU composited)9.03 bitrate=6020.6kbits/s speed=0.36x
+[ClusterCapture->RTC] Frame #4860: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:19.30 bitrate=6021.9kbits/s speed=0.361x
+[RTC] q=enq:4771 deq:4770 sent:4762
+[SendAuLoop] OUTPUT: 32.6 fps, 3309 kbps | AU total=47889.58 bitrate=6019.7kbits/s speed=0.361x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:19.88 bitrate=6020.1kbits/s speed=0.362x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #4920: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4920: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:20.23 bitrate=6025.3kbits/s speed=0.362x
+[RTC] q=enq:4844 deq:4843 sent:483659238KiB time=00:01:20.53 bitrate=6025.8kbits/s speed=0.363x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:20.81 bitrate=6028.8kbits/s speed=0.363x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 37.0 fps, 4238 kbps | AU total=4863
+[ClusterCapture] Frame #4980: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #4980: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:21.16 bitrate=6031.6kbits/s speed=0.364x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:21.88 bitrate=6029.2kbits/s speed=0.366x
+[RTC] q=enq:4924 deq:4923 sent:4915
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #5040: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5040: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:22.18 bitrate=6034.1kbits/s speed=0.366x
+[SendAuLoop] OUTPUT: 39.2 fps, 4229 kbps | AU total=4942
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:22.81 bitrate=6036.9kbits/s speed=0.367x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #5100: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5100: 3840x1080
+[RTC] q=enq:4994 deq:4993 sent:498661304KiB time=00:01:23.10 bitrate=6043.4kbits/s speed=0.368x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:23.36 bitrate=6042.4kbits/s speed=0.368x
+[SendAuLoop] OUTPUT: 35.0 fps, 3578 kbps | AU total=5013
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:23.68 bitrate=6042.2kbits/s speed=0.369x
+[H264] AU has IDR (SPS=True, PPS=True)40KiB time=00:01:23.98 bitrate=6041.8kbits/s speed=0.369x
+[ClusterCapture] Frame #5160: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5160: 3840x1080
+[RTC] q=enq:5062 deq:5061 sent:505362172KiB time=00:01:24.25 bitrate=6045.3kbits/s speed=0.369x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 31.0 fps, 3163 kbps | AU total=50754.48 bitrate=6042.8kbits/s speed=0.37x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:24.90 bitrate=6042.2kbits/s speed=0.37x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #5220: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5220: 3840x1080
+[RTC] q=enq:5117 deq:5116 sent:510962863KiB time=00:01:25.20 bitrate=6044.3kbits/s speed=0.37x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 30.4 fps, 2395 kbps | AU total=51365.50 bitrate=6036.6kbits/s speed=0.371x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:25.80 bitrate=6017.9kbits/s speed=0.371x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #5280: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5280: 3840x1080
+[RTC] q=enq:5186 deq:5185 sent:517763232KiB time=00:01:26.35 bitrate=5998.8kbits/s speed=0.372x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 35.2 fps, 2414 kbps | AU total=52076.68 bitrate=6000.4kbits/s speed=0.372x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #5340: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5340: 3840x1080
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:27.38 bitrate=6000.5kbits/s speed=0.374x
+[RTC] q=enq:5262 deq:5261 sent:5253
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:27.65 bitrate=5999.8kbits/s speed=0.374x
+[ClusterCapture] Frame #5400: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5400: 3840x1080time=00:01:27.93 bitrate=6003.1kbits/s speed=0.374x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 36.1 fps, 4026 kbps | AU total=5280
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:28.26 bitrate=6010.8kbits/s speed=0.375x
+[RTC] q=enq:5334 deq:5333 sent:532664997KiB time=00:01:28.61 bitrate=6008.5kbits/s speed=0.376x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:28.88 bitrate=6012.0kbits/s speed=0.376x
+[ClusterCapture] Frame #5460: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5460: 3840x1080
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 36.9 fps, 3717 kbps | AU total=53549.21 bitrate=6011.5kbits/s speed=0.377x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #5520: 3840x1080 (GPU composited)9.80 bitrate=6013.6kbits/s speed=0.377x
+[ClusterCapture->RTC] Frame #5520: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:5405 deq:5404 sent:5396
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:30.40 bitrate=6017.4kbits/s speed=0.378x
+[SendAuLoop] OUTPUT: 34.1 fps, 3708 kbps | AU total=5423
+[ClusterCapture] Frame #5580: 3840x1080 (GPU composited)0.66 bitrate=6018.4kbits/s speed=0.379x
+[ClusterCapture->RTC] Frame #5580: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)13KiB time=00:01:30.96 bitrate=6016.8kbits/s speed=0.379x
+[RTC] q=enq:5474 deq:5473 sent:5466
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:31.26 bitrate=6020.9kbits/s speed=0.38x
+[SendAuLoop] OUTPUT: 34.9 fps, 3581 kbps | AU total=54941.60 bitrate=6019.5kbits/s speed=0.38x
+[ClusterCapture] Frame #5640: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5640: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)58KiB time=00:01:31.93 bitrate=6020.0kbits/s speed=0.381x
+[RTC] q=enq:5549 deq:5548 sent:554067818KiB time=00:01:32.25 bitrate=6022.4kbits/s speed=0.381x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 34.4 fps, 3583 kbps | AU total=55632.53 bitrate=6023.0kbits/s speed=0.382x
+[ClusterCapture] Frame #5700: 3840x1080 (GPU composited)2.78 bitrate=6021.5kbits/s speed=0.382x
+[ClusterCapture->RTC] Frame #5700: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:33.40 bitrate=6025.6kbits/s speed=0.383x
+[RTC] q=enq:5616 deq:5615 sent:5608
+[ClusterCapture] Frame #5760: 3840x1080 (GPU composited)3.66 bitrate=6024.8kbits/s speed=0.383x
+[ClusterCapture->RTC] Frame #5760: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 34.8 fps, 3492 kbps | AU total=5633
+[H264] AU has IDR (SPS=True, PPS=True)88KiB time=00:01:33.98 bitrate=6022.0kbits/s speed=0.383x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:34.25 bitrate=6022.1kbits/s speed=0.384x
+[RTC] q=enq:5676 deq:5675 sent:566869456KiB time=00:01:34.45 bitrate=6024.2kbits/s speed=0.384x
+[ClusterCapture] Frame #5820: 3840x1080 (GPU composited)4.70 bitrate=6025.0kbits/s speed=0.384x
+[ClusterCapture->RTC] Frame #5820: 3840x1080
+[SendAuLoop] OUTPUT: 28.7 fps, 2917 kbps | AU total=5691
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)23KiB time=00:01:35.00 bitrate=6020.9kbits/s speed=0.384x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:35.23 bitrate=6024.7kbits/s speed=0.384x
+[RTC] q=enq:5741 deq:5740 sent:573270255KiB time=00:01:35.55 bitrate=6023.4kbits/s speed=0.385x
+[ClusterCapture] Frame #5880: 3840x1080 (GPU composited)5.76 bitrate=6023.4kbits/s speed=0.385x
+[ClusterCapture->RTC] Frame #5880: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 30.8 fps, 3090 kbps | AU total=5754
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:36.31 bitrate=6020.1kbits/s speed=0.386x
+[RTC] q=enq:5800 deq:5799 sent:579170951KiB time=00:01:36.56 bitrate=6018.9kbits/s speed=0.386x
+[ClusterCapture] Frame #5940: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #5940: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:36.85 bitrate=6018.1kbits/s speed=0.386x
+[SendAuLoop] OUTPUT: 31.9 fps, 2999 kbps | AU total=5818
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:37.15 bitrate=6017.7kbits/s speed=0.387x
+[RTC] q=enq:5868 deq:5867 sent:586071775KiB time=00:01:37.73 bitrate=6016.1kbits/s speed=0.387x
+[ClusterCapture] Frame #6000: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6000: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 35.4 fps, 3324 kbps | AU total=58898.05 bitrate=6015.0kbits/s speed=0.388x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:38.36 bitrate=6012.9kbits/s speed=0.388x
+[ClusterCapture] Frame #6060: 3840x1080 (GPU composited)8.65 bitrate=6015.5kbits/s speed=0.389x
+[ClusterCapture->RTC] Frame #6060: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:5941 deq:5940 sent:5933
+[H264] AU has IDR (SPS=True, PPS=True)63KiB time=00:01:38.96 bitrate=6014.7kbits/s speed=0.389x
+[SendAuLoop] OUTPUT: 34.7 fps, 3618 kbps | AU total=59599.25 bitrate=6016.2kbits/s speed=0.389x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #6120: 3840x1080 (GPU composited)9.55 bitrate=6015.2kbits/s speed=0.39x
+[ClusterCapture->RTC] Frame #6120: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:39.86 bitrate=6014.7kbits/s speed=0.39x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:6012 deq:6011 sent:6003
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:40.16 bitrate=6014.0kbits/s speed=0.391x
+[SendAuLoop] OUTPUT: 37.3 fps, 3771 kbps | AU total=60340.53 bitrate=6014.3kbits/s speed=0.391x
+[ClusterCapture] Frame #6180: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6180: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:40.88 bitrate=6015.3kbits/s speed=0.392x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:6089 deq:6088 sent:608074350KiB time=00:01:41.23 bitrate=6016.6kbits/s speed=0.392x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #6240: 3840x1080 (GPU composited)1.48 bitrate=6016.4kbits/s speed=0.393x
+[ClusterCapture->RTC] Frame #6240: 3840x1080
+[SendAuLoop] OUTPUT: 35.3 fps, 3553 kbps | AU total=61051.75 bitrate=6016.8kbits/s speed=0.393x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)31KiB time=00:01:42.01 bitrate=6017.0kbits/s speed=0.393x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:42.28 bitrate=6018.6kbits/s speed=0.393x
+[RTC] q=enq:6151 deq:6150 sent:6142
+[ClusterCapture] Frame #6300: 3840x1080 (GPU composited)2.55 bitrate=6017.6kbits/s speed=0.393x
+[ClusterCapture->RTC] Frame #6300: 3840x1080
+[SendAuLoop] OUTPUT: 31.0 fps, 3131 kbps | AU total=61692.83 bitrate=6018.2kbits/s speed=0.394x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:43.40 bitrate=6018.7kbits/s speed=0.394x
+[RTC] q=enq:6217 deq:6216 sent:6208
+[ClusterCapture] Frame #6360: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6360: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:43.68 bitrate=6018.5kbits/s speed=0.395x
+[SendAuLoop] OUTPUT: 33.5 fps, 3287 kbps | AU total=62363.96 bitrate=6016.4kbits/s speed=0.395x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:44.23 bitrate=6017.7kbits/s speed=0.395x
+[RTC] q=enq:6281 deq:6280 sent:627276772KiB time=00:01:44.50 bitrate=6018.3kbits/s speed=0.396x
+[ClusterCapture] Frame #6420: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6420: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:44.78 bitrate=6016.3kbits/s speed=0.396x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 33.8 fps, 3366 kbps | AU total=63045.11 bitrate=6016.4kbits/s speed=0.396x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:45.41 bitrate=6016.6kbits/s speed=0.397x
+[ClusterCapture] Frame #6480: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6480: 3840x1080
+[RTC] q=enq:6355 deq:6354 sent:634677640KiB time=00:01:45.73 bitrate=6015.4kbits/s speed=0.397x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 36.9 fps, 3443 kbps | AU total=63796.06 bitrate=6013.9kbits/s speed=0.398x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:46.40 bitrate=6011.3kbits/s speed=0.398x
+[ClusterCapture] Frame #6540: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6540: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:46.71 bitrate=6010.8kbits/s speed=0.398x
+[RTC] q=enq:6425 deq:6424 sent:641778463KiB time=00:01:46.96 bitrate=6009.1kbits/s speed=0.399x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:47.26 bitrate=6013.2kbits/s speed=0.399x
+[SendAuLoop] OUTPUT: 33.9 fps, 3361 kbps | AU total=6447
+[ClusterCapture] Frame #6600: 3840x1080 (GPU composited)7.56 bitrate=6010.5kbits/s speed=0.399x
+[ClusterCapture->RTC] Frame #6600: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:47.86 bitrate=6009.5kbits/s speed= 0.4x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:6497 deq:6496 sent:648879418KiB time=00:01:48.20 bitrate=6012.9kbits/s speed= 0.4x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #6660: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6660: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:48.61 bitrate=6011.8kbits/s speed=0.401x
+[SendAuLoop] OUTPUT: 41.8 fps, 4124 kbps | AU total=6531
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:49.31 bitrate=6011.8kbits/s speed=0.402x
+[RTC] q=enq:6577 deq:6576 sent:6569
+[ClusterCapture] Frame #6720: 3840x1080 (GPU composited)9.58 bitrate=6009.5kbits/s speed=0.402x
+[ClusterCapture->RTC] Frame #6720: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:49.85 bitrate=6010.6kbits/s speed=0.402x
+[SendAuLoop] OUTPUT: 33.3 fps, 3500 kbps | AU total=6598
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:50.35 bitrate=6014.7kbits/s speed=0.403x
+[RTC] q=enq:6638 deq:6637 sent:6629
+[ClusterCapture] Frame #6780: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6780: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:50.65 bitrate=6014.2kbits/s speed=0.403x
+[H264] AU has IDR (SPS=True, PPS=True)59KiB time=00:01:50.96 bitrate=6013.6kbits/s speed=0.403x
+[SendAuLoop] OUTPUT: 32.3 fps, 3352 kbps | AU total=6663
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:51.21 bitrate=6014.4kbits/s speed=0.404x
+[ClusterCapture] Frame #6840: 3840x1080 (GPU composited)1.51 bitrate=6014.0kbits/s speed=0.404x
+[ClusterCapture->RTC] Frame #6840: 3840x1080
+[RTC] q=enq:6713 deq:6712 sent:6704
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:51.90 bitrate=6012.5kbits/s speed=0.405x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 37.4 fps, 3552 kbps | AU total=67382.23 bitrate=6010.8kbits/s speed=0.405x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #6900: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6900: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:52.88 bitrate=6009.9kbits/s speed=0.406x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:6787 deq:6786 sent:6779
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:53.16 bitrate=6008.8kbits/s speed=0.406x
+[SendAuLoop] OUTPUT: 34.7 fps, 3318 kbps | AU total=68083.45 bitrate=6008.1kbits/s speed=0.406x
+[ClusterCapture] Frame #6960: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #6960: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:53.76 bitrate=6005.4kbits/s speed=0.407x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:6857 deq:6856 sent:684883596KiB time=00:01:54.05 bitrate=6004.5kbits/s speed=0.407x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:54.36 bitrate=6001.0kbits/s speed=0.407x
+[ClusterCapture] Frame #7020: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7020: 3840x1080
+[SendAuLoop] OUTPUT: 37.0 fps, 3195 kbps | AU total=68824.68 bitrate=5999.9kbits/s speed=0.408x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)56KiB time=00:01:55.01 bitrate=6001.1kbits/s speed=0.408x
+[RTC] q=enq:6926 deq:6925 sent:691884488KiB time=00:01:55.28 bitrate=6003.7kbits/s speed=0.408x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[ClusterCapture] Frame #7080: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7080: 3840x1080
+[SendAuLoop] OUTPUT: 33.0 fps, 3307 kbps | AU total=69485.81 bitrate=5999.6kbits/s speed=0.409x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:56.13 bitrate=6002.0kbits/s speed=0.409x
+[ClusterCapture] Frame #7140: 3840x1080 (GPU composited)6.45 bitrate=6000.0kbits/s speed=0.41x
+[ClusterCapture->RTC] Frame #7140: 3840x1080
+[RTC] q=enq:6996 deq:6995 sent:6987
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:56.75 bitrate=6001.3kbits/s speed=0.41x
+[SendAuLoop] OUTPUT: 34.4 fps, 3525 kbps | AU total=7017
+[H264] AU has IDR (SPS=True, PPS=True)18KiB time=00:01:57.01 bitrate=6000.9kbits/s speed=0.41x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:57.30 bitrate=6004.3kbits/s speed=0.41x
+[ClusterCapture] Frame #7200: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7200: 3840x1080
+[RTC] q=enq:7062 deq:7061 sent:705386183KiB time=00:01:57.58 bitrate=6004.4kbits/s speed=0.411x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:57.86 bitrate=6004.7kbits/s speed=0.411x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 31.8 fps, 3742 kbps | AU total=7082
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:58.41 bitrate=6007.0kbits/s speed=0.411x
+[ClusterCapture] Frame #7260: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7260: 3840x1080
+[RTC] q=enq:7124 deq:7123 sent:711586999KiB time=00:01:58.65 bitrate=6006.7kbits/s speed=0.411x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)03KiB time=00:01:58.91 bitrate=6007.3kbits/s speed=0.411x
+[SendAuLoop] OUTPUT: 29.8 fps, 3138 kbps | AU total=7142
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:59.11 bitrate=6012.8kbits/s speed=0.411x
+[ClusterCapture] Frame #7320: 3840x1080 (GPU composited)9.41 bitrate=6009.4kbits/s speed=0.412x
+[ClusterCapture->RTC] Frame #7320: 3840x1080
+[RTC] q=enq:7189 deq:7188 sent:7181
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:01:59.76 bitrate=6009.2kbits/s speed=0.412x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 29.5 fps, 3011 kbps | AU total=72040.05 bitrate=6014.0kbits/s speed=0.412x
+[RTC] q=enq:7224 deq:7223 sent:721688246KiB time=00:02:00.25 bitrate=6011.8kbits/s speed=0.412x
+[ClusterCapture] Frame #7380: 3840x1080 (GPU composited)0.36 bitrate=6011.4kbits/s speed=0.411x
+[ClusterCapture->RTC] Frame #7380: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.0 fps, 1047 kbps | AU total=72280.46 bitrate=6011.9kbits/s speed=0.411x
+[RTC] q=enq:7247 deq:7246 sent:723888524KiB time=00:02:00.65 bitrate=6010.7kbits/s speed=0.41x
+[SendAuLoop] OUTPUT: 11.3 fps, 1012 kbps | AU total=72510.83 bitrate=6010.4kbits/s speed=0.409x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)17KiB time=00:02:00.93 bitrate=6009.7kbits/s speed=0.409x
+[RTC] q=enq:7269 deq:7268 sent:726188800KiB time=00:02:01.03 bitrate=6010.3kbits/s speed=0.409x
+[SendAuLoop] OUTPUT: 11.4 fps, 1252 kbps | AU total=72741.21 bitrate=6011.7kbits/s speed=0.408x
+[ClusterCapture] Frame #7440: 3840x1080 (GPU composited)1.33 bitrate=6011.5kbits/s speed=0.407x
+[ClusterCapture->RTC] Frame #7440: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:7295 deq:7294 sent:728789106KiB time=00:02:01.46 bitrate=6009.5kbits/s speed=0.407x
+[SendAuLoop] OUTPUT: 14.5 fps, 1165 kbps | AU total=73041.73 bitrate=6007.6kbits/s speed=0.407x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:01.85 bitrate=6007.3kbits/s speed=0.406x
+[RTC] q=enq:7325 deq:7324 sent:731789394KiB time=00:02:01.96 bitrate=6004.2kbits/s speed=0.406x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 14.1 fps, 1398 kbps | AU total=73332.21 bitrate=6006.3kbits/s speed=0.406x
+[ClusterCapture] Frame #7500: 3840x1080 (GPU composited)2.41 bitrate=6004.5kbits/s speed=0.405x
+[ClusterCapture->RTC] Frame #7500: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:7350 deq:7349 sent:7342
+[SendAuLoop] OUTPUT: 11.7 fps, 761 kbps | AU total=735702.61 bitrate=6002.3kbits/s speed=0.404x
+[RTC] q=enq:7374 deq:7373 sent:736689961KiB time=00:02:02.81 bitrate=6000.5kbits/s speed=0.403x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:02.91 bitrate=6000.1kbits/s speed=0.403x
+[H264] AU has IDR (SPS=True, PPS=True)05KiB time=00:02:03.01 bitrate=6000.3kbits/s speed=0.403x
+[SendAuLoop] OUTPUT: 11.4 fps, 1505 kbps | AU total=7380
+[RTC] q=enq:7397 deq:7396 sent:738990298KiB time=00:02:03.21 bitrate=6003.4kbits/s speed=0.402x
+[ClusterCapture] Frame #7560: 3840x1080 (GPU composited)3.41 bitrate=6000.7kbits/s speed=0.401x
+[ClusterCapture->RTC] Frame #7560: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 11.9 fps, 800 kbps | AU total=7404
+[RTC] q=enq:7421 deq:7420 sent:741290479KiB time=00:02:03.51 bitrate=6000.8kbits/s speed=0.401x
+[SendAuLoop] OUTPUT: 11.4 fps, 1248 kbps | AU total=74273.80 bitrate=5999.7kbits/s speed= 0.4x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:03.90 bitrate=6000.6kbits/s speed=0.399x
+[RTC] q=enq:7443 deq:7442 sent:7435
+[H264] AU has IDR (SPS=True, PPS=True)24KiB time=00:02:04.00 bitrate=6000.3kbits/s speed=0.399x
+[SendAuLoop] OUTPUT: 11.2 fps, 1262 kbps | AU total=74504.20 bitrate=6002.7kbits/s speed=0.398x
+[RTC] q=enq:7466 deq:7465 sent:745791072KiB time=00:02:04.28 bitrate=6002.9kbits/s speed=0.398x
+[ClusterCapture] Frame #7620: 3840x1080 (GPU composited)4.38 bitrate=6001.5kbits/s speed=0.398x
+[ClusterCapture->RTC] Frame #7620: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 10.9 fps, 915 kbps | AU total=747204.56 bitrate=5999.8kbits/s speed=0.397x
+[RTC] q=enq:7488 deq:7487 sent:747991300KiB time=00:02:04.65 bitrate=6000.2kbits/s speed=0.397x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:04.85 bitrate=5999.8kbits/s speed=0.396x
+[SendAuLoop] OUTPUT: 11.1 fps, 1080 kbps | AU total=74954.95 bitrate=6000.1kbits/s speed=0.396x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:7510 deq:7509 sent:750191636KiB time=00:02:05.05 bitrate=6003.0kbits/s speed=0.395x
+[SendAuLoop] OUTPUT: 12.0 fps, 1230 kbps | AU total=75205.36 bitrate=6001.9kbits/s speed=0.394x
+[ClusterCapture] Frame #7680: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7680: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:7534 deq:7533 sent:752691877KiB time=00:02:05.45 bitrate=5999.7kbits/s speed=0.394x
+[SendAuLoop] OUTPUT: 11.8 fps, 1144 kbps | AU total=75445.76 bitrate=6000.1kbits/s speed=0.393x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:05.90 bitrate=5999.7kbits/s speed=0.393x
+[RTC] q=enq:7560 deq:7559 sent:7552
+[H264] AU has IDR (SPS=True, PPS=True)92KiB time=00:02:06.00 bitrate=6000.4kbits/s speed=0.393x
+[SendAuLoop] OUTPUT: 12.5 fps, 1493 kbps | AU total=75706.20 bitrate=6004.5kbits/s speed=0.392x
+[RTC] q=enq:7583 deq:7582 sent:757592563KiB time=00:02:06.28 bitrate=6004.6kbits/s speed=0.392x
+[ClusterCapture] Frame #7740: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7740: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.5 fps, 985 kbps | AU total=759606.63 bitrate=6000.5kbits/s speed=0.391x
+[RTC] q=enq:7608 deq:7607 sent:760092824KiB time=00:02:06.71 bitrate=6000.9kbits/s speed=0.39x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:06.83 bitrate=6000.3kbits/s speed=0.39x
+[H264] AU has IDR (SPS=True, PPS=True)93KiB time=00:02:06.95 bitrate=6000.8kbits/s speed=0.39x
+[SendAuLoop] OUTPUT: 12.7 fps, 1787 kbps | AU total=76227.05 bitrate=6004.6kbits/s speed=0.39x
+[RTC] q=enq:7635 deq:7634 sent:7625
+[ClusterCapture] Frame #7800: 3840x1080 (GPU composited)7.38 bitrate=6002.6kbits/s speed=0.389x
+[ClusterCapture->RTC] Frame #7800: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.7 fps, 911 kbps | AU total=764807.48 bitrate=6001.2kbits/s speed=0.388x
+[RTC] q=enq:7659 deq:7658 sent:7651
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:07.91 bitrate=5999.9kbits/s speed=0.387x
+[SendAuLoop] OUTPUT: 12.0 fps, 1085 kbps | AU total=7673
+[RTC] q=enq:7684 deq:7683 sent:7675
+[H264] AU has IDR (SPS=True, PPS=True)61KiB time=00:02:08.01 bitrate=5999.9kbits/s speed=0.387x
+[SendAuLoop] OUTPUT: 11.2 fps, 1234 kbps | AU total=76968.30 bitrate=6001.9kbits/s speed=0.386x
+[RTC] q=enq:7708 deq:7707 sent:7698
+[ClusterCapture] Frame #7860: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #7860: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 14.4 fps, 1339 kbps | AU total=77258.78 bitrate=6000.0kbits/s speed=0.385x
+[RTC] q=enq:7735 deq:7734 sent:7726
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:08.88 bitrate=6000.1kbits/s speed=0.385x
+[H264] AU has IDR (SPS=True, PPS=True)76KiB time=00:02:08.98 bitrate=6000.3kbits/s speed=0.385x
+[SendAuLoop] OUTPUT: 12.3 fps, 1482 kbps | AU total=77509.20 bitrate=6003.6kbits/s speed=0.384x
+[RTC] q=enq:7760 deq:7759 sent:7751
+[ClusterCapture] Frame #7920: 3840x1080 (GPU composited)9.31 bitrate=6002.8kbits/s speed=0.384x
+[ClusterCapture->RTC] Frame #7920: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 11.9 fps, 1081 kbps | AU total=77749.61 bitrate=6003.0kbits/s speed=0.383x
+[RTC] q=enq:7783 deq:7782 sent:7775
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:09.91 bitrate=6002.5kbits/s speed=0.382x
+[SendAuLoop] OUTPUT: 11.3 fps, 966 kbps | AU total=7797
+[H264] AU has IDR (SPS=True, PPS=True)30KiB time=00:02:10.01 bitrate=6000.2kbits/s speed=0.382x
+[RTC] q=enq:7806 deq:7805 sent:7798
+[ClusterCapture] Frame #7980: 3840x1080 (GPU composited)0.31 bitrate=6003.8kbits/s speed=0.381x
+[ClusterCapture->RTC] Frame #7980: 3840x1080
+[SendAuLoop] OUTPUT: 11.9 fps, 1438 kbps | AU total=7821
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:10.41 bitrate=6004.0kbits/s speed=0.381x
+[RTC] q=enq:7830 deq:7829 sent:7822
+[SendAuLoop] OUTPUT: 11.8 fps, 919 kbps | AU total=784510.73 bitrate=6001.9kbits/s speed=0.38x
+[RTC] q=enq:7853 deq:7852 sent:7845
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:10.81 bitrate=6000.0kbits/s speed=0.379x
+[H264] AU has IDR (SPS=True, PPS=True)58KiB time=00:02:11.01 bitrate=5999.9kbits/s speed=0.379x
+[SendAuLoop] OUTPUT: 11.3 fps, 1310 kbps | AU total=78681.11 bitrate=6005.8kbits/s speed=0.379x
+[RTC] q=enq:7876 deq:7875 sent:7868
+[ClusterCapture] Frame #8040: 3840x1080 (GPU composited)1.33 bitrate=6002.9kbits/s speed=0.378x
+[ClusterCapture->RTC] Frame #8040: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.4 fps, 1167 kbps | AU total=78931.53 bitrate=6002.5kbits/s speed=0.378x
+[RTC] q=enq:7901 deq:7900 sent:7893
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:11.85 bitrate=6000.6kbits/s speed=0.377x
+[SendAuLoop] OUTPUT: 11.8 fps, 1057 kbps | AU total=79171.95 bitrate=5999.5kbits/s speed=0.377x
+[RTC] q=enq:7925 deq:7924 sent:7917
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8100: 3840x1080 (GPU composited)2.31 bitrate=6002.7kbits/s speed=0.376x
+[ClusterCapture->RTC] Frame #8100: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 21.0 fps, 2073 kbps | AU total=79592.55 bitrate=6002.6kbits/s speed=0.376x
+[RTC] q=enq:7968 deq:7967 sent:7959
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:12.85 bitrate=6000.4kbits/s speed=0.376x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8160: 3840x1080 (GPU composited)3.13 bitrate=6004.2kbits/s speed=0.377x
+[ClusterCapture->RTC] Frame #8160: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:13.81 bitrate=6000.2kbits/s speed=0.377x
+[SendAuLoop] OUTPUT: 37.3 fps, 3785 kbps | AU total=8034
+[RTC] q=enq:8043 deq:8042 sent:8034
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8220: 3840x1080 (GPU composited)4.13 bitrate=6004.2kbits/s speed=0.378x
+[ClusterCapture->RTC] Frame #8220: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:14.73 bitrate=6000.0kbits/s speed=0.378x
+[H264] AU has IDR (SPS=True, PPS=True)80KiB time=00:02:15.00 bitrate=6000.2kbits/s speed=0.379x
+[SendAuLoop] OUTPUT: 32.8 fps, 3595 kbps | AU total=8100
+[RTC] q=enq:8109 deq:8108 sent:8099
+[ClusterCapture] Frame #8280: 3840x1080 (GPU composited)5.23 bitrate=6003.1kbits/s speed=0.379x
+[ClusterCapture->RTC] Frame #8280: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:15.85 bitrate=6000.4kbits/s speed=0.379x
+[H264] AU has IDR (SPS=True, PPS=True)20KiB time=00:02:16.01 bitrate=5999.9kbits/s speed=0.379x
+[RTC] q=enq:8168 deq:8167 sent:8159
+[SendAuLoop] OUTPUT: 29.7 fps, 2968 kbps | AU total=8160
+[ClusterCapture] Frame #8340: 3840x1080 (GPU composited)6.25 bitrate=6003.7kbits/s speed=0.379x
+[ClusterCapture->RTC] Frame #8340: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:16.86 bitrate=6000.3kbits/s speed=0.38x
+[H264] AU has IDR (SPS=True, PPS=True)
+[RTC] q=enq:8238 deq:8237 sent:823000534KiB time=00:02:17.18 bitrate=6003.4kbits/s speed=0.38x
+[SendAuLoop] OUTPUT: 35.2 fps, 3461 kbps | AU total=8231
+[ClusterCapture] Frame #8400: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #8400: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:17.88 bitrate=6008.3kbits/s speed=0.381x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8460: 3840x1080 (GPU composited)8.20 bitrate=6003.4kbits/s speed=0.382x
+[ClusterCapture->RTC] Frame #8460: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:8311 deq:8310 sent:830301381KiB time=00:02:18.43 bitrate=5999.4kbits/s speed=0.382x
+[SendAuLoop] OUTPUT: 36.4 fps, 3370 kbps | AU total=8304
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:18.73 bitrate=6000.8kbits/s speed=0.382x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8520: 3840x1080 (GPU composited)9.10 bitrate=6000.2kbits/s speed=0.382x
+[ClusterCapture->RTC] Frame #8520: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:8394 deq:8393 sent:838502160KiB time=00:02:19.48 bitrate=6000.0kbits/s speed=0.383x
+[SendAuLoop] OUTPUT: 41.2 fps, 4069 kbps | AU total=8387
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:19.86 bitrate=5999.3kbits/s speed=0.383x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8580: 3840x1080 (GPU composited)0.21 bitrate=6000.0kbits/s speed=0.384x
+[ClusterCapture->RTC] Frame #8580: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:20.60 bitrate=6000.7kbits/s speed=0.384x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8640: 3840x1080 (GPU composited)1.03 bitrate=6000.9kbits/s speed=0.385x
+[ClusterCapture->RTC] Frame #8640: 3840x1080
+[RTC] q=enq:8485 deq:8484 sent:8476
+[SendAuLoop] OUTPUT: 45.5 fps, 4638 kbps | AU total=8478
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:21.38 bitrate=6000.7kbits/s speed=0.385x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:21.70 bitrate=6007.0kbits/s speed=0.386x
+[H264] AU has IDR (SPS=True, PPS=True)45KiB time=00:02:22.01 bitrate=6001.7kbits/s speed=0.386x
+[ClusterCapture] Frame #8700: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #8700: 3840x1080
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:22.30 bitrate=6002.2kbits/s speed=0.386x
+[RTC] q=enq:8553 deq:8552 sent:8544
+[SendAuLoop] OUTPUT: 33.9 fps, 3444 kbps | AU total=8546
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:22.83 bitrate=6000.3kbits/s speed=0.387x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8760: 3840x1080 (GPU composited)3.10 bitrate=6005.2kbits/s speed=0.387x
+[ClusterCapture->RTC] Frame #8760: 3840x1080
+[RTC] q=enq:8609 deq:8608 sent:860004968KiB time=00:02:23.28 bitrate=6001.4kbits/s speed=0.387x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 28.0 fps, 2708 kbps | AU total=8602
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:23.53 bitrate=6001.1kbits/s speed=0.387x
+[H264] AU has IDR (SPS=True, PPS=True)49KiB time=00:02:23.96 bitrate=6000.3kbits/s speed=0.387x
+[ClusterCapture] Frame #8820: 3840x1080 (GPU composited)4.13 bitrate=6005.9kbits/s speed=0.387x
+[ClusterCapture->RTC] Frame #8820: 3840x1080
+[RTC] q=enq:8662 deq:8661 sent:865405736KiB time=00:02:24.25 bitrate=6004.8kbits/s speed=0.387x
+[SendAuLoop] OUTPUT: 26.5 fps, 2835 kbps | AU total=8655
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:24.40 bitrate=6003.7kbits/s speed=0.387x
+[RTC] q=enq:8696 deq:8695 sent:868806069KiB time=00:02:24.81 bitrate=6000.1kbits/s speed=0.387x
+[SendAuLoop] OUTPUT: 16.4 fps, 1454 kbps | AU total=8689
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)62KiB time=00:02:24.95 bitrate=5999.9kbits/s speed=0.386x
+[ClusterCapture] Frame #8880: 3840x1080 (GPU composited)5.05 bitrate=6002.9kbits/s speed=0.386x
+[ClusterCapture->RTC] Frame #8880: 3840x1080
+[RTC] q=enq:8726 deq:8725 sent:871806465KiB time=00:02:25.33 bitrate=6001.1kbits/s speed=0.386x
+[SendAuLoop] OUTPUT: 15.0 fps, 1635 kbps | AU total=8720
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:8755 deq:8754 sent:874706801KiB time=00:02:25.81 bitrate=6000.1kbits/s speed=0.385x
+[SendAuLoop] OUTPUT: 15.4 fps, 1424 kbps | AU total=8751
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #8940: 3840x1080 (GPU composited)6.03 bitrate=5999.9kbits/s speed=0.385x
+[ClusterCapture->RTC] Frame #8940: 3840x1080
+[RTC] q=enq:8787 deq:8786 sent:877907239KiB time=00:02:26.36 bitrate=6002.1kbits/s speed=0.384x
+[SendAuLoop] OUTPUT: 14.3 fps, 1419 kbps | AU total=8781
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:8812 deq:8811 sent:880307468KiB time=00:02:26.68 bitrate=6001.9kbits/s speed=0.384x
+[SendAuLoop] OUTPUT: 12.6 fps, 1253 kbps | AU total=88076.78 bitrate=6000.1kbits/s speed=0.383x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:26.88 bitrate=6000.6kbits/s speed=0.383x
+[H264] AU has IDR (SPS=True, PPS=True)89KiB time=00:02:27.01 bitrate=6000.6kbits/s speed=0.382x
+[RTC] q=enq:8829 deq:8828 sent:8820
+[SendAuLoop] OUTPUT: 7.7 fps, 1135 kbps | AU total=882327.08 bitrate=6005.2kbits/s speed=0.382x
+[ClusterCapture] Frame #9000: 3840x1080 (GPU composited)7.13 bitrate=6004.4kbits/s speed=0.382x
+[ClusterCapture->RTC] Frame #9000: 3840x1080
+[RTC] q=enq:8842 deq:8841 sent:883407902KiB time=00:02:27.25 bitrate=6002.9kbits/s speed=0.381x
+[SendAuLoop] OUTPUT: 6.7 fps, 334 kbps | AU total=8837:27.31 bitrate=6000.3kbits/s speed=0.381x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:27.36 bitrate=6000.9kbits/s speed=0.38x
+[RTC] q=enq:8856 deq:8855 sent:884808042KiB time=00:02:27.48 bitrate=6001.2kbits/s speed=0.38x
+[SendAuLoop] OUTPUT: 6.8 fps, 694 kbps | AU total=8851:27.55 bitrate=5999.3kbits/s speed=0.379x
+[RTC] q=enq:8869 deq:8868 sent:886108184KiB time=00:02:27.71 bitrate=5999.6kbits/s speed=0.378x
+[SendAuLoop] OUTPUT: 6.6 fps, 618 kbps | AU total=8865:27.76 bitrate=6000.2kbits/s speed=0.378x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:27.83 bitrate=6000.7kbits/s speed=0.377x
+[H264] AU has IDR (SPS=True, PPS=True)57KiB time=00:02:27.93 bitrate=6000.4kbits/s speed=0.377x
+[RTC] q=enq:8890 deq:8889 sent:888208482KiB time=00:02:28.05 bitrate=6002.6kbits/s speed=0.377x
+[ClusterCapture] Frame #9060: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #9060: 3840x1080
+[SendAuLoop] OUTPUT: 12.0 fps, 1397 kbps | AU total=88898.15 bitrate=6003.2kbits/s speed=0.377x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:28.38 bitrate=6000.2kbits/s speed=0.376x
+[RTC] q=enq:8916 deq:8915 sent:890708744KiB time=00:02:28.46 bitrate=6000.2kbits/s speed=0.376x
+[SendAuLoop] OUTPUT: 12.4 fps, 1149 kbps | AU total=89148.58 bitrate=6002.5kbits/s speed=0.376x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:28.81 bitrate=6000.8kbits/s speed=0.376x
+[RTC] q=enq:8941 deq:8940 sent:893309084KiB time=00:02:28.93 bitrate=6000.1kbits/s speed=0.375x
+[H264] AU has IDR (SPS=True, PPS=True)
+[SendAuLoop] OUTPUT: 13.4 fps, 1668 kbps | AU total=89419.03 bitrate=6001.2kbits/s speed=0.375x
+[ClusterCapture] Frame #9120: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #9120: 3840x1080
+[RTC] q=enq:8969 deq:8968 sent:896109444KiB time=00:02:29.38 bitrate=6001.8kbits/s speed=0.375x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.8 fps, 937 kbps | AU total=896729.46 bitrate=5999.8kbits/s speed=0.374x
+[RTC] q=enq:8994 deq:8993 sent:898609733KiB time=00:02:29.81 bitrate=6000.2kbits/s speed=0.374x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.7 fps, 1153 kbps | AU total=89949.93 bitrate=6000.5kbits/s speed=0.373x
+[H264] AU has IDR (SPS=True, PPS=True)51KiB time=00:02:30.00 bitrate=5999.3kbits/s speed=0.373x
+[ClusterCapture] Frame #9180: 3840x1080 (GPU composited)0.10 bitrate=6002.8kbits/s speed=0.373x
+[ClusterCapture->RTC] Frame #9180: 3840x1080
+[RTC] q=enq:9016 deq:9015 sent:9008
+[SendAuLoop] OUTPUT: 9.8 fps, 973 kbps | AU total=9014:30.26 bitrate=5999.9kbits/s speed=0.372x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:30.35 bitrate=6000.7kbits/s speed=0.372x
+[RTC] q=enq:9035 deq:9034 sent:902610203KiB time=00:02:30.45 bitrate=6000.5kbits/s speed=0.372x
+[SendAuLoop] OUTPUT: 9.0 fps, 899 kbps | AU total=9033:30.58 bitrate=5999.6kbits/s speed=0.371x
+[RTC] q=enq:9049 deq:9048 sent:904010383KiB time=00:02:30.70 bitrate=6000.4kbits/s speed=0.371x
+[SendAuLoop] OUTPUT: 6.9 fps, 714 kbps | AU total=9047:30.81 bitrate=6000.0kbits/s speed=0.37x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:30.88 bitrate=6000.6kbits/s speed=0.37x
+[RTC] q=enq:9062 deq:9061 sent:905410556KiB time=00:02:30.93 bitrate=6000.5kbits/s speed=0.369x
+[H264] AU has IDR (SPS=True, PPS=True)84KiB time=00:02:31.00 bitrate=5999.3kbits/s speed=0.369x
+[SendAuLoop] OUTPUT: 7.0 fps, 945 kbps | AU total=9061:31.06 bitrate=6002.8kbits/s speed=0.369x
+[ClusterCapture] Frame #9240: 3840x1080 (GPU composited)1.11 bitrate=6002.9kbits/s speed=0.368x
+[ClusterCapture->RTC] Frame #9240: 3840x1080
+[RTC] q=enq:9076 deq:9075 sent:906810756KiB time=00:02:31.18 bitrate=6001.4kbits/s speed=0.368x
+[SendAuLoop] OUTPUT: 6.7 fps, 463 kbps | AU total=9075:31.28 bitrate=5999.5kbits/s speed=0.367x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:31.35 bitrate=6000.6kbits/s speed=0.367x
+[RTC] q=enq:9093 deq:9092 sent:908510894KiB time=00:02:31.41 bitrate=5999.6kbits/s speed=0.367x
+[SendAuLoop] OUTPUT: 9.3 fps, 967 kbps | AU total=9094:31.61 bitrate=6001.2kbits/s speed=0.366x
+[RTC] q=enq:9109 deq:9108 sent:910111121KiB time=00:02:31.73 bitrate=5999.3kbits/s speed=0.366x
+[SendAuLoop] OUTPUT: 7.5 fps, 702 kbps | AU total=9110:31.86 bitrate=5999.9kbits/s speed=0.365x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[RTC] q=enq:9124 deq:9123 sent:911611340KiB time=00:02:31.98 bitrate=6001.3kbits/s speed=0.365x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #9300: 3840x1080 (GPU composited)2.10 bitrate=6003.5kbits/s speed=0.364x
+[ClusterCapture->RTC] Frame #9300: 3840x1080
+[SendAuLoop] OUTPUT: 6.8 fps, 880 kbps | AU total=9124
+[RTC] q=enq:9140 deq:9139 sent:913211607KiB time=00:02:32.25 bitrate=6005.1kbits/s speed=0.363x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:32.36 bitrate=6002.7kbits/s speed=0.363x
+[SendAuLoop] OUTPUT: 10.4 fps, 1004 kbps | AU total=91452.45 bitrate=6003.4kbits/s speed=0.363x
+[RTC] q=enq:9162 deq:9161 sent:915311733KiB time=00:02:32.53 bitrate=6000.8kbits/s speed=0.363x
+[SendAuLoop] OUTPUT: 9.6 fps, 781 kbps | AU total=9165:32.78 bitrate=5999.5kbits/s speed=0.362x
+[RTC] q=enq:9178 deq:9177 sent:916911939KiB time=00:02:32.83 bitrate=6000.0kbits/s speed=0.362x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:32.90 bitrate=6000.6kbits/s speed=0.361x
+[H264] AU has IDR (SPS=True, PPS=True)66KiB time=00:02:33.01 bitrate=5999.6kbits/s speed=0.361x
+[SendAuLoop] OUTPUT: 6.7 fps, 817 kbps | AU total=9179
+[ClusterCapture] Frame #9360: 3840x1080 (GPU composited)3.06 bitrate=6002.8kbits/s speed=0.36x
+[ClusterCapture->RTC] Frame #9360: 3840x1080
+[RTC] q=enq:9192 deq:9191 sent:9183
+[SendAuLoop] OUTPUT: 10.0 fps, 821 kbps | AU total=920033.35 bitrate=6000.8kbits/s speed=0.36x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:33.41 bitrate=5999.5kbits/s speed=0.36x
+[RTC] q=enq:9212 deq:9211 sent:9204
+[SendAuLoop] OUTPUT: 8.9 fps, 902 kbps | AU total=9219:33.66 bitrate=6001.3kbits/s speed=0.359x
+[RTC] q=enq:9232 deq:9231 sent:922312585KiB time=00:02:33.73 bitrate=5999.3kbits/s speed=0.359x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:33.88 bitrate=5999.9kbits/s speed=0.358x
+[SendAuLoop] OUTPUT: 7.7 fps, 865 kbps | AU total=9235:33.93 bitrate=6000.3kbits/s speed=0.358x
+[RTC] q=enq:9245 deq:9244 sent:923712796KiB time=00:02:34.00 bitrate=6000.2kbits/s speed=0.357x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #9420: 3840x1080 (GPU composited)4.11 bitrate=6002.9kbits/s speed=0.357x
+[ClusterCapture->RTC] Frame #9420: 3840x1080
+[SendAuLoop] OUTPUT: 6.7 fps, 763 kbps | AU total=9249:34.16 bitrate=6001.1kbits/s speed=0.357x
+[RTC] q=enq:9259 deq:9258 sent:925112992KiB time=00:02:34.23 bitrate=6001.5kbits/s speed=0.356x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:34.41 bitrate=5999.6kbits/s speed=0.355x
+[SendAuLoop] OUTPUT: 7.4 fps, 594 kbps | AU total=9264
+[RTC] q=enq:9275 deq:9274 sent:926613140KiB time=00:02:34.48 bitrate=5999.6kbits/s speed=0.355x
+[SendAuLoop] OUTPUT: 7.7 fps, 789 kbps | AU total=9280:34.70 bitrate=6000.5kbits/s speed=0.354x
+[RTC] q=enq:9289 deq:9288 sent:928113343KiB time=00:02:34.75 bitrate=6000.1kbits/s speed=0.354x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:34.91 bitrate=6000.2kbits/s speed=0.353x
+[SendAuLoop] OUTPUT: 6.6 fps, 711 kbps | AU total=9294
+[RTC] q=enq:9302 deq:9301 sent:9294
+[H264] AU has IDR (SPS=True, PPS=True)21KiB time=00:02:34.96 bitrate=6001.1kbits/s speed=0.353x
+[ClusterCapture] Frame #9480: 3840x1080 (GPU composited)5.10 bitrate=6003.3kbits/s speed=0.352x
+[ClusterCapture->RTC] Frame #9480: 3840x1080
+[SendAuLoop] OUTPUT: 9.2 fps, 840 kbps | AU total=9313:35.20 bitrate=6002.2kbits/s speed=0.352x
+[RTC] q=enq:9321 deq:9320 sent:9313
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:35.38 bitrate=6001.1kbits/s speed=0.352x
+[RTC] q=enq:9340 deq:9339 sent:933213941KiB time=00:02:35.56 bitrate=6000.1kbits/s speed=0.351x
+[SendAuLoop] OUTPUT: 9.4 fps, 959 kbps | AU total=9333
+[RTC] q=enq:9355 deq:9354 sent:934714123KiB time=00:02:35.81 bitrate=6000.0kbits/s speed=0.35x
+[SendAuLoop] OUTPUT: 7.2 fps, 771 kbps | AU total=9348
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:35.86 bitrate=6000.9kbits/s speed=0.35x
+[H264] AU has IDR (SPS=True, PPS=True)65KiB time=00:02:35.98 bitrate=6001.0kbits/s speed=0.349x
+[RTC] q=enq:9371 deq:9370 sent:936314381KiB time=00:02:36.06 bitrate=6003.9kbits/s speed=0.349x
+[ClusterCapture] Frame #9540: 3840x1080 (GPU composited)
+[ClusterCapture->RTC] Frame #9540: 3840x1080
+[SendAuLoop] OUTPUT: 7.9 fps, 919 kbps | AU total=9365
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:36.31 bitrate=6000.1kbits/s speed=0.349x
+[RTC] q=enq:9392 deq:9391 sent:938414623KiB time=00:02:36.43 bitrate=6002.5kbits/s speed=0.348x
+[SendAuLoop] OUTPUT: 11.2 fps, 1107 kbps | AU total=9388
+[RTC] q=enq:9417 deq:9416 sent:940814923KiB time=00:02:36.85 bitrate=6002.2kbits/s speed=0.348x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)
+[SendAuLoop] OUTPUT: 12.9 fps, 1206 kbps | AU total=94156.96 bitrate=6001.6kbits/s speed=0.348x
+[H264] AU has IDR (SPS=True, PPS=True)
+[ClusterCapture] Frame #9600: 3840x1080 (GPU composited)7.06 bitrate=6004.9kbits/s speed=0.347x
+[ClusterCapture->RTC] Frame #9600: 3840x1080
+[RTC] q=enq:9439 deq:9438 sent:943015229KiB time=00:02:37.23 bitrate=6003.5kbits/s speed=0.347x
+[SendAuLoop] OUTPUT: 9.4 fps, 1125 kbps | AU total=943537.30 bitrate=6004.2kbits/s speed=0.347x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:37.38 bitrate=6002.6kbits/s speed=0.347x
+[RTC] q=enq:9455 deq:9454 sent:944715400KiB time=00:02:37.50 bitrate=6002.3kbits/s speed=0.346x
+[SendAuLoop] OUTPUT: 7.9 fps, 763 kbps | AU total=9451:37.56 bitrate=6003.8kbits/s speed=0.346x
+[RTC] q=enq:9471 deq:9470 sent:946315579KiB time=00:02:37.71 bitrate=6003.3kbits/s speed=0.345x
+[SendAuLoop] OUTPUT: 8.5 fps, 795 kbps | AU total=9468:37.78 bitrate=6002.3kbits/s speed=0.345x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:37.86 bitrate=6002.7kbits/s speed=0.345x
+[H264] AU has IDR (SPS=True, PPS=True)21KiB time=00:02:37.95 bitrate=6001.8kbits/s speed=0.345x
+[ClusterCapture] Frame #9660: 3840x1080 (GPU composited)8.06 bitrate=6005.3kbits/s speed=0.345x
+[ClusterCapture->RTC] Frame #9660: 3840x1080
+[RTC] q=enq:9494 deq:9493 sent:9486
+[SendAuLoop] OUTPUT: 12.0 fps, 1233 kbps | AU total=94928.16 bitrate=6005.1kbits/s speed=0.344x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:38.38 bitrate=6003.1kbits/s speed=0.344x
+[RTC] q=enq:9519 deq:9518 sent:951116149KiB time=00:02:38.48 bitrate=6003.7kbits/s speed=0.344x
+[SendAuLoop] OUTPUT: 12.7 fps, 1389 kbps | AU total=95188.61 bitrate=6003.8kbits/s speed=0.344x
+[RTC] enqueue tick (w=3840, h=1080, stride=15360)00:02:38.90 bitrate=6001.6kbits/s speed=0.343x
+[RTC] q=enq:9543 deq:9542 sent:9534
+[H264] AU has IDR (SPS=True, PPS=True)53KiB time=00:02:39.00 bitrate=5999.9kbits/s speed=0.343x
+[out#0/h264 @ 0000017f51d2abc0] [RTC] pc.state = closed
+[ClusterCapture] Capture stopped
+[ClusterCapture] Capture stopped
+[Guard] Restoring display settings after client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY23
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ✓ VDD disabled successfully!
+[Guard] Restoring original state before exit...
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] Cluster client disconnected c4903dc1-5a16-4cbe-b320-c2d9bc367ba0

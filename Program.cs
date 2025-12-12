@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
+using QRCoder;
 
 #if WINDOWS
 using Microsoft.Win32;
@@ -26,162 +27,25 @@ static class DisplayConfig
     public static int MonitorHeight = 768;
     public static int RefreshRate = 60;
     public static int StreamFps = 30;
-    
-    public static readonly (int w, int h, string label)[] Resolutions = new[]
-    {
-        (1920, 1080, "1920x1080 (Full HD)"),
-        (1600, 900,  "1600x900"),
-        (1366, 768,  "1366x768 (HD)"),
-        (1280, 720,  "1280x720 (720p) - Recommended for 3 monitors"),
-        (1024, 576,  "1024x576 - Best performance"),
-        (960,  540,  "960x540 (qHD)"),
-    };
-    
-    public static readonly (int fps, string label)[] FpsOptions = new[]
-    {
-        (60, "60 fps - Smooth (requires low resolution)"),
-        (30, "30 fps - Balanced (recommended)"),
-        (24, "24 fps - Cinematic"),
-        (20, "20 fps - Low bandwidth"),
-    };
 }
 
 partial class Program
 {
-    static void ShowConfigMenu()
-    {
-        Console.Clear();
-        Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║           RemotePlayServer - Display Configuration           ║");
-        Console.WriteLine("╠══════════════════════════════════════════════════════════════╣");
-        Console.WriteLine("║  Configure your virtual display setup before starting        ║");
-        Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
-        Console.WriteLine();
-
-        // Select number of monitors
-        Console.WriteLine("┌─ Number of Monitors ─────────────────────────────────────────┐");
-        Console.WriteLine("│  1. 1 monitor                                                │");
-        Console.WriteLine("│  2. 2 monitors                                               │");
-        Console.WriteLine("│  3. 3 monitors (default)                                     │");
-        Console.WriteLine("│  4. 4 monitors                                               │");
-        Console.WriteLine("│  5. 5 monitors                                               │");
-        Console.WriteLine("│  6. 6 monitors                                               │");
-        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
-        Console.Write("Select number of monitors [1-6, default=3]: ");
-        
-        var monInput = Console.ReadLine()?.Trim();
-        if (int.TryParse(monInput, out int monCount) && monCount >= 1 && monCount <= 6)
-            DisplayConfig.MonitorCount = monCount;
-        else
-            DisplayConfig.MonitorCount = 3;
-        
-        Console.WriteLine($"  → Selected: {DisplayConfig.MonitorCount} monitors");
-        Console.WriteLine();
-
-        // Select resolution
-        Console.WriteLine("┌─ Monitor Resolution ────────────────────────────────────────┐");
-        for (int i = 0; i < DisplayConfig.Resolutions.Length; i++)
-        {
-            var (w, h, label) = DisplayConfig.Resolutions[i];
-            string marker = (w == 1280 && h == 720) ? " ★" : "";
-            Console.WriteLine($"│  {i + 1}. {label,-50}{marker} │");
-        }
-        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
-        
-        // Calculate recommended resolution based on NVENC limit
-        int nvencMaxWidth = 4096;
-        int recommendedIdx = -1;
-        for (int i = 0; i < DisplayConfig.Resolutions.Length; i++)
-        {
-            var (w, _, _) = DisplayConfig.Resolutions[i];
-            int calcWidth = w * DisplayConfig.MonitorCount + (DisplayConfig.MonitorCount - 1);
-            if (calcWidth <= nvencMaxWidth)
-            {
-                recommendedIdx = i;
-                break;
-            }
-        }
-        
-        if (recommendedIdx >= 0)
-        {
-            var (rw, rh, _) = DisplayConfig.Resolutions[recommendedIdx];
-            Console.WriteLine($"  💡 Recommended for {DisplayConfig.MonitorCount} monitors: {rw}x{rh} (total width ≤ {nvencMaxWidth})");
-        }
-        
-        Console.Write($"Select resolution [1-{DisplayConfig.Resolutions.Length}, default=3]: ");
-        
-        var resInput = Console.ReadLine()?.Trim();
-        int resIdx = 2; // default to 1366x768
-        if (int.TryParse(resInput, out int ri) && ri >= 1 && ri <= DisplayConfig.Resolutions.Length)
-            resIdx = ri - 1;
-        
-        DisplayConfig.MonitorWidth = DisplayConfig.Resolutions[resIdx].w;
-        DisplayConfig.MonitorHeight = DisplayConfig.Resolutions[resIdx].h;
-        
-        Console.WriteLine($"  → Selected: {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
-        Console.WriteLine();
-
-        // Select FPS
-        Console.WriteLine("┌─ Stream FPS ────────────────────────────────────────────────┐");
-        for (int i = 0; i < DisplayConfig.FpsOptions.Length; i++)
-        {
-            var (fps, label) = DisplayConfig.FpsOptions[i];
-            string marker = (fps == 30) ? " ★" : "";
-            Console.WriteLine($"│  {i + 1}. {label,-50}{marker} │");
-        }
-        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
-        Console.Write($"Select FPS [1-{DisplayConfig.FpsOptions.Length}, default=2 (30fps)]: ");
-        
-        var fpsInput = Console.ReadLine()?.Trim();
-        int fpsIdx = 1; // default to 30fps
-        if (int.TryParse(fpsInput, out int fi) && fi >= 1 && fi <= DisplayConfig.FpsOptions.Length)
-            fpsIdx = fi - 1;
-        
-        DisplayConfig.StreamFps = DisplayConfig.FpsOptions[fpsIdx].fps;
-        Console.WriteLine($"  → Selected: {DisplayConfig.StreamFps} fps");
-        Console.WriteLine();
-
-        // Show summary
-        int totalWidth = DisplayConfig.MonitorWidth * DisplayConfig.MonitorCount + (DisplayConfig.MonitorCount - 1);
-        bool exceedsNvenc = totalWidth > nvencMaxWidth;
-        int totalPixels = totalWidth * DisplayConfig.MonitorHeight;
-        int pixelsPerSec = totalPixels * DisplayConfig.StreamFps / 1000000;
-        
-        Console.WriteLine("┌─ Configuration Summary ─────────────────────────────────────┐");
-        Console.WriteLine($"│  Monitors:     {DisplayConfig.MonitorCount,-45} │");
-        Console.WriteLine($"│  Resolution:   {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight,-39} │");
-        Console.WriteLine($"│  Stream FPS:   {DisplayConfig.StreamFps,-45} │");
-        Console.WriteLine($"│  Total Width:  {totalWidth} pixels{(exceedsNvenc ? " ⚠ EXCEEDS NVENC LIMIT" : " ✓"),-27} │");
-        Console.WriteLine($"│  Throughput:   ~{pixelsPerSec} Mpixels/sec{"",-30} │");
-        if (exceedsNvenc)
-            Console.WriteLine($"│  Note: Will crop to {nvencMaxWidth}px width for encoding{"",-15} │");
-        Console.WriteLine("└───────────────────────────────────────────────────────────────┘");
-        Console.WriteLine();
-        Console.WriteLine("Press ENTER to continue with setup...");
-        Console.ReadLine();
-    }
-
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern IntPtr LoadLibrary(string lpFileName);
     
     [DllImport("kernel32.dll")]
     static extern bool FreeLibrary(IntPtr hModule);
 
-    static void CheckAmfRuntime()
+    static string DetectEncoder()
     {
-        Console.WriteLine("[AMF] Checking AMD AMF Runtime availability...");
-        
-        // Check common paths for amfrt64.dll
-        var searchPaths = new[]
+        // Check for AMD AMF
+        var amfPaths = new[]
         {
-            "amfrt64.dll",  // System PATH
+            "amfrt64.dll",
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "amfrt64.dll"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "AMD", "AMF", "amfrt64.dll"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Common Files", "ATI Technologies", "Multimedia", "amfrt64.dll"),
         };
-
-        bool found = false;
-        foreach (var path in searchPaths)
+        foreach (var path in amfPaths)
         {
             try
             {
@@ -189,24 +53,33 @@ partial class Program
                 if (handle != IntPtr.Zero)
                 {
                     FreeLibrary(handle);
-                    Console.WriteLine($"[AMF] ✓ AMD AMF Runtime found: {path}");
-                    found = true;
-                    break;
+                    return "AMD AMF (Hardware)";
                 }
             }
             catch { }
         }
-
-        if (!found)
+        
+        // Check for NVIDIA NVENC (nvEncodeAPI64.dll)
+        var nvencPaths = new[]
         {
-            Console.WriteLine("[AMF] ⚠ AMD AMF Runtime (amfrt64.dll) NOT FOUND!");
-            Console.WriteLine("[AMF] Hardware H.264 encoding will fall back to CPU software encoder (slower).");
-            Console.WriteLine("[AMF] To enable AMD hardware encoding:");
-            Console.WriteLine("[AMF]   1. Install/Update AMD Adrenalin Software from https://www.amd.com/support");
-            Console.WriteLine("[AMF]   2. Ensure 'AMD Radeon RX 7600' drivers are up to date");
-            Console.WriteLine("[AMF]   3. The AMF runtime should be installed automatically with drivers");
-            Console.WriteLine();
+            "nvEncodeAPI64.dll",
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "nvEncodeAPI64.dll"),
+        };
+        foreach (var path in nvencPaths)
+        {
+            try
+            {
+                IntPtr handle = LoadLibrary(path);
+                if (handle != IntPtr.Zero)
+                {
+                    FreeLibrary(handle);
+                    return "NVIDIA NVENC (Hardware)";
+                }
+            }
+            catch { }
         }
+        
+        return "FFmpeg x264 (Software)";
     }
 
     static async Task Main()
@@ -222,6 +95,12 @@ partial class Program
             var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNHANDLED EXCEPTION (IsTerminating={e.IsTerminating}):\n{ex}\n\n";
             Console.WriteLine(msg);
             try { File.AppendAllText(crashLogPath, msg); } catch { }
+            
+            // Khôi phục Guard khi crash
+            if (e.IsTerminating)
+            {
+                try { DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(10)); } catch { }
+            }
         };
         
         TaskScheduler.UnobservedTaskException += (sender, e) =>
@@ -242,36 +121,22 @@ partial class Program
         WinRT.ComWrappersSupport.InitializeComWrappers();
         Console.OutputEncoding = Encoding.UTF8;
         
-        // === CHECK AMD AMF RUNTIME AVAILABILITY ===
-        CheckAmfRuntime();
-        
         Console.WriteLine("=== RemotePlayServer ===");
-        Console.WriteLine("[Info] Display configuration will be applied when client connects.");
-        Console.WriteLine($"[Info] Default config: {DisplayConfig.MonitorCount} monitors @ {DisplayConfig.MonitorWidth}x{DisplayConfig.MonitorHeight}");
+        Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
         // Chụp trạng thái ban đầu và tạo marker phiên
         DisplayGuard.CaptureSnapshotAtStartup();
-        Console.WriteLine("[Setup] Display state captured for restoration on exit.");
 
         // Liệt kê monitor hiện tại
         var monitors = WgcInterop.ListMonitorsDXGI();
-        Console.WriteLine("=== Current Monitors ===");
-        for (int i = 0; i < monitors.Count; i++)
-            Console.WriteLine($"{i,3}: {monitors[i].name}  {monitors[i].width}x{monitors[i].height}");
-
-        // Chuẩn bị server
-        var windows = Win32.ListTopLevelWindows()
-            .Where(w => !string.IsNullOrWhiteSpace(w.title))
-            .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
-            .ToList();
-        if (windows.Count > 0)
+        Console.WriteLine("=== Monitors ===");
+        foreach (var mon in monitors)
         {
-            Console.WriteLine("=== Available Windows ===");
-            for (int i = 0; i < Math.Min(10, windows.Count); i++) 
-                Console.WriteLine($"{i,3}: {windows[i].title}");
-            if (windows.Count > 10) Console.WriteLine($"... and {windows.Count - 10} more");
+            string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "Virtual" : "Physical";
+            Console.WriteLine($"  {mon.name}: {mon.width}x{mon.height} [{type}]");
         }
 
+        // Chuẩn bị server
         monitors = WgcInterop.ListMonitorsDXGI(); // refresh lần nữa
         int port = 8288;
         var server = new SignalAndRestServer($"http://+:{port}/");
@@ -283,12 +148,23 @@ partial class Program
         InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
 
         await server.StartAsync();
-        Console.WriteLine($"   • http://localhost:{port}/api/layout");
-        foreach (var ip in NetUtil.GetLocalIPv4Addresses())
-            Console.WriteLine($"   • ws://{ip}:{port}/signal?mid=<id>   hoặc   ws://{ip}:{port}/signal?wid=<id>");
-        Console.WriteLine($"   • http://localhost:{port}/api/windows");
-        Console.WriteLine($"   • http://localhost:{port}/api/monitors");
-        Console.WriteLine($"   • http://localhost:{port}/api/cluster");
+        
+        // Hiện IP server và tạo QRCode - ưu tiên 192.168.1.*
+        var serverIPs = NetUtil.GetLocalIPv4Addresses().ToList();
+        var preferredIP = serverIPs.FirstOrDefault(ip => ip.StartsWith("192.168.1.")) ?? serverIPs.FirstOrDefault() ?? "127.0.0.1";
+        
+        Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
+        
+        // Tạo QRCode với IP ưu tiên và danh sách monitors
+        var monitorsList = monitors.Select((m, i) => new { id = i, name = m.name, w = m.width, h = m.height });
+        string monitorsJson = System.Text.Json.JsonSerializer.Serialize(monitorsList);
+        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":{port},\"monitors\":{monitorsJson}}}";
+        Console.WriteLine();
+        Console.WriteLine("=== QRCode (Scan to connect) ===");
+        Console.WriteLine($"Data: {qrData}");
+        QRCodeUtil.PrintQRCodeToConsole(qrData);
+        
+        Console.WriteLine();
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
 
@@ -305,37 +181,14 @@ partial class Program
             Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
         }
 
-        // Khôi phục lại trạng thái ban đầu với timeout protection
-        try
-        {
-            Console.WriteLine("[Shutdown] Restoring display settings...");
-            DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
-            Console.WriteLine("[Shutdown] Display restore completed.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Shutdown] Display restore failed: {ex.Message}");
-            Console.WriteLine("[Shutdown] You may need to manually restart or restore display settings.");
-        }
+        // Không khôi phục Guard khi tắt server chủ động - chỉ khôi phục khi client disconnect hoặc crash
 
         // Force cleanup any remaining resources
         try
         {
-            Console.WriteLine("[Shutdown] Force cleanup...");
             await SignalAndRestServer.ForceCleanupResources();
-
-            Console.WriteLine();
-            Console.WriteLine("=== Optional Actions ===");
-            Console.WriteLine("If you notice text size didn't change properly:");
-            Console.WriteLine("  1. Restart Explorer manually:");
-            Console.WriteLine("     • Ctrl+Shift+Right Click on Start -> Restart Explorer");
-            Console.WriteLine("     • Or: taskkill /f /im explorer.exe && start explorer.exe");
-            Console.WriteLine("  2. Or run with --restore-if-needed flag if startup was interrupted");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Shutdown] Force cleanup failed: {ex.Message}");
-        }
+        catch { }
 
         Console.WriteLine("[Shutdown] Server exited.");
     }
@@ -621,21 +474,7 @@ static class StartupSteps
         catch { }
     }
 
-    // (2) Tắt "Show my taskbar on all displays" (KHÔNG restart explorer)
-    public static void DisableMultiMonitorTaskbar()
-    {
-        try
-        {
-            using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true) ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
-            rk.SetValue("MMTaskbarEnabled", 0, RegistryValueKind.DWord);
-            Console.WriteLine("[Taskbar] MMTaskbarEnabled=0 (no explorer restart).");
-        }
-        catch (Exception ex) { Console.WriteLine("[Taskbar] Registry set failed: " + ex.Message); }
-    }
-
-
-
-    // (3) Thiết lập hệ thống 3 màn hình: set resolution và primary
+    // Thiết lập hệ thống 3 màn hình: set resolution và primary
     public static void EnsureExtendDesktopWithVirtual()
     {
         Console.WriteLine("[Display] Setting up 3-monitor system...");
@@ -689,6 +528,16 @@ static class StartupSteps
             string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "VIRTUAL" : "PHYSICAL";
             bool isPrimary = DisplayUtil.IsPrimary(mon.name);
             Console.WriteLine($"[Display]   • {mon.name} {w}x{h} [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
+        }
+        
+        // Set Text Scale 125% for virtual monitors
+        foreach (var mon in mons)
+        {
+            if (DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
+            {
+                Console.WriteLine($"[Display] Setting Text Scale 125% for {mon.name}");
+                TextScaleUtil.SetPerMonitorTextScale(mon.name, 125);
+            }
         }
     }
 
@@ -755,78 +604,6 @@ static class StartupSteps
 
     [DllImport("user32.dll", CharSet = CharSet.Ansi)]
     static extern int ChangeDisplaySettingsExA(string? lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, uint dwflags, IntPtr lParam);
-
-    // (4) Đặt Text size = 125% global
-    public static void SetTextScale125_Global()
-    {
-        try
-        {
-            Console.WriteLine("[DPI/TEXT] Setting 125% text scale globally for all monitors...");
-
-            // Save original settings
-            var snapshot = TextScaleUtil.Read();
-            Console.WriteLine($"[DPI/TEXT] Original text scale: K1={snapshot.K1}, K2={snapshot.K2}");
-
-            // Set global 125% with delays to avoid registry conflicts
-            Console.WriteLine("[DPI/TEXT] Writing text scale to primary registry key...");
-            TextScaleUtil.WriteDword("Control Panel\\Accessibility", "TextScaleFactor", 125);
-            Thread.Sleep(500); // Allow first registry change to settle
-
-            Console.WriteLine("[DPI/TEXT] Writing text scale to secondary registry key...");
-            TextScaleUtil.WriteDword("Software\\Microsoft\\Accessibility", "TextScaleFactor", 125);
-            Thread.Sleep(500); // Allow second registry change to settle
-
-            Console.WriteLine("[DPI/TEXT] Broadcasting text scale changes...");
-            // Trigger system refresh after both registry writes
-            var monitors = WgcInterop.ListMonitorsDXGI();
-            foreach (var mon in monitors.Take(1)) // Just trigger refresh on primary monitor
-            {
-                Console.WriteLine($"[DPI/TEXT] Refresh triggered on {mon.name}");
-            }
-
-            bool success = true;
-
-            if (success)
-            {
-                Console.WriteLine("[DPI/TEXT] ✓ 125% text scale applied globally.");
-                Console.WriteLine("[DPI/TEXT] All monitors now use 125% text scale.");
-
-                // Restart Explorer for immediate effect
-                Console.WriteLine("[DPI/TEXT] 💡 For immediate effect, restart Explorer:");
-                Console.WriteLine("[DPI/TEXT]   Ctrl+Shift+Right Click Start → Restart Explorer");
-            }
-            else
-            {
-                Console.WriteLine("[DPI/TEXT] ⚠ Failed to set global text scale.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("[DPI/TEXT] Failed to set global text scale: " + ex.Message);
-        }
-    }
-
-
-
-    // (5) Trả layout 6 mảnh (1360×765, sep=1). Hàng trên: 0-1-2; Hàng dưới: 3-4-5
-    public struct RectI { public int x, y, w, h; public RectI(int X, int Y, int W, int H) { x = X; y = Y; w = W; h = H; } }
-    public static IReadOnlyList<RectI> GetSixTiles_1360x765_with_1px_gutter()
-    {
-        const int cw = 1360, ch = 765, sep = 1;
-        int x0 = 0, x1 = cw + sep, x2 = cw * 2 + sep * 2; // 0, 1361, 2722
-        int y0 = 0, y1 = ch + sep;                        // 0, 766
-        return new[]
-        {
-            new RectI(x0,y0,cw,ch), // 0 (Main L)
-            new RectI(x1,y0,cw,ch), // 1 (Main C)
-            new RectI(x2,y0,cw,ch), // 2 (Main R)
-            new RectI(x0,y1,cw,ch), // 3 (Sub L)
-            new RectI(x1,y1,cw,ch), // 4 (Sub C)
-            new RectI(x2,y1,cw,ch), // 5 (Sub R)
-        };
-    }
-
-
 }
 
 public class SignalAndRestServer
@@ -948,6 +725,19 @@ public class SignalAndRestServer
             // API: Toggle cursor visibility
             if (path == "/api/cursor")
             {
+                // Add CORS headers
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                ctx.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+                
+                // Handle preflight OPTIONS request
+                if (ctx.Request.HttpMethod == "OPTIONS")
+                {
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.Close();
+                    continue;
+                }
+                
                 var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
                 string? showParam = qs.Get("show");
                 
@@ -1116,13 +906,17 @@ public class SignalAndRestServer
             int reqResW = TryParseInt(qs.Get("resW"), 1366, 640, 1920);
             int reqResH = TryParseInt(qs.Get("resH"), 768, 480, 1080);
             
-            // Apply display configuration if changed
+            // Apply display configuration if changed OR if no cluster capture is running
+            bool noActiveCapture;
+            lock (_clusterLock) { noActiveCapture = _clusterCapture == null; }
+            
             bool configChanged = (reqMonitors != DisplayConfig.MonitorCount ||
                                   reqResW != DisplayConfig.MonitorWidth ||
                                   reqResH != DisplayConfig.MonitorHeight ||
                                   fps != DisplayConfig.StreamFps);
             
-            if (configChanged)
+            // Force apply if no capture running (e.g., first connection or after disconnect)
+            if (configChanged || noActiveCapture)
             {
                 Console.WriteLine($"[Cluster Signal] Applying new display config: {reqMonitors} monitors @ {reqResW}x{reqResH}, {fps} fps");
                 
@@ -1157,9 +951,14 @@ public class SignalAndRestServer
                 Console.WriteLine($"[Cluster Signal] Monitors after config: {_monitors.Count}");
             }
             
-            // Always use FFmpeg encoder
-            Console.WriteLine("[Cluster Signal] Using FFmpeg encoder");
-            IWebRTCStreamer streamer = new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat);
+            // Use LibAv encoder (in-process FFmpeg) for lower latency
+            // Set to false to use FFmpeg pipe mode instead
+            bool useLibAv = true; // D3D11VA hardware frames enabled
+            
+            Console.WriteLine($"[Cluster Signal] Using {(useLibAv ? "LibAv (in-process)" : "FFmpeg pipe")} encoder");
+            IWebRTCStreamer streamer = useLibAv 
+                ? EncoderFactory.CreateStreamer(fps, kbps, EncoderMode.LibAv)
+                : new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat, useNV12: true);
 
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
@@ -1189,18 +988,38 @@ public class SignalAndRestServer
                         }
                         clusterCap = _clusterCapture;
                     }
+                    
+                    // Pass D3D11 device to LibAv encoder (for in-process encoding)
+                    streamer.SetDevice(clusterCap.Device);
 
                     long frameCount = 0;
                     
-                    // FFmpeg path: use BGRA byte buffer
-                    clusterCap.OnFrame += (buf, w, h, stride) =>
+                    // Use NV12 GPU conversion if supported, otherwise BGRA
+                    if (streamer.UseNV12Input)
                     {
-                        frameCount++;
-                        if (frameCount == 1 || frameCount % 60 == 0)
-                            Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h}");
-                        try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
-                        catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
-                    };
+                        // Enable NV12 output mode (GPU color conversion)
+                        clusterCap.UseNV12Output = true;
+                        clusterCap.OnNV12Frame += (buf, w, h) =>
+                        {
+                            frameCount++;
+                            if (frameCount == 1 || frameCount % 60 == 0)
+                                Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h} (NV12)");
+                            try { if (streamer.IsRunning) streamer.PushNV12BytesAsync(buf, w, h); }
+                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
+                        };
+                    }
+                    else
+                    {
+                        // BGRA path (CPU color conversion in FFmpeg)
+                        clusterCap.OnFrame += (buf, w, h, stride) =>
+                        {
+                            frameCount++;
+                            if (frameCount == 1 || frameCount % 60 == 0)
+                                Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h} (BGRA)");
+                            try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
+                            catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
+                        };
+                    }
 
                     streamer.OnPeerDisconnected += () => { try { stopCapture?.Cancel(); } catch { } };
 
@@ -1235,6 +1054,18 @@ public class SignalAndRestServer
                         _clusterCapture.Stop();
                         _clusterCapture.Dispose();
                         _clusterCapture = null;
+                        
+                        // Khôi phục Guard khi không còn client nào kết nối
+                        Console.WriteLine("[Guard] Restoring display settings after client disconnect...");
+                        try
+                        {
+                            DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
+                            Console.WriteLine("[Guard] Display settings restored.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Guard] Restore failed: {ex.Message}");
+                        }
                     }
                 }
             }
@@ -1278,83 +1109,6 @@ public class SignalAndRestServer
     }
 }
 
-static class MonitorDetect
-{
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    struct DISPLAY_DEVICE
-    {
-        public int cb;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceString;
-        public int StateFlags;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceID;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceKey;
-    }
-
-    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
-    static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
-
-    // Physical Monitor API (fallback)
-    [DllImport("dxva2.dll", SetLastError = true)]
-    static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
-
-    static bool IsLikelyVirtualByStrings(string deviceString, string deviceId)
-    {
-        var s = (deviceString ?? "").ToLowerInvariant();
-        var id = (deviceId ?? "").ToLowerInvariant();
-        string[] keywords = { "virtual", "idd", "indirect", "headless" };
-
-        // DEBUG: Log the actual device ID patterns we see
-        if (id.Contains("display"))
-        {
-            Console.WriteLine($"[DEBUG] Virtual monitor detection - DeviceString: '{deviceString}', DeviceID: '{deviceId}'");
-        }
-
-        // Simple and reliable: Any high-numbered display (> 10) is very likely virtual
-        // Extract display number from device name: \\.\DISPLAY22 -> 22
-        var displayNumMatch = System.Text.RegularExpressions.Regex.Match(deviceString ?? "", @"DISPLAY(\d+)");
-        if (displayNumMatch.Success && int.TryParse(displayNumMatch.Groups[1].Value, out int displayNum))
-        {
-            if (displayNum > 10)
-            {
-                Console.WriteLine($"[DEBUG] Virtual monitor detected via display number {displayNum}: {deviceString}");
-                return true;
-            }
-        }
-
-        return keywords.Any(k => s.Contains(k) || id.Contains(k));
-    }
-
-    static bool HasNoPhysicalMonitors(IntPtr hmon)
-    {
-        try { return GetNumberOfPhysicalMonitorsFromHMONITOR(hmon, out var n) && n == 0; }
-        catch { return false; }
-    }
-
-    /// Trả về true nếu \\.\DISPLAYx trông giống màn hình ảo.
-    public static bool IsVirtualDisplay(string displayName, IntPtr hmon)
-    {
-        for (uint devNum = 0; ; devNum++)
-        {
-            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
-            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
-            if (!string.Equals(dd.DeviceName, displayName, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            var mon = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
-            if (EnumDisplayDevices(dd.DeviceName, 0, ref mon, 0))
-            {
-                if (IsLikelyVirtualByStrings(mon.DeviceString, mon.DeviceID))
-                    return true;
-            }
-            return HasNoPhysicalMonitors(hmon);
-        }
-        return HasNoPhysicalMonitors(hmon);
-    }
-
-
-}
-
 static class InputInjector
 {
     public static System.Action<string>? OnLog;
@@ -1372,53 +1126,17 @@ static class InputInjector
     struct KEYBDINPUT { public ushort wVk; public ushort wScan; public int dwFlags; public int time; public IntPtr dwExtraInfo; }
 
     const int INPUT_MOUSE = 0, INPUT_KEYBOARD = 1;
-    const int MOUSEEVENTF_MOVE = 0x0001;
-    const int MOUSEEVENTF_ABSOLUTE = 0x8000;
     const int MOUSEEVENTF_LEFTDOWN = 0x0002;
     const int MOUSEEVENTF_LEFTUP = 0x0004;
     const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
     const int MOUSEEVENTF_RIGHTUP = 0x0010;
     const int MOUSEEVENTF_WHEEL = 0x0800;
     const int MOUSEEVENTF_HWHEEL = 0x01000;
-    const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
-    const int MOUSEEVENTF_MIDDLEUP = 0x0040;
     const int KEYEVENTF_KEYUP = 0x0002;
     const int KEYEVENTF_UNICODE = 0x0004;
 
     [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
-
-    // Map (u,v) [0..1] trên 1 monitor -> toạ độ desktop tuyệt đối
-    public static void MoveRelative(int dx, int dy)
-    {
-        var inp = new INPUT
-        {
-            type = INPUT_MOUSE,
-            U = new INPUTUNION
-            {
-                mi = new MOUSEINPUT
-                {
-                    dx = dx,
-                    dy = dy,
-                    mouseData = 0,
-                    dwFlags = MOUSEEVENTF_MOVE,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            }
-        };
-        OnLog?.Invoke($"MoveRel dx={dx} dy={dy}");
-        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
-    }
-
-    public static (int x, int y) UvToDesktop(string deviceName, float u, float v)
-    {
-        var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(deviceName);
-        if (!ok) return (0, 0);
-        int px = x + Math.Clamp((int)Math.Round(u * (w - 1)), 0, Math.Max(0, w - 1));
-        int py = y + Math.Clamp((int)Math.Round(v * (h - 1)), 0, Math.Max(0, h - 1));
-        return (px, py);
-    }
 
     public static void Text(string s)
     {
@@ -1461,28 +1179,6 @@ static class InputInjector
         }
         OnLog?.Invoke($"Text \"{s}\"");
         SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
-    }
-
-    public static void ClickMiddle(bool down)
-    {
-        var inp = new INPUT
-        {
-            type = INPUT_MOUSE,
-            U = new INPUTUNION
-            {
-                mi = new MOUSEINPUT
-                {
-                    dx = 0,
-                    dy = 0,
-                    mouseData = 0,
-                    dwFlags = down ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            }
-        };
-        OnLog?.Invoke($"Click M {(down ? "DOWN" : "UP")}");
-        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
 
     public static void Wheel(int delta, bool horizontal = false)
@@ -1554,5 +1250,30 @@ static class InputInjector
         SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
 
+}
+
+/// <summary>
+/// Utility để tạo QRCode và in ra console
+/// </summary>
+static class QRCodeUtil
+{
+    public static void PrintQRCodeToConsole(string data)
+    {
+        try
+        {
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.L);
+            using var qrCode = new AsciiQRCode(qrCodeData);
+            
+            // Sử dụng Unicode blocks cho QR đẹp hơn trên console
+            var qrString = qrCode.GetGraphicSmall();
+            Console.WriteLine(qrString);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[QRCode] Failed to generate: {ex.Message}");
+            Console.WriteLine($"[QRCode] Raw data: {data}");
+        }
+    }
 }
 #endif

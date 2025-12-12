@@ -24,11 +24,19 @@ public class WebRTCStreamer_H264 : IDisposable
     public bool IsRunning => _running;
     public event Action? OnPeerDisconnected;
 
-    // ---- pacing & raw BGRA queue (từ WGC) ----
+    // ---- pacing & raw frame queue ----
     private readonly int _fps;
     private readonly int _minIntervalMs;
+    private readonly bool _useNV12Input;
+    
+    // BGRA input channel
     private readonly Channel<(byte[] buf, int w, int h, int stride)> _sendChan =
         Channel.CreateBounded<(byte[], int, int, int)>(
+            new BoundedChannelOptions(3) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
+    
+    // NV12 input channel (GPU-converted)
+    private readonly Channel<(byte[] buf, int w, int h)> _nv12Chan =
+        Channel.CreateBounded<(byte[], int, int)>(
             new BoundedChannelOptions(3) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
 
     private long _lastEnqMs = 0;
@@ -67,16 +75,21 @@ public class WebRTCStreamer_H264 : IDisposable
         int crf = 23,
         string preset = "veryfast",
         bool zerolatency = true,
-        string? ffmpegExe = null)
+        string? ffmpegExe = null,
+        bool useNV12Input = false)
     {
         _fps = Math.Max(5, fps);
         _minIntervalMs = Math.Max(1, 1000 / _fps);
+        _useNV12Input = useNV12Input;
 
         _targetKbps = Math.Max(0, targetKbps);
         _crf = crf;
         _preset = string.IsNullOrWhiteSpace(preset) ? "veryfast" : preset;
         _zerolatency = zerolatency;
         _ffmpegExe = ffmpegExe;
+        
+        if (_useNV12Input)
+            Console.WriteLine("[RTC] Using NV12 input mode (GPU color conversion)");
     }
 
     public Task StartAsync()
@@ -218,6 +231,33 @@ public class WebRTCStreamer_H264 : IDisposable
         }
         return Task.CompletedTask;
     }
+    
+    /// <summary>Được gọi bởi ClusterCapture mỗi frame NV12 (GPU-converted).</summary>
+    public Task PushNV12BytesAsync(byte[] src, int width, int height)
+    {
+        if (!_running || _cts?.IsCancellationRequested == true || _pc == null)
+            return Task.CompletedTask;
+
+        long now = _gateSw.ElapsedMilliseconds;
+        if (now - _lastEnqMs < _minIntervalMs - 1) return Task.CompletedTask;
+        _lastEnqMs = now;
+
+        int size = width * height * 3 / 2; // NV12 size
+        var buf = ArrayPool<byte>.Shared.Rent(size);
+        Buffer.BlockCopy(src, 0, buf, 0, size);
+
+        if (_nv12Chan.Writer.TryWrite((buf, width, height)))
+        {
+            Interlocked.Increment(ref _enq);
+            if ((Interlocked.Read(ref _enq) % 30) == 0)
+                Console.WriteLine($"[RTC] enqueue tick NV12 (w={width}, h={height})");
+        }
+        else
+        {
+            ArrayPool<byte>.Shared.Return(buf);
+        }
+        return Task.CompletedTask;
+    }
 
     // Khởi tạo/restart encoder khi có frame đầu tiên hoặc khi đổi kích thước.
     private void EnsureEncoder(int w, int h)
@@ -225,7 +265,8 @@ public class WebRTCStreamer_H264 : IDisposable
         if (_enc == null)
         {
             _encW = w; _encH = h;
-            _enc = new FfmpegPipeEncoder(_encW, _encH, _fps, _targetKbps, _crf, _preset, _zerolatency, _ffmpegExe);
+            var inputFormat = _useNV12Input ? FfmpegPipeEncoder.InputFormat.NV12 : FfmpegPipeEncoder.InputFormat.BGRA;
+            _enc = new FfmpegPipeEncoder(_encW, _encH, _fps, _targetKbps, _crf, _preset, _zerolatency, _ffmpegExe, inputFormat);
             _enc.OnEncodedAccessUnit += (durMs, au) =>
             {
                 // Không gửi ngay; xếp vào AU queue để SendAuLoop phát theo nhịp thực.
@@ -233,7 +274,8 @@ public class WebRTCStreamer_H264 : IDisposable
             };
             _enc.Start();
             Console.WriteLine($"[RTC] ffmpeg started {_encW}x{_encH} {_fps}fps " +
-                (_targetKbps > 0 ? $"{_targetKbps}kbps CBR" : $"CRF={_crf}"));
+                (_targetKbps > 0 ? $"{_targetKbps}kbps CBR" : $"CRF={_crf}") +
+                (_useNV12Input ? " [NV12 input]" : " [BGRA input]"));
 
             if (_sendAuTask == null)
                 _sendAuTask = Task.Run(() => SendAuLoop());
@@ -246,7 +288,7 @@ public class WebRTCStreamer_H264 : IDisposable
         }
     }
 
-    // Vòng xử lý BGRA -> ffmpeg (không gửi trực tiếp).
+    // Vòng xử lý frame -> ffmpeg (hỗ trợ cả BGRA và NV12).
     private async Task SenderLoop()
     {
         if (_cts == null) return;
@@ -254,37 +296,79 @@ public class WebRTCStreamer_H264 : IDisposable
 
         try
         {
-            while (!ct.IsCancellationRequested)
+            if (_useNV12Input)
             {
-                var item = await _sendChan.Reader.ReadAsync(ct);
-                Interlocked.Increment(ref _deq);
-
-                // Drop đến frame mới nhất để giảm độ trễ
-                while (_sendChan.Reader.TryRead(out var newer))
+                // NV12 input mode
+                while (!ct.IsCancellationRequested)
                 {
+                    var item = await _nv12Chan.Reader.ReadAsync(ct);
                     Interlocked.Increment(ref _deq);
-                    ArrayPool<byte>.Shared.Return(item.buf);
-                    item = newer;
-                }
 
-                try
-                {
-                    EnsureEncoder(item.w, item.h);
+                    // Drop đến frame mới nhất để giảm độ trễ
+                    while (_nv12Chan.Reader.TryRead(out var newer))
+                    {
+                        Interlocked.Increment(ref _deq);
+                        ArrayPool<byte>.Shared.Return(item.buf);
+                        item = newer;
+                    }
 
-                    long nowMs = _sw.ElapsedMilliseconds;
-                    uint deltaMs = (uint)((_lastSendTsMs < 0) ? Math.Max(1, 1000 / _fps)
-                                                              : Math.Clamp(nowMs - _lastSendTsMs, 1, 1000));
-                    _lastSendTsMs = nowMs;
+                    try
+                    {
+                        EnsureEncoder(item.w, item.h);
 
-                    _enc?.PushBGRAFrame(item.buf.AsSpan(0, item.stride * item.h), item.stride, deltaMs);
+                        long nowMs = _sw.ElapsedMilliseconds;
+                        uint deltaMs = (uint)((_lastSendTsMs < 0) ? Math.Max(1, 1000 / _fps)
+                                                                  : Math.Clamp(nowMs - _lastSendTsMs, 1, 1000));
+                        _lastSendTsMs = nowMs;
+
+                        int nv12Size = item.w * item.h * 3 / 2;
+                        _enc?.PushNV12FrameContiguous(item.buf.AsSpan(0, nv12Size), deltaMs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[RTC] encode error: " + ex.Message);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(item.buf);
+                    }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                // BGRA input mode
+                while (!ct.IsCancellationRequested)
                 {
-                    Console.WriteLine("[RTC] encode error: " + ex.Message);
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(item.buf);
+                    var item = await _sendChan.Reader.ReadAsync(ct);
+                    Interlocked.Increment(ref _deq);
+
+                    // Drop đến frame mới nhất để giảm độ trễ
+                    while (_sendChan.Reader.TryRead(out var newer))
+                    {
+                        Interlocked.Increment(ref _deq);
+                        ArrayPool<byte>.Shared.Return(item.buf);
+                        item = newer;
+                    }
+
+                    try
+                    {
+                        EnsureEncoder(item.w, item.h);
+
+                        long nowMs = _sw.ElapsedMilliseconds;
+                        uint deltaMs = (uint)((_lastSendTsMs < 0) ? Math.Max(1, 1000 / _fps)
+                                                                  : Math.Clamp(nowMs - _lastSendTsMs, 1, 1000));
+                        _lastSendTsMs = nowMs;
+
+                        _enc?.PushBGRAFrame(item.buf.AsSpan(0, item.stride * item.h), item.stride, deltaMs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[RTC] encode error: " + ex.Message);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(item.buf);
+                    }
                 }
             }
         }
@@ -300,6 +384,8 @@ public class WebRTCStreamer_H264 : IDisposable
         long nextDueMs = sw.ElapsedMilliseconds;
         long _auReceived = 0;
         long _lastDebugMs = 0;
+        long _framesSentInInterval = 0;
+        long _bytesSentInInterval = 0;
 
         try
         {
@@ -311,12 +397,19 @@ public class WebRTCStreamer_H264 : IDisposable
                 if (!_auChan.Reader.TryRead(out var item)) continue;
                 while (_auChan.Reader.TryRead(out var newer)) item = newer;
                 _auReceived++;
+                _framesSentInInterval++;
+                _bytesSentInInterval += item.au.Length;
 
-                // Debug log mỗi 2 giây
+                // Debug log mỗi 2 giây với FPS và bitrate thực tế
                 var nowDebug = sw.ElapsedMilliseconds;
-                if (nowDebug - _lastDebugMs > 2000)
+                if (nowDebug - _lastDebugMs >= 2000)
                 {
-                    Console.WriteLine($"[SendAuLoop] AU received={_auReceived}, _canSend={_canSend}, _running={_running}, _pc={((_pc != null) ? "OK" : "NULL")}");
+                    double elapsedSec = (nowDebug - _lastDebugMs) / 1000.0;
+                    double actualFps = _framesSentInInterval / elapsedSec;
+                    double actualKbps = (_bytesSentInInterval * 8 / 1000.0) / elapsedSec;
+                    Console.WriteLine($"[SendAuLoop] OUTPUT: {actualFps:F1} fps, {actualKbps:F0} kbps | AU total={_auReceived}");
+                    _framesSentInInterval = 0;
+                    _bytesSentInInterval = 0;
                     _lastDebugMs = nowDebug;
                 }
 
