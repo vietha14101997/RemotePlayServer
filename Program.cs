@@ -956,8 +956,23 @@ public class SignalAndRestServer
             bool useLibAv = true; // D3D11VA hardware frames enabled
             
             Console.WriteLine($"[Cluster Signal] Using {(useLibAv ? "LibAv (in-process)" : "FFmpeg pipe")} encoder");
+            
+            // Create ClusterCapture first to get D3D11 device (needed for AMF zero-copy encoder)
+            ClusterCapture clusterCap;
+            lock (_clusterLock)
+            {
+                if (_clusterCapture == null)
+                {
+                    var mons = WgcInterop.ListMonitorsDXGI();
+                    _monitors = mons.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+                    _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps);
+                }
+                clusterCap = _clusterCapture;
+            }
+            
+            // Create streamer with D3D11 device (enables AMF zero-copy on AMD)
             IWebRTCStreamer streamer = useLibAv 
-                ? EncoderFactory.CreateStreamer(fps, kbps, EncoderMode.LibAv)
+                ? EncoderFactory.CreateStreamer(fps, kbps, EncoderMode.LibAv, device: clusterCap.Device)
                 : new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat, useNV12: true);
 
             await streamer.StartAsync();
@@ -975,21 +990,9 @@ public class SignalAndRestServer
                 {
                     Console.WriteLine($"[ClusterCapture] Starting combined capture for {_monitors.Count} monitors");
 
-                    // Create or reuse cluster capture
-                    ClusterCapture clusterCap;
-                    lock (_clusterLock)
-                    {
-                        if (_clusterCapture == null)
-                        {
-                            // Refresh monitors again in capture thread
-                            var mons = WgcInterop.ListMonitorsDXGI();
-                            _monitors = mons.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
-                            _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps);
-                        }
-                        clusterCap = _clusterCapture;
-                    }
+                    // ClusterCapture already created above, just use it
                     
-                    // Pass D3D11 device to LibAv encoder (for in-process encoding)
+                    // Pass D3D11 device to streamer (for compatibility)
                     streamer.SetDevice(clusterCap.Device);
 
                     long frameCount = 0;
@@ -1002,8 +1005,6 @@ public class SignalAndRestServer
                         clusterCap.OnNV12Frame += (buf, w, h) =>
                         {
                             frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h} (NV12)");
                             try { if (streamer.IsRunning) streamer.PushNV12BytesAsync(buf, w, h); }
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };
@@ -1014,8 +1015,6 @@ public class SignalAndRestServer
                         clusterCap.OnFrame += (buf, w, h, stride) =>
                         {
                             frameCount++;
-                            if (frameCount == 1 || frameCount % 60 == 0)
-                                Console.WriteLine($"[ClusterCapture->RTC] Frame #{frameCount}: {w}x{h} (BGRA)");
                             try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };

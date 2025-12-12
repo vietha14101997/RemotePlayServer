@@ -36,7 +36,6 @@ public class WebRTCStreamer_LibAv : IDisposable
         Channel.CreateBounded<(byte[], int, int)>(
             new BoundedChannelOptions(16) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
 
-    private long _lastEnqMs = 0;
     private readonly Stopwatch _gateSw = Stopwatch.StartNew();
     private readonly Stopwatch _sw = Stopwatch.StartNew();
 
@@ -292,7 +291,6 @@ public class WebRTCStreamer_LibAv : IDisposable
         long _lastDebugMs = 0;
         long _framesSentInInterval = 0;
         long _bytesSentInInterval = 0;
-        long _lastSendMs = 0;
 
         try
         {

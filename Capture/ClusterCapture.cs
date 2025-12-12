@@ -33,8 +33,8 @@ public sealed class ClusterCapture : IDisposable
     private readonly List<ID3D11Texture2D> _stagings = new();
     private readonly List<(int x, int y, int w, int h)> _monitorLayouts = new();
     
-    // Cursor capture
-    private volatile bool _showCursor = true;
+    // Cursor capture - default OFF for better performance (avoids software fallback)
+    private volatile bool _showCursor = false;
     public bool ShowCursor { get => _showCursor; set => _showCursor = value; }
     
     // Cursor P/Invoke
@@ -256,17 +256,18 @@ public sealed class ClusterCapture : IDisposable
         if (primaryAdapter == null)
             throw new InvalidOperationException("Could not find adapter for monitors");
 
-        // Create D3D11 device
+        // Create D3D11 device with VideoSupport for MFT hardware encoder compatibility
         var levels = new[] { FeatureLevel.Level_11_0 };
         D3D11.D3D11CreateDevice(
             primaryAdapter,
             DriverType.Unknown,
-            DeviceCreationFlags.BgraSupport,
+            DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
             levels,
             out _device,
             out _context
         );
         primaryAdapter.Dispose();
+        Console.WriteLine($"[ClusterCapture] D3D11 device created (VideoSupport enabled for MFT encoder)");
 
         // Setup duplication for each monitor
         int xOffset = 0;
@@ -447,10 +448,6 @@ public sealed class ClusterCapture : IDisposable
                 if (anyFrameCaptured)
                 {
                     frameCount++;
-                    if (frameCount == 1 || frameCount % 60 == 0)
-                    {
-                        Console.WriteLine($"[ClusterCapture] Frame #{frameCount}: {FrameWidth}x{FrameHeight} (GPU composited)");
-                    }
 
                     // Zero-copy path: invoke texture callback first
                     OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight);
@@ -458,46 +455,58 @@ public sealed class ClusterCapture : IDisposable
                     // NV12 GPU conversion path (fastest for NVENC)
                     if (_useNV12Output && OnNV12Frame != null && _colorConverter != null && _nv12Buffer != null)
                     {
-                        // Draw cursor on staging texture if enabled
-                        if (_showCursor)
+                        try
                         {
-                            // Copy to staging for cursor drawing
-                            _context.CopyResource(_combinedStaging, _combinedTexture);
-                            var mapped = _context.Map(_combinedStaging, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                            try
+                            // Draw cursor on staging texture if enabled
+                            if (_showCursor)
                             {
-                                unsafe
+                                // Copy to staging for cursor drawing
+                                _context.CopyResource(_combinedStaging, _combinedTexture);
+                                var mapped = _context.Map(_combinedStaging, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                                try
                                 {
-                                    byte* src = (byte*)mapped.DataPointer;
-                                    int srcStride = (int)mapped.RowPitch;
-                                    fixed (byte* dstBase = _combinedBuffer)
+                                    unsafe
                                     {
-                                        for (int y = 0; y < FrameHeight; y++)
+                                        byte* src = (byte*)mapped.DataPointer;
+                                        int srcStride = (int)mapped.RowPitch;
+                                        fixed (byte* dstBase = _combinedBuffer)
                                         {
-                                            Buffer.MemoryCopy(src + y * srcStride, dstBase + y * _combinedStride, _combinedStride, _combinedStride);
+                                            for (int y = 0; y < FrameHeight; y++)
+                                            {
+                                                Buffer.MemoryCopy(src + y * srcStride, dstBase + y * _combinedStride, _combinedStride, _combinedStride);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            finally
-                            {
-                                _context.Unmap(_combinedStaging, 0);
-                            }
+                                finally
+                                {
+                                    _context.Unmap(_combinedStaging, 0);
+                                }
                             
-                            // Draw cursor on BGRA buffer
-                            DrawCursorOnBuffer(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                                // Draw cursor on BGRA buffer
+                                DrawCursorOnBuffer(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
                             
-                            // Convert BGRA with cursor to NV12 via software (since we modified the buffer)
-                            ConvertBgraToNv12(_combinedBuffer, _nv12Buffer!, FrameWidth, FrameHeight, _combinedStride);
-                            OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
-                        }
-                        else
-                        {
-                            // No cursor - use fast GPU conversion
-                            if (_colorConverter.Convert(_combinedTexture, _nv12Buffer))
-                            {
+                                // Convert BGRA with cursor to NV12 via software (since we modified the buffer)
+                                ConvertBgraToNv12(_combinedBuffer, _nv12Buffer!, FrameWidth, FrameHeight, _combinedStride);
                                 OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
                             }
+                            else
+                            {
+                                // No cursor - use fast GPU conversion
+                                var converter = _colorConverter;
+                                if (converter != null && converter.Convert(_combinedTexture, _nv12Buffer))
+                                {
+                                    OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
+                                }
+                            }
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Ignore - happens during shutdown
+                        }
+                        catch (NullReferenceException)
+                        {
+                            // Ignore - race condition during shutdown
                         }
                     }
                     // BGRA CPU path: only copy to staging if OnFrame has listeners

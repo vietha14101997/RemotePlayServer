@@ -1,7 +1,10 @@
 #nullable enable
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using RemotePlayServer.Encoding;
 using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 /// <summary>
 /// Encoder mode selection
@@ -10,12 +13,12 @@ public enum EncoderMode
 {
     /// <summary>FFmpeg via pipe (ffmpeg.exe process)</summary>
     FfmpegPipe,
-    /// <summary>FFmpeg in-process via libavcodec (lower latency)</summary>
+    /// <summary>FFmpeg in-process via libavcodec (hardware-accelerated)</summary>
     LibAv
 }
 
 /// <summary>
-/// Factory for creating WebRTC streamers
+/// Factory for creating WebRTC streamers with optimal encoder selection
 /// </summary>
 public static class EncoderFactory
 {
@@ -25,7 +28,7 @@ public static class EncoderFactory
     public static IWebRTCStreamer CreateStreamer(
         int fps, 
         int kbps, 
-        EncoderMode mode = EncoderMode.FfmpegPipe,
+        EncoderMode mode = EncoderMode.LibAv,
         ID3D11Device? device = null,
         int crf = 23, 
         string preset = "p1", 
@@ -33,11 +36,88 @@ public static class EncoderFactory
     {
         Console.WriteLine($"[EncoderFactory] Creating streamer: mode={mode}, fps={fps}, kbps={kbps}");
         
-        return mode switch
+        // Detect GPU vendor for optimal encoder selection
+        var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
+        
+        switch (gpuVendor)
         {
-            EncoderMode.LibAv => new WebRTCStreamerLibAvWrapper(fps, kbps, device),
-            _ => new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12: true)
-        };
+            case GpuVendorDetector.GpuVendor.AMD:
+                Console.WriteLine("[EncoderFactory] AMD GPU detected");
+                
+                // Check for native AmfWrapper.dll first (hardware accelerated)
+                bool nativeAmfAvailable = false;
+                try
+                {
+                    nativeAmfAvailable = AmfNativeWrapper.IsAvailable();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[EncoderFactory] AmfNativeWrapper check failed: {ex.Message}");
+                }
+                Console.WriteLine($"[EncoderFactory] Native AMF wrapper available: {nativeAmfAvailable}");
+                
+                // Check for AMF runtime (for LibAv fallback)
+                bool amfRuntimeAvailable = GpuVendorDetector.IsAmfAvailable();
+                Console.WriteLine($"[EncoderFactory] AMF runtime available: {amfRuntimeAvailable}");
+                
+                // Native AMF encoder for AMD GPUs
+                // Provides hardware-accelerated encoding via AMD VCN
+                bool useNativeAmf = true;
+                if (useNativeAmf && nativeAmfAvailable && device != null)
+                {
+                    try
+                    {
+                        Console.WriteLine("[EncoderFactory] Attempting native AMF encoder...");
+                        return new WebRTCStreamerAmfNativeWrapper(fps, kbps, device);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[EncoderFactory] Native AMF failed: {ex.Message}");
+                        Console.WriteLine("[EncoderFactory] Falling back to LibAv h264_amf");
+                    }
+                }
+                
+                // Fallback to LibAv (will use h264_amf if AMF runtime available)
+                if (amfRuntimeAvailable)
+                {
+                    Console.WriteLine("[EncoderFactory] Using LibAv with h264_amf encoder");
+                }
+                else
+                {
+                    Console.WriteLine("[EncoderFactory] Warning: No AMF support, using software encoder");
+                }
+                break;
+                
+            case GpuVendorDetector.GpuVendor.NVIDIA:
+                Console.WriteLine("[EncoderFactory] NVIDIA GPU detected");
+                Console.WriteLine("[EncoderFactory] Using LibAv with h264_nvenc encoder (CUDA accelerated)");
+                break;
+                
+            case GpuVendorDetector.GpuVendor.Intel:
+                Console.WriteLine("[EncoderFactory] Intel GPU detected");
+                Console.WriteLine("[EncoderFactory] Using LibAv with h264_qsv encoder");
+                break;
+                
+            default:
+                Console.WriteLine("[EncoderFactory] Unknown GPU vendor - using software encoder fallback");
+                break;
+        }
+        
+        // Final return - always falls back to LibAv which handles GPU detection internally
+        try
+        {
+            return mode switch
+            {
+                EncoderMode.LibAv => new WebRTCStreamerLibAvWrapper(fps, kbps, device),
+                _ => new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12: true)
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EncoderFactory] LibAv failed: {ex.Message}");
+            Console.WriteLine("[EncoderFactory] Last resort: FFmpeg pipe encoder");
+            return new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12: true);
+        }
     }
     
     /// <summary>
@@ -47,6 +127,108 @@ public static class EncoderFactory
     {
         Console.WriteLine($"[EncoderFactory] Creating FFmpeg pipe streamer (NV12={useNV12})");
         return new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12);
+    }
+}
+
+/// <summary>
+/// GPU vendor detection and hardware availability checks
+/// </summary>
+public static class GpuVendorDetector
+{
+    public enum GpuVendor
+    {
+        Unknown,
+        NVIDIA,
+        AMD,
+        Intel
+    }
+    
+    /// <summary>
+    /// Detect the primary GPU vendor from DXGI adapters
+    /// </summary>
+    public static GpuVendor DetectPrimaryGpuVendor()
+    {
+        try
+        {
+            using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+            
+            for (uint i = 0; ; i++)
+            {
+                if (factory.EnumAdapters1(i, out var adapter).Failure) break;
+                
+                try
+                {
+                    var desc = adapter.Description;
+                    uint vendorId = (uint)desc.VendorId;
+                    
+                    // Check by vendor ID (most reliable)
+                    if (vendorId == 0x10DE) // NVIDIA
+                    {
+                        Console.WriteLine($"[GpuVendorDetector] Detected NVIDIA GPU: {desc.Description}");
+                        return GpuVendor.NVIDIA;
+                    }
+                    else if (vendorId == 0x1002 || vendorId == 0x1022) // AMD/ATI
+                    {
+                        Console.WriteLine($"[GpuVendorDetector] Detected AMD GPU: {desc.Description}");
+                        return GpuVendor.AMD;
+                    }
+                    else if (vendorId == 0x8086) // Intel
+                    {
+                        Console.WriteLine($"[GpuVendorDetector] Detected Intel GPU: {desc.Description}");
+                        return GpuVendor.Intel;
+                    }
+                    
+                    // Fallback to name check
+                    string name = desc.Description.ToUpperInvariant();
+                    if (name.Contains("NVIDIA") || name.Contains("GEFORCE") || name.Contains("RTX") || name.Contains("GTX"))
+                        return GpuVendor.NVIDIA;
+                    else if (name.Contains("AMD") || name.Contains("RADEON") || name.Contains("ATI"))
+                        return GpuVendor.AMD;
+                    else if (name.Contains("INTEL"))
+                        return GpuVendor.Intel;
+                }
+                finally
+                {
+                    adapter.Dispose();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GpuVendorDetector] Detection failed: {ex.Message}");
+        }
+        
+        return GpuVendor.Unknown;
+    }
+    
+    public static bool IsAmfAvailable()
+    {
+        try
+        {
+            IntPtr handle = NativeLibrary.Load("amfrt64.dll");
+            if (handle != IntPtr.Zero)
+            {
+                NativeLibrary.Free(handle);
+                return true;
+            }
+        }
+        catch { }
+        return false;
+    }
+    
+    public static bool IsNvencAvailable()
+    {
+        try
+        {
+            IntPtr handle = NativeLibrary.Load("nvEncodeAPI64.dll");
+            if (handle != IntPtr.Zero)
+            {
+                NativeLibrary.Free(handle);
+                return true;
+            }
+        }
+        catch { }
+        return false;
     }
 }
 
@@ -102,6 +284,7 @@ public class WebRTCStreamerFFmpegWrapper : IWebRTCStreamer
 
 /// <summary>
 /// Wrapper for LibAv in-process streamer (WebRTCStreamer_LibAv)
+/// Provides hardware-accelerated encoding via h264_amf (AMD), nvenc (NVIDIA), or qsv (Intel)
 /// </summary>
 public class WebRTCStreamerLibAvWrapper : IWebRTCStreamer
 {

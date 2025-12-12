@@ -66,17 +66,17 @@ public sealed class DxgiCapture : IDisposable
             throw new InvalidOperationException($"Could not find DXGI output for monitor handle {hMonitor}");
         }
         
-        // Create D3D11 device on the correct adapter
+        // Create D3D11 device on the correct adapter with VideoSupport for MFT encoder
         var levels = new[] { FeatureLevel.Level_11_0 };
         D3D11.D3D11CreateDevice(
             targetAdapter,
             DriverType.Unknown,
-            DeviceCreationFlags.BgraSupport,
+            DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
             levels,
             out _device,
             out _context
         );
-        Console.WriteLine($"[DXGI] Created D3D11 device on {targetAdapter.Description.Description}");
+        Console.WriteLine($"[DXGI] Created D3D11 device on {targetAdapter.Description.Description} (VideoSupport enabled)");
         targetAdapter.Dispose();
         
         // Get output dimensions

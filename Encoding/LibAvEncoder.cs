@@ -15,8 +15,14 @@ using FFmpegD3D11Device = FFmpeg.AutoGen.ID3D11Device;
 namespace RemotePlayServer.Encoding;
 
 /// <summary>
+/// GPU Vendor enumeration for encoder selection
+/// </summary>
+enum GpuVendorType { Unknown, NVIDIA, AMD, Intel }
+
+/// <summary>
 /// Hardware-accelerated H.264 encoder using FFmpeg libavcodec with D3D11VA.
 /// Provides zero-copy encoding from D3D11 textures to H.264 NAL units.
+/// Supports NVIDIA NVENC (via CUDA), AMD AMF (via D3D11VA), and Intel QSV.
 /// </summary>
 public unsafe class LibAvEncoder : IDisposable
 {
@@ -38,6 +44,8 @@ public unsafe class LibAvEncoder : IDisposable
     private bool _disposed;
     private bool _initialized;
     private bool _useHardwareFrames;
+    private GpuVendorType _gpuVendor = GpuVendorType.Unknown;
+    private string _encoderName = "unknown";
     
     private readonly object _lock = new();
 
@@ -88,6 +96,170 @@ public unsafe class LibAvEncoder : IDisposable
     }
 
     /// <summary>
+    /// Detect GPU vendor from D3D11 device or DXGI factory
+    /// </summary>
+    private GpuVendorType DetectGpuVendor()
+    {
+        if (_gpuVendor != GpuVendorType.Unknown) return _gpuVendor;
+        
+        try
+        {
+            using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+            for (uint i = 0; ; i++)
+            {
+                if (factory.EnumAdapters1(i, out var adapter).Failure) break;
+                var desc = adapter.Description;
+                adapter.Dispose();
+                
+                string name = desc.Description.ToUpperInvariant();
+                // Skip Microsoft Basic Render Driver
+                if (name.Contains("MICROSOFT") || name.Contains("BASIC")) continue;
+                
+                if (name.Contains("NVIDIA") || name.Contains("GEFORCE") || name.Contains("GTX") || name.Contains("RTX"))
+                {
+                    _gpuVendor = GpuVendorType.NVIDIA;
+                    Console.WriteLine($"[LibAvEncoder] Detected GPU: NVIDIA ({desc.Description})");
+                    return _gpuVendor;
+                }
+                if (name.Contains("AMD") || name.Contains("RADEON") || name.Contains("RX "))
+                {
+                    _gpuVendor = GpuVendorType.AMD;
+                    Console.WriteLine($"[LibAvEncoder] Detected GPU: AMD ({desc.Description})");
+                    return _gpuVendor;
+                }
+                if (name.Contains("INTEL") || name.Contains("UHD") || name.Contains("IRIS"))
+                {
+                    _gpuVendor = GpuVendorType.Intel;
+                    Console.WriteLine($"[LibAvEncoder] Detected GPU: Intel ({desc.Description})");
+                    return _gpuVendor;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LibAvEncoder] GPU detection error: {ex.Message}");
+        }
+        
+        Console.WriteLine("[LibAvEncoder] GPU vendor: Unknown");
+        return GpuVendorType.Unknown;
+    }
+    
+    /// <summary>
+    /// Select optimal encoder based on GPU vendor
+    /// </summary>
+    private AVCodec* SelectEncoder()
+    {
+        var vendor = DetectGpuVendor();
+        AVCodec* codec = null;
+        
+        switch (vendor)
+        {
+            case GpuVendorType.AMD:
+                // AMD: Prefer AMF encoder
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_amf");
+                if (codec != null) { _encoderName = "h264_amf"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                if (codec != null) { _encoderName = "h264_qsv"; return codec; }
+                break;
+                
+            case GpuVendorType.NVIDIA:
+                // NVIDIA: Prefer NVENC encoder
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                if (codec != null) { _encoderName = "h264_qsv"; return codec; }
+                break;
+                
+            case GpuVendorType.Intel:
+                // Intel: Prefer QSV encoder
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                if (codec != null) { _encoderName = "h264_qsv"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
+                break;
+                
+            default:
+                // Unknown: Try all in order
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_amf");
+                if (codec != null) { _encoderName = "h264_amf"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                if (codec != null) { _encoderName = "h264_qsv"; return codec; }
+                break;
+        }
+        
+        return codec;
+    }
+    
+    /// <summary>
+    /// Configure encoder options based on encoder type
+    /// </summary>
+    private void ConfigureEncoderOptions()
+    {
+        // Common settings
+        _codecCtx->width = _width;
+        _codecCtx->height = _height;
+        _codecCtx->time_base = new AVRational { num = 1, den = _fps };
+        _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
+        _codecCtx->bit_rate = _bitrate;
+        _codecCtx->gop_size = _fps * 2; // Keyframe every 2 seconds
+        _codecCtx->max_b_frames = 0; // No B-frames for low latency
+        _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
+        
+        // Force immediate output - no internal buffering
+        _codecCtx->flags |= ffmpeg.AV_CODEC_FLAG_LOW_DELAY;
+        _codecCtx->thread_count = 1; // Single thread for lowest latency
+        
+        switch (_encoderName)
+        {
+            case "h264_amf":
+                // AMD AMF specific options for ultra low latency
+                Console.WriteLine("[LibAvEncoder] Configuring AMD AMF encoder for zero-copy");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "ultralowlatency", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "speed", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "enforce_hrd", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "header_insertion_mode", "idr", 0);
+                // Set maxrate and bufsize for CBR to work properly
+                _codecCtx->rc_max_rate = _bitrate;
+                _codecCtx->rc_buffer_size = _bitrate / 10; // 100ms buffer for low latency
+                // AMF level for width > 2048
+                if (_width > 2048)
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "level", "5.1", 0);
+                break;
+                
+            case "h264_nvenc":
+                // NVIDIA NVENC specific options
+                Console.WriteLine("[LibAvEncoder] Configuring NVIDIA NVENC encoder");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc-lookahead", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "b_adapt", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "no-scenecut", "1", 0);
+                break;
+                
+            case "h264_qsv":
+                // Intel QSV specific options
+                Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "veryfast", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "low_power", "1", 0);
+                break;
+        }
+    }
+
+    /// <summary>
     /// Initialize the encoder with D3D11VA hardware acceleration.
     /// </summary>
     public bool Initialize()
@@ -98,26 +270,15 @@ public unsafe class LibAvEncoder : IDisposable
             
             try
             {
-                // Find h264_nvenc encoder (prefer NVENC for NVIDIA)
-                AVCodec* codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
-                if (codec == null)
-                {
-                    Console.WriteLine("[LibAvEncoder] h264_nvenc not found, trying h264_amf");
-                    codec = ffmpeg.avcodec_find_encoder_by_name("h264_amf");
-                }
-                if (codec == null)
-                {
-                    Console.WriteLine("[LibAvEncoder] h264_amf not found, trying h264_qsv");
-                    codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
-                }
+                // Select encoder based on GPU vendor
+                AVCodec* codec = SelectEncoder();
                 if (codec == null)
                 {
                     Console.WriteLine("[LibAvEncoder] No hardware encoder found!");
                     return false;
                 }
                 
-                string codecName = Marshal.PtrToStringAnsi((IntPtr)codec->name) ?? "unknown";
-                Console.WriteLine($"[LibAvEncoder] Using encoder: {codecName}");
+                Console.WriteLine($"[LibAvEncoder] Using encoder: {_encoderName}");
 
                 // Allocate codec context
                 _codecCtx = ffmpeg.avcodec_alloc_context3(codec);
@@ -127,37 +288,14 @@ public unsafe class LibAvEncoder : IDisposable
                     return false;
                 }
 
-                // Configure encoder
-                _codecCtx->width = _width;
-                _codecCtx->height = _height;
-                _codecCtx->time_base = new AVRational { num = 1, den = _fps };
-                _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
-                _codecCtx->bit_rate = _bitrate;
-                _codecCtx->gop_size = _fps * 2; // Keyframe every 2 seconds
-                _codecCtx->max_b_frames = 0; // No B-frames for low latency
-                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
+                // Configure encoder with vendor-specific options
+                ConfigureEncoderOptions();
                 
-                // Set low-latency options for NVENC
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p1", 0); // Fastest preset (NVENC)
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0); // Ultra low latency
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0); // Constant bitrate
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0); // No encoder delay
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc-lookahead", "0", 0); // No lookahead
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "0", 0); // Disable spatial AQ
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "0", 0); // Disable temporal AQ
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "b_adapt", "0", 0); // No B-frame adaptation
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "no-scenecut", "1", 0); // Disable scene cut detection
-                
-                // Force immediate output - no internal buffering
-                _codecCtx->flags |= ffmpeg.AV_CODEC_FLAG_LOW_DELAY;
-                _codecCtx->thread_count = 1; // Single thread for lowest latency
-                
-                // Try to create D3D11VA hardware device context
+                // Try to create hardware device context based on GPU vendor
                 _useHardwareFrames = InitializeHardwareContext();
                 if (!_useHardwareFrames)
                 {
-                    Console.WriteLine("[LibAvEncoder] D3D11VA init failed, using software upload");
+                    Console.WriteLine($"[LibAvEncoder] Hardware frames init failed for {_encoderName}, using software upload");
                 }
 
                 // Open codec
@@ -236,20 +374,48 @@ public unsafe class LibAvEncoder : IDisposable
 
     private bool InitializeHardwareContext()
     {
-        // Try CUDA first (best for NVENC on NVIDIA cards)
-        if (TryInitializeCuda())
+        var vendor = DetectGpuVendor();
+        
+        switch (vendor)
         {
-            return true;
+            case GpuVendorType.NVIDIA:
+                // NVIDIA: Try CUDA first (best for NVENC), then D3D11VA
+                Console.WriteLine("[LibAvEncoder] NVIDIA GPU: Trying CUDA hardware context");
+                if (TryInitializeCuda())
+                    return true;
+                Console.WriteLine("[LibAvEncoder] NVIDIA: CUDA failed, trying D3D11VA");
+                if (TryInitializeD3D11VA())
+                    return true;
+                break;
+                
+            case GpuVendorType.AMD:
+                // AMD: Use D3D11VA directly with AMF encoder
+                // CUDA is not available on AMD, skip it
+                Console.WriteLine("[LibAvEncoder] AMD GPU: Trying D3D11VA hardware context for AMF");
+                if (TryInitializeAMFD3D11())
+                    return true;
+                Console.WriteLine("[LibAvEncoder] AMD: D3D11VA failed, trying generic D3D11VA");
+                if (TryInitializeD3D11VA())
+                    return true;
+                break;
+                
+            case GpuVendorType.Intel:
+                // Intel: Try D3D11VA (works well with QSV)
+                Console.WriteLine("[LibAvEncoder] Intel GPU: Trying D3D11VA hardware context for QSV");
+                if (TryInitializeD3D11VA())
+                    return true;
+                break;
+                
+            default:
+                // Unknown: Try all in order
+                if (TryInitializeCuda())
+                    return true;
+                if (TryInitializeD3D11VA())
+                    return true;
+                break;
         }
         
-        // Try D3D11VA as fallback
-        if (TryInitializeD3D11VA())
-        {
-            return true;
-        }
-        
-        // Fall back to software upload (still uses NVENC for encoding)
-        Console.WriteLine("[LibAvEncoder] Hardware frames init failed, using software upload (NVENC still active)");
+        Console.WriteLine($"[LibAvEncoder] Hardware frames init failed, using software upload ({_encoderName} still active)");
         return false;
     }
     
@@ -303,6 +469,174 @@ public unsafe class LibAvEncoder : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[LibAvEncoder] CUDA init exception: {ex.Message}");
+            CleanupHwContext();
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Initialize D3D11VA hardware context specifically for AMD AMF encoder.
+    /// AMF encoder works best with D3D11 hardware frames.
+    /// Uses the shared D3D11 device from ClusterCapture for true zero-copy.
+    /// </summary>
+    private bool TryInitializeAMFD3D11()
+    {
+        try
+        {
+            Console.WriteLine("[LibAvEncoder] Initializing AMD AMF D3D11 hardware context with shared device...");
+            
+            if (_device == null)
+            {
+                Console.WriteLine("[LibAvEncoder] No shared D3D11 device available, falling back to FFmpeg device");
+                return TryInitializeAMFD3D11WithNewDevice();
+            }
+            
+            // Get the native device pointer
+            IntPtr devicePtr = _device.NativePointer;
+            if (devicePtr == IntPtr.Zero)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to get D3D11 device pointer");
+                return TryInitializeAMFD3D11WithNewDevice();
+            }
+            
+            Console.WriteLine($"[LibAvEncoder] Using shared D3D11 device: 0x{devicePtr:X}");
+            
+            // Create D3D11VA hardware device context WITH our existing device
+            AVBufferRef* hwDeviceCtx = ffmpeg.av_hwdevice_ctx_alloc(AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA);
+            if (hwDeviceCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to allocate D3D11VA device context");
+                return TryInitializeAMFD3D11WithNewDevice();
+            }
+            
+            // Get the D3D11VA device context data and set our device
+            AVHWDeviceContext* deviceContext = (AVHWDeviceContext*)hwDeviceCtx->data;
+            AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceContext->hwctx;
+            
+            // Set our shared device - this is the key for zero-copy!
+            d3d11vaDeviceCtx->device = (FFmpegD3D11Device*)devicePtr;
+            
+            // Initialize the device context
+            int ret = ffmpeg.av_hwdevice_ctx_init(hwDeviceCtx);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA device context with shared device: {GetErrorMessage(ret)}");
+                ffmpeg.av_buffer_unref(&hwDeviceCtx);
+                return TryInitializeAMFD3D11WithNewDevice();
+            }
+            _hwDeviceCtx = hwDeviceCtx;
+            
+            Console.WriteLine("[LibAvEncoder] D3D11VA device context initialized with shared device");
+            
+            // Create hardware frames context
+            _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to allocate AMD D3D11VA frames context");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Configure D3D11VA frames context for AMF
+            AVHWFramesContext* framesCtx = (AVHWFramesContext*)_hwFramesCtx->data;
+            framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
+            framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+            framesCtx->width = _width;
+            framesCtx->height = _height;
+            framesCtx->initial_pool_size = 4; // Smaller pool to reduce memory pressure
+            
+            Console.WriteLine($"[LibAvEncoder] Configuring D3D11VA frames: {_width}x{_height}, pool_size=4");
+            
+            // Configure D3D11VA-specific texture options
+            AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
+            if (d3d11vaFramesCtx != null)
+            {
+                // Set bind flags that AMF encoder expects
+                // AMF needs textures with BIND_DECODER and/or BIND_SHADER_RESOURCE
+                d3d11vaFramesCtx->BindFlags = 0; // Let FFmpeg decide the best flags
+                d3d11vaFramesCtx->MiscFlags = 0;
+                Console.WriteLine("[LibAvEncoder] D3D11VA frames context configured with default bind flags");
+            }
+            
+            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] Failed to init AMD D3D11VA frames context with shared device: {GetErrorMessage(ret)}");
+                CleanupHwContext();
+                return TryInitializeAMFD3D11WithNewDevice();
+            }
+            
+            // Set encoder to use D3D11VA frames
+            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
+            
+            Console.WriteLine("[LibAvEncoder] AMD AMF D3D11VA initialized with SHARED device (TRUE ZERO-COPY enabled!)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LibAvEncoder] AMD D3D11VA shared device init exception: {ex.Message}");
+            CleanupHwContext();
+            return TryInitializeAMFD3D11WithNewDevice();
+        }
+    }
+    
+    /// <summary>
+    /// Fallback: Initialize D3D11VA with FFmpeg-created device (not zero-copy)
+    /// </summary>
+    private bool TryInitializeAMFD3D11WithNewDevice()
+    {
+        try
+        {
+            Console.WriteLine("[LibAvEncoder] Trying AMD AMF D3D11 with FFmpeg-created device (fallback)...");
+            
+            // Create D3D11VA hardware device context - let FFmpeg create its own device
+            AVBufferRef* hwDeviceCtx = null;
+            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] AMD D3D11VA device not available: {GetErrorMessage(ret)}");
+                return false;
+            }
+            _hwDeviceCtx = hwDeviceCtx;
+            
+            // Create hardware frames context
+            _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to allocate AMD D3D11VA frames context");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Configure D3D11VA frames context for AMF
+            AVHWFramesContext* framesCtx = (AVHWFramesContext*)_hwFramesCtx->data;
+            framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
+            framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+            framesCtx->width = _width;
+            framesCtx->height = _height;
+            framesCtx->initial_pool_size = 4;
+            
+            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] Failed to init AMD D3D11VA frames context: {GetErrorMessage(ret)}");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Set encoder to use D3D11VA frames
+            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
+            
+            Console.WriteLine("[LibAvEncoder] AMD AMF D3D11VA initialized with FFmpeg device (hardware frames enabled)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LibAvEncoder] AMD D3D11VA init exception: {ex.Message}");
             CleanupHwContext();
             return false;
         }
