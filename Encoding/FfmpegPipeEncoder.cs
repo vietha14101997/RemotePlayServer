@@ -5,17 +5,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using SIPSorcery.Net;
 using SIPSorceryMedia.Abstractions;
+using Vortice.DXGI;
 
 #region Minimal FFmpeg pipe encoder (control real bitrate/fps via libx264)
 // Encoder chạy ffmpeg qua stdin/stdout để KHÓA thật fps/bitrate/CRF.
 // Đầu vào: raw BGRA; Đầu ra: Annex-B H.264 (có AUD) -> tách theo AU và bắn qua WebRTC.
 internal sealed class FfmpegPipeEncoder : IDisposable
 {
+    public enum InputFormat { BGRA, NV12 }
+    
     public int Width { get; private set; }
     public int Height { get; private set; }
     public int FPS { get; private set; }
@@ -23,6 +27,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     public int CRF { get; private set; }           // <0 => off
     public string Preset { get; private set; }
     public bool ZeroLatency { get; private set; }
+    public InputFormat PixelFormat { get; private set; } = InputFormat.BGRA;
 
     public event Action<uint, byte[]>? OnEncodedAccessUnit;
 
@@ -36,12 +41,58 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
     MemoryStream _auBuf = new();
     uint _lastDurationMs = 1000 / 30;
-    const int _maxBufferBytes = 4 * 1024 * 1024;
+    const int _maxBufferBytes = 512 * 1024; // Reduced for lower latency
     private readonly string _exePath;
     byte[]? _lastSps, _lastPps;
     enum GpuEnc { None, NVENC, QSV, AMF }
+    enum GpuVendor { Unknown, NVIDIA, AMD, Intel }
     static GpuEnc _chosenGpu = GpuEnc.None;
+    static GpuVendor _detectedVendor = GpuVendor.Unknown;
     static Dictionary<string, bool> _filterCache = new(StringComparer.OrdinalIgnoreCase);
+
+    static GpuVendor DetectGpuVendor()
+    {
+        if (_detectedVendor != GpuVendor.Unknown) return _detectedVendor;
+        try
+        {
+            using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+            for (uint i = 0; ; i++)
+            {
+                if (factory.EnumAdapters1(i, out var adapter).Failure) break;
+                var desc = adapter.Description;
+                adapter.Dispose();
+                
+                string name = desc.Description.ToUpperInvariant();
+                // Skip Microsoft Basic Render Driver
+                if (name.Contains("MICROSOFT") || name.Contains("BASIC")) continue;
+                
+                if (name.Contains("NVIDIA") || name.Contains("GEFORCE") || name.Contains("GTX") || name.Contains("RTX"))
+                {
+                    _detectedVendor = GpuVendor.NVIDIA;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: NVIDIA ({desc.Description})");
+                    return _detectedVendor;
+                }
+                if (name.Contains("AMD") || name.Contains("RADEON") || name.Contains("RX "))
+                {
+                    _detectedVendor = GpuVendor.AMD;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: AMD ({desc.Description})");
+                    return _detectedVendor;
+                }
+                if (name.Contains("INTEL") || name.Contains("UHD") || name.Contains("IRIS"))
+                {
+                    _detectedVendor = GpuVendor.Intel;
+                    Console.WriteLine($"[FFMPEG] Detected GPU vendor: Intel ({desc.Description})");
+                    return _detectedVendor;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FFMPEG] GPU detection error: {ex.Message}");
+        }
+        Console.WriteLine("[FFMPEG] GPU vendor: Unknown, will probe all encoders");
+        return GpuVendor.Unknown;
+    }
 
     bool ProbeFilter(string filterName)
     {
@@ -130,9 +181,34 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     void EnsureChosenEncoder()
     {
         if (_chosenGpu != 0) return; // đã chọn
-        if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
-        if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
-        if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+        
+        var vendor = DetectGpuVendor();
+        
+        // Probe theo thứ tự ưu tiên dựa trên GPU vendor
+        switch (vendor)
+        {
+            case GpuVendor.AMD:
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                break;
+            case GpuVendor.NVIDIA:
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                break;
+            case GpuVendor.Intel:
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                break;
+            default:
+                // Unknown - probe all
+                if (ProbeEncoder("h264_nvenc")) { _chosenGpu = GpuEnc.NVENC; return; }
+                if (ProbeEncoder("h264_amf")) { _chosenGpu = GpuEnc.AMF; return; }
+                if (ProbeEncoder("h264_qsv")) { _chosenGpu = GpuEnc.QSV; return; }
+                break;
+        }
         _chosenGpu = GpuEnc.None;
     }
 
@@ -205,13 +281,14 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         return "ffmpeg";
     }
 
-    public FfmpegPipeEncoder(int w, int h, int fps, int bitrateKbps, int crf, string preset, bool zerolatency, string? ffmpegExe = null)
+    public FfmpegPipeEncoder(int w, int h, int fps, int bitrateKbps, int crf, string preset, bool zerolatency, string? ffmpegExe = null, InputFormat inputFormat = InputFormat.BGRA)
     {
         Width = w; Height = h; FPS = Math.Max(5, fps);
         BitrateKbps = Math.Max(0, bitrateKbps);
         CRF = crf < 0 ? -1 : crf;
         Preset = string.IsNullOrWhiteSpace(preset) ? "veryfast" : preset;
         ZeroLatency = zerolatency;
+        PixelFormat = inputFormat;
         _exePath = ResolveFFmpeg(ffmpegExe);
     }
 
@@ -225,97 +302,232 @@ internal sealed class FfmpegPipeEncoder : IDisposable
         {
             case GpuEnc.NVENC:
                 {
-                    // phần input chung như CPU (raw BGRA piped qua stdin)
-                    var inPart =
-                        "-fflags nobuffer -flags low_delay -use_wallclock_as_timestamps 1 " +
-                        $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
-
-                    // out cho GPU: KHÔNG ép -pix_fmt, KHÔNG cố định -level
-                    var outGpu =
-                        "-profile:v baseline " +       // baseline để dễ tương thích WebRTC
-                        $"-g {g} -vsync drop -f h264 -";
-
-                    // chọn filter scale trên GPU nếu có
-                    bool hasScaleCuda = ProbeFilter("scale_cuda");
-                    bool hasScaleNpp = ProbeFilter("scale_npp");
-
-                    string vf;
-                    if (hasScaleCuda)
-                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
-                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_cuda=1280:720\" ";
-                    else if (hasScaleNpp)
-                        vf = "-init_hw_device cuda=cuda -filter_hw_device cuda " +
-                             "-vf \"format=bgr0,hwupload_cuda=extra_hw_frames=32,scale_npp=1280:720\" ";
+                    // Ultra low latency NVENC settings with CUDA GPU color conversion
+                    string inPart;
+                    string vfPart = "";
+                    
+                    if (PixelFormat == InputFormat.NV12)
+                    {
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt nv12 -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                    }
                     else
-                        vf = "-vf \"scale=1280:720:flags=bicubic,format=nv12\" ";
+                    {
+                        // Convert BGRA to YUV420P (strips alpha), then upload to CUDA for NVENC
+                        // This is faster than full CPU NV12 conversion because:
+                        // 1. YUV420P is 1.5 bytes/pixel vs BGRA 4 bytes/pixel - less data
+                        // 2. NVENC encodes YUV420P directly on GPU
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            "-init_hw_device cuda=cu:0 -filter_hw_device cu " +
+                            $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = "-vf format=yuv420p,hwupload_cuda ";
+                    }
 
-                    // điều khiển bitrate / chất lượng
+                    // Minimal buffer CBR for lowest latency
                     string rc;
                     if (BitrateKbps > 0)
                     {
-                        int vbv = Math.Max(BitrateKbps, 1000);
-                        rc = $"-rc cbr_ld_hq -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                        int bufsize = Math.Max(BitrateKbps / 30, 100); // ~33ms buffer
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {bufsize}k";
                     }
                     else
                     {
-                        int cq = (CRF >= 0 ? CRF : 23);      // dùng cq như CRF
+                        int cq = (CRF >= 0 ? CRF : 23);
                         rc = $"-rc vbr -cq {cq}";
                     }
 
-                    string tune = ZeroLatency ? "-tune ll " : "";
+                    // Level 5.1 required for width > 2048 (e.g., multi-monitor setups)
+                    string level = Width > 2048 ? "5.1" : "4.1";
+                    string profile = Width > 2048 ? "main" : "baseline";
+                    
+                    var outPart =
+                        "-an -c:v h264_nvenc " +
+                        "-preset p1 -tune ll " +
+                        $"-profile:v {profile} -level {level} " +
+                        "-bf 0 -rc-lookahead 0 -forced-idr 1 " +
+                        "-zerolatency 1 -delay 0 " +
+                        "-aud 1 " +
+                        rc + " " +
+                        $"-g {g} " +
+                        "-f h264 -";
 
-                    // ghép lệnh NVENC hoàn chỉnh
-                    var nvenc =
-                        inPart +
-                        "-an -c:v h264_nvenc -preset p1 " + tune + rc + " " +
-                        "-bf 0 -rc-lookahead 0 -forced-idr 1 -aud 1 " + // low-latency, IDR có AUD
-                        vf + outGpu;
-
-                    return nvenc
+                    return (inPart + vfPart + outPart)
                         .Replace("{Width}", Width.ToString())
                         .Replace("{Height}", Height.ToString())
                         .Replace("{FPS}", FPS.ToString());
                 }
             case GpuEnc.QSV:
-                return $"-hwaccel qsv -c:v h264_qsv " +
-                       $"-preset slow -g {g} " +
-                       $"-time_base 1/{FPS} -r {FPS}";
+                {
+                    // Ultra low latency QSV settings
+                    string inPart;
+                    string vfPart;
+                    
+                    if (PixelFormat == InputFormat.NV12)
+                    {
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt nv12 -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = "";
+                    }
+                    else
+                    {
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = "-vf format=nv12 ";
+                    }
+
+                    // Minimal buffer CBR
+                    string rc;
+                    if (BitrateKbps > 0)
+                    {
+                        int bufsize = Math.Max(BitrateKbps / 30, 100);
+                        rc = $"-b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {bufsize}k -look_ahead 0";
+                    }
+                    else
+                    {
+                        int cq = (CRF >= 0 ? CRF : 23);
+                        rc = $"-rc icq -global_quality {cq} -look_ahead 0";
+                    }
+
+                    // Level 5.1 required for width > 2048
+                    string qsvLevel = Width > 2048 ? "5.1" : "4.1";
+                    
+                    var outPart =
+                        "-an -c:v h264_qsv " +
+                        $"-profile:v main -level {qsvLevel} " +
+                        $"-bf 0 -g {g} -sc_threshold 0 " +
+                        "-async_depth 1 -low_power 1 " +
+                        rc + " " +
+                        "-bsf:v h264_metadata=aud=insert " +
+                        "-f h264 -";
+
+                    return (inPart + vfPart + outPart)
+                        .Replace("{Width}", Width.ToString())
+                        .Replace("{Height}", Height.ToString())
+                        .Replace("{FPS}", FPS.ToString());
+                }
             case GpuEnc.AMF:
-                return $"-hwaccel dxva2 -c:v h264_amf " +
-                       $"-usage transcoding -profile high -g {g} " +
-                       $"-time_base 1/{FPS} -r {FPS}";
+                {
+                    // Ultra low latency AMF settings
+                    string inPart;
+                    string vfPart;
+                    
+                    if (PixelFormat == InputFormat.NV12)
+                    {
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt nv12 -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        vfPart = "";
+                        Console.WriteLine("[FFMPEG-AMF] Using NV12 input (zero-copy friendly)");
+                    }
+                    else
+                    {
+                        inPart =
+                            "-fflags nobuffer -flags low_delay " +
+                            "-probesize 32 -analyzeduration 0 " +
+                            $"-f rawvideo -pix_fmt bgra -s {{Width}}x{{Height}} -r {{FPS}} -i - ";
+                        
+                        int padW = (Width % 2 == 0) ? Width : Width + 1;
+                        if (Width % 2 != 0)
+                            vfPart = $"-vf pad={padW}:{{Height}}:0:0,format=nv12 ";
+                        else
+                            vfPart = "-vf format=nv12 ";
+                    }
+
+                    // Minimal buffer for lowest latency (~33ms)
+                    string rc;
+                    if (BitrateKbps > 0)
+                    {
+                        int bufsize = Math.Max(BitrateKbps / 30, 100);
+                        rc = $"-rc cbr -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {bufsize}k";
+                    }
+                    else
+                    {
+                        int cq = (CRF >= 0 ? CRF : 23);
+                        rc = $"-rc cqp -qp_i {cq} -qp_p {cq + 2}";
+                    }
+
+                    // Level 5.1 required for width > 2048
+                    string amfLevel = Width > 2048 ? "5.1" : "4.1";
+                    
+                    var outPart =
+                        "-an -c:v h264_amf " +
+                        "-usage ultralowlatency " +
+                        "-quality speed " +
+                        $"-profile:v main -level {amfLevel} " +
+                        "-preanalysis false -vbaq false " +
+                        "-enforce_hrd false -filler_data false " +
+                        "-frame_skipping false " +
+                        "-bf:v 0 -log_to_dbg 0 " +
+                        $"-g {g} -keyint_min {g} " +
+                        rc + " " +
+                        "-bsf:v h264_metadata=aud=insert " +
+                        "-f h264 -";
+
+                    return (inPart + vfPart + outPart)
+                        .Replace("{Width}", Width.ToString())
+                        .Replace("{Height}", Height.ToString())
+                        .Replace("{FPS}", FPS.ToString());
+                }
             case GpuEnc.None:
                 {
+                    // Ultra low latency libx264 settings
                     var x264Params =
-                    "profile=constrained_baseline:level=3.1" +
-                    $":keyint={g}:min-keyint={g}:scenecut=0" +
-                    ":bframes=0:ref=1:cabac=0" +
-                    ":aud=1:repeat-headers=1" +
-                    ":sliced-threads=0:slices=1" +
-                    ":rc-lookahead=0:sync-lookahead=0";
+                        "profile=constrained_baseline:level=3.1" +
+                        $":keyint={g}:min-keyint={g}:scenecut=0" +
+                        ":bframes=0:ref=1:cabac=0" +
+                        ":aud=1:repeat-headers=1" +
+                        ":sliced-threads=0:slices=1" +
+                        ":rc-lookahead=0:sync-lookahead=0" +
+                        ":intra-refresh=0:open-gop=0";
 
-                    var common =
-                        $"-f rawvideo -pix_fmt bgra -s {Width}x{Height} -r {FPS} -i - " +
+                    string inPart;
+                    string vfPart;
+                    
+                    if (PixelFormat == InputFormat.NV12)
+                    {
+                        inPart = $"-fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 0 " +
+                                 $"-f rawvideo -pix_fmt nv12 -s {Width}x{Height} -r {FPS} -i - ";
+                        vfPart = "";
+                    }
+                    else
+                    {
+                        inPart = $"-fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 0 " +
+                                 $"-f rawvideo -pix_fmt bgra -s {Width}x{Height} -r {FPS} -i - ";
+                        vfPart = "-vf format=yuv420p ";
+                    }
+
+                    var encPart =
                         "-an -c:v libx264 " +
                         $"-preset {Preset} " +
-                        (ZeroLatency ? "-tune zerolatency " : "") +
-                        "-pix_fmt yuv420p " +         // bắt buộc cho WebRTC
-                        "-profile:v baseline " +      // wrapper metadata đồng bộ
-                        "-level:v 3.1 " +
+                        "-tune zerolatency " +
+                        "-pix_fmt yuv420p " +
+                        "-profile:v baseline -level:v 3.1 " +
                         $"-x264-params {x264Params} " +
                         $"-g {g} " +
                         "-f h264 -";
 
+                    string rc;
                     if (BitrateKbps > 0)
                     {
-                        var vbv = Math.Max(BitrateKbps, 1000);
-                        return $"{common} -b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {vbv}k";
+                        int bufsize = Math.Max(BitrateKbps / 30, 100);
+                        rc = $"-b:v {BitrateKbps}k -maxrate {BitrateKbps}k -bufsize {bufsize}k ";
                     }
                     else
                     {
                         var crf = CRF >= 0 ? CRF : 23;
-                        return $"{common} -crf {crf}";
+                        rc = $"-crf {crf} ";
                     }
+
+                    return inPart + vfPart + encPart.Replace("-f h264 -", rc + "-f h264 -");
                 }
             default:
                 return "";
@@ -394,6 +606,75 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     var row = bgra.Slice(y * strideBytes, rowBytes);
                     _stdin.Write(row);
                 }
+            }
+            _lastDurationMs = durationMs;
+        }
+    }
+
+    /// <summary>
+    /// Push NV12 frame to encoder. NV12 format is Y plane followed by interleaved UV plane.
+    /// Total size: Width * Height * 1.5 bytes
+    /// Y plane: Width * Height bytes (full resolution)
+    /// UV plane: Width * Height / 2 bytes (half resolution, interleaved U and V)
+    /// </summary>
+    public void PushNV12Frame(ReadOnlySpan<byte> nv12, int yStride, int uvStride, uint durationMs)
+    {
+        lock (_sync)
+        {
+            if (_stdin == null) return;
+            
+            // Y plane: Height rows of Width bytes each
+            int yRowBytes = Width;
+            // UV plane: Height/2 rows of Width bytes each (interleaved UV)
+            int uvRowBytes = Width;
+            int uvHeight = Height / 2;
+            
+            // Write Y plane
+            if (yStride == yRowBytes)
+            {
+                _stdin.Write(nv12.Slice(0, yRowBytes * Height));
+            }
+            else
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    var row = nv12.Slice(y * yStride, yRowBytes);
+                    _stdin.Write(row);
+                }
+            }
+            
+            // Write UV plane (starts after Y plane in input buffer)
+            int uvOffset = yStride * Height;
+            if (uvStride == uvRowBytes)
+            {
+                _stdin.Write(nv12.Slice(uvOffset, uvRowBytes * uvHeight));
+            }
+            else
+            {
+                for (int y = 0; y < uvHeight; y++)
+                {
+                    var row = nv12.Slice(uvOffset + y * uvStride, uvRowBytes);
+                    _stdin.Write(row);
+                }
+            }
+            
+            _lastDurationMs = durationMs;
+        }
+    }
+
+    /// <summary>
+    /// Push NV12 frame from contiguous buffer (Y and UV planes stored sequentially)
+    /// </summary>
+    public void PushNV12FrameContiguous(ReadOnlySpan<byte> nv12, uint durationMs)
+    {
+        lock (_sync)
+        {
+            if (_stdin == null) return;
+            // NV12 contiguous: Width * Height * 1.5 bytes total
+            int expectedSize = Width * Height * 3 / 2;
+            if (nv12.Length >= expectedSize)
+            {
+                _stdin.Write(nv12.Slice(0, expectedSize));
             }
             _lastDurationMs = durationMs;
         }

@@ -1,0 +1,387 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>RemotePlay WebRTC Test</title>
+<style>
+  body {
+    font: 14px/1.4 system-ui, sans-serif;
+    margin: 20px;
+    background: #1a1a2e;
+    color: #eee;
+  }
+
+  h2 {
+    margin: 0 0 16px 0;
+    color: #00d4ff;
+  }
+
+  video {
+    width: 100%;
+    max-width: 1280px;
+    background: #000;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  pre {
+    white-space: pre-wrap;
+    background: #0a0a15;
+    color: #0f0;
+    padding: 12px;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #16213e;
+    border-radius: 8px;
+  }
+
+  .controls label {
+    color: #aaa;
+  }
+
+  .controls input, .controls select {
+    padding: 8px 12px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #0f0f23;
+    color: #fff;
+  }
+
+  .controls input[type="text"] {
+    width: 120px;
+  }
+
+  #btn {
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  #btn:hover {
+    transform: scale(1.05);
+  }
+
+  #btn:active {
+    transform: scale(0.98);
+  }
+
+  .status {
+    padding: 8px 16px;
+    background: #0f0f23;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .status span {
+    color: #00d4ff;
+    font-weight: bold;
+  }
+
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .presets button {
+    padding: 6px 12px;
+    background: #2a2a4a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .presets button:hover {
+    background: #3a3a5a;
+  }
+
+  .presets button.active {
+    background: #00d4ff;
+    color: #000;
+    border-color: #00d4ff;
+  }
+</style>
+
+<h2>RemotePlay WebRTC Test</h2>
+
+<div class="controls">
+  <label>Host:</label>
+  <input type="text" id="host" value="localhost" placeholder="localhost or IP" />
+  
+  <label>Port:</label>
+  <input type="text" id="port" value="8288" style="width: 60px;" />
+  
+  <label>Monitors:</label>
+  <select id="monitors">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3" selected>3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+  </select>
+  
+  <label>Resolution:</label>
+  <select id="resolution">
+    <option value="1920x1080">1920x1080</option>
+    <option value="1600x900">1600x900</option>
+    <option value="1366x768" selected>1366x768</option>
+    <option value="1280x720">1280x720</option>
+    <option value="1024x576">1024x576</option>
+    <option value="960x540">960x540</option>
+  </select>
+  
+  <label>Bitrate:</label>
+  <select id="bitrate">
+    <option value="2000">2 Mbps</option>
+    <option value="4000">4 Mbps</option>
+    <option value="6000" selected>6 Mbps</option>
+    <option value="8000">8 Mbps</option>
+    <option value="10000">10 Mbps</option>
+    <option value="12000">12 Mbps</option>
+    <option value="15000">15 Mbps</option>
+    <option value="20000">20 Mbps</option>
+  </select>
+  
+  <label>FPS:</label>
+  <select id="fps">
+    <option value="20">20</option>
+    <option value="24">24</option>
+    <option value="30" selected>30</option>
+    <option value="60">60</option>
+  </select>
+  
+  <label style="display:flex;align-items:center;gap:4px;">
+    <input type="checkbox" id="cursor" checked style="width:16px;height:16px;" />
+    Cursor
+  </label>
+  
+  <button id="btn">Connect</button>
+  <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;" onclick="disconnect()">Disconnect</button>
+  <button id="cursorBtn" style="background:#2a4a3a;padding:8px 16px;" onclick="toggleCursor()">Cursor: ON</button>
+</div>
+
+<div class="status">
+  Status: <span id="st">idle</span> | 
+  Video: <span id="videoStats">--</span> | 
+  Frames: <span id="frameStats">--</span>
+</div>
+
+<video id="v" autoplay playsinline muted></video>
+
+<pre id="log"></pre>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const log = (...a) => { 
+    const logEl = $('log');
+    logEl.textContent += a.join(' ') + '\n'; 
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+  const setSt = (s) => $('st').textContent = s;
+  
+  let cursorEnabled = true;
+  let currentWs = null;
+  let currentPc = null;
+  let statsInterval = null;
+  
+  function getApiBase() {
+    const host = $('host').value.trim() || 'localhost';
+    const port = $('port').value.trim() || '8288';
+    return `http://${host}:${port}`;
+  }
+  
+  async function toggleCursor() {
+    cursorEnabled = !cursorEnabled;
+    const btn = $('cursorBtn');
+    btn.textContent = cursorEnabled ? 'Cursor: ON' : 'Cursor: OFF';
+    btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
+    
+    try {
+      const resp = await fetch(`${getApiBase()}/api/cursor?show=${cursorEnabled}`);
+      const data = await resp.json();
+      log('Cursor:', data.cursor ? 'ON' : 'OFF');
+    } catch (e) {
+      log('Cursor toggle error:', e.message);
+    }
+  }
+  
+  async function initCursor() {
+    const show = $('cursor').checked;
+    try {
+      await fetch(`${getApiBase()}/api/cursor?show=${show}`);
+      cursorEnabled = show;
+      $('cursorBtn').textContent = show ? 'Cursor: ON' : 'Cursor: OFF';
+      $('cursorBtn').style.background = show ? '#2a4a3a' : '#4a2a3a';
+    } catch (e) { /* ignore */ }
+  }
+  
+  function disconnect() {
+    log('Disconnecting...');
+    if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    if (currentWs) { try { currentWs.close(); } catch(e){} currentWs = null; }
+    if (currentPc) { try { currentPc.close(); } catch(e){} currentPc = null; }
+    $('v').srcObject = null;
+    setSt('disconnected');
+    $('btn').style.display = '';
+    $('disconnectBtn').style.display = 'none';
+    log('Disconnected');
+  }
+
+  function buildWsUrl() {
+    const host = $('host').value.trim() || 'localhost';
+    const port = $('port').value.trim() || '8288';
+    const monitors = $('monitors').value || '3';
+    const resolution = $('resolution').value || '1366x768';
+    const bitrate = $('bitrate').value || '6000';
+    const fps = $('fps').value || '30';
+    const [resW, resH] = resolution.split('x');
+    
+    return `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
+  }
+
+  async function run() {
+    // Disconnect existing connection first
+    if (currentWs || currentPc) disconnect();
+    
+    const WS_URL = buildWsUrl();
+    $('log').textContent = ''; // Clear log
+    $('btn').style.display = 'none';
+    $('disconnectBtn').style.display = '';
+    
+    const ws = new WebSocket(WS_URL);
+    currentWs = ws;
+    setSt('ws: connecting'); log('WS →', WS_URL);
+
+    // --- Create RTCPeerConnection (with STUN to be safe)
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+    currentPc = pc;
+
+    // Prefer H264 first if available
+    try {
+      const trans = pc.addTransceiver('video', { direction: 'recvonly' });
+      if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
+      const caps = RTCRtpReceiver.getCapabilities('video');
+      const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
+      const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType && h.clockRate === c.clockRate));
+      const prefer = h264.concat(others);
+      if (trans.setCodecPreferences) trans.setCodecPreferences(prefer);
+      log('Codecs (H264 first):', prefer.map(c => c.mimeType).join(', '));
+    } catch (e) { log('Codec pref note:', e.message); }
+
+    pc.oniceconnectionstatechange = () => { setSt('ice: ' + pc.iceConnectionState); log('ICE =', pc.iceConnectionState); };
+    pc.onconnectionstatechange = () => { log('PC  =', pc.connectionState); };
+
+    pc.ontrack = ev => {
+      log('ontrack kind=', ev.track.kind);
+      $('v').srcObject = ev.streams[0] || new MediaStream([ev.track]);
+    };
+
+    // Trickle ICE out
+    pc.onicecandidate = ev => {
+      if (ev.candidate) {
+        const s = ev.candidate.candidate;
+        ws.readyState === 1 && ws.send(s);
+        log('→ cand', s);
+      } else {
+        ws.readyState === 1 && ws.send('end-of-candidates');
+        log('→ end-of-candidates');
+      }
+    };
+
+    ws.onopen = async () => {
+      setSt('ws: open → creating offer');
+      // Apply initial cursor setting
+      await initCursor();
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      ws.send('offer:' + offer.sdp);
+      log('→ offer sent, length=', offer.sdp.length);
+    };
+
+    ws.onmessage = async (ev) => {
+      const text = ev.data;
+      if (text.startsWith('answer:')) {
+        const sdp = text.slice('answer:'.length);
+        // Ensure SAVPF just in case
+        const fixed = sdp.replace(/UDP\/TLS\/RTP\/SAVP\b/g, 'UDP/TLS/RTP/SAVPF');
+        await pc.setRemoteDescription({ type: 'answer', sdp: fixed });
+        log('← answer set (chars=', sdp.length, ')');
+      } else if (text.startsWith('candidate:')) {
+        // Accept UDP candidates; keep sdpMid/mLine auto
+        const cand = 'candidate:' + text.slice('candidate:'.length).trim();
+        await pc.addIceCandidate({ candidate: cand, sdpMLineIndex: 0, sdpMid: '0' });
+        log('← cand', cand);
+      } else if (text.startsWith('end-of-candidates')) {
+        log('← end-of-candidates');
+      } else {
+        log('←', text);
+      }
+    };
+
+    ws.onerror = (e) => log('WS error:', e.message || e);
+
+    // Stats update loop
+    let lastBytes = 0, lastFrames = 0, lastTime = Date.now();
+    statsInterval = setInterval(async () => {
+      if (pc.connectionState !== 'connected') return;
+      try {
+        const stats = await pc.getStats();
+        stats.forEach(r => {
+          if (r.type === 'inbound-rtp' && r.kind === 'video') {
+            const now = Date.now();
+            const elapsed = (now - lastTime) / 1000;
+            const bytes = r.bytesReceived || 0;
+            const frames = r.framesDecoded || 0;
+            
+            const bitrate = Math.round((bytes - lastBytes) * 8 / elapsed / 1000);
+            const fps = Math.round((frames - lastFrames) / elapsed);
+            
+            $('videoStats').textContent = `${bitrate} kbps`;
+            $('frameStats').textContent = `${fps} fps, ${frames} total`;
+            
+            lastBytes = bytes;
+            lastFrames = frames;
+            lastTime = now;
+          }
+        });
+      } catch (e) {}
+    }, 1000);
+
+    // Cleanup on close
+    ws.onclose = () => {
+      setSt('ws: closed');
+      if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+      currentWs = null;
+      currentPc = null;
+      $('btn').style.display = '';
+      $('disconnectBtn').style.display = 'none';
+    };
+
+    // Debug helper
+    window.getRTCStats = async () => {
+      const stats = await pc.getStats();
+      stats.forEach(r => { if (r.type === 'inbound-rtp' && r.kind === 'video') log('stats inbound-rtp:', JSON.stringify(r, null, 2)); });
+    };
+  }
+
+  $('btn').onclick = run;
+</script>
