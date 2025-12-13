@@ -400,8 +400,11 @@ public unsafe class LibAvEncoder : IDisposable
                 break;
                 
             case GpuVendorType.Intel:
-                // Intel: Try D3D11VA (works well with QSV)
-                Console.WriteLine("[LibAvEncoder] Intel GPU: Trying D3D11VA hardware context for QSV");
+                // Intel: Try QSV-specific hardware context first, then D3D11VA fallback
+                Console.WriteLine("[LibAvEncoder] Intel GPU: Trying QSV hardware context");
+                if (TryInitializeQSV())
+                    return true;
+                Console.WriteLine("[LibAvEncoder] Intel: QSV failed, trying generic D3D11VA");
                 if (TryInitializeD3D11VA())
                     return true;
                 break;
@@ -469,6 +472,99 @@ public unsafe class LibAvEncoder : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[LibAvEncoder] CUDA init exception: {ex.Message}");
+            CleanupHwContext();
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Initialize QSV-specific hardware context for Intel GPU.
+    /// QSV encoder requires AV_HWDEVICE_TYPE_QSV device context.
+    /// </summary>
+    private bool TryInitializeQSV()
+    {
+        try
+        {
+            Console.WriteLine("[LibAvEncoder] Initializing Intel QSV hardware context...");
+            
+            // For QSV, we need to use AV_HWDEVICE_TYPE_QSV device
+            // FFmpeg will internally create the necessary D3D11VA child device
+            AVBufferRef* hwDeviceCtx = null;
+            
+            // Try to create QSV device with D3D11VA backend (Windows)
+            // Use "child_device_type=d3d11va" for Windows
+            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, "auto", null, 0);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] QSV device creation failed: {GetErrorMessage(ret)}");
+                Console.WriteLine("[LibAvEncoder] Trying QSV with explicit D3D11VA child device...");
+                
+                // Try with explicit child device setup
+                // Create a D3D11VA device first, then derive QSV from it
+                AVBufferRef* d3d11vaDevice = null;
+                ret = ffmpeg.av_hwdevice_ctx_create(&d3d11vaDevice, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] D3D11VA base device not available: {GetErrorMessage(ret)}");
+                    return false;
+                }
+                
+                // Derive QSV device from D3D11VA device
+                ret = ffmpeg.av_hwdevice_ctx_create_derived(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, d3d11vaDevice, 0);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] Failed to derive QSV from D3D11VA: {GetErrorMessage(ret)}");
+                    AVBufferRef* temp = d3d11vaDevice;
+                    ffmpeg.av_buffer_unref(&temp);
+                    return false;
+                }
+                Console.WriteLine("[LibAvEncoder] QSV device derived from D3D11VA successfully");
+            }
+            else
+            {
+                Console.WriteLine("[LibAvEncoder] QSV device created directly");
+            }
+            
+            _hwDeviceCtx = hwDeviceCtx;
+            
+            // Create hardware frames context for QSV
+            _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to allocate QSV frames context");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Configure QSV frames context
+            AVHWFramesContext* framesCtx = (AVHWFramesContext*)_hwFramesCtx->data;
+            framesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;  // QSV-specific format
+            framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+            framesCtx->width = _width;
+            framesCtx->height = _height;
+            framesCtx->initial_pool_size = 8;  // QSV needs more frames in pool
+            
+            Console.WriteLine($"[LibAvEncoder] QSV frames config: {_width}x{_height}, format=QSV/NV12, pool=8");
+            
+            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] Failed to init QSV frames context: {GetErrorMessage(ret)}");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Set encoder to use QSV frames
+            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
+            
+            Console.WriteLine("[LibAvEncoder] Intel QSV hardware context initialized (zero-copy enabled)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LibAvEncoder] QSV init exception: {ex.Message}");
             CleanupHwContext();
             return false;
         }
