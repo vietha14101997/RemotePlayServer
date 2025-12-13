@@ -1,454 +1,163 @@
-=== RemotePlayServer ===
-[Encoder] FFmpeg x264 (Software)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[Guard] Text size restored.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
+Starting camera passthrough
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StartCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:49)
+CameraPassthrough:OnEnable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:17)
 
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
+Found 1 camera devices
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StartCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:65)
+CameraPassthrough:OnEnable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:17)
 
+Camera 0: Integrated Webcam (front facing: True)
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StartCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:68)
+CameraPassthrough:OnEnable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:17)
 
-[Guard] Virtual Display Driver disabled safely.
-[TextScale] Actual DPI for \\.\DISPLAY1: 96
-[Guard] Saved original text scale for \\.\DISPLAY1: 100%
-[Guard] Snapshot captured.
-=== Monitors ===
-  \\.\DISPLAY1: 1920x1080 [Physical]
-[HTTP] http://+:8288/
-[HTTP] Server: 192.168.1.13:8288
+Starting webcam texture: Integrated Webcam at 1280x720
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StartCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:114)
+CameraPassthrough:OnEnable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:17)
 
-=== QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
-█████████████████████████████████████████████
-█████████████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀▄  █▄ ▄█▀█ █  ▀▄▄▄▄█ ▄▄▄▄▄ ████
-████ █   █ █ █▀▀█ ▀ ▄ █▄ █▄██▀▀▄▀█ █   █ ████
-████ █▄▄▄█ █▄▄ ▄▄▄▀▄▀██ ▄ ▄█ █▄█▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ █ █ █▄█▄▀▄▀▄▀ ▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-█████▄█ ▀ ▄▀   █ ▀████  ██▀█▄▄▀██▄▄▀▄▄  ▄████
-████▄▄█▄█▀▄ ▀▄███▄▀ ▀█▄▄▄█   ▄██  ██ ▄█▄ ████
-████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
-█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
-███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
-████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
-████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
-████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
-████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
-█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
-███████▄██▄█ ▀█▀▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
-████ ▄▄▄▄▄ █▀█ █ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
-████ █   █ █▀▀▀▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
-████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
-████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
-█████████████████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+[ClusterAutoBinder] Using fixed config: 2 monitors, frame=3840x1080, cell=1920x1080
+UnityEngine.Debug:Log (object)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:35)
 
-Server is running. Press ENTER to exit.
-[Signal] Client connected 1ae27726-5a1a-4f47-8932-55b98bd17e40
-[Cluster Signal] Received client ICE: candidate:2609990084 1 udp 2113937151 46b1d91d-7e75-45ad-802...
-[Cluster Signal] Queued client ICE (count=1)
-[Cluster Signal] Received client ICE: candidate:1380155959 1 udp 2113939711 69408e12-ed86-41fa-b0d...
-[Cluster Signal] Queued client ICE (count=2)
-[Cluster Signal] Applying new display config: 1 monitors @ 1920x1080, 30 fps
-[Cluster Signal] Received client ICE: candidate:3766816721 1 udp 1677732095 2402:800:610d:265a:20f...
-[Cluster Signal] Queued client ICE (count=3)
-[Cluster Signal] Received client ICE: candidate:2459431714 1 udp 1677729535 171.241.38.173 55064 t...
-[Cluster Signal] Queued client ICE (count=4)
-[Cluster Signal] Client sent end-of-candidates
-[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
-[VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 0 (target total: 1)
-[VDD] No virtual monitors needed - you already have 3+ physical monitors.
-[Display] Setting up 3-monitor system...
-[Display] Physical monitors: 1, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
-[Display] Setting \\.\DISPLAY1 as PRIMARY display
-[Display] ✓ \\.\DISPLAY1 set as primary
-[Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
-[Cluster Signal] Monitors after config: 1
-[Cluster Signal] Using LibAv (in-process) encoder
-[ClusterCapture] Combined frame: 1920x1080, 1 monitors, gap=1
-[ClusterCapture] Using adapter (by monitor): Intel(R) UHD Graphics 620
-[ClusterCapture] D3D11 device created (VideoSupport enabled for MFT encoder)
-[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=0
-[ClusterCapture] Initialized with 1 monitor duplications (zero-copy enabled)
-[EncoderFactory] Creating streamer: mode=LibAv, fps=30, kbps=8000
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[EncoderFactory] Intel GPU detected
-[EncoderFactory] Using LibAv with h264_qsv encoder
-[RTC-LibAv] Created: 30fps, 8000kbps
-[RTC-LibAv] PeerConnection created
-[RTC-LibAv] canSend(H264) = True
-[RTC-LibAv] ice = checking
-[RTC-LibAv] Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 58416 typ...
-[Cluster Signal] Queued server ICE (count=1): candidate:3928909093 1 udp 2113937663 19...
-[Cluster Signal] Answer sent to client
-[Cluster Signal] Flushing 1 queued server ICE candidates
-[Cluster Signal] Sent queued server ICE: candidate:3928909093 1 udp 2113937663 192.168.1.13...
-[Cluster Signal] Processing 4 queued client ICE candidates
-[RTC-LibAv] Added remote ICE: candidate:2609990084 1 udp 2113937151 46b1d91d-7e7...
-[Cluster Signal] Added queued ICE: candidate:2609990084 1 udp 2113937151 46b1d91d-7e7...
-[RTC-LibAv] Added remote ICE: candidate:1380155959 1 udp 2113939711 69408e12-ed8...
-[Cluster Signal] Added queued ICE: candidate:1380155959 1 udp 2113939711 69408e12-ed8...
-[RTC-LibAv] Added remote ICE: candidate:3766816721 1 udp 1677732095 2402:800:610...
-[Cluster Signal] Added queued ICE: candidate:3766816721 1 udp 1677732095 2402:800:610...
-[RTC-LibAv] Added remote ICE: candidate:2459431714 1 udp 1677729535 171.241.38.1...
-[Cluster Signal] Added queued ICE: candidate:2459431714 1 udp 1677729535 171.241.38.1...
-[ClusterCapture] Starting combined capture for 1 monitors
-[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
-[ClusterCapture] GPU color converter initialized (BGRA->NV12)
-[ClusterCapture] Capture started
-[ClusterCapture] Target 30fps, frame interval 33ms
-[RTC-LibAv] ice = connected
-[RTC-LibAv] ICE CONNECTED
-[RTC-LibAv] pc.state = connecting
-[RTC-LibAv] Local ICE: 3070992155 1 udp 1677730047 171.241.38.173 58416 t...
-[Cluster Signal] Sent server ICE: candidate:3070992155 1 udp 1677730047 171.241.38.1...
-[LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
-[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
-[LibAvEncoder] Using encoder: h264_qsv
-[LibAvEncoder] Configuring Intel QSV encoder
-[LibAvEncoder] Intel GPU: Trying QSV hardware context
-[LibAvEncoder] Initializing Intel QSV hardware context...
-[AVHWDeviceContext @ 00000262969d6e80] Using device 8086:5917 (Intel(R) UHD Graphics 620).
-[RTC-LibAv] pc.state = connected
-[LibAvEncoder] QSV device created directly
-[LibAvEncoder] QSV frames config: 1920x1080, format=QSV/NV12, pool=8
-[LibAvEncoder] Intel QSV hardware context initialized (zero-copy enabled)
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1920x1080 @ 30fps, 8000kbps (D3D11 zero-copy)
-[RTC-LibAv] Encoder started 1920x1080 @ 30fps 8000kbps
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:45 deq:45 sent:45
-[RTC-LibAv] OUTPUT: 25.8 fps, 2967 kbps | AU=52
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:96 deq:96 sent:95
-[RTC-LibAv] OUTPUT: 25.8 fps, 2430 kbps | AU=104
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:150 deq:150 sent:150
-[RTC-LibAv] OUTPUT: 27.6 fps, 2963 kbps | AU=160
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:207 deq:207 sent:207
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] OUTPUT: 27.3 fps, 3764 kbps | AU=215
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:257 deq:257 sent:256
-[RTC-LibAv] OUTPUT: 25.2 fps, 8495 kbps | AU=266
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:314 deq:314 sent:314
-[RTC-LibAv] OUTPUT: 28.5 fps, 12722 kbps | AU=324
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:370 deq:370 sent:369
-[RTC-LibAv] OUTPUT: 27.3 fps, 9333 kbps | AU=379
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:426 deq:426 sent:425
-[RTC-LibAv] OUTPUT: 28.8 fps, 5493 kbps | AU=437
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:484 deq:484 sent:483
-[RTC-LibAv] OUTPUT: 28.7 fps, 7989 kbps | AU=495
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:540 deq:540 sent:539
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.8 fps, 7643 kbps | AU=551
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:597 deq:597 sent:596
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.9 fps, 9578 kbps | AU=607
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:655 deq:655 sent:654
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.5 fps, 8669 kbps | AU=666
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:713 deq:713 sent:713
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.2 fps, 8528 kbps | AU=725
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:773 deq:773 sent:772
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 28.9 fps, 10528 kbps | AU=783
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:829 deq:829 sent:828
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] OUTPUT: 28.9 fps, 10870 kbps | AU=841
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:886 deq:886 sent:885
-[RTC-LibAv] OUTPUT: 27.6 fps, 4343 kbps | AU=897
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:945 deq:945 sent:945
-[RTC-LibAv] OUTPUT: 29.9 fps, 7238 kbps | AU=957
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1005 deq:1005 sent:1005
-[RTC-LibAv] OUTPUT: 29.8 fps, 9319 kbps | AU=1017
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1065 deq:1065 sent:1064
-[RTC-LibAv] OUTPUT: 29.7 fps, 9777 kbps | AU=1077
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1117 deq:1117 sent:1117
-[RTC-LibAv] OUTPUT: 26.3 fps, 7328 kbps | AU=1130
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1172 deq:1172 sent:1170
-[RTC-LibAv] OUTPUT: 22.8 fps, 7514 kbps | AU=1176
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1216 deq:1216 sent:1216
-[RTC-LibAv] OUTPUT: 26.0 fps, 9164 kbps | AU=1228
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1277 deq:1277 sent:1277
-[RTC-LibAv] OUTPUT: 30.0 fps, 9937 kbps | AU=1288
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1334 deq:1334 sent:1333
-[RTC-LibAv] OUTPUT: 28.2 fps, 9257 kbps | AU=1345
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1391 deq:1391 sent:1391
-[RTC-LibAv] OUTPUT: 28.6 fps, 7176 kbps | AU=1403
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1452 deq:1451 sent:1451
-[RTC-LibAv] OUTPUT: 30.4 fps, 8112 kbps | AU=1464
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1511 deq:1511 sent:1511
-[RTC-LibAv] OUTPUT: 29.9 fps, 7723 kbps | AU=1524
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1572 deq:1572 sent:1572
-[RTC-LibAv] OUTPUT: 30.5 fps, 7738 kbps | AU=1585
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1626 deq:1626 sent:1626
-[RTC-LibAv] OUTPUT: 26.7 fps, 6841 kbps | AU=1639
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1683 deq:1683 sent:1683
-[RTC-LibAv] OUTPUT: 28.4 fps, 8314 kbps | AU=1696
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1740 deq:1740 sent:1740
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 28.9 fps, 8355 kbps | AU=1754
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1800 deq:1800 sent:1800
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 28.9 fps, 7693 kbps | AU=1812
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1853 deq:1853 sent:1852
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.2 fps, 6580 kbps | AU=1867
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1912 deq:1912 sent:1911
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.4 fps, 10384 kbps | AU=1926
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:1963 deq:1963 sent:1962
-[RTC-LibAv] OUTPUT: 24.6 fps, 6267 kbps | AU=1976
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2021 deq:2021 sent:2020
-[RTC-LibAv] OUTPUT: 29.6 fps, 7817 kbps | AU=2036
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2072 deq:2072 sent:2072
-[RTC-LibAv] OUTPUT: 24.1 fps, 8243 kbps | AU=2086
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:2116 deq:2116 sent:2115
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] OUTPUT: 21.9 fps, 6463 kbps | AU=2130
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:2168 deq:2168 sent:2168
-[RTC-LibAv] OUTPUT: 26.8 fps, 4915 kbps | AU=2184
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:2225 deq:2225 sent:2224
-[RTC-LibAv] OUTPUT: 29.3 fps, 7398 kbps | AU=2243
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2281 deq:2281 sent:2280
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.8 fps, 7518 kbps | AU=2299
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2339 deq:2339 sent:2338
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.6 fps, 8285 kbps | AU=2355
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2395 deq:2395 sent:2395
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.5 fps, 8580 kbps | AU=2414
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2451 deq:2451 sent:2450
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.8 fps, 7094 kbps | AU=2470
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2510 deq:2510 sent:2509
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.3 fps, 5677 kbps | AU=2530
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2569 deq:2569 sent:2568
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.6 fps, 5044 kbps | AU=2590
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2630 deq:2630 sent:2629
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.7 fps, 5270 kbps | AU=2650
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2689 deq:2689 sent:2689
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 30.4 fps, 8563 kbps | AU=2711
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2746 deq:2746 sent:2746
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 27.6 fps, 6514 kbps | AU=2767
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2806 deq:2806 sent:2805
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.5 fps, 5322 kbps | AU=2827
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2865 deq:2865 sent:2865
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.9 fps, 3565 kbps | AU=2888
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2926 deq:2926 sent:2926
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 30.7 fps, 8980 kbps | AU=2950
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:2987 deq:2987 sent:2987
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.8 fps, 3627 kbps | AU=3010
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3047 deq:3047 sent:3047
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.8 fps, 8084 kbps | AU=3070
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3107 deq:3107 sent:3106
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.7 fps, 5214 kbps | AU=3130
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3166 deq:3166 sent:3165
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.9 fps, 5927 kbps | AU=3190
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3226 deq:3226 sent:3225
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.3 fps, 6099 kbps | AU=3249
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3285 deq:3285 sent:3285
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.7 fps, 7839 kbps | AU=3309
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] q=enq:3332 deq:3332 sent:3332
-[RTC-LibAv] OUTPUT: 21.3 fps, 10355 kbps | AU=3354
-[RTC-LibAv] enqueue NV12 1920x1080
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:3383 deq:3383 sent:3382
-[RTC-LibAv] enqueue NV12 1920x1080
-[LibAvEncoder] Disposed
-[RTC-LibAv] pc.state = closed
-[GpuColorConverter] Convert error: Object reference not set to an instance of an object.
-[ClusterCapture] Capture stopped
-[ClusterCapture] Capture stopped
-[Guard] Restoring display settings after client disconnect...
-[Guard] RestoreAndCleanupWithTimeout called...
-[Guard] SnapshotPath exists: True
-[Guard] Attempting to disable VDD...
-[Guard] ForceDisableVdd: Finding VDD instance...
-[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
-[Guard] ForceDisableVdd: Disabling VDD...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
+[WorldPanelClusterRig] Built 2 panels
+UnityEngine.Debug:Log (object)
+WorldPanelClusterRig:BuildWithPanelCount (int) (at Assets/VR-Workspace/Scripts/Panel/WorldPanelClusterRig.cs:56)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:38)
 
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
+[PCStreamClient] This instance is INPUT OWNER
+UnityEngine.Debug:Log (object)
+PCStreamClient:OnEnable () (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:77)
+UnityEngine.GameObject:AddComponent<PCStreamClient> ()
+ClusterAutoBinder:CreateMasterClient (WorldPanelPlus,int) (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:73)
+ClusterAutoBinder:BindPanelsToStream () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:57)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:41)
 
+[ClusterAutoBinder] Master client on panel[1], url=ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30
+UnityEngine.Debug:Log (object)
+ClusterAutoBinder:CreateMasterClient (WorldPanelPlus,int) (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:90)
+ClusterAutoBinder:BindPanelsToStream () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:57)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:41)
 
-[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
-[Guard] Restoring original state before exit...
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
-[Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[TextScale] Enhanced broadcast refresh completed.
-[Guard] ✓ Virtual monitor text scale restored to 100%
-[Guard] Per-monitor text scale restoration completed.
-[Guard] Allowing system to settle after restore...
-[Guard] ✅ All settings restored and system settled.
-[Guard] Restore done.
-[Guard] Display settings restored.
-[Signal] Cluster client disconnected 1ae27726-5a1a-4f47-8932-55b98bd17e40
+[ClusterAutoBinder] CropReceiver on panel[0]
+UnityEngine.Debug:Log (object)
+ClusterAutoBinder:CreateCropReceiver (WorldPanelPlus,int) (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:112)
+ClusterAutoBinder:BindPanelsToStream () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:63)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:41)
+
+[ClusterAutoBinder] Bound 2 panels to combined stream
+UnityEngine.Debug:Log (object)
+ClusterAutoBinder:BindPanelsToStream () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:66)
+ClusterAutoBinder:Start () (at Assets/VR-Workspace/Scripts/ClusterAutoBinder.cs:41)
+
+[PCStreamClient] Local ICE: candidate:1458030751 1 udp 2122260223 192.168.1.13 57306 typ...
+UnityEngine.Debug:Log (object)
+PCStreamClient/<>c__DisplayClass28_0:<Start>b__3 (Unity.WebRTC.RTCIceCandidate) (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:132)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass49_0:<PCOnIceCandidate>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:431)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PCStreamClient] Sent ICE immediately
+UnityEngine.Debug:Log (object)
+PCStreamClient/<>c__DisplayClass28_0:<Start>b__3 (Unity.WebRTC.RTCIceCandidate) (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:141)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass49_0:<PCOnIceCandidate>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:431)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+Webcam texture initialized successfully after 2 frames
+UnityEngine.Debug:Log (object)
+CameraPassthrough/<EnsureTextureStarted>d__11:MoveNext () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:175)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+[PCStreamClient] Local ICE: candidate:1474804409 1 udp 1686052607 171.241.38.173 57306 t...
+UnityEngine.Debug:Log (object)
+PCStreamClient/<>c__DisplayClass28_0:<Start>b__3 (Unity.WebRTC.RTCIceCandidate) (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:132)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass49_0:<PCOnIceCandidate>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:431)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PCStreamClient] Local ICE: candidate:2823625739 1 tcp 1518280447 192.168.1.13 56874 typ...
+UnityEngine.Debug:Log (object)
+PCStreamClient/<>c__DisplayClass28_0:<Start>b__3 (Unity.WebRTC.RTCIceCandidate) (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:132)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass49_0:<PCOnIceCandidate>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:431)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+Stopping camera passthrough
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StopCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:123)
+CameraPassthrough:OnDisable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:18)
+ModeController/<TransitionRoutine>d__10:MoveNext () (at Assets/VR-Workspace/Scripts/ModeController.cs:87)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+Stopping webcam texture
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StopCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:128)
+CameraPassthrough:OnDisable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:18)
+ModeController/<TransitionRoutine>d__10:MoveNext () (at Assets/VR-Workspace/Scripts/ModeController.cs:87)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+Destroying webcam texture
+UnityEngine.Debug:Log (object)
+CameraPassthrough:StopCam () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:132)
+CameraPassthrough:OnDisable () (at Assets/VR-Workspace/Scripts/CameraPassthrough.cs:18)
+ModeController/<TransitionRoutine>d__10:MoveNext () (at Assets/VR-Workspace/Scripts/ModeController.cs:87)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+[APBootstrap] MainMenu spawned
+UnityEngine.Debug:Log (object)
+APBootstrap:SpawnMainMenu () (at Assets/VR-Workspace/Scripts/APBootstrap.cs:81)
+
+[PCStreamClient] RAW WS RECV (762 chars): answer:v=0
+o=- 68961 0 IN IP4 127.0.0.1
+s=sipsorcery
+t=0 0
+a=group:BUNDLE 0
+m=video 9 UDP/TLS/R...
+UnityEngine.Debug:Log (object)
+PCStreamClient/<ConnectAndSignalOffer>d__32:MoveNext () (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:307)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PCStreamClient] Setting remote Answer SDP. Length: 753. Content:
+v=0
+o=- 68961 0 IN IP4 127.0.0.1
+s=sipsorcery
+t=0 0
+a=group:BUNDLE 0
+m=video 9 UDP/TLS/RTP/SAVP 
+c=IN IP4 0.0.0.0
+a=ice-ufrag:OUSZ
+a=ice-pwd:CPDXCYPXMTQPWNPPKIZRMFVW
+a=fingerprint:sha-256 9B:D1:EF:B3:01:CA:9D:9A:1B:10:8B:34:25:E0:BA:72:4F:33:38:28:46:2F:D0:C8:2A:F9:E8:2C:14:80:45:DD
+a=setup:actpass
+a=candidate:3707760737 1 udp 2113937663 192.168.1.9 55620 typ host generation 0
+a=candidate:3696738782 1 udp 2113940223 2402:800:610d:265a:20f9:2def:f868:d492 55620 typ host generation 0
+a=candidate:1416915466 1 udp 2113940223 2402:800:610d:265a:c29e:1bd7:cf8d:4ee1 55620 typ host generation 0
+a=ice-options:ice2,trickle
+a=mid:0
+a=rtcp-mux
+a=rtcp:9 IN IP4 0.0.0.0
+a=sendonly
+a=ssrc:323475745 cname:647d6137-9b2d-4219-8b95-78d0f22c0b07
+UnityEngine.Debug:Log (object)
+PCStreamClient/<ConnectAndSignalOffer>d__32:MoveNext () (at Assets/VR-Workspace/Scripts/PCStreamClient.cs:320)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
