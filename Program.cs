@@ -56,6 +56,61 @@ partial class Program
         return "127.0.0.1";
     }
 
+    internal static bool IsPrivateV4(IPAddress ip)
+    {
+        if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) return false;
+        var b = ip.GetAddressBytes();
+        // 10.0.0.0/8
+        if (b[0] == 10) return true;
+        // 172.16.0.0/12
+        if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+        // 192.168.0.0/16
+        if (b[0] == 192 && b[1] == 168) return true;
+        return false;
+    }
+
+    internal static async Task<string> MaybeResolveMdnsCandidateAsync(string candStr, int timeoutMs = 1200)
+    {
+        // Chrome/Edge may hide local IPs by using mDNS hostnames like "<uuid>.local".
+        // SIPSorcery does not resolve these automatically; resolve via OS (Windows supports mDNS) and rewrite candidate.
+        var parts = candStr.Split(' ');
+        if (parts.Length < 6) return candStr;
+
+        var addr = parts[4];
+        if (!addr.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return candStr;
+
+        try
+        {
+            var resolveTask = Dns.GetHostAddressesAsync(addr);
+            var completed = await Task.WhenAny(resolveTask, Task.Delay(timeoutMs));
+            if (completed != resolveTask)
+            {
+                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve timed out for '{addr}' (timeout={timeoutMs}ms)");
+                return candStr;
+            }
+
+            var addrs = resolveTask.Result;
+            if (addrs == null || addrs.Length == 0)
+            {
+                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve returned no addresses for '{addr}'");
+                return candStr;
+            }
+
+            var chosen = addrs.FirstOrDefault(IsPrivateV4)
+                      ?? addrs.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                      ?? addrs[0];
+
+            parts[4] = chosen.ToString();
+            Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]}");
+            return string.Join(' ', parts);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve failed for '{addr}': {ex.Message}");
+            return candStr;
+        }
+    }
+
     static string DetectEncoder()
     {
         // Check for AMD AMF
@@ -875,6 +930,13 @@ public class SignalAndRestServer
                         // Fix double "candidate:candidate:" bug
                         if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
                             candStr = candStr.Substring("candidate:".Length);
+
+                        var originalCandStr = candStr;
+                        candStr = await Program.MaybeResolveMdnsCandidateAsync(candStr);
+                        if (!string.Equals(candStr, originalCandStr, StringComparison.Ordinal))
+                        {
+                            Console.WriteLine($"[Cluster Signal] mDNS resolved: '{originalCandStr.Substring(0, Math.Min(60, originalCandStr.Length))}...' -> '{candStr.Substring(0, Math.Min(60, candStr.Length))}...'");
+                        }
                         
                         Console.WriteLine($"[Cluster Signal] Received client ICE: '{candStr.Substring(0, Math.Min(60, candStr.Length))}...' (hex={BitConverter.ToString(Encoding.UTF8.GetBytes(candStr).Take(50).ToArray())})");
                         Console.WriteLine($"[Cluster Signal] Processing received candidate - full length: {candStr.Length}");

@@ -181,6 +181,11 @@
     Cursor
   </label>
 
+  <label style="display:flex;align-items:center;gap:6px;" title="LAN mode: disable STUN so ICE uses only local host candidates (more stable on same Wi-Fi/LAN).">
+    <input type="checkbox" id="useStun" style="width:16px;height:16px;" checked />
+    STUN
+  </label>
+
   <button id="btn">Connect</button>
   <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;"
     onclick="disconnect()">Disconnect</button>
@@ -220,6 +225,43 @@
     const m = typeof cand === 'string' ? cand.match(/candidate:\S+\s+\d+\s+\S+\s+\d+\s+(\S+)\s+(\d+)/) : null;
     return m ? { address: m[1], port: +m[2] } : null;
   };
+
+  const tryParseIpV4 = (host) => {
+    const m = typeof host === 'string' ? host.trim().match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/) : null;
+    if (!m) return null;
+    const oct = m.slice(1).map(n => +n);
+    if (oct.some(n => Number.isNaN(n) || n < 0 || n > 255)) return null;
+    return oct;
+  };
+
+  const isPrivateHost = (host) => {
+    const ip = tryParseIpV4(host);
+    if (!ip) return false;
+    if (ip[0] === 10) return true;
+    if (ip[0] === 192 && ip[1] === 168) return true;
+    if (ip[0] === 172 && ip[1] >= 16 && ip[1] <= 31) return true;
+    return false;
+  };
+
+  async function logSelectedCandidatePair(pc) {
+    try {
+      const stats = await pc.getStats();
+      let selectedPair = null;
+      stats.forEach(r => {
+        if (r.type === 'candidate-pair' && (r.selected || r.nominated) && r.state === 'succeeded') {
+          if (!selectedPair || (r.priority || 0) > (selectedPair.priority || 0)) selectedPair = r;
+        }
+      });
+
+      if (!selectedPair) return;
+      const local = stats.get(selectedPair.localCandidateId);
+      const remote = stats.get(selectedPair.remoteCandidateId);
+      if (!local || !remote) return;
+      log('ICE selected pair:', `${local.candidateType}/${local.protocol} ${local.address}:${local.port} -> ${remote.candidateType}/${remote.protocol} ${remote.address}:${remote.port}`);
+    } catch (e) {
+      log('ICE selected pair log error:', e.message);
+    }
+  }
 
   function updateBandwidthEstimate() {
     const monitors = parseInt($('monitors').value) || 1;
@@ -325,16 +367,29 @@
     //  - Edge:   edge://flags/#enable-webrtc-hide-local-ips-with-mdns    => Disabled
     log('TIP: If candidates contain ".local" and ICE fails, disable WebRTC mDNS local IP hiding in your browser flags and restart the browser.');
 
-    // --- Create RTCPeerConnection (with multiple STUN servers for better Android compatibility)
-    const pc = new RTCPeerConnection({
-      iceServers: [
+    const hostVal = $('host').value.trim() || 'localhost';
+    const hostIsPrivate = isPrivateHost(hostVal);
+    const useStunEl = $('useStun');
+    const useStun = useStunEl ? !!useStunEl.checked : true;
+
+    // If connecting to a private LAN IP, STUN is optional and can make ICE pick weird paths on some networks.
+    // LAN-only (no STUN) forces host candidates and is often the most reliable for same Wi-Fi/LAN.
+    const iceServers = (hostIsPrivate && !useStun)
+      ? []
+      : [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' }
-      ],
-      iceCandidatePoolSize: 10
+      ];
+
+    log('ICE mode:', hostIsPrivate ? 'LAN target' : 'Non-LAN target', '| STUN =', iceServers.length ? 'ON' : 'OFF');
+
+    // --- Create RTCPeerConnection
+    const pc = new RTCPeerConnection({
+      iceServers,
+      iceCandidatePoolSize: iceServers.length ? 10 : 0
     });
     currentPc = pc;
 
@@ -353,8 +408,23 @@
       log('Codecs (H264 first):', prefer.map(c => c.mimeType).join(', '));
     } catch (e) { log('Codec pref note:', e.message); }
 
-    pc.oniceconnectionstatechange = () => { setSt('ice: ' + pc.iceConnectionState); log('ICE =', pc.iceConnectionState); };
+    pc.oniceconnectionstatechange = () => {
+      setSt('ice: ' + pc.iceConnectionState);
+      log('ICE =', pc.iceConnectionState);
+      if (pc.iceConnectionState === 'connected') logSelectedCandidatePair(pc);
+    };
     pc.onconnectionstatechange = () => { log('PC  =', pc.connectionState); };
+    pc.onicecandidateerror = (e) => {
+      try {
+        log('ICE cand error:', JSON.stringify({
+          errorCode: e.errorCode,
+          errorText: e.errorText,
+          url: e.url,
+          address: e.address,
+          port: e.port
+        }));
+      } catch { log('ICE cand error'); }
+    };
 
     pc.ontrack = ev => {
       log('ontrack kind=', ev.track.kind);
