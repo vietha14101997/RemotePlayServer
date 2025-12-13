@@ -207,6 +207,20 @@
   };
   const setSt = (s) => $('st').textContent = s;
 
+  const isMdnsHostCandidate = (cand) => typeof cand === 'string' && /\btyp\s+host\b/i.test(cand) && /\.local\b/i.test(cand);
+  const isPrivateV4 = (ip) => {
+    if (!ip) return false;
+    if (/^10\./.test(ip)) return true;
+    if (/^192\.168\./.test(ip)) return true;
+    const m = ip.match(/^172\.(\d+)\./);
+    return m ? (+m[1] >= 16 && +m[1] <= 31) : false;
+  };
+  const extractIpFromCandidate = (cand) => {
+    // candidate:<foundation> <component> <transport> <priority> <address> <port> typ ...
+    const m = typeof cand === 'string' ? cand.match(/candidate:\S+\s+\d+\s+\S+\s+\d+\s+(\S+)\s+(\d+)/) : null;
+    return m ? { address: m[1], port: +m[2] } : null;
+  };
+
   function updateBandwidthEstimate() {
     const monitors = parseInt($('monitors').value) || 1;
     const bitrate = parseInt($('bitrate').value) || 6000;
@@ -304,6 +318,13 @@
     currentWs = ws;
     setSt('ws: connecting'); log('WS →', WS_URL);
 
+    // NOTE: Browsers may hide local IPs with mDNS (.local) for privacy.
+    // RemotePlayServer/SIPSorcery may not resolve mDNS hostnames, causing ICE to stay "checking" then fail.
+    // Fix on client browser:
+    //  - Chrome: chrome://flags/#enable-webrtc-hide-local-ips-with-mdns  => Disabled
+    //  - Edge:   edge://flags/#enable-webrtc-hide-local-ips-with-mdns    => Disabled
+    log('TIP: If candidates contain ".local" and ICE fails, disable WebRTC mDNS local IP hiding in your browser flags and restart the browser.');
+
     // --- Create RTCPeerConnection (with multiple STUN servers for better Android compatibility)
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -316,6 +337,9 @@
       iceCandidatePoolSize: 10
     });
     currentPc = pc;
+
+    let warnedMdns = false;
+    let sawPrivateHostV4 = false;
 
     // Prefer H264 first if available
     try {
@@ -341,11 +365,27 @@
     pc.onicecandidate = ev => {
       if (ev.candidate) {
         const s = ev.candidate.candidate;
+
+        if (!warnedMdns && isMdnsHostCandidate(s)) {
+          warnedMdns = true;
+          log('WARNING: Browser is sending mDNS host candidate (.local). RemotePlayServer may not resolve it.');
+          log('Action: disable mDNS local IP hiding and reconnect.');
+        }
+
+        const ep = extractIpFromCandidate(s);
+        if (ep && isPrivateV4(ep.address) && /\btyp\s+host\b/i.test(s)) {
+          sawPrivateHostV4 = true;
+        }
+
         ws.readyState === 1 && ws.send(s);
         log('→ cand', s);
       } else {
         ws.readyState === 1 && ws.send('end-of-candidates');
         log('→ end-of-candidates');
+
+        if (!sawPrivateHostV4) {
+          log('NOTE: Did not see any private LAN IPv4 host candidates (e.g., 192.168.x.x). If you are on LAN, this is a strong sign mDNS hiding is enabled.');
+        }
       }
     };
 
