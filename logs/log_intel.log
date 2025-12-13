@@ -35,22 +35,22 @@ Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 6677db8c-4ea2-4d0b-807c-be2208cc9e03
-[Cluster Signal] Received client ICE: candidate:4026742268 1 udp 2113937151 0fad91f9-db59-4f27-a27...
+[Signal] Client connected 27363148-81b8-4817-b14c-1b083b90bae9
+[Cluster Signal] Received client ICE: candidate:2499773902 1 udp 2113937151 46b1d91d-7e75-45ad-802...
 [Cluster Signal] Queued client ICE (count=1)
-[Cluster Signal] Received client ICE: candidate:2699592465 1 udp 2113939711 bdd2814e-b2f0-4317-9a0...
+[Cluster Signal] Received client ICE: candidate:2961372323 1 udp 2113939711 69408e12-ed86-41fa-b0d...
 [Cluster Signal] Queued client ICE (count=2)
-[Cluster Signal] Received client ICE: candidate:3595967366 1 udp 1677729535 171.241.38.173 50541 t...
+[Cluster Signal] Applying new display config: 2 monitors @ 1366x768, 30 fps
+[Cluster Signal] Received client ICE: candidate:4183389539 1 udp 1677732095 2402:800:610d:265a:20f...
 [Cluster Signal] Queued client ICE (count=3)
-[Cluster Signal] Received client ICE: candidate:2534249691 1 udp 1677732095 2402:800:610d:265a:20f...
+[Cluster Signal] Received client ICE: candidate:3718235193 1 udp 1677729535 171.241.38.173 61378 t...
 [Cluster Signal] Queued client ICE (count=4)
 [Cluster Signal] Client sent end-of-candidates
-[Cluster Signal] Applying new display config: 2 monitors @ 1366x768, 30 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
 [VDD] Virtual monitors needed: 1 (target total: 2)
 [VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
-[VDD] Added resolution 1366x768@60 to C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
 [pnputil] /scan-devices
 Microsoft PnP Utility
 
@@ -82,20 +82,20 @@ Scan complete.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1366x768@60
-[Display] Setting \\.\DISPLAY5 [PHYSICAL] -> 1366x768@60
+[Display] Setting \\.\DISPLAY6 [PHYSICAL] -> 1366x768@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1366x768 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY5 1366x768 [PHYSICAL]
+[Display]   • \\.\DISPLAY6 1366x768 [PHYSICAL]
 [Cluster Signal] Monitors after config: 2
 [Cluster Signal] Using LibAv (in-process) encoder
 [ClusterCapture] Aligned FrameWidth to even: 2732
 [ClusterCapture] Combined frame: 2732x768, 2 monitors, gap=1
-[ClusterCapture] Using adapter: Intel(R) UHD Graphics 620
+[ClusterCapture] Using adapter (by monitor): Intel(R) UHD Graphics 620
 [ClusterCapture] D3D11 device created (VideoSupport enabled for MFT encoder)
 [ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=0
-[ClusterCapture] Added monitor: \\.\DISPLAY5 at offset x=1367
+[ClusterCapture] Added monitor: \\.\DISPLAY6 at offset x=1367
 [ClusterCapture] Initialized with 2 monitor duplications (zero-copy enabled)
 [EncoderFactory] Creating streamer: mode=LibAv, fps=30, kbps=8000
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
@@ -105,20 +105,20 @@ Scan complete.
 [RTC-LibAv] PeerConnection created
 [RTC-LibAv] canSend(H264) = True
 [RTC-LibAv] ice = checking
-[RTC-LibAv] Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 53274 typ...
+[RTC-LibAv] Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 53134 typ...
 [Cluster Signal] Queued server ICE (count=1): candidate:3928909093 1 udp 2113937663 19...
 [Cluster Signal] Answer sent to client
 [Cluster Signal] Flushing 1 queued server ICE candidates
 [Cluster Signal] Sent queued server ICE: candidate:3928909093 1 udp 2113937663 192.168.1.13...
 [Cluster Signal] Processing 4 queued client ICE candidates
-[RTC-LibAv] Added remote ICE: candidate:4026742268 1 udp 2113937151 0fad91f9-db5...
-[Cluster Signal] Added queued ICE: candidate:4026742268 1 udp 2113937151 0fad91f9-db5...
-[RTC-LibAv] Added remote ICE: candidate:2699592465 1 udp 2113939711 bdd2814e-b2f...
-[Cluster Signal] Added queued ICE: candidate:2699592465 1 udp 2113939711 bdd2814e-b2f...
-[RTC-LibAv] Added remote ICE: candidate:3595967366 1 udp 1677729535 171.241.38.1...
-[Cluster Signal] Added queued ICE: candidate:3595967366 1 udp 1677729535 171.241.38.1...
-[RTC-LibAv] Added remote ICE: candidate:2534249691 1 udp 1677732095 2402:800:610...
-[Cluster Signal] Added queued ICE: candidate:2534249691 1 udp 1677732095 2402:800:610...
+[RTC-LibAv] Added remote ICE: candidate:2499773902 1 udp 2113937151 46b1d91d-7e7...
+[Cluster Signal] Added queued ICE: candidate:2499773902 1 udp 2113937151 46b1d91d-7e7...
+[RTC-LibAv] Added remote ICE: candidate:2961372323 1 udp 2113939711 69408e12-ed8...
+[Cluster Signal] Added queued ICE: candidate:2961372323 1 udp 2113939711 69408e12-ed8...
+[RTC-LibAv] Added remote ICE: candidate:4183389539 1 udp 1677732095 2402:800:610...
+[Cluster Signal] Added queued ICE: candidate:4183389539 1 udp 1677732095 2402:800:610...
+[RTC-LibAv] Added remote ICE: candidate:3718235193 1 udp 1677729535 171.241.38.1...
+[Cluster Signal] Added queued ICE: candidate:3718235193 1 udp 1677729535 171.241.38.1...
 [ClusterCapture] Starting combined capture for 2 monitors
 [RTC-LibAv] ice = connected
 [RTC-LibAv] ICE CONNECTED
@@ -126,197 +126,52 @@ Scan complete.
 [GpuColorConverter] Initialized 2732x768 BGRA->NV12 converter
 [ClusterCapture] GPU color converter initialized (BGRA->NV12)
 [ClusterCapture] Capture started
-[RTC-LibAv] Local ICE: 3070992155 1 udp 1677730047 171.241.38.173 53274 t...
-[Cluster Signal] Sent server ICE: candidate:3070992155 1 udp 1677730047 171.241.38.1...
 [ClusterCapture] Target 30fps, frame interval 33ms
+[RTC-LibAv] Local ICE: 3070992155 1 udp 1677730047 171.241.38.173 53134 t...
+[Cluster Signal] Sent server ICE: candidate:3070992155 1 udp 1677730047 171.241.38.1...
 [LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
-[RTC-LibAv] pc.state = connected
 [LibAvEncoder] Using encoder: h264_qsv
 [LibAvEncoder] Configuring Intel QSV encoder
 [LibAvEncoder] Intel GPU: Trying D3D11VA hardware context for QSV
-[AVHWFramesContext @ 000001ba00600bc0] Could not create the texture (80070057)
+[AVHWFramesContext @ 00000218805787c0] Could not create the texture (80070057)
+[RTC-LibAv] pc.state = connected
 [LibAvEncoder] Failed to init D3D11VA frames context: Unknown error occurred
 [LibAvEncoder] Hardware frames init failed, using software upload (h264_qsv still active)
 [LibAvEncoder] Hardware frames init failed for h264_qsv, using software upload
-[RTC-LibAv] q=enq:17 deq:1 sent:0
 [LibAvEncoder] Initialized 2732x768 @ 30fps, 8000kbps (software upload)
 [RTC-LibAv] Encoder started 2732x768 @ 30fps 8000kbps
-[RTC-LibAv] Dropped 3 frames (queue overflow)
 [RTC-LibAv] IDR frame
 [RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:53 deq:43 sent:40
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 25.7 fps, 4350 kbps | AU=52
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:91 deq:81 sent:78
-[RTC-LibAv] OUTPUT: 19.1 fps, 3813 kbps | AU=91
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:133 deq:123 sent:120
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 20.9 fps, 3913 kbps | AU=133
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:171 deq:161 sent:157
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 19.9 fps, 1339 kbps | AU=173
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:212 deq:202 sent:198
-[RTC-LibAv] OUTPUT: 18.7 fps, 4032 kbps | AU=211
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:248 deq:237 sent:234
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 18.7 fps, 5424 kbps | AU=249
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:289 deq:279 sent:276
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 21.0 fps, 5985 kbps | AU=291
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:330 deq:320 sent:317
-[RTC-LibAv] OUTPUT: 20.4 fps, 8124 kbps | AU=332
+[RTC-LibAv] q=enq:32 deq:32 sent:32
+[RTC-LibAv] OUTPUT: 18.9 fps, 4460 kbps | AU=38
 [RTC-LibAv] enqueue NV12 2732x768
 [RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:383 deq:373 sent:370
+[RTC-LibAv] q=enq:64 deq:64 sent:64
+[RTC-LibAv] OUTPUT: 16.4 fps, 3417 kbps | AU=71
 [RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.6 fps, 8383 kbps | AU=388
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:425 deq:415 sent:412
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 19.0 fps, 6128 kbps | AU=427
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:474 deq:464 sent:460
+[RTC-LibAv] q=enq:97 deq:97 sent:97
+[RTC-LibAv] OUTPUT: 16.4 fps, 1484 kbps | AU=104
 [RTC-LibAv] enqueue NV12 2732x768
 [RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 25.9 fps, 7725 kbps | AU=482
+[RTC-LibAv] q=enq:128 deq:128 sent:128
+[RTC-LibAv] OUTPUT: 16.0 fps, 2525 kbps | AU=136
 [RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:529 deq:519 sent:516
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 29.5 fps, 8272 kbps | AU=542
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:588 deq:578 sent:575
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 28.5 fps, 6439 kbps | AU=600
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:643 deq:632 sent:629
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 28.8 fps, 8794 kbps | AU=658
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:702 deq:692 sent:688
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 28.2 fps, 7937 kbps | AU=715
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:755 deq:745 sent:741
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.4 fps, 7790 kbps | AU=770
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:811 deq:801 sent:798
-[RTC-LibAv] OUTPUT: 26.8 fps, 6954 kbps | AU=824
+[RTC-LibAv] q=enq:161 deq:161 sent:161
+[RTC-LibAv] OUTPUT: 16.1 fps, 1855 kbps | AU=169
 [RTC-LibAv] enqueue NV12 2732x768
 [RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:864 deq:854 sent:850
+[RTC-LibAv] q=enq:195 deq:195 sent:195
+[RTC-LibAv] OUTPUT: 16.4 fps, 3316 kbps | AU=202
 [RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.4 fps, 7448 kbps | AU=879
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:917 deq:907 sent:904
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 26.2 fps, 7769 kbps | AU=932
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:973 deq:963 sent:960
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 29.0 fps, 10720 kbps | AU=991
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1031 deq:1021 sent:1018
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 28.3 fps, 8419 kbps | AU=1049
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1087 deq:1077 sent:1073
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 26.8 fps, 6155 kbps | AU=1103
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1141 deq:1131 sent:1127
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 26.9 fps, 7791 kbps | AU=1157
-[RTC-LibAv] q=enq:1194 deq:1184 sent:1181
+[RTC-LibAv] q=enq:226 deq:226 sent:226
+[RTC-LibAv] OUTPUT: 15.3 fps, 1566 kbps | AU=233
 [RTC-LibAv] enqueue NV12 2732x768
 [RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 26.3 fps, 7851 kbps | AU=1210
+[RTC-LibAv] q=enq:257 deq:257 sent:257
+[RTC-LibAv] OUTPUT: 16.4 fps, 7611 kbps | AU=266
 [RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1249 deq:1239 sent:1236
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 25.4 fps, 7097 kbps | AU=1262
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1302 deq:1292 sent:1288
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.3 fps, 6696 kbps | AU=1318
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1350 deq:1340 sent:1337
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 26.9 fps, 7848 kbps | AU=1372
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1406 deq:1396 sent:1392
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 24.7 fps, 6986 kbps | AU=1423
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1456 deq:1446 sent:1440
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 24.9 fps, 6963 kbps | AU=1473
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1509 deq:1499 sent:1496
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.4 fps, 8081 kbps | AU=1528
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1562 deq:1552 sent:1548
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 25.8 fps, 6901 kbps | AU=1580
-[RTC-LibAv] q=enq:1617 deq:1607 sent:1602
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 26.9 fps, 9568 kbps | AU=1634
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1668 deq:1658 sent:1655
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] OUTPUT: 26.9 fps, 7095 kbps | AU=1688
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1725 deq:1715 sent:1712
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 26.1 fps, 7946 kbps | AU=1741
-[RTC-LibAv] IDR frame
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] q=enq:1771 deq:1761 sent:1758
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 25.4 fps, 5926 kbps | AU=1793
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1828 deq:1818 sent:1815
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 25.9 fps, 7365 kbps | AU=1845
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1879 deq:1869 sent:1866
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] OUTPUT: 27.8 fps, 7032 kbps | AU=1901
-[RTC-LibAv] enqueue NV12 2732x768
-[RTC-LibAv] IDR frame
-[RTC-LibAv] q=enq:1937 deq:1927 sent:1920
 [LibAvEncoder] Disposed
-[GpuColorConverter] Convert error: Object reference not set to an instance of an object.
 [RTC-LibAv] pc.state = closed
 [GpuColorConverter] Convert error: Object reference not set to an instance of an object.
 [ClusterCapture] Capture stopped
@@ -327,7 +182,10 @@ Scan complete.
 [Guard] Attempting to disable VDD...
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[2025-12-13 13:10:56.586] UNOBSERVED TASK EXCEPTION:
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY6
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[2025-12-13 13:23:23.482] UNOBSERVED TASK EXCEPTION:
 System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
  ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
@@ -335,9 +193,6 @@ System.AggregateException: A Task's exception(s) were not observed either by Wai
    --- End of inner exception stack trace ---
 
 
-[Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY5
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
@@ -363,4 +218,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Guard] Display settings restored.
-[Signal] Cluster client disconnected 6677db8c-4ea2-4d0b-807c-be2208cc9e03
+[Signal] Cluster client disconnected 27363148-81b8-4817-b14c-1b083b90bae9
