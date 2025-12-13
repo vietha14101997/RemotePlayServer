@@ -167,6 +167,14 @@
     <option value="60">60</option>
   </select>
   
+  <label>GPU:</label>
+  <select id="preferGpu" title="Select preferred GPU adapter for capture/encode">
+    <option value="auto">Auto</option>
+    <option value="intel" selected>Intel (QSV)</option>
+    <option value="amd">AMD (AMF)</option>
+    <option value="nvidia">NVIDIA (NVENC)</option>
+  </select>
+  
   <label style="display:flex;align-items:center;gap:4px;">
     <input type="checkbox" id="cursor" checked style="width:16px;height:16px;" />
     Cursor
@@ -271,9 +279,14 @@
     const resolution = $('resolution').value || '1366x768';
     const bitrate = $('bitrate').value || '6000';
     const fps = $('fps').value || '30';
+    const preferGpu = $('preferGpu').value || 'auto';
     const [resW, resH] = resolution.split('x');
     
-    return `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
+    let url = `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
+    if (preferGpu !== 'auto') {
+      url += `&preferGpu=${preferGpu}`;
+    }
+    return url;
   }
 
   async function run() {

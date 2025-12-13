@@ -153,7 +153,7 @@ public sealed class ClusterCapture : IDisposable
         }
     }
 
-    public ClusterCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int gap = 1, int targetFps = 30)
+    public ClusterCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int gap = 1, int targetFps = 30, string? preferredGpu = null)
     {
         if (monitors == null || monitors.Count == 0)
             throw new ArgumentException("At least one monitor required");
@@ -229,31 +229,62 @@ public sealed class ClusterCapture : IDisposable
 
         Console.WriteLine($"[ClusterCapture] Combined frame: {FrameWidth}x{FrameHeight}, {MonitorCount} monitors, gap={Gap}");
 
-        // Find the primary adapter (use first monitor's adapter)
+        // Find the adapter - prefer specified GPU vendor if requested
         using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
         
         IDXGIAdapter1? primaryAdapter = null;
-        for (uint ai = 0; ; ai++)
+        
+        // Try to find preferred GPU first
+        if (!string.IsNullOrEmpty(preferredGpu))
         {
-            if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
-            
-            for (uint oi = 0; ; oi++)
+            for (uint ai = 0; ; ai++)
             {
-                if (adapter.EnumOutputs(oi, out var output).Failure) break;
+                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
                 
-                var desc = output.Description;
-                if (desc.Monitor == monitors[0].hmon)
+                var adapterDesc = adapter.Description.Description.ToLowerInvariant();
+                bool matches = preferredGpu.ToLowerInvariant() switch
+                {
+                    "intel" => adapterDesc.Contains("intel"),
+                    "amd" => adapterDesc.Contains("amd") || adapterDesc.Contains("radeon"),
+                    "nvidia" => adapterDesc.Contains("nvidia") || adapterDesc.Contains("geforce"),
+                    _ => false
+                };
+                
+                if (matches)
                 {
                     primaryAdapter = adapter;
-                    Console.WriteLine($"[ClusterCapture] Using adapter: {adapter.Description.Description}");
-                    output.Dispose();
+                    Console.WriteLine($"[ClusterCapture] Using PREFERRED adapter ({preferredGpu}): {adapter.Description.Description}");
                     break;
                 }
-                output.Dispose();
+                adapter.Dispose();
             }
-            
-            if (primaryAdapter != null) break;
-            adapter.Dispose();
+        }
+        
+        // Fallback: find adapter by first monitor's handle
+        if (primaryAdapter == null)
+        {
+            for (uint ai = 0; ; ai++)
+            {
+                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
+                
+                for (uint oi = 0; ; oi++)
+                {
+                    if (adapter.EnumOutputs(oi, out var output).Failure) break;
+                    
+                    var desc = output.Description;
+                    if (desc.Monitor == monitors[0].hmon)
+                    {
+                        primaryAdapter = adapter;
+                        Console.WriteLine($"[ClusterCapture] Using adapter (by monitor): {adapter.Description.Description}");
+                        output.Dispose();
+                        break;
+                    }
+                    output.Dispose();
+                }
+                
+                if (primaryAdapter != null) break;
+                adapter.Dispose();
+            }
         }
 
         if (primaryAdapter == null)

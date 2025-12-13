@@ -956,6 +956,7 @@ public class SignalAndRestServer
             int reqMonitors = TryParseInt(qs.Get("monitors"), 3, 1, 6);
             int reqResW = TryParseInt(qs.Get("resW"), 1366, 640, 1920);
             int reqResH = TryParseInt(qs.Get("resH"), 768, 480, 1080);
+            string? preferGpu = qs.Get("preferGpu"); // intel, amd, nvidia, or null for auto
             
             // Apply display configuration if changed OR if no cluster capture is running
             bool noActiveCapture;
@@ -1016,7 +1017,11 @@ public class SignalAndRestServer
                 {
                     var mons = WgcInterop.ListMonitorsDXGI();
                     _monitors = mons.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
-                    _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps);
+                    _clusterCapture = new ClusterCapture(_monitors.Select(m => (m.hmon, m.name, m.w, m.h)).ToList(), gap: 1, targetFps: fps, preferredGpu: preferGpu);
+                    if (!string.IsNullOrEmpty(preferGpu))
+                    {
+                        Console.WriteLine($"[Cluster Signal] GPU preference: {preferGpu}");
+                    }
                 }
                 clusterCap = _clusterCapture;
             }
