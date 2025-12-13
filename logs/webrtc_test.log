@@ -45,21 +45,18 @@ Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 7fa14253-ceb9-4573-b40a-97b54ab21867
+[Signal] Client connected e61b0baf-1674-4c77-823b-f56af0e188e2
 [Cluster Signal] Applying new display config: 2 monitors @ 1920x1080, 30 fps
 [VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 2
 [VDD] Virtual monitors needed: 0 (target total: 2)
 [VDD] No virtual monitors needed - you already have 3+ physical monitors.
-[Cluster Signal] mDNS resolved '37b2d3f3-0f08-4c80-a08c-e35ec1e62167.local' -> 192.168.1.13
-[Cluster Signal] mDNS resolved: 'candidate:561098852 1 udp 2113937152 37b2d3f3-0f08-4c80-a08c...' -> 'candidate:561098852 1 udp 2113937152 192.168.1.13 53012 typ ...'
-[Cluster Signal] Received client ICE: 'candidate:561098852 1 udp 2113937152 192.168.1.13 53012 typ ...' (hex=63-61-6E-64-69-64-61-74-65-3A-35-36-31-30-39-38-38-35-32-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-32-20-31-39-32-2E-31-36-38-2E-31-2E-31-33-20)
-[Cluster Signal] Processing received candidate - full length: 105
+[Cluster Signal] mDNS resolved '366a252a-a48f-42c5-8339-dd3125c33f42.local' -> 192.168.1.13
+[Cluster Signal] mDNS resolved: 'candidate:1455794377 1 udp 2113937151 366a252a-a48f-42c5-833...' -> 'candidate:1455794377 1 udp 2113937151 192.168.1.13 52509 typ...'
+[Cluster Signal] Received client ICE: 'candidate:1455794377 1 udp 2113937151 192.168.1.13 52509 typ...' (hex=63-61-6E-64-69-64-61-74-65-3A-31-34-35-35-37-39-34-33-37-37-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-31-20-31-39-32-2E-31-36-38-2E-31-2E-31-33)
+[Cluster Signal] Processing received candidate - full length: 106
 [Cluster Signal] Queued client ICE (count=1)
-[Cluster Signal] Received client ICE: 'candidate:2073962808 1 udp 1677729535 171.241.38.173 53012 t...' (hex=63-61-6E-64-69-64-61-74-65-3A-32-30-37-33-39-36-32-38-30-38-20-31-20-75-64-70-20-31-36-37-37-37-32-39-35-33-35-20-31-37-31-2E-32-34-31-2E-33-38-2E-31)
-[Cluster Signal] Processing received candidate - full length: 131
-[Cluster Signal] Queued client ICE (count=2)
 [Cluster Signal] Client sent end-of-candidates
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
@@ -97,7 +94,7 @@ Server is running. Press ENTER to exit.
 [Cluster Signal] Queued server ICE (count=1): candidate:1416915466 1 udp 2113940223 24...
 [RTC-AmfNative] Local ICE: 3696738782 1 udp 2113940223 2402:800:610d:265a:20f...
 [Cluster Signal] Queued server ICE (count=2): candidate:3696738782 1 udp 2113940223 24...
-[RTC-AmfNative] Local ICE: 3707760737 1 udp 2113937663 192.168.1.9 64338 typ ...
+[RTC-AmfNative] Local ICE: 3707760737 1 udp 2113937663 192.168.1.9 49334 typ ...
 [Cluster Signal] Queued server ICE (count=3): candidate:3707760737 1 udp 2113937663 19...
 [RTC-AmfNative] Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 103 109 117 41 119
 [Cluster Signal] Answer sent to client
@@ -105,58 +102,41 @@ Server is running. Press ENTER to exit.
 [Cluster Signal] Sent queued server ICE: candidate:1416915466 1 udp 2113940223 2402:800:610...
 [Cluster Signal] Sent queued server ICE: candidate:3696738782 1 udp 2113940223 2402:800:610...
 [Cluster Signal] Sent queued server ICE: candidate:3707760737 1 udp 2113937663 192.168.1.9 ...
-[Cluster Signal] Processing 2 queued client ICE candidates
-[RTC-AmfNative] 📥 RECEIVED CANDIDATE: 'candidate:561098852 1 udp 2113937152 192.168.1.13 53012 typ host generation 0 ufrag eD5m network-cost 999...' (len=105)
-[RTC-AmfNative] 📥 CANDIDATE HEX: 63-61-6E-64-69-64-61-74-65-3A-35-36-31-30-39-38-38-35-32-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-32-20-31-39-32-2E-31-36-38-2E-31-2E-31-33-20
-[RTC-AmfNative] Added remote ICE: candidate:561098852 1 udp 2113937152 192.168.1.13 53012 typ host gener...
+[Cluster Signal] Processing 1 queued client ICE candidates
+[RTC-AmfNative] 📥 RECEIVED CANDIDATE: 'candidate:1455794377 1 udp 2113937151 192.168.1.13 52509 typ host generation 0 ufrag Pwno network-cost 999...' (len=106)
+[RTC-AmfNative] 📥 CANDIDATE HEX: 63-61-6E-64-69-64-61-74-65-3A-31-34-35-35-37-39-34-33-37-37-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-31-20-31-39-32-2E-31-36-38-2E-31-2E-31-33
+[RTC-AmfNative] Added remote ICE: candidate:1455794377 1 udp 2113937151 192.168.1.13 52509 typ host gene...
 [RTC-AmfNative] After add ICE: iceState=checking, pcState=new
-[Cluster Signal] Added queued ICE: candidate:561098852 1 udp 2113937152 192.168.1.13 ...
-[RTC-AmfNative] 📥 RECEIVED CANDIDATE: 'candidate:2073962808 1 udp 1677729535 171.241.38.173 53012 typ srflx raddr 0.0.0.0 rport 0 generation 0 ufrag eD5m netwo...' (len=131)
-[RTC-AmfNative] 📥 CANDIDATE HEX: 63-61-6E-64-69-64-61-74-65-3A-32-30-37-33-39-36-32-38-30-38-20-31-20-75-64-70-20-31-36-37-37-37-32-39-35-33-35-20-31-37-31-2E-32-34-31-2E-33-38-2E-31
-[RTC-AmfNative] Added remote ICE: candidate:2073962808 1 udp 1677729535 171.241.38.173 53012 typ srflx r...
-[RTC-AmfNative] After add ICE: iceState=checking, pcState=new
-[Cluster Signal] Added queued ICE: candidate:2073962808 1 udp 1677729535 171.241.38.1...
+[Cluster Signal] Added queued ICE: candidate:1455794377 1 udp 2113937151 192.168.1.13...
 [ClusterCapture] Starting combined capture for 2 monitors
 [GpuColorConverter] Initialized 3840x1080 BGRA->NV12 converter
 [ClusterCapture] GPU color converter initialized (BGRA->NV12)
 [ClusterCapture] Capture started
 [ClusterCapture] Target 30fps, frame interval 33ms
 [AmfNativeWrapper] Initializing 3840x1080 @ 30fps, 8000kbps
-[RTC-AmfNative] Local ICE: 3070992155 1 udp 1677730047 171.241.38.173 64338 t...
-[Cluster Signal] Sent server ICE: candidate:3070992155 1 udp 1677730047 171.241.38.1...
 [RTC-AmfNative] ice = connected
 [RTC-AmfNative] ICE CONNECTED
 [RTC-AmfNative] pc.state = connecting
+[RTC-AmfNative] Local ICE: 3070992155 1 udp 1677730047 171.241.38.173 49334 t...
+[Cluster Signal] Sent server ICE: candidate:3070992155 1 udp 1677730047 171.241.38.1...
+[RTC-AmfNative] pc.state = connected
 [AmfNativeWrapper] Initialized successfully (zero-copy enabled)
 [RTC-AmfNative] Encoder started 3840x1080 @ 30fps (zero-copy)
-[RTC-AmfNative] Frame #1: 324222 bytes, keyframe=True
-[RTC-AmfNative] Frame #2: 96418 bytes, keyframe=False
-[RTC-AmfNative] Frame #3: 13704 bytes, keyframe=False
-[RTC-AmfNative] Frame #4: 14432 bytes, keyframe=False
-[RTC-AmfNative] Frame #5: 65035 bytes, keyframe=False
+[RTC-AmfNative] Frame #1: 297921 bytes, keyframe=True
+[RTC-AmfNative] Frame #2: 94317 bytes, keyframe=False
+[RTC-AmfNative] Frame #3: 40864 bytes, keyframe=False
+[RTC-AmfNative] Frame #4: 9109 bytes, keyframe=False
+[RTC-AmfNative] Frame #5: 25700 bytes, keyframe=False
 [RTC-AmfNative] stats: enq=34 sent=32
 [RTC-AmfNative] stats: enq=66 sent=65
-[RTC-AmfNative] stats: enq=98 sent=96
-[RTC-AmfNative] stats: enq=131 sent=129
-[RTC-AmfNative] ice = disconnected
-[RTC-AmfNative] pc.state = failed
-[RTC-AmfNative] stats: enq=162 sent=146
-[RTC-AmfNative] stats: enq=194 sent=146
-[RTC-AmfNative] stats: enq=226 sent=146
-[RTC-AmfNative] stats: enq=257 sent=146
-[RTC-AmfNative] stats: enq=289 sent=146
-[RTC-AmfNative] ice = failed
-[RTC-AmfNative] pc.state = failed
-[RTC-AmfNative] stats: enq=321 sent=146
-[RTC-AmfNative] pc.state = closed
-[RTC-AmfNative] pc.state = failed
-[RTC-AmfNative] pc.state = failed
-[RTC-AmfNative] stats: enq=353 sent=146
-[RTC-AmfNative] stats: enq=384 sent=146
-[RTC-AmfNative] stats: enq=416 sent=146
-[RTC-AmfNative] stats: enq=448 sent=146
-[RTC-AmfNative] stats: enq=480 sent=146
+[RTC-AmfNative] stats: enq=99 sent=97
+[RTC-AmfNative] stats: enq=131 sent=130
+[RTC-AmfNative] stats: enq=164 sent=163
+[RTC-AmfNative] stats: enq=196 sent=194
+[RTC-AmfNative] stats: enq=235 sent=234
+[RTC-AmfNative] stats: enq=269 sent=267
 [RTC-AmfNative] Stopping...
+[RTC-AmfNative] pc.state = closed
 [AmfNativeWrapper] Disposed
 [RTC-AmfNative] Stopped
 [RTC-AmfNative] Disposed
@@ -171,7 +151,6 @@ Server is running. Press ENTER to exit.
 [Guard] ForceDisableVdd: VDD is currently ENABLED
 [Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
-[RTC-AmfNative] stats: enq=501 sent=146
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
@@ -180,6 +159,7 @@ Disabling device:          ROOT\DISPLAY\0000
 Device disabled successfully.
 
 
+[RTC-AmfNative] stats: enq=279 sent=278
 [Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
 [Guard] Restoring original state before exit...
 [Guard] Monitor modes restored.
@@ -197,4 +177,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Guard] Display settings restored.
-[Signal] Cluster client disconnected 7fa14253-ceb9-4573-b40a-97b54ab21867
+[Signal] Cluster client disconnected e61b0baf-1674-4c77-823b-f56af0e188e2

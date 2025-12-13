@@ -181,11 +181,6 @@
     Cursor
   </label>
 
-  <label style="display:flex;align-items:center;gap:6px;" title="LAN mode: disable STUN so ICE uses only local host candidates (more stable on same Wi-Fi/LAN).">
-    <input type="checkbox" id="useStun" style="width:16px;height:16px;" checked />
-    STUN
-  </label>
-
   <button id="btn">Connect</button>
   <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;"
     onclick="disconnect()">Disconnect</button>
@@ -367,29 +362,14 @@
     //  - Edge:   edge://flags/#enable-webrtc-hide-local-ips-with-mdns    => Disabled
     log('TIP: If candidates contain ".local" and ICE fails, disable WebRTC mDNS local IP hiding in your browser flags and restart the browser.');
 
-    const hostVal = $('host').value.trim() || 'localhost';
-    const hostIsPrivate = isPrivateHost(hostVal);
-    const useStunEl = $('useStun');
-    const useStun = useStunEl ? !!useStunEl.checked : true;
-
-    // If connecting to a private LAN IP, STUN is optional and can make ICE pick weird paths on some networks.
-    // LAN-only (no STUN) forces host candidates and is often the most reliable for same Wi-Fi/LAN.
-    const iceServers = (hostIsPrivate && !useStun)
-      ? []
-      : [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
-      ];
-
-    log('ICE mode:', hostIsPrivate ? 'LAN target' : 'Non-LAN target', '| STUN =', iceServers.length ? 'ON' : 'OFF');
+    // Host-candidates only.
+    const iceServers = [];
+    log('ICE mode: host-only');
 
     // --- Create RTCPeerConnection
     const pc = new RTCPeerConnection({
       iceServers,
-      iceCandidatePoolSize: iceServers.length ? 10 : 0
+      iceCandidatePoolSize: 0
     });
     currentPc = pc;
 
