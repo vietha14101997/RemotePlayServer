@@ -43,6 +43,7 @@ public class WebRTCStreamer_AmfNative : IDisposable
 
     public bool IsRunning => _running;
     public bool UseNV12Input => true;
+    private volatile bool _iceConnected = false;
     
     public event Action? OnPeerDisconnected;
     public event Action<string>? OnIceCandidate;
@@ -77,14 +78,26 @@ public class WebRTCStreamer_AmfNative : IDisposable
         if (_pc == null) return;
         try
         {
+            // SIPSorcery REQUIRES the "candidate:" prefix in RTCIceCandidateInit.candidate
+            string candStr = candidate;
+            // Ensure candidate has the prefix
+            if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = "candidate:" + candStr;
+            
             // Parse candidate string and add to PeerConnection
-            var init = new RTCIceCandidateInit { candidate = candidate, sdpMLineIndex = 0, sdpMid = "0" };
+            var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" };
             _pc.addIceCandidate(init);
-            Console.WriteLine($"[RTC-AmfNative] Added remote ICE: {candidate.Substring(0, Math.Min(50, candidate.Length))}...");
+            Console.WriteLine($"[RTC-AmfNative] Added remote ICE: {candStr.Substring(0, Math.Min(70, candStr.Length))}...");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[RTC-AmfNative] AddIceCandidate error: {ex.Message}");
+        }
+        
+        // Log current ICE state after adding candidate
+        if (_pc != null)
+        {
+            Console.WriteLine($"[RTC-AmfNative] After add ICE: iceState={_pc.iceConnectionState}, pcState={_pc.connectionState}");
         }
     }
 
@@ -143,10 +156,12 @@ public class WebRTCStreamer_AmfNative : IDisposable
             Console.WriteLine($"[RTC-AmfNative] ice = {state}");
             if (state == RTCIceConnectionState.connected)
             {
+                _iceConnected = true;
                 Console.WriteLine("[RTC-AmfNative] ICE CONNECTED");
             }
             else if (state == RTCIceConnectionState.disconnected || state == RTCIceConnectionState.failed)
             {
+                _iceConnected = false;
                 OnPeerDisconnected?.Invoke();
             }
         };
@@ -300,15 +315,26 @@ public class WebRTCStreamer_AmfNative : IDisposable
 
     private void OnEncodedData(byte[] nalData, bool isKeyframe, long pts)
     {
-        if (!_running || _pc == null) return;
+        if (!_running || _pc == null || !_iceConnected) return;
         
-        _pc.SendVideo((uint)(90000 / _fps), nalData);
-        long sent = Interlocked.Increment(ref _sentCount);
-        
-        // Debug: log first 5 frames and keyframes
-        if (sent <= 5 || isKeyframe)
+        try
         {
-            Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {nalData.Length} bytes, keyframe={isKeyframe}");
+            _pc.SendVideo((uint)(90000 / _fps), nalData);
+            long sent = Interlocked.Increment(ref _sentCount);
+            
+            // Debug: log first 5 frames and keyframes
+            if (sent <= 5 || isKeyframe)
+            {
+                Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {nalData.Length} bytes, keyframe={isKeyframe}");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log only occasionally to avoid spam
+            if (Interlocked.Read(ref _sentCount) % 60 == 0)
+            {
+                Console.WriteLine($"[RTC-AmfNative] SendVideo error: {ex.Message}");
+            }
         }
     }
 

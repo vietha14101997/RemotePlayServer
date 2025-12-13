@@ -797,6 +797,10 @@ public class SignalAndRestServer
         Thread? capThread = null;
         var offerTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         IWebRTCStreamer? streamer = null;
+        
+        // Queue for ICE candidates received before streamer is ready
+        var pendingIceCandidates = new List<string>();
+        var iceLock = new object();
 
         // RX loop (offer + ICE candidates + input)
         var rxLoop = Task.Run(async () =>
@@ -823,21 +827,36 @@ public class SignalAndRestServer
                     if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) || 
                         text.StartsWith("a=candidate:", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Extract candidate string
+                        // Extract candidate string - handle if prefix appears twice (Unity bug workaround)
                         string candStr = text;
-                        if (text.StartsWith("a=")) candStr = text.Substring(2);
+                        if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) 
+                            candStr = candStr.Substring(2);
+                        // Fix double "candidate:candidate:" bug
+                        if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
+                            candStr = candStr.Substring("candidate:".Length);
                         
-                        // Add to peer connection if streamer is ready
-                        if (streamer != null)
+                        Console.WriteLine($"[Cluster Signal] Received client ICE: {candStr.Substring(0, Math.Min(60, candStr.Length))}...");
+                        
+                        // Add to peer connection if streamer is ready, otherwise queue it
+                        lock (iceLock)
                         {
-                            try
+                            if (streamer != null)
                             {
-                                streamer.AddIceCandidate(candStr);
-                                Console.WriteLine($"[Cluster Signal] Added client ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                                try
+                                {
+                                    streamer.AddIceCandidate(candStr);
+                                    Console.WriteLine($"[Cluster Signal] Added client ICE successfully");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[Cluster Signal] Add ICE error: {ex.Message}");
+                                }
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                Console.WriteLine($"[Cluster Signal] Add ICE error: {ex.Message}");
+                                // Queue ICE candidates for later
+                                pendingIceCandidates.Add(candStr);
+                                Console.WriteLine($"[Cluster Signal] Queued client ICE (count={pendingIceCandidates.Count})");
                             }
                         }
                         continue;
@@ -1008,16 +1027,35 @@ public class SignalAndRestServer
                 : new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolat, useNV12: true);
 
             // Hook ICE candidate forwarding to client via WebSocket
-            streamer.OnIceCandidate += async (candidate) =>
+            // Buffer for server ICE candidates - will send after answer
+            var serverIceCandidates = new List<string>();
+            var answerSent = false;
+            var serverIceLock = new object();
+            
+            streamer.OnIceCandidate += (candidate) =>
             {
                 try
                 {
                     if (ws.State == System.Net.WebSockets.WebSocketState.Open)
                     {
                         string msg = candidate == "end-of-candidates" ? "end-of-candidates" : "candidate:" + candidate;
-                        await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
-                            System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
-                        Console.WriteLine($"[Cluster Signal] Sent server ICE: {msg.Substring(0, Math.Min(50, msg.Length))}...");
+                        
+                        lock (serverIceLock)
+                        {
+                            if (answerSent)
+                            {
+                                // Answer already sent, send ICE immediately
+                                _ = ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
+                                    System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                                Console.WriteLine($"[Cluster Signal] Sent server ICE: {msg.Substring(0, Math.Min(50, msg.Length))}...");
+                            }
+                            else
+                            {
+                                // Queue until answer is sent
+                                serverIceCandidates.Add(msg);
+                                Console.WriteLine($"[Cluster Signal] Queued server ICE (count={serverIceCandidates.Count}): {msg.Substring(0, Math.Min(40, msg.Length))}...");
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -1028,9 +1066,52 @@ public class SignalAndRestServer
 
             await streamer.StartAsync();
             var answer = await streamer.SetRemoteOfferAndCreateAnswerAsync(offer);
+            
+            // Send answer FIRST
             await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("answer:" + answer)),
                 System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+            Console.WriteLine("[Cluster Signal] Answer sent to client");
+            
+            // Now flush queued server ICE candidates
+            lock (serverIceLock)
+            {
+                answerSent = true;
+                if (serverIceCandidates.Count > 0)
+                {
+                    Console.WriteLine($"[Cluster Signal] Flushing {serverIceCandidates.Count} queued server ICE candidates");
+                    foreach (var msg in serverIceCandidates)
+                    {
+                        _ = ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
+                            System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        Console.WriteLine($"[Cluster Signal] Sent queued server ICE: {msg.Substring(0, Math.Min(50, msg.Length))}...");
+                    }
+                    serverIceCandidates.Clear();
+                }
+            }
+            
             _streams[id] = streamer;
+            
+            // Process any queued ICE candidates from client
+            lock (iceLock)
+            {
+                if (pendingIceCandidates.Count > 0)
+                {
+                    Console.WriteLine($"[Cluster Signal] Processing {pendingIceCandidates.Count} queued client ICE candidates");
+                    foreach (var candStr in pendingIceCandidates)
+                    {
+                        try
+                        {
+                            streamer.AddIceCandidate(candStr);
+                            Console.WriteLine($"[Cluster Signal] Added queued ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Cluster Signal] Add queued ICE error: {ex.Message}");
+                        }
+                    }
+                    pendingIceCandidates.Clear();
+                }
+            }
 
             stopCapture = new CancellationTokenSource();
             capThread = new Thread(() =>
