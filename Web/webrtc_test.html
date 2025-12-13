@@ -277,6 +277,8 @@
   let currentWs = null;
   let currentPc = null;
   let statsInterval = null;
+  let pingInterval = null;
+  let isDisconnecting = false;
 
   let videoWatchdogInterval = null;
   let remoteStream = null;
@@ -422,8 +424,11 @@
   }
 
   function disconnect() {
+    if (isDisconnecting) return;
+    isDisconnecting = true;
     log('Disconnecting...');
     if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
     stopVideoWatchdog();
     if (currentWs) { try { currentWs.close(); } catch (e) { } currentWs = null; }
     if (currentPc) { try { currentPc.close(); } catch (e) { } currentPc = null; }
@@ -440,6 +445,7 @@
     $('btn').style.display = '';
     $('disconnectBtn').style.display = 'none';
     log('Disconnected');
+    isDisconnecting = false;
   }
 
   function buildWsUrl() {
@@ -455,6 +461,11 @@
     let url = `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
     if (preferGpu !== 'auto') {
       url += `&preferGpu=${preferGpu}`;
+    }
+
+    // Hint the server to filter ICE candidates to host-only private IPv4 for LAN stability.
+    if (isPrivateHost(host)) {
+      url += `&lan=1`;
     }
     return url;
   }
@@ -568,6 +579,15 @@
 
     ws.onopen = async () => {
       setSt('ws: open → creating offer');
+
+      // Keep signalling WS alive (some networks/proxies drop idle connections).
+      if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
+      pingInterval = setInterval(() => {
+        try {
+          if (ws.readyState === 1) ws.send('ping');
+        } catch { }
+      }, 10000);
+
       // Apply initial cursor setting
       await initCursor();
       const offer = await pc.createOffer();
@@ -630,6 +650,9 @@
 
     // Cleanup on close
     ws.onclose = () => {
+      // If we're already disconnecting (or this is a stale WS from a previous run), ignore.
+      if (currentWs !== ws) return;
+      currentWs = null;
       disconnect();
       setSt('ws: closed');
     };

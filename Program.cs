@@ -79,36 +79,63 @@ partial class Program
         var addr = parts[4];
         if (!addr.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return candStr;
 
-        try
+        const int maxAttempts = 4;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            var resolveTask = Dns.GetHostAddressesAsync(addr);
-            var completed = await Task.WhenAny(resolveTask, Task.Delay(timeoutMs));
-            if (completed != resolveTask)
+            try
             {
-                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve timed out for '{addr}' (timeout={timeoutMs}ms)");
+                var resolveTask = Dns.GetHostAddressesAsync(addr);
+                var completed = await Task.WhenAny(resolveTask, Task.Delay(timeoutMs));
+                if (completed != resolveTask)
+                {
+                    Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve timed out for '{addr}' (timeout={timeoutMs}ms)");
+                    return candStr;
+                }
+
+                var addrs = resolveTask.Result;
+                if (addrs == null || addrs.Length == 0)
+                {
+                    Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve returned no addresses for '{addr}'");
+                    return candStr;
+                }
+
+                var chosen = addrs.FirstOrDefault(IsPrivateV4)
+                          ?? addrs.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                          ?? addrs[0];
+
+                parts[4] = chosen.ToString();
+                Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]}");
+                return string.Join(' ', parts);
+            }
+            catch (Exception ex)
+            {
+                if (attempt < maxAttempts)
+                {
+                    await Task.Delay(200);
+                    continue;
+                }
+
+                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve failed for '{addr}': {ex.Message}");
                 return candStr;
             }
-
-            var addrs = resolveTask.Result;
-            if (addrs == null || addrs.Length == 0)
-            {
-                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve returned no addresses for '{addr}'");
-                return candStr;
-            }
-
-            var chosen = addrs.FirstOrDefault(IsPrivateV4)
-                      ?? addrs.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                      ?? addrs[0];
-
-            parts[4] = chosen.ToString();
-            Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]}");
-            return string.Join(' ', parts);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve failed for '{addr}': {ex.Message}");
-            return candStr;
-        }
+
+        return candStr;
+    }
+
+    internal static string MaybeReplaceMdnsWithRemoteIp(string candStr, System.Net.IPAddress? remoteIp)
+    {
+        if (remoteIp == null || !IsPrivateV4(remoteIp)) return candStr;
+
+        var parts = candStr.Split(' ');
+        if (parts.Length < 6) return candStr;
+
+        var addr = parts[4];
+        if (!addr.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return candStr;
+
+        parts[4] = remoteIp.ToString();
+        Console.WriteLine($"[Cluster Signal] mDNS fallback: '{addr}' -> {parts[4]} (using remote IP)");
+        return string.Join(' ', parts);
     }
 
     static string DetectEncoder()
@@ -866,8 +893,9 @@ public class SignalAndRestServer
                 var qs = HttpUtility.ParseQueryString(ctx.Request.Url!.Query);
                 var wsCtx = await ctx.AcceptWebSocketAsync(null);
                 var clientId = Guid.NewGuid();
+                var remoteIp = ctx.Request.RemoteEndPoint?.Address;
                 Console.WriteLine($"[Signal] Client connected {clientId}");
-                _ = Task.Run(() => HandleClusterClient(clientId, wsCtx.WebSocket, qs));
+                _ = Task.Run(() => HandleClusterClient(clientId, wsCtx.WebSocket, qs, remoteIp));
                 continue;
             }
 
@@ -886,8 +914,40 @@ public class SignalAndRestServer
     /// <summary>
     /// Handle cluster mode: combined stream of all monitors
     /// </summary>
+    private static bool IsPrivateV4(System.Net.IPAddress? ip)
+    {
+        if (ip == null) return false;
+        if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) return false;
+        var b = ip.GetAddressBytes();
+        // 10.0.0.0/8
+        if (b[0] == 10) return true;
+        // 172.16.0.0/12
+        if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+        // 192.168.0.0/16
+        if (b[0] == 192 && b[1] == 168) return true;
+        return false;
+    }
+
+    private static bool CandidateIsHostPrivateV4(string cand)
+    {
+        if (string.IsNullOrWhiteSpace(cand)) return false;
+        var s = cand.Trim();
+        if (s.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) s = s.Substring(2);
+        if (!s.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!s.Contains(" typ host ", StringComparison.OrdinalIgnoreCase)) return false;
+
+        // candidate:<foundation> <component> <transport> <priority> <address> <port> typ ...
+        var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 6) return false;
+        var addr = parts[4];
+        if (addr.Contains(':')) return false; // skip IPv6
+        if (!System.Net.IPAddress.TryParse(addr, out var ip)) return false;
+        return IsPrivateV4(ip);
+    }
+
     private async Task HandleClusterClient(Guid id, System.Net.WebSockets.WebSocket ws,
-        System.Collections.Specialized.NameValueCollection qs)
+        System.Collections.Specialized.NameValueCollection qs,
+        System.Net.IPAddress? remoteIp)
     {
         CancellationTokenSource? stopCapture = null;
         Thread? capThread = null;
@@ -905,6 +965,12 @@ public class SignalAndRestServer
             var ms = new System.IO.MemoryStream();
             try
             {
+                // If client is on private IPv4 (or explicitly requests lan=1), force host-only private IPv4 candidates.
+                bool lanRequested = TryParseInt(qs.Get("lan"), 0, 0, 1) == 1;
+                bool hostOnlyPrivateV4 = lanRequested || IsPrivateV4(remoteIp);
+                if (hostOnlyPrivateV4)
+                    Console.WriteLine($"[Cluster Signal] ICE filter: host-only private IPv4 (remote={remoteIp})");
+
                 while (ws.State == System.Net.WebSockets.WebSocketState.Open)
                 {
                     var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
@@ -912,6 +978,10 @@ public class SignalAndRestServer
                     ms.Write(buf, 0, res.Count);
                     if (!res.EndOfMessage) continue;
                     var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
+
+                    // Keepalive (optional). Client may send "ping" periodically to keep NAT bindings.
+                    if (text.Length <= 16 && text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                        continue;
 
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -933,13 +1003,20 @@ public class SignalAndRestServer
 
                         var originalCandStr = candStr;
                         candStr = await Program.MaybeResolveMdnsCandidateAsync(candStr);
+                        candStr = Program.MaybeReplaceMdnsWithRemoteIp(candStr, remoteIp);
                         if (!string.Equals(candStr, originalCandStr, StringComparison.Ordinal))
                         {
-                            Console.WriteLine($"[Cluster Signal] mDNS resolved: '{originalCandStr.Substring(0, Math.Min(60, originalCandStr.Length))}...' -> '{candStr.Substring(0, Math.Min(60, candStr.Length))}...'");
+                            Console.WriteLine($"[Cluster Signal] mDNS rewritten: '{originalCandStr.Substring(0, Math.Min(60, originalCandStr.Length))}...' -> '{candStr.Substring(0, Math.Min(60, candStr.Length))}...'");
                         }
                         
                         Console.WriteLine($"[Cluster Signal] Received client ICE: '{candStr.Substring(0, Math.Min(60, candStr.Length))}...' (hex={BitConverter.ToString(Encoding.UTF8.GetBytes(candStr).Take(50).ToArray())})");
                         Console.WriteLine($"[Cluster Signal] Processing received candidate - full length: {candStr.Length}");
+
+                        if (hostOnlyPrivateV4 && !CandidateIsHostPrivateV4(candStr))
+                        {
+                            Console.WriteLine($"[Cluster Signal] Dropped non-host/private-v4 client ICE: '{candStr.Substring(0, Math.Min(80, candStr.Length))}...'");
+                            continue;
+                        }
                         
                         // Add to peer connection if streamer is ready, otherwise queue it
                         lock (iceLock)
@@ -972,7 +1049,7 @@ public class SignalAndRestServer
                         Console.WriteLine("[Cluster Signal] Client sent end-of-candidates");
                         
                         // Trigger ICE connection establishment immediately when all candidates are added
-                        Task.Run(async () => {
+                        _ = Task.Run(async () => {
                             await Task.Delay(1000); // Let candidates settle
                             
                             WebRTCStreamer_AmfNative? amfStreamer = null;
@@ -1173,6 +1250,9 @@ public class SignalAndRestServer
             var serverIceCandidates = new List<string>();
             var answerSent = false;
             var serverIceLock = new object();
+
+            bool lanRequested = TryParseInt(qs.Get("lan"), 0, 0, 1) == 1;
+            bool hostOnlyPrivateV4 = lanRequested || IsPrivateV4(remoteIp);
             
             streamer.OnIceCandidate += (candidate) =>
             {
@@ -1192,6 +1272,12 @@ public class SignalAndRestServer
                             if (c.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase)) c = c.Substring("candidate:".Length);
                             if (!c.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase)) c = "candidate:" + c;
                             msg = c;
+                        }
+
+                        if (hostOnlyPrivateV4 && msg.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && !CandidateIsHostPrivateV4(msg))
+                        {
+                            Console.WriteLine($"[Cluster Signal] Dropped non-host/private-v4 server ICE: {msg.Substring(0, Math.Min(80, msg.Length))}...");
+                            return;
                         }
                         
                         lock (serverIceLock)

@@ -36,6 +36,9 @@ public class WebRTCStreamer_AmfNative : IDisposable
     private long _sentCount;
     private int _width;
     private int _height;
+
+    // AMF output PTS (100ns) -> RTP timestamp step (90kHz).
+    private long _lastPts100ns;
     
     // Staging texture for zero-copy path to avoid race condition
     private ID3D11Texture2D? _stagingNV12;
@@ -55,7 +58,122 @@ public class WebRTCStreamer_AmfNative : IDisposable
         _fps = fps;
         _kbps = kbps;
         _device = device;
+        _lastPts100ns = 0;
         Console.WriteLine($"[RTC-AmfNative] Created: {fps}fps, {kbps}kbps");
+    }
+
+    private static bool ContainsAnnexBStartCode(byte[] data)
+    {
+        // For our pipeline we only treat it as AnnexB if it starts with a start code.
+        // Scanning the whole buffer can give false positives when the bitstream contains 00 00 00 01 by chance.
+        if (data.Length >= 4 && data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 1) return true;
+        if (data.Length >= 3 && data[0] == 0 && data[1] == 0 && data[2] == 1) return true;
+        return false;
+    }
+
+    private static byte[] TryConvertAvccToAnnexB(byte[] avcc)
+    {
+        // AVCC format is 4-byte big-endian length prefixes followed by NAL payload.
+        // If parsing fails, return original.
+        if (avcc.Length < 8) return avcc;
+
+        try
+        {
+            byte[] outBuf = new byte[avcc.Length + 32];
+            int outPos = 0;
+            int pos = 0;
+
+            while (pos + 4 <= avcc.Length)
+            {
+                int nalLen = (avcc[pos] << 24) | (avcc[pos + 1] << 16) | (avcc[pos + 2] << 8) | avcc[pos + 3];
+                pos += 4;
+                if (nalLen <= 0 || pos + nalLen > avcc.Length) return avcc;
+
+                int needed = outPos + 4 + nalLen;
+                if (needed > outBuf.Length)
+                {
+                    int newLen = Math.Max(outBuf.Length * 2, needed);
+                    var newBuf = new byte[newLen];
+                    Buffer.BlockCopy(outBuf, 0, newBuf, 0, outPos);
+                    outBuf = newBuf;
+                }
+
+                // start code
+                outBuf[outPos++] = 0;
+                outBuf[outPos++] = 0;
+                outBuf[outPos++] = 0;
+                outBuf[outPos++] = 1;
+
+                Buffer.BlockCopy(avcc, pos, outBuf, outPos, nalLen);
+                outPos += nalLen;
+                pos += nalLen;
+            }
+
+            if (outPos <= 0) return avcc;
+            var res = new byte[outPos];
+            Buffer.BlockCopy(outBuf, 0, res, 0, outPos);
+            return res;
+        }
+        catch
+        {
+            return avcc;
+        }
+    }
+
+    // Strip a leading AUD NAL (type 9) if present right at the start of an AnnexB AU.
+    private static byte[] StripLeadingAud(byte[] au)
+    {
+        if (au.Length < 4) return au;
+
+        int pos;
+        if (au.Length >= 4 && au[0] == 0 && au[1] == 0 && au[2] == 0 && au[3] == 1) { pos = 4; }
+        else if (au.Length >= 3 && au[0] == 0 && au[1] == 0 && au[2] == 1) { pos = 3; }
+        else return au;
+
+        if (pos >= au.Length) return au;
+        int nalType = au[pos] & 0x1F;
+        if (nalType != 9) return au;
+
+        // Find the next start code.
+        for (int i = pos + 1; i + 3 < au.Length; i++)
+        {
+            if ((au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ||
+                (i + 4 <= au.Length && au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 0 && au[i + 3] == 1))
+            {
+                int cut = i;
+                var trimmed = new byte[au.Length - cut];
+                Buffer.BlockCopy(au, cut, trimmed, 0, trimmed.Length);
+                return trimmed;
+            }
+        }
+
+        // Only AUD found.
+        return au;
+    }
+
+    private uint GetRtpStepFromPts(long pts100ns)
+    {
+        // Default step from fps.
+        uint fallback = (uint)Math.Max(1, 90000 / Math.Max(1, _fps));
+
+        long last = Interlocked.Read(ref _lastPts100ns);
+        if (last <= 0)
+        {
+            Interlocked.Exchange(ref _lastPts100ns, pts100ns);
+            return fallback;
+        }
+
+        long delta = pts100ns - last;
+        if (delta <= 0 || delta > 5_000_000) // >0.5s is suspicious for a 30fps stream
+        {
+            Interlocked.Exchange(ref _lastPts100ns, pts100ns);
+            return fallback;
+        }
+
+        // 10,000,000 100ns ticks per second.
+        long step = 90000L * delta / 10_000_000L;
+        Interlocked.Exchange(ref _lastPts100ns, pts100ns);
+        return (uint)Math.Max(1, step);
     }
 
     public void SetDevice(ID3D11Device device)
@@ -113,16 +231,31 @@ public class WebRTCStreamer_AmfNative : IDisposable
 
     public RTCIceConnectionState IceConnectionState => _pc?.iceConnectionState ?? RTCIceConnectionState.@new;
 
+    private sealed record H264Offer(int Pt, string? Fmtp, byte? ProfileIdc, byte? Constraints, byte? LevelIdc);
+
+    private static bool TryParseProfileLevelId(string? fmtp, out byte profileIdc, out byte constraints, out byte levelIdc)
+    {
+        profileIdc = 0;
+        constraints = 0;
+        levelIdc = 0;
+
+        if (string.IsNullOrWhiteSpace(fmtp)) return false;
+        var m = System.Text.RegularExpressions.Regex.Match(fmtp, "profile-level-id=([0-9A-Fa-f]{6})");
+        if (!m.Success) return false;
+        var hex = m.Groups[1].Value;
+        profileIdc = Convert.ToByte(hex.Substring(0, 2), 16);
+        constraints = Convert.ToByte(hex.Substring(2, 2), 16);
+        levelIdc = Convert.ToByte(hex.Substring(4, 2), 16);
+        return true;
+    }
+
     private static (int? pt, string? fmtp) TryGetH264FromOfferSdp(string offerSdp)
     {
         if (string.IsNullOrWhiteSpace(offerSdp)) return (null, null);
 
-        int? pt = null;
-        string? fmtp = null;
-
         var lines = offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        var h264Pts = new HashSet<int>();
 
-        // Find first H264 payload type.
         foreach (var line in lines)
         {
             // a=rtpmap:<pt> H264/90000
@@ -133,22 +266,59 @@ public class WebRTCStreamer_AmfNative : IDisposable
             if (!int.TryParse(rest.Substring(0, sp), out var candPt)) continue;
             var codec = rest.Substring(sp + 1);
             if (codec.IndexOf("H264/", StringComparison.OrdinalIgnoreCase) < 0) continue;
-            pt = candPt;
-            break;
+            h264Pts.Add(candPt);
         }
 
-        if (pt.HasValue)
+        if (h264Pts.Count == 0) return (null, null);
+
+        var offers = new List<H264Offer>();
+        foreach (var candPt in h264Pts)
         {
-            var needle = "a=fmtp:" + pt.Value + " ";
+            string? fmtp = null;
+            var needle = "a=fmtp:" + candPt + " ";
             foreach (var line in lines)
             {
                 if (!line.StartsWith(needle, StringComparison.OrdinalIgnoreCase)) continue;
                 fmtp = line.Substring(needle.Length).Trim();
                 break;
             }
+
+            byte? profile = null;
+            byte? constraints = null;
+            byte? level = null;
+            if (TryParseProfileLevelId(fmtp, out var p, out var c, out var l))
+            {
+                profile = p;
+                constraints = c;
+                level = l;
+            }
+
+            offers.Add(new H264Offer(candPt, fmtp, profile, constraints, level));
         }
 
-        return (pt, fmtp);
+        // Prefer higher level first (bigger resolution support), then profile, then LOWEST constraints (least restrictive).
+        var best = offers
+            .OrderByDescending(o => o.LevelIdc ?? (byte)0)
+            .ThenByDescending(o => o.ProfileIdc ?? (byte)0)
+            .ThenBy(o => o.Constraints ?? (byte)0)
+            .First();
+
+        try
+        {
+            var desc = string.Join(", ", offers
+                .OrderByDescending(o => o.LevelIdc ?? (byte)0)
+                .Select(o =>
+                {
+                    string pli = (o.ProfileIdc.HasValue && o.Constraints.HasValue && o.LevelIdc.HasValue)
+                        ? $"{o.ProfileIdc.Value:X2}{o.Constraints.Value:X2}{o.LevelIdc.Value:X2}"
+                        : "(no profile-level-id)";
+                    return $"pt={o.Pt} pli={pli}";
+                }));
+            Console.WriteLine($"[RTC-AmfNative] Offer H264 payloads: {desc}");
+        }
+        catch { }
+
+        return (best.Pt, best.Fmtp);
     }
 
     private static string EnsureVideoMLineHasPayload(string answerSdp, int pt, string? fmtp)
@@ -197,6 +367,68 @@ public class WebRTCStreamer_AmfNative : IDisposable
         return string.Join("\r\n", lines);
     }
 
+    private static bool IsPrivateV4(System.Net.IPAddress ip)
+    {
+        if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) return false;
+        var b = ip.GetAddressBytes();
+        if (b[0] == 10) return true;
+        if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+        if (b[0] == 192 && b[1] == 168) return true;
+        return false;
+    }
+
+    private static bool CandidateLineIsHostPrivateV4(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line)) return false;
+        var s = line.Trim();
+        if (s.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) s = s.Substring(2);
+        if (!s.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!s.Contains(" typ host ", StringComparison.OrdinalIgnoreCase)) return false;
+
+        var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 6) return false;
+        var addr = parts[4];
+        if (addr.Contains(':')) return false;
+        if (!System.Net.IPAddress.TryParse(addr, out var ip)) return false;
+        return IsPrivateV4(ip);
+    }
+
+    private static string FilterAnswerSdpIceCandidates(string sdp)
+    {
+        if (string.IsNullOrWhiteSpace(sdp)) return sdp;
+        var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var kept = new List<string>(lines.Length);
+
+        int dropped = 0;
+        foreach (var raw in lines)
+        {
+            var l = raw ?? string.Empty;
+            var t = l.TrimStart();
+
+            if (t.StartsWith("a=candidate:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!CandidateLineIsHostPrivateV4(t))
+                {
+                    dropped++;
+                    continue;
+                }
+            }
+            else if (t.StartsWith("a=end-of-candidates", StringComparison.OrdinalIgnoreCase))
+            {
+                // We'll rely on trickle ICE signalling instead.
+                dropped++;
+                continue;
+            }
+
+            kept.Add(l);
+        }
+
+        if (dropped > 0)
+            Console.WriteLine($"[RTC-AmfNative] SDP: dropped {dropped} ICE candidate lines (keeping host private IPv4 only)");
+
+        return string.Join("\r\n", kept);
+    }
+
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
     {
         if (_running) throw new InvalidOperationException("Already running");
@@ -205,10 +437,8 @@ public class WebRTCStreamer_AmfNative : IDisposable
         
         var cfg = new RTCConfiguration
         {
-            iceServers = new List<RTCIceServer>
-            {
-                new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
-            }
+            // Host-only by default for LAN stability.
+            iceServers = new List<RTCIceServer>()
         };
         
         _pc = new RTCPeerConnection(cfg);
@@ -303,6 +533,11 @@ public class WebRTCStreamer_AmfNative : IDisposable
         // This case breaks Unity's SetRemoteDescription (it can hang).
         var chosenPt = h264Pt ?? 127;
         answerSdp = EnsureVideoMLineHasPayload(answerSdp, chosenPt, h264Fmtp);
+
+        // IMPORTANT: Filter candidates embedded in the SDP.
+        // Even though we trickle candidates via onicecandidate, SIPSorcery can include host candidates in the SDP.
+        // If IPv6 candidates leak into the SDP, Chrome can select an IPv6 pair and then receive no media when we later filter/trickle only IPv4.
+        answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
 
         // Log the final m=video line for debugging.
         try
@@ -443,13 +678,24 @@ public class WebRTCStreamer_AmfNative : IDisposable
         
         try
         {
-            _pc.SendVideo((uint)(90000 / _fps), nalData);
+            // Normalize AMF output into an AnnexB AU compatible with the packetiser.
+            byte[] au = nalData;
+            bool convertedFromAvcc = false;
+            if (!ContainsAnnexBStartCode(au))
+            {
+                au = TryConvertAvccToAnnexB(au);
+                convertedFromAvcc = !ReferenceEquals(au, nalData);
+            }
+            au = StripLeadingAud(au);
+
+            uint rtpStep = GetRtpStepFromPts(pts);
+            _pc.SendVideo(rtpStep, au);
             long sent = Interlocked.Increment(ref _sentCount);
             
             // Debug: log first 5 frames and keyframes
             if (sent <= 5 || isKeyframe)
             {
-                Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {nalData.Length} bytes, keyframe={isKeyframe}");
+                Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {au.Length} bytes, keyframe={isKeyframe}, rtpStep={rtpStep}, avcc2annexb={convertedFromAvcc}");
             }
         }
         catch (Exception ex)
@@ -464,8 +710,6 @@ public class WebRTCStreamer_AmfNative : IDisposable
 
     private void EncodeLoop(CancellationToken ct)
     {
-        bool firstFrame = true;
-        
         while (!ct.IsCancellationRequested && _running)
         {
             while (_nv12Queue.TryDequeue(out var item))
@@ -479,9 +723,11 @@ public class WebRTCStreamer_AmfNative : IDisposable
                     
                     if (_encoder != null)
                     {
-                        // Force IDR only on first frame
-                        _encoder.EncodeNV12Bytes(item.nv12, forceKeyframe: firstFrame);
-                        firstFrame = false;
+                        // Force IDR until we've successfully sent at least one frame.
+                        // We may encode frames before ICE is connected; those get dropped in OnEncodedData,
+                        // so forcing only the very first *encoded* frame can still result in a black screen.
+                        bool forceIdr = (Interlocked.Read(ref _sentCount) == 0);
+                        _encoder.EncodeNV12Bytes(item.nv12, forceKeyframe: forceIdr);
                     }
                 }
             }
