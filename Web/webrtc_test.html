@@ -207,6 +207,13 @@
   };
   const setSt = (s) => $('st').textContent = s;
 
+  const videoEl = $('v');
+  // Some browsers are picky about autoplay on srcObject changes; always try to keep it playing.
+  videoEl.muted = true;
+  videoEl.autoplay = true;
+  videoEl.playsInline = true;
+  videoEl.disablePictureInPicture = true;
+
   const isMdnsHostCandidate = (cand) => typeof cand === 'string' && /\btyp\s+host\b/i.test(cand) && /\.local\b/i.test(cand);
   const isPrivateV4 = (ip) => {
     if (!ip) return false;
@@ -271,6 +278,107 @@
   let currentPc = null;
   let statsInterval = null;
 
+  let videoWatchdogInterval = null;
+  let remoteStream = null;
+  let remoteVideoTrack = null;
+  let lastInboundFramesDecoded = 0;
+  let lastInboundFps = 0;
+  let lastVideoTime = 0;
+  let lastVideoAdvanceAt = 0;
+
+  function ensureVideoPlaying() {
+    try {
+      const p = videoEl.play();
+      if (p && typeof p.catch === 'function') p.catch((e) => log('video.play() blocked:', e.message));
+    } catch (e) {
+      log('video.play() error:', e.message);
+    }
+  }
+
+  function attachRemoteVideoTrack(track) {
+    if (!track) return;
+    if (!remoteStream) remoteStream = new MediaStream();
+
+    // Replace track if needed.
+    if (remoteVideoTrack && remoteVideoTrack !== track) {
+      try { remoteStream.removeTrack(remoteVideoTrack); } catch { }
+    }
+    remoteVideoTrack = track;
+    if (!remoteStream.getVideoTracks().includes(track)) {
+      try { remoteStream.addTrack(track); } catch { }
+    }
+
+    if (videoEl.srcObject !== remoteStream) videoEl.srcObject = remoteStream;
+    ensureVideoPlaying();
+  }
+
+  function startVideoWatchdog() {
+    if (videoWatchdogInterval) return;
+    lastVideoAdvanceAt = performance.now();
+    lastVideoTime = videoEl.currentTime || 0;
+    videoWatchdogInterval = setInterval(() => {
+      const now = performance.now();
+      const ct = videoEl.currentTime || 0;
+      if (ct !== lastVideoTime) {
+        lastVideoTime = ct;
+        lastVideoAdvanceAt = now;
+        return;
+      }
+
+      // If inbound video is decoding but video element time doesn't advance, nudge rendering.
+      const decoding = lastInboundFps >= 5 || lastInboundFramesDecoded > 0;
+      const stalledMs = now - lastVideoAdvanceAt;
+      const looksReady = videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0;
+
+      if (decoding && looksReady && stalledMs > 2500) {
+        log('Video render stall detected; rebinding srcObject. inboundFps=', lastInboundFps,
+            'readyState=', videoEl.readyState, 'size=', videoEl.videoWidth + 'x' + videoEl.videoHeight);
+
+        // Create a fresh MediaStream wrapper to force repaint on some browsers.
+        if (remoteVideoTrack) {
+          remoteStream = new MediaStream([remoteVideoTrack]);
+          videoEl.srcObject = remoteStream;
+        } else if (videoEl.srcObject) {
+          const so = videoEl.srcObject;
+          videoEl.srcObject = null;
+          videoEl.srcObject = so;
+        }
+
+        lastVideoAdvanceAt = now;
+        ensureVideoPlaying();
+      }
+    }, 1000);
+  }
+
+  function stopVideoWatchdog() {
+    if (videoWatchdogInterval) { clearInterval(videoWatchdogInterval); videoWatchdogInterval = null; }
+    remoteStream = null;
+    remoteVideoTrack = null;
+    lastInboundFramesDecoded = 0;
+    lastInboundFps = 0;
+    lastVideoTime = 0;
+    lastVideoAdvanceAt = 0;
+  }
+
+  (function installVideoDebugHandlersOnce() {
+    let installed = false;
+    return () => {
+      if (installed) return;
+      installed = true;
+      const events = ['loadedmetadata', 'playing', 'pause', 'waiting', 'stalled', 'error'];
+      events.forEach((ev) => {
+        videoEl.addEventListener(ev, () => {
+          log('video event:', ev,
+              'readyState=', videoEl.readyState,
+              'paused=', videoEl.paused,
+              'ct=', (videoEl.currentTime || 0).toFixed(3),
+              'size=', videoEl.videoWidth + 'x' + videoEl.videoHeight);
+          if (ev === 'pause' || ev === 'waiting' || ev === 'stalled') ensureVideoPlaying();
+        });
+      });
+    };
+  })()();
+
   function getApiBase() {
     const host = $('host').value.trim() || 'localhost';
     const port = $('port').value.trim() || '8288';
@@ -316,9 +424,18 @@
   function disconnect() {
     log('Disconnecting...');
     if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    stopVideoWatchdog();
     if (currentWs) { try { currentWs.close(); } catch (e) { } currentWs = null; }
     if (currentPc) { try { currentPc.close(); } catch (e) { } currentPc = null; }
-    $('v').srcObject = null;
+
+    try { videoEl.pause(); } catch { }
+    try {
+      const so = videoEl.srcObject;
+      if (so && so.getTracks) so.getTracks().forEach(t => { try { t.stop(); } catch { } });
+    } catch { }
+    videoEl.srcObject = null;
+    try { videoEl.load(); } catch { }
+
     setSt('disconnected');
     $('btn').style.display = '';
     $('disconnectBtn').style.display = 'none';
@@ -407,8 +524,18 @@
     };
 
     pc.ontrack = ev => {
-      log('ontrack kind=', ev.track.kind);
-      $('v').srcObject = ev.streams[0] || new MediaStream([ev.track]);
+      log('ontrack kind=', ev.track.kind, 'id=', ev.track && ev.track.id);
+      if (ev.track && ev.track.kind === 'video') {
+        attachRemoteVideoTrack(ev.track);
+        startVideoWatchdog();
+
+        ev.track.onunmute = () => {
+          log('track:unmute kind=video');
+          attachRemoteVideoTrack(ev.track);
+        };
+        ev.track.onmute = () => log('track:mute kind=video');
+        ev.track.onended = () => log('track:ended kind=video');
+      }
     };
 
     // Trickle ICE out
@@ -487,6 +614,9 @@
             const bitrate = Math.round((bytes - lastBytes) * 8 / elapsed / 1000);
             const fps = Math.round((frames - lastFrames) / elapsed);
 
+            lastInboundFramesDecoded = frames;
+            lastInboundFps = fps;
+
             $('videoStats').textContent = `${bitrate} kbps`;
             $('frameStats').textContent = `${fps} fps, ${frames} total`;
 
@@ -500,12 +630,8 @@
 
     // Cleanup on close
     ws.onclose = () => {
+      disconnect();
       setSt('ws: closed');
-      if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
-      currentWs = null;
-      currentPc = null;
-      $('btn').style.display = '';
-      $('disconnectBtn').style.display = 'none';
     };
 
     // Debug helper
