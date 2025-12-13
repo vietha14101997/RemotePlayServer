@@ -19,7 +19,7 @@
     max-width: 1280px;
     background: #000;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   }
 
   pre {
@@ -48,7 +48,8 @@
     color: #aaa;
   }
 
-  .controls input, .controls select {
+  .controls input,
+  .controls select {
     padding: 8px 12px;
     border: 1px solid #333;
     border-radius: 4px;
@@ -122,43 +123,43 @@
 
 <div class="controls">
   <label>Host:</label>
-  <input type="text" id="host" value="localhost" placeholder="localhost or IP" />
-  
+  <input type="text" id="host" value="192.168.1.9" placeholder="localhost or IP" />
+
   <label>Port:</label>
   <input type="text" id="port" value="8288" style="width: 60px;" />
-  
+
   <label>Monitors:</label>
   <select id="monitors">
     <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3" selected>3</option>
+    <option value="2" selected>2</option>
+    <option value="3">3</option>
     <option value="4">4</option>
     <option value="5">5</option>
     <option value="6">6</option>
   </select>
-  
+
   <label>Resolution:</label>
   <select id="resolution">
-    <option value="1920x1080">1920x1080</option>
+    <option value="1920x1080" selected>1920x1080</option>
     <option value="1600x900">1600x900</option>
-    <option value="1366x768" selected>1366x768</option>
+    <option value="1366x768">1366x768</option>
     <option value="1280x720">1280x720</option>
     <option value="1024x576">1024x576</option>
     <option value="960x540">960x540</option>
   </select>
-  
+
   <label>Bitrate:</label>
   <select id="bitrate">
     <option value="2000">2 Mbps</option>
     <option value="4000">4 Mbps</option>
-    <option value="6000" selected>6 Mbps</option>
-    <option value="8000">8 Mbps</option>
+    <option value="6000">6 Mbps</option>
+    <option value="8000" selected>8 Mbps</option>
     <option value="10000">10 Mbps</option>
     <option value="12000">12 Mbps</option>
     <option value="15000">15 Mbps</option>
     <option value="20000">20 Mbps</option>
   </select>
-  
+
   <label>FPS:</label>
   <select id="fps">
     <option value="20">20</option>
@@ -166,28 +167,29 @@
     <option value="30" selected>30</option>
     <option value="60">60</option>
   </select>
-  
+
   <label>GPU:</label>
   <select id="preferGpu" title="Select preferred GPU adapter for capture/encode">
-    <option value="auto">Auto</option>
-    <option value="intel" selected>Intel (QSV)</option>
+    <option value="auto" selected>Auto</option>
+    <option value="intel">Intel (QSV)</option>
     <option value="amd">AMD (AMF)</option>
     <option value="nvidia">NVIDIA (NVENC)</option>
   </select>
-  
+
   <label style="display:flex;align-items:center;gap:4px;">
-    <input type="checkbox" id="cursor" checked style="width:16px;height:16px;" />
+    <input type="checkbox" id="cursor" style="width:16px;height:16px;" />
     Cursor
   </label>
-  
+
   <button id="btn">Connect</button>
-  <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;" onclick="disconnect()">Disconnect</button>
-  <button id="cursorBtn" style="background:#2a4a3a;padding:8px 16px;" onclick="toggleCursor()">Cursor: ON</button>
+  <button id="disconnectBtn" style="background:#4a2a2a;padding:10px 24px;display:none;"
+    onclick="disconnect()">Disconnect</button>
+  <button id="cursorBtn" style="background:#4a2a3a;padding:8px 16px;" onclick="toggleCursor()">Cursor: OFF</button>
 </div>
 
 <div class="status">
-  Status: <span id="st">idle</span> | 
-  Video: <span id="videoStats">--</span> | 
+  Status: <span id="st">idle</span> |
+  Video: <span id="videoStats">--</span> |
   Frames: <span id="frameStats">--</span> |
   <strong style="color:#ff9800;">Est. Bandwidth: <span id="estBandwidth">--</span></strong>
 </div>
@@ -198,38 +200,38 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
-  const log = (...a) => { 
+  const log = (...a) => {
     const logEl = $('log');
-    logEl.textContent += a.join(' ') + '\n'; 
+    logEl.textContent += a.join(' ') + '\n';
     logEl.scrollTop = logEl.scrollHeight;
   };
   const setSt = (s) => $('st').textContent = s;
-  
+
   function updateBandwidthEstimate() {
     const monitors = parseInt($('monitors').value) || 1;
     const bitrate = parseInt($('bitrate').value) || 6000;
     const totalKbps = monitors * bitrate;
     const totalMbps = (totalKbps / 1000).toFixed(1);
-    $('estBandwidth').textContent = `${totalMbps} Mbps (${monitors} × ${bitrate/1000} Mbps)`;
+    $('estBandwidth').textContent = `${totalMbps} Mbps (${monitors} × ${bitrate / 1000} Mbps)`;
   }
-  
-  let cursorEnabled = true;
+
+  let cursorEnabled = false;
   let currentWs = null;
   let currentPc = null;
   let statsInterval = null;
-  
+
   function getApiBase() {
     const host = $('host').value.trim() || 'localhost';
     const port = $('port').value.trim() || '8288';
     return `http://${host}:${port}`;
   }
-  
+
   async function toggleCursor() {
     cursorEnabled = !cursorEnabled;
     const btn = $('cursorBtn');
     btn.textContent = cursorEnabled ? 'Cursor: ON' : 'Cursor: OFF';
     btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
-    
+
     try {
       log('Sending cursor toggle request: show=' + cursorEnabled);
       const resp = await fetch(`${getApiBase()}/api/cursor?show=${cursorEnabled}`, { mode: 'cors' });
@@ -244,7 +246,7 @@
       btn.style.background = cursorEnabled ? '#2a4a3a' : '#4a2a3a';
     }
   }
-  
+
   async function initCursor() {
     const show = $('cursor').checked;
     try {
@@ -259,12 +261,12 @@
       }
     } catch (e) { log('Cursor init error:', e.message); }
   }
-  
+
   function disconnect() {
     log('Disconnecting...');
     if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
-    if (currentWs) { try { currentWs.close(); } catch(e){} currentWs = null; }
-    if (currentPc) { try { currentPc.close(); } catch(e){} currentPc = null; }
+    if (currentWs) { try { currentWs.close(); } catch (e) { } currentWs = null; }
+    if (currentPc) { try { currentPc.close(); } catch (e) { } currentPc = null; }
     $('v').srcObject = null;
     setSt('disconnected');
     $('btn').style.display = '';
@@ -281,7 +283,7 @@
     const fps = $('fps').value || '30';
     const preferGpu = $('preferGpu').value || 'auto';
     const [resW, resH] = resolution.split('x');
-    
+
     let url = `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
     if (preferGpu !== 'auto') {
       url += `&preferGpu=${preferGpu}`;
@@ -292,19 +294,26 @@
   async function run() {
     // Disconnect existing connection first
     if (currentWs || currentPc) disconnect();
-    
+
     const WS_URL = buildWsUrl();
     $('log').textContent = ''; // Clear log
     $('btn').style.display = 'none';
     $('disconnectBtn').style.display = '';
-    
+
     const ws = new WebSocket(WS_URL);
     currentWs = ws;
     setSt('ws: connecting'); log('WS →', WS_URL);
 
-    // --- Create RTCPeerConnection (with STUN to be safe)
+    // --- Create RTCPeerConnection (with multiple STUN servers for better Android compatibility)
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
+      ],
+      iceCandidatePoolSize: 10
     });
     currentPc = pc;
 
@@ -384,19 +393,19 @@
             const elapsed = (now - lastTime) / 1000;
             const bytes = r.bytesReceived || 0;
             const frames = r.framesDecoded || 0;
-            
+
             const bitrate = Math.round((bytes - lastBytes) * 8 / elapsed / 1000);
             const fps = Math.round((frames - lastFrames) / elapsed);
-            
+
             $('videoStats').textContent = `${bitrate} kbps`;
             $('frameStats').textContent = `${fps} fps, ${frames} total`;
-            
+
             lastBytes = bytes;
             lastFrames = frames;
             lastTime = now;
           }
         });
-      } catch (e) {}
+      } catch (e) { }
     }, 1000);
 
     // Cleanup on close
@@ -417,11 +426,11 @@
   }
 
   $('btn').onclick = run;
-  
+
   // Update bandwidth estimate on change
   $('monitors').onchange = updateBandwidthEstimate;
   $('bitrate').onchange = updateBandwidthEstimate;
-  
+
   // Initial calculation
   updateBandwidthEstimate();
 </script>

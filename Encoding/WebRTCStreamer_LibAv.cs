@@ -32,13 +32,14 @@ public class WebRTCStreamer_LibAv : IDisposable
     private readonly int _targetKbps;
     private ID3D11Device? _device;
 
-    // NV12 input channel - larger capacity to buffer frames during encoding
+    // NV12 input channel - Small capacity to force dropping old frames
+    // Reduced from 16 to 2 for Ultra Low Latency
     private readonly Channel<(byte[] buf, int w, int h)> _nv12Chan =
         Channel.CreateBounded<(byte[], int, int)>(
-            new BoundedChannelOptions(16) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
+            new BoundedChannelOptions(2) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
 
     private readonly Stopwatch _gateSw = Stopwatch.StartNew();
-    private readonly Stopwatch _sw = Stopwatch.StartNew();
+    // private readonly Stopwatch _sw = Stopwatch.StartNew(); // Not used, removing
 
     private long _enq, _deq, _sent;
 
@@ -105,8 +106,8 @@ public class WebRTCStreamer_LibAv : IDisposable
         {
             iceServers = new List<RTCIceServer>
             {
-                new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
-                new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
+                // LAN only - no STUN to ensure local host candidates are used prioritized
+                // new RTCIceServer { urls = "stun:stun.l.google.com:19302" }, 
             }
         };
         _pc = new RTCPeerConnection(cfg);
@@ -145,8 +146,12 @@ public class WebRTCStreamer_LibAv : IDisposable
             Console.WriteLine($"[RTC-LibAv] ice = {st}");
             if (st == RTCIceConnectionState.connected)
             {
-                Console.WriteLine("[RTC-LibAv] ICE CONNECTED");
+                Console.WriteLine($"[RTC-LibAv] ICE CONNECTED ({st}) - Starting Video Flow");
                 _canSend = true;
+            }
+            else if (st == RTCIceConnectionState.failed || st == RTCIceConnectionState.disconnected || st == RTCIceConnectionState.closed)
+            {
+                 _canSend = false;
             }
         };
 
@@ -156,7 +161,7 @@ public class WebRTCStreamer_LibAv : IDisposable
             name: "H264",
             clockRate: 90000,
             channels: 0,
-            fmtp: "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f");
+            fmtp: "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e033");
         
         var track = new MediaStreamTrack(
             SDPMediaTypesEnum.video,
@@ -168,8 +173,8 @@ public class WebRTCStreamer_LibAv : IDisposable
         _pc.OnVideoFormatsNegotiated += fmts =>
         {
             var ok = fmts?.Any(f => f.Codec == VideoCodecsEnum.H264) == true;
-            _canSend = ok;
-            Console.WriteLine($"[RTC-LibAv] canSend(H264) = {_canSend}");
+            // Don't set _canSend here, wait for ICE connected
+            Console.WriteLine($"[RTC-LibAv] Video formats negotiated (H264 supported: {ok})");
         };
 
         _statsTask = Task.Run(async () =>
@@ -197,9 +202,6 @@ public class WebRTCStreamer_LibAv : IDisposable
     {
         if (!_running || _cts?.IsCancellationRequested == true || _pc == null)
             return Task.CompletedTask;
-
-        // No rate limiting - let the queue handle backpressure
-        // The bounded channel will drop oldest if full (capacity=16)
 
         int size = width * height * 3 / 2;
         var buf = ArrayPool<byte>.Shared.Rent(size);
@@ -279,21 +281,23 @@ public class WebRTCStreamer_LibAv : IDisposable
         {
             while (!ct.IsCancellationRequested)
             {
+                // Wait for available item
                 var item = await _nv12Chan.Reader.ReadAsync(ct);
                 Interlocked.Increment(ref _deq);
 
-                // Process ALL frames without dropping for maximum FPS
-                // Only drop if queue is critically full (>12 frames backed up)
+                // ULTRA LOW LATENCY: Drain queue and only process the very latest frame
+                // If we fell behind, drop everything except the newest frame
                 int dropped = 0;
-                while (_nv12Chan.Reader.Count > 12 && _nv12Chan.Reader.TryRead(out var newer))
+                while (_nv12Chan.Reader.TryRead(out var newer))
                 {
                     Interlocked.Increment(ref _deq);
-                    ArrayPool<byte>.Shared.Return(item.buf);
-                    item = newer;
+                    ArrayPool<byte>.Shared.Return(item.buf); // Return old buffer
+                    item = newer; // Keep newer frame
                     dropped++;
                 }
-                if (dropped > 0)
-                    Console.WriteLine($"[RTC-LibAv] Dropped {dropped} frames (queue overflow)");
+                
+                if (dropped > 0 && (dropped % 30 == 0)) // Log occasionally to avoid spam
+                    Console.WriteLine($"[RTC-LibAv] Dropped {dropped} frames (latency catch-up)");
 
                 try
                 {

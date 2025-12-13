@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SIPSorcery.Net;
@@ -78,14 +80,22 @@ public class WebRTCStreamer_AmfNative : IDisposable
         if (_pc == null) return;
         try
         {
-            // SIPSorcery REQUIRES the "candidate:" prefix in RTCIceCandidateInit.candidate
-            string candStr = candidate;
-            // Ensure candidate has the prefix
+            var candStr = (candidate ?? string.Empty).Trim();
+            if (candStr.Length == 0) return;
+
+            // Normalize formats we may receive via signaling.
+            // - Some clients send "a=candidate:..." (SDP attribute form)
+            // - Some paths can accidentally double-prefix "candidate:candidate:..."
+            if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring(2);
+            if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring("candidate:".Length);
             if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
                 candStr = "candidate:" + candStr;
-            
-            // Parse candidate string and add to PeerConnection
+
             var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" };
+            Console.WriteLine($"[RTC-AmfNative] 📥 RECEIVED CANDIDATE: '{candStr.Substring(0, Math.Min(120, candStr.Length))}...' (len={candStr.Length})");
+            Console.WriteLine($"[RTC-AmfNative] 📥 CANDIDATE HEX: {BitConverter.ToString(System.Text.Encoding.UTF8.GetBytes(candStr).Take(50).ToArray())}");
             _pc.addIceCandidate(init);
             Console.WriteLine($"[RTC-AmfNative] Added remote ICE: {candStr.Substring(0, Math.Min(70, candStr.Length))}...");
         }
@@ -99,6 +109,92 @@ public class WebRTCStreamer_AmfNative : IDisposable
         {
             Console.WriteLine($"[RTC-AmfNative] After add ICE: iceState={_pc.iceConnectionState}, pcState={_pc.connectionState}");
         }
+    }
+
+    public RTCIceConnectionState IceConnectionState => _pc?.iceConnectionState ?? RTCIceConnectionState.@new;
+
+    private static (int? pt, string? fmtp) TryGetH264FromOfferSdp(string offerSdp)
+    {
+        if (string.IsNullOrWhiteSpace(offerSdp)) return (null, null);
+
+        int? pt = null;
+        string? fmtp = null;
+
+        var lines = offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+        // Find first H264 payload type.
+        foreach (var line in lines)
+        {
+            // a=rtpmap:<pt> H264/90000
+            if (!line.StartsWith("a=rtpmap:", StringComparison.OrdinalIgnoreCase)) continue;
+            var rest = line.Substring("a=rtpmap:".Length);
+            var sp = rest.IndexOf(' ');
+            if (sp <= 0) continue;
+            if (!int.TryParse(rest.Substring(0, sp), out var candPt)) continue;
+            var codec = rest.Substring(sp + 1);
+            if (codec.IndexOf("H264/", StringComparison.OrdinalIgnoreCase) < 0) continue;
+            pt = candPt;
+            break;
+        }
+
+        if (pt.HasValue)
+        {
+            var needle = "a=fmtp:" + pt.Value + " ";
+            foreach (var line in lines)
+            {
+                if (!line.StartsWith(needle, StringComparison.OrdinalIgnoreCase)) continue;
+                fmtp = line.Substring(needle.Length).Trim();
+                break;
+            }
+        }
+
+        return (pt, fmtp);
+    }
+
+    private static string EnsureVideoMLineHasPayload(string answerSdp, int pt, string? fmtp)
+    {
+        if (string.IsNullOrWhiteSpace(answerSdp)) return answerSdp;
+
+        // Normalize newlines.
+        var lines = answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToList();
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            if (line == null) continue;
+            if (!line.StartsWith("m=video ", StringComparison.OrdinalIgnoreCase)) continue;
+
+            // m=video <port> <proto> <fmt> ...
+            var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length <= 3)
+            {
+                lines[i] = line.TrimEnd() + " " + pt;
+
+                bool hasRtpmap = false;
+                bool hasFmtp = false;
+                for (int j = i + 1; j < lines.Count; j++)
+                {
+                    var l = lines[j];
+                    if (l.StartsWith("m=", StringComparison.OrdinalIgnoreCase)) break;
+                    if (l.StartsWith($"a=rtpmap:{pt}", StringComparison.OrdinalIgnoreCase)) hasRtpmap = true;
+                    if (l.StartsWith($"a=fmtp:{pt}", StringComparison.OrdinalIgnoreCase)) hasFmtp = true;
+                }
+
+                // Insert minimally required rtpmap/fmtp if missing.
+                int insertAt = i + 1;
+                if (!hasRtpmap)
+                {
+                    lines.Insert(insertAt++, $"a=rtpmap:{pt} H264/90000");
+                }
+                if (!string.IsNullOrWhiteSpace(fmtp) && !hasFmtp)
+                {
+                    lines.Insert(insertAt++, $"a=fmtp:{pt} {fmtp}");
+                }
+            }
+
+            break; // only one video section expected
+        }
+
+        return string.Join("\r\n", lines);
     }
 
     public async Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp)
@@ -118,14 +214,24 @@ public class WebRTCStreamer_AmfNative : IDisposable
         _pc = new RTCPeerConnection(cfg);
         Console.WriteLine("[RTC-AmfNative] PeerConnection created");
 
-        // Create H264 video track
+        // Create H264 video track (must match a payload type from the offer for Unity)
+        var (h264Pt, h264Fmtp) = TryGetH264FromOfferSdp(offerSdp);
+        if (h264Pt.HasValue)
+            Console.WriteLine($"[RTC-AmfNative] Offer H264 payload type detected: pt={h264Pt.Value}");
+        else
+            Console.WriteLine("[RTC-AmfNative] Offer H264 payload type not detected (will use fallback)");
+        if (!string.IsNullOrWhiteSpace(h264Fmtp))
+            Console.WriteLine($"[RTC-AmfNative] Offer H264 fmtp: {h264Fmtp}");
+
         var h264 = new SDPAudioVideoMediaFormat(
             SDPMediaTypesEnum.video,
-            id: 0,
+            id: h264Pt ?? 127,
             name: "H264",
             clockRate: 90000,
             channels: 0,
-            fmtp: "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f");
+            fmtp: string.IsNullOrWhiteSpace(h264Fmtp)
+                ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
+                : h264Fmtp);
         
         _videoTrack = new MediaStreamTrack(
             SDPMediaTypesEnum.video,
@@ -189,8 +295,26 @@ public class WebRTCStreamer_AmfNative : IDisposable
                 Console.WriteLine($"[RTC-AmfNative] stats: enq={_enqueueCount} sent={_sentCount}");
             }
         });
-        
-        return answer.sdp ?? "";
+
+        // Unity (and our web test) expect SAVPF. Some SIPSorcery answers default to SAVP.
+        var answerSdp = (answer.sdp ?? "").Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+
+        // If SIPSorcery generated an invalid m=video line with no payload types, fix it.
+        // This case breaks Unity's SetRemoteDescription (it can hang).
+        var chosenPt = h264Pt ?? 127;
+        answerSdp = EnsureVideoMLineHasPayload(answerSdp, chosenPt, h264Fmtp);
+
+        // Log the final m=video line for debugging.
+        try
+        {
+            var mLine = answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault(l => l.StartsWith("m=video ", StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(mLine))
+                Console.WriteLine($"[RTC-AmfNative] Answer m-line: {mLine}");
+        }
+        catch { }
+
+        return answerSdp;
     }
 
     public async Task PushBgraBytesAsync(byte[] src, int width, int height, int stride)

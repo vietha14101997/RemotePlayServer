@@ -1,0 +1,6 @@
+RemotePlayServer failed with 5 error(s) (3.1s)
+    C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Encoding\WebRTCStreamer_AmfNative.cs(90,90): error CS0234: The type or namespace name 'UTF8' does not exist in the namespace 'RemotePlayServer.Encoding' (are you missing an assembly reference?)
+    C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Program.cs(915,69): error CS0246: The type or namespace name 'WebRTCStreamer_AmfNative' could not be found (are you missing a using directive or an assembly reference?)
+    C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Program.cs(923,41): error CS1996: Cannot await in the body of a lock statement
+    C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Program.cs(925,79): error CS0103: The name 'RTCIceConnectionState' does not exist in the current context
+    C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Program.cs(926,79): error CS0103: The name 'RTCIceConnectionState' does not exist in the current context

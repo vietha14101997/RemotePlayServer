@@ -203,7 +203,7 @@ public unsafe class LibAvEncoder : IDisposable
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        _codecCtx->gop_size = _fps * 2; // Keyframe every 2 seconds
+        _codecCtx->gop_size = _fps; // Keyframe every 1 second (reduced for lower latency)
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
         
@@ -249,12 +249,24 @@ public unsafe class LibAvEncoder : IDisposable
                 break;
                 
             case "h264_qsv":
-                // Intel QSV specific options
-                Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder");
+                // Intel QSV specific options for ULTRA LOW LATENCY
+                Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)");
+                // Fastest preset
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "veryfast", 0);
+                // Async depth = 1 means encoder waits for each frame (minimal buffering)
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "1", 0);
+                // No look-ahead to avoid buffering future frames
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
+                // Low power mode for fixed-function encoder (lower latency)
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "low_power", "1", 0);
+                // Force single NAL per frame for lower decoding latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "single_sei_nal_unit", "1", 0);
+                // Rate control: VCM (Video Conferencing Mode) optimized for low latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "rdo", "0", 0);
+                // Reduce RC buffer for faster bitrate response
+                _codecCtx->rc_buffer_size = _bitrate / 4; // 250ms buffer
+                _codecCtx->rc_max_rate = (long)(_bitrate * 1.5); // Allow some headroom
                 break;
         }
     }
@@ -649,9 +661,10 @@ public unsafe class LibAvEncoder : IDisposable
             {
                 // Set bind flags that AMF encoder expects
                 // AMF needs textures with BIND_DECODER and/or BIND_SHADER_RESOURCE
-                d3d11vaFramesCtx->BindFlags = 0; // Let FFmpeg decide the best flags
+                // Explicitly set RenderTarget | ShaderResource (0x28) to satisfy FFmpeg and AMF
+                d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
                 d3d11vaFramesCtx->MiscFlags = 0;
-                Console.WriteLine("[LibAvEncoder] D3D11VA frames context configured with default bind flags");
+                Console.WriteLine($"[LibAvEncoder] D3D11VA frames context configured with BindFlags=0x{d3d11vaFramesCtx->BindFlags:X}");
             }
             
             ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
@@ -714,6 +727,16 @@ public unsafe class LibAvEncoder : IDisposable
             framesCtx->height = _height;
             framesCtx->initial_pool_size = 4;
             
+            framesCtx->initial_pool_size = 8; // Increase pool size
+            
+            // Explicitly set bind flags
+            AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
+            if (d3d11vaFramesCtx != null)
+            {
+                d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
+                d3d11vaFramesCtx->MiscFlags = 0;
+            }
+
             ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
             if (ret < 0)
             {
@@ -769,6 +792,16 @@ public unsafe class LibAvEncoder : IDisposable
             framesCtx->height = _height;
             framesCtx->initial_pool_size = 4;
             
+            framesCtx->initial_pool_size = 8;
+            
+             // Explicitly set bind flags
+            AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
+            if (d3d11vaFramesCtx != null)
+            {
+                d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
+                d3d11vaFramesCtx->MiscFlags = 0;
+            }
+
             ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
             if (ret < 0)
             {

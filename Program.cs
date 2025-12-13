@@ -13,6 +13,8 @@ using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
 using QRCoder;
+using RemotePlayServer.Encoding;
+using SIPSorcery.Net;
 
 #if WINDOWS
 using Microsoft.Win32;
@@ -36,6 +38,23 @@ partial class Program
     
     [DllImport("kernel32.dll")]
     static extern bool FreeLibrary(IntPtr hModule);
+
+    static string GetLocalIPAddress()
+    {
+        try
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+        }
+        catch { }
+        return "127.0.0.1";
+    }
 
     static string DetectEncoder()
     {
@@ -122,6 +141,28 @@ partial class Program
         Console.OutputEncoding = Encoding.UTF8;
         
         Console.WriteLine("=== RemotePlayServer ===");
+        
+        if (OperatingSystem.IsWindows())
+        {
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                if (!principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator))
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("[WARN] Not running as Administrator. Input injection and functionality might be limited.");
+                    Console.WriteLine("[WARN] Please restart with 'Run as Administrator'.");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.WriteLine("[System] Running as Administrator: YES");
+                }
+            }
+        }
+        
+        Console.WriteLine($"[System] Process: {Environment.ProcessPath}");
+        Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
         // Chụp trạng thái ban đầu và tạo marker phiên
@@ -835,7 +876,8 @@ public class SignalAndRestServer
                         if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
                             candStr = candStr.Substring("candidate:".Length);
                         
-                        Console.WriteLine($"[Cluster Signal] Received client ICE: {candStr.Substring(0, Math.Min(60, candStr.Length))}...");
+                        Console.WriteLine($"[Cluster Signal] Received client ICE: '{candStr.Substring(0, Math.Min(60, candStr.Length))}...' (hex={BitConverter.ToString(Encoding.UTF8.GetBytes(candStr).Take(50).ToArray())})");
+                        Console.WriteLine($"[Cluster Signal] Processing received candidate - full length: {candStr.Length}");
                         
                         // Add to peer connection if streamer is ready, otherwise queue it
                         lock (iceLock)
@@ -866,6 +908,39 @@ public class SignalAndRestServer
                     if (text.StartsWith("end-of-candidates", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("[Cluster Signal] Client sent end-of-candidates");
+                        
+                        // Trigger ICE connection establishment immediately when all candidates are added
+                        Task.Run(async () => {
+                            await Task.Delay(1000); // Let candidates settle
+                            
+                            WebRTCStreamer_AmfNative? amfStreamer = null;
+                            lock (iceLock)
+                            {
+                                if (streamer != null && streamer is WebRTCStreamer_AmfNative amf)
+                                {
+                                    amfStreamer = amf;
+                                }
+                            }
+                            
+                            if (amfStreamer != null)
+                            {
+                                // Force ICE connectivity check after end-of-candidates
+                                var startTime = DateTime.Now;
+                                
+                                // Check ICE state after short delay
+                                for (int i = 0; i < 5; i++)
+                                {
+                                    await Task.Delay(500);
+                                    Console.WriteLine($"[Cluster Signal] ICE check #{i+1}: iceState={amfStreamer.IceConnectionState}");
+                                    if (amfStreamer.IceConnectionState == RTCIceConnectionState.checking || 
+                                        amfStreamer.IceConnectionState == RTCIceConnectionState.connected)
+                                    {
+                                        Console.WriteLine($"[Cluster Signal] ✅ ICE ESTABLISHED! i={i+1}s, state={amfStreamer.IceConnectionState}");
+                                        break;
+                                    }
+                                }
+                            }
+                        });
                         continue;
                     }
 
@@ -1043,7 +1118,19 @@ public class SignalAndRestServer
                 {
                     if (ws.State == System.Net.WebSockets.WebSocketState.Open)
                     {
-                        string msg = candidate == "end-of-candidates" ? "end-of-candidates" : "candidate:" + candidate;
+                        string msg;
+                        if (string.Equals(candidate, "end-of-candidates", StringComparison.OrdinalIgnoreCase))
+                        {
+                            msg = "end-of-candidates";
+                        }
+                        else
+                        {
+                            var c = (candidate ?? string.Empty).Trim();
+                            if (c.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) c = c.Substring(2);
+                            if (c.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase)) c = c.Substring("candidate:".Length);
+                            if (!c.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase)) c = "candidate:" + c;
+                            msg = c;
+                        }
                         
                         lock (serverIceLock)
                         {
