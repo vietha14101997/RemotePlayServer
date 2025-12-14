@@ -297,14 +297,9 @@ public class WebRTCStreamer_AmfNative : IDisposable
         }
 
         // Prefer higher level first (bigger resolution support), then profile, then LOWEST constraints (least restrictive).
-        // For Android compatibility: prefer Baseline Profile over High Profile
         var best = offers
             .OrderByDescending(o => o.LevelIdc ?? (byte)0)
-            .ThenBy(o => {
-                // Prefer Baseline Profile (0x42) for compatibility, then others
-                var profile = o.ProfileIdc ?? (byte)0;
-                return profile == 0x42 ? 0 : profile == 0x4D ? 1 : profile == 0x64 ? 2 : 3;
-            })
+            .ThenByDescending(o => o.ProfileIdc ?? (byte)0)
             .ThenBy(o => o.Constraints ?? (byte)0)
             .First();
 

@@ -1,1 +1,25 @@
-WS → ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30&lan=1 TIP: If candidates contain ".local" and ICE fails, disable WebRTC mDNS local IP hiding in your browser flags and restart the browser. ICE mode: host-only Codecs (H264 first): video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/VP8, video/rtx, video/VP9, video/VP9, video/VP9, video/AV1, video/AV1, video/VP9, video/H265, video/H265, video/red, video/ulpfec, video/flexfec-03 Initializing cursor: show=false Cursor initialized: ON → offer sent, length= 5591 WARNING: Browser is sending mDNS host candidate (.local). RemotePlayServer may not resolve it. Action: disable mDNS local IP hiding and reconnect. → cand candidate:3261630773 1 udp 2113937151 f2699114-8a11-408f-91cc-a130c4b9f2b7.local 48183 typ host generation 0 ufrag L5z8 network-cost 999 → cand candidate:1841389898 1 udp 2113939711 83588716-6de0-46f7-9768-303c6c419b62.local 55895 typ host generation 0 ufrag L5z8 network-cost 999 → end-of-candidates NOTE: Did not see any private LAN IPv4 host candidates (e.g., 192.168.x.x). If you are on LAN, this is a strong sign mDNS hiding is enabled. ICE = checking ontrack kind= video id= f06106b8-abde-45ab-b381-cda7399c49f0 track:unmute kind=video ← answer set (chars= 1098 ) ← cand candidate:3707760737 1 udp 2113937663 192.168.1.9 60826 typ host generation 0 ICE = connected video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0 PC = connecting PC = connected ICE selected pair: host/udp :48183 -> host/udp 192.168.1.9:60826
+WS → ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30&lan=1
+TIP: If candidates contain ".local" and ICE fails, disable WebRTC mDNS local IP hiding in your browser flags and restart the browser.
+ICE mode: host-only
+Codecs (H264 first): video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/H264, video/VP8, video/rtx, video/VP9, video/VP9, video/VP9, video/AV1, video/AV1, video/VP9, video/H265, video/H265, video/red, video/ulpfec, video/flexfec-03
+Initializing cursor: show=false
+Cursor init error: Failed to fetch
+→ offer sent, length= 5591
+→ cand candidate:1540857278 1 udp 2113937151 192.168.1.2 36263 typ host generation 0 ufrag Wtv1 network-cost 999
+→ cand candidate:3939954039 1 udp 2113939711 2402:800:610d:265a:e8cb:2f46:607b:f2f0 43243 typ host generation 0 ufrag Wtv1 network-cost 999
+→ end-of-candidates
+ICE = checking
+PC  = connecting
+ICE = connected
+ontrack kind= video id= 1bbe2b7a-0385-4e80-89fe-efb3e0996693
+track:unmute kind=video
+← answer set (chars= 1099 )
+← cand candidate:3707760737 1 udp 2113937663 192.168.1.9 59370 typ host generation 0
+ICE selected pair: host/udp 192.168.1.2:36263 -> host/udp 192.168.1.9:59370
+video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0
+PC  = connected
+Disconnecting...
+Disconnected
+video.play() blocked: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+video.play() blocked: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+video.play() blocked: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
