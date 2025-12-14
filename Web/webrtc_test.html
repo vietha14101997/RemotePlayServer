@@ -310,7 +310,18 @@
       try { remoteStream.addTrack(track); } catch { }
     }
 
-    if (videoEl.srcObject !== remoteStream) videoEl.srcObject = remoteStream;
+    if (videoEl.srcObject !== remoteStream) {
+      videoEl.srcObject = remoteStream;
+      // Android fix: Force video element properties
+      if (navigator.userAgent.includes('Android')) {
+        log('Android detected - applying video element fixes');
+        videoEl.muted = true;
+        videoEl.autoplay = true;
+        videoEl.playsinline = true;
+        videoEl.setAttribute('webkit-playsinline', '');
+        videoEl.setAttribute('x5-playsinline', '');
+      }
+    }
     ensureVideoPlaying();
   }
 
@@ -504,16 +515,27 @@
     let warnedMdns = false;
     let sawPrivateHostV4 = false;
 
-    // Prefer H264 first if available
+    // Prefer H264 first if available, VP8 for Android
     try {
       const trans = pc.addTransceiver('video', { direction: 'recvonly' });
       if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
       const caps = RTCRtpReceiver.getCapabilities('video');
       const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
-      const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType && h.clockRate === c.clockRate));
-      const prefer = h264.concat(others);
+      const vp8 = caps.codecs.filter(c => /VP8/i.test(c.mimeType));
+      const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType && h.clockRate === c.clockRate) && !vp8.some(v => v.mimeType === c.mimeType && v.clockRate === c.clockRate));
+      
+      let prefer;
+      if (navigator.userAgent.includes('Android')) {
+        // Android: prefer VP8 over H264 for better compatibility
+        prefer = vp8.concat(h264).concat(others);
+        log('Android detected - using VP8 codec preference');
+      } else {
+        // Desktop: prefer H264 first
+        prefer = h264.concat(vp8).concat(others);
+      }
+      
       if (trans.setCodecPreferences) trans.setCodecPreferences(prefer);
-      log('Codecs (H264 first):', prefer.map(c => c.mimeType).join(', '));
+      log('Codecs (preference order):', prefer.map(c => c.mimeType).join(', '));
     } catch (e) { log('Codec pref note:', e.message); }
 
     pc.oniceconnectionstatechange = () => {
@@ -546,20 +568,16 @@
         };
         ev.track.onmute = () => {
           log('track:mute kind=video - PC state:', pc.connectionState, 'ICE state:', pc.iceConnectionState);
-          // Stronger recovery: Force restart connection if muted too long
-          setTimeout(() => {
-            if (ev.track && ev.track.muted && pc.connectionState === 'connected') {
-              log('Track still muted after 2s, forcing recovery...'); 
-              // Create fresh connection to recover
-              setTimeout(() => {
-                if (ev.track && ev.track.muted) {
-                  log('Track mute persists - triggering reconnect');
-                  disconnect();
-                  setTimeout(() => connect(), 1000);
-                }
-              }, 3000);
-            }
-          }, 2000);
+          // Try immediate recovery without disconnecting
+          if (remoteVideoTrack === ev.track) {
+            log('Attempting immediate track recovery...');
+            // Force video element refresh
+            videoEl.load();
+            setTimeout(() => {
+              attachRemoteVideoTrack(ev.track);
+              ensureVideoPlaying();
+            }, 100);
+          }
         };
         ev.track.onended = () => log('track:ended kind=video');
       }
