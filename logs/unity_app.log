@@ -1,0 +1,609 @@
+2025/12/14 18:07:51.919 16988 21617 Info Unity MemoryManager: Using 'Dynamic Heap' Allocator.
+2025/12/14 18:07:51.930 16988 21617 Info Unity SystemInfo CPU = ARM64 FP ASIMD AES, Cores = 8, Memory = 11293mb
+2025/12/14 18:07:51.930 16988 21617 Info Unity SystemInfo ARM big.LITTLE configuration: 5 big (mask: 0xf8), 3 little (mask: 0x7)
+2025/12/14 18:07:51.930 16988 21617 Info Unity ApplicationInfo com.Reka.VRWorkspace version 0.1
+2025/12/14 18:07:51.930 16988 21617 Info Unity Built from '2022.3/staging' branch, Version '2022.3.62f1 (4af31df58517)', Build type 'Release', Scripting Backend 'il2cpp', CPU 'arm64-v8a', Stripping 'Enabled'
+2025/12/14 18:07:51.988 16988 21617 Info Unity Company Name: Reka
+2025/12/14 18:07:51.988 16988 21617 Info Unity Product Name: VR Workspace
+2025/12/14 18:07:52.000 16988 21617 Info Unity [XR] [CardboardXrMain]: Display subsystem successfully loaded.
+2025/12/14 18:07:52.000 16988 21617 Info Unity [XR] [CardboardXrMain]: Input subsystem successfully loaded.
+2025/12/14 18:07:52.076 16988 21617 Info Unity XRGeneral Settings awakening...
+2025/12/14 18:07:52.076 16988 21617 Info Unity UnityEngine.XR.Management.XRGeneralSettings:Awake()
+2025/12/14 18:07:52.115 16988 21617 Info Unity [XR] [CardboardXrInputProvider]: Lifecycle initialized
+2025/12/14 18:07:52.135 16988 21617 Info Unity [XR] [CardboardXrInputProvider]: Lifecycle started
+2025/12/14 18:07:52.171 16988 21617 Info Unity [XR] [CardboardXrInputProvider]: No events to handle
+2025/12/14 18:07:52.171 16988 21661 Info Unity [XR] [CardboardXrDisplayProvider]: Initializes Cardboard API.
+2025/12/14 18:07:56.653 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.653 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.653 16988 21617 Error Unity 
+2025/12/14 18:07:56.653 16988 21617 Error Unity [ line -192655256]
+2025/12/14 18:07:56.658 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.658 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.658 16988 21617 Error Unity 
+2025/12/14 18:07:56.658 16988 21617 Error Unity [ line -192655256]
+2025/12/14 18:07:56.659 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.659 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.659 16988 21617 Error Unity 
+2025/12/14 18:07:56.659 16988 21617 Error Unity [ line -192655256]
+2025/12/14 18:07:56.684 16988 21617 Info Unity [AndroidCursorHider] No previous icon detected
+2025/12/14 18:07:56.684 16988 21617 Info Unity AndroidCursorHider:OnEnable()
+2025/12/14 18:07:56.699 16988 21617 Warn Unity [AndroidCursorHider] Không ẩn được con trỏ hệ thống: java.lang.NoSuchMethodError: no non-static method with name='setPointerIcon' signature='(Landroid.view.PointerIcon;)Ljava/lang/Object;' in class Ljava.lang.Object;
+2025/12/14 18:07:56.699 16988 21617 Warn Unity AndroidCursorHider:OnEnable()
+2025/12/14 18:07:56.699 16988 21617 Info Unity Starting camera passthrough
+2025/12/14 18:07:56.699 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.743 16988 21617 Info Unity Found 2 camera devices
+2025/12/14 18:07:56.743 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.743 16988 21617 Info Unity Camera 0: Camera 0 (front facing: False)
+2025/12/14 18:07:56.743 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.743 16988 21617 Info Unity Camera 1: Camera 1 (front facing: True)
+2025/12/14 18:07:56.743 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.744 16988 21617 Info Unity Selected back camera: Camera 0
+2025/12/14 18:07:56.744 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.744 16988 21617 Info Unity Starting webcam texture: Camera 0 at 1280x720
+2025/12/14 18:07:56.744 16988 21617 Info Unity CameraPassthrough:StartCam()
+2025/12/14 18:07:56.860 16988 21617 Info Unity [ClusterAutoBinder] Using fixed config: 2 monitors, frame=3840x1080, cell=1920x1080
+2025/12/14 18:07:56.860 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.862 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.862 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.862 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.862 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.862 16988 21617 Error Unity 
+2025/12/14 18:07:56.862 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.863 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.863 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.863 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.863 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.863 16988 21617 Error Unity 
+2025/12/14 18:07:56.863 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.864 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.864 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.864 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.864 16988 21617 Error Unity 
+2025/12/14 18:07:56.864 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.864 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.864 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.864 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.864 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.864 16988 21617 Error Unity 
+2025/12/14 18:07:56.864 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.865 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.865 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.865 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.865 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.865 16988 21617 Error Unity 
+2025/12/14 18:07:56.865 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.870 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.870 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.870 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.870 16988 21617 Error Unity 
+2025/12/14 18:07:56.870 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.870 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.870 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.870 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.870 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.870 16988 21617 Error Unity 
+2025/12/14 18:07:56.870 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.871 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.871 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.871 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.871 16988 21617 Error Unity 
+2025/12/14 18:07:56.871 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.871 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.871 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.871 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.871 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.871 16988 21617 Error Unity 
+2025/12/14 18:07:56.871 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.872 16988 21617 Error Unity Can't add component because class 'SphereCollider' doesn't exist!
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelPlusHandleSphere:Awake()
+2025/12/14 18:07:56.872 16988 21617 Error Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelPlus:EnsureHandleSpheresAttached()
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelPlus:Rebuild()
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelClusterRig:CreateOne(String)
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelClusterRig:CreatePanels(Int32)
+2025/12/14 18:07:56.872 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.872 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.872 16988 21617 Error Unity 
+2025/12/14 18:07:56.872 16988 21617 Error Unity [ line -192657128]
+2025/12/14 18:07:56.873 16988 21617 Error Unity Coroutine couldn't be started because the the game object 'ControlDock' is inactive!
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelPlusControlDock:SetMinimized(Boolean)
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelClusterRig:ApplyClusterVisibility(Boolean)
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.873 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.873 16988 21617 Error Unity 
+2025/12/14 18:07:56.873 16988 21617 Error Unity [ line -192654392]
+2025/12/14 18:07:56.873 16988 21617 Error Unity Coroutine couldn't be started because the the game object 'ControlDock' is inactive!
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelPlusControlDock:SetMinimized(Boolean)
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelClusterRig:ApplyClusterVisibility(Boolean)
+2025/12/14 18:07:56.873 16988 21617 Error Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.873 16988 21617 Error Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.873 16988 21617 Error Unity 
+2025/12/14 18:07:56.873 16988 21617 Error Unity [ line -192654392]
+2025/12/14 18:07:56.874 16988 21617 Info Unity [WorldPanelClusterRig] Built 2 panels
+2025/12/14 18:07:56.874 16988 21617 Info Unity WorldPanelClusterRig:BuildWithPanelCount(Int32)
+2025/12/14 18:07:56.874 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.874 16988 21617 Info Unity [PCStreamClient] This instance is INPUT OWNER
+2025/12/14 18:07:56.874 16988 21617 Info Unity UnityEngine.GameObject:AddComponent()
+2025/12/14 18:07:56.874 16988 21617 Info Unity ClusterAutoBinder:CreateMasterClient(WorldPanelPlus, Int32)
+2025/12/14 18:07:56.874 16988 21617 Info Unity ClusterAutoBinder:BindPanelsToStream()
+2025/12/14 18:07:56.874 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.875 16988 21617 Info Unity [ClusterAutoBinder] Master client on panel[1], url=ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:CreateMasterClient(WorldPanelPlus, Int32)
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:BindPanelsToStream()
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.875 16988 21617 Info Unity [ClusterAutoBinder] CropReceiver on panel[0]
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:CreateCropReceiver(WorldPanelPlus, Int32)
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:BindPanelsToStream()
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.875 16988 21617 Info Unity [ClusterAutoBinder] Bound 2 panels to combined stream
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:BindPanelsToStream()
+2025/12/14 18:07:56.875 16988 21617 Info Unity ClusterAutoBinder:Start()
+2025/12/14 18:07:56.881 16988 21617 Info Unity [CardboardApi] Device params found.
+2025/12/14 18:07:56.881 16988 21617 Info Unity Google.XR.Cardboard.Api:HasDeviceParams()
+2025/12/14 18:07:56.881 16988 21617 Info Unity CardboardStartup:Start()
+2025/12/14 18:07:56.884 16988 21617 Info Unity [PCStreamClient] Private IP detected (192.168.1.9), adding LAN optimization: lan=1
+2025/12/14 18:07:56.884 16988 21617 Info Unity PCStreamClient:BuildOptimizedSignalUrl()
+2025/12/14 18:07:56.884 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.884 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.884 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.884 16988 21617 Info Unity [PCStreamClient] ===== CONNECTION SETUP =====
+2025/12/14 18:07:56.884 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.884 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.884 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.885 16988 21617 Info Unity [PCStreamClient] Original signalUrl: ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30
+2025/12/14 18:07:56.885 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.885 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.885 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.885 16988 21617 Info Unity [PCStreamClient] Optimized URL: ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30&lan=1
+2025/12/14 18:07:56.885 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.885 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.885 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.885 16988 21617 Info Unity [PCStreamClient] LAN auto-detect: True
+2025/12/14 18:07:56.885 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.885 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.885 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.886 16988 21617 Info Unity [PCStreamClient] Skip TCP ICE: True (RECOMMENDED: true)
+2025/12/14 18:07:56.886 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.886 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.886 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.886 16988 21617 Info Unity [PCStreamClient] Force UDP-only: True (RECOMMENDED: true)
+2025/12/14 18:07:56.886 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.886 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.886 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.886 16988 21617 Info Unity [PCStreamClient] ===== FIXES APPLIED =====
+2025/12/14 18:07:56.886 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.886 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.886 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.886 16988 21617 Info Unity [PCStreamClient] ✅ TCP candidate GENERATION filtering (prevents Unity sending TCP to server)
+2025/12/14 18:07:56.886 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.886 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.886 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.887 16988 21617 Info Unity [PCStreamClient] ✅ TCP candidate RECEPTION filtering (prevents Unity accepting TCP from server)
+2025/12/14 18:07:56.887 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.887 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.887 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.887 16988 21617 Info Unity [PCStreamClient] ✅ UDP-only ICE transport policy (prevents any TCP generation)
+2025/12/14 18:07:56.887 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.887 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.887 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.888 16988 21617 Info Unity [PCStreamClient] ✅ Enhanced debugging and timeout handling
+2025/12/14 18:07:56.888 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.888 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.888 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.888 16988 21617 Info Unity [PCStreamClient] ✅ Multiple ICE connection checkpoints
+2025/12/14 18:07:56.888 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.888 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.888 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.888 16988 21617 Info Unity [PCStreamClient] ✅ LAN optimization with lan=1 parameter
+2025/12/14 18:07:56.888 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.888 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.888 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.889 16988 21617 Info Unity [PCStreamClient] ===== EXPECTED BEHAVIOR =====
+2025/12/14 18:07:56.889 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.889 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.889 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.889 16988 21617 Info Unity [PCStreamClient] • Unity will only send UDP candidates (matching browser)
+2025/12/14 18:07:56.889 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.889 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.889 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.889 16988 21617 Info Unity [PCStreamClient] • Unity will only accept UDP candidates from server
+2025/12/14 18:07:56.889 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.889 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.889 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.890 16988 21617 Info Unity [PCStreamClient] • Using RELAXED ICE filtering (host+srflx+relay accepted)
+2025/12/14 18:07:56.890 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.890 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.890 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.890 16988 21617 Info Unity [PCStreamClient] Creating RTCPeerConnection...
+2025/12/14 18:07:56.890 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.890 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.890 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.897 16988 21617 Info Unity [PCStreamClient] RTCPeerConnection created successfully
+2025/12/14 18:07:56.897 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.897 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.897 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.902 16988 21617 Info Unity [PCStreamClient] Private IP detected (192.168.1.9), adding LAN optimization: lan=1
+2025/12/14 18:07:56.902 16988 21617 Info Unity PCStreamClient:BuildOptimizedSignalUrl()
+2025/12/14 18:07:56.902 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.902 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncTaskMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.902 16988 21617 Info Unity PCStreamClient:ConnectAndSignalOffer()
+2025/12/14 18:07:56.902 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.902 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.902 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.903 16988 21617 Info Unity [PCStreamClient] ===== STARTING CONNECTION =====
+2025/12/14 18:07:56.903 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.903 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncTaskMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.903 16988 21617 Info Unity PCStreamClient:ConnectAndSignalOffer()
+2025/12/14 18:07:56.903 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.903 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.903 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.903 16988 21617 Info Unity [PCStreamClient] 🔗 Connecting to signal server: ws://192.168.1.9:8288/signal?mode=cluster&monitors=2&resW=1920&resH=1080&kbps=8000&fps=30&lan=1
+2025/12/14 18:07:56.903 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.903 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncTaskMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.903 16988 21617 Info Unity PCStreamClient:ConnectAndSignalOffer()
+2025/12/14 18:07:56.903 16988 21617 Info Unity <Start>d__47:MoveNext()
+2025/12/14 18:07:56.903 16988 21617 Info Unity System.Runtime.CompilerServices.AsyncVoidMethodBuilder:Start(TStateMachine&)
+2025/12/14 18:07:56.903 16988 21617 Info Unity PCStreamClient:Start()
+2025/12/14 18:07:56.912 16988 21617 Info Unity [CardboardApi] Reload device parameters.
+2025/12/14 18:07:56.912 16988 21617 Info Unity Google.XR.Cardboard.Api:ReloadDeviceParams()
+2025/12/14 18:07:56.913 16988 21661 Info Unity [XR] [CardboardXrDisplayProvider]: Initializes Cardboard API.
+2025/12/14 18:07:56.997 16988 21617 Info Unity [PCStreamClient] ✅ WebSocket connected successfully!
+2025/12/14 18:07:56.997 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.997 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:56.997 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:56.997 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:56.997 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:56.998 16988 21617 Info Unity [PCStreamClient] WebSocket state: Open
+2025/12/14 18:07:56.998 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.998 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:56.998 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:56.998 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:56.998 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:56.998 16988 21617 Info Unity [PCStreamClient] 🎬 Creating WebRTC offer...
+2025/12/14 18:07:56.998 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:56.998 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:56.998 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:56.998 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:56.998 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.014 16988 21617 Info Unity [PCStreamClient] ✅ Offer created successfully!
+2025/12/14 18:07:57.014 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.014 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.014 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.014 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.014 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.014 16988 21617 Info Unity [PCStreamClient] 📄 SDP type: Offer
+2025/12/14 18:07:57.014 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.014 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.014 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.014 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.014 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.015 16988 21617 Info Unity [PCStreamClient] 📄 SDP length: 3833 characters
+2025/12/14 18:07:57.015 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.015 16988 21617 Info Unity [PCStreamClient] 📄 SDP preview (first 200 chars):
+2025/12/14 18:07:57.015 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.015 16988 21617 Info Unity [PCStreamClient]    v=0
+2025/12/14 18:07:57.015 16988 21617 Info Unity o=- 2925863914631423533 2 IN IP4 127.0.0.1
+2025/12/14 18:07:57.015 16988 21617 Info Unity s=-
+2025/12/14 18:07:57.015 16988 21617 Info Unity t=0 0
+2025/12/14 18:07:57.015 16988 21617 Info Unity a=group:BUNDLE 0
+2025/12/14 18:07:57.015 16988 21617 Info Unity a=extmap-allow-mixed
+2025/12/14 18:07:57.015 16988 21617 Info Unity a=msid-semantic: WMS
+2025/12/14 18:07:57.015 16988 21617 Info Unity m=video 9 UDP/TLS/RTP/SAVPF 124 119 127 121 125 120 35 36 37 38 39 40 41 42 1...
+2025/12/14 18:07:57.015 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.015 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.015 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient] 🎥 H264 codec support: ✅ YES
+2025/12/14 18:07:57.016 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient] 🎬 Available video codecs:
+2025/12/14 18:07:57.016 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient]    a=rtpmap:124 H264/90000
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient]    a=rtpmap:119 rtx/90000
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient]    a=rtpmap:127 VP8/90000
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient]    a=rtpmap:121 rtx/90000
+2025/12/14 18:07:57.016 16988 21617 Info Unity [PCStreamClient]    a=rtpmap:125 VP9/90000
+2025/12/14 18:07:57.016 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.016 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.016 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.017 16988 21617 Info Unity [PCStreamClient] 📺 rtpmap:127 => a=rtpmap:127 VP8/90000
+2025/12/14 18:07:57.017 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.017 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.017 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.017 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.017 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.017 16988 21617 Info Unity [PCStreamClient] 📤 Setting local description...
+2025/12/14 18:07:57.017 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.017 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.017 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.017 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.017 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.030 16988 21617 Info Unity [PCStreamClient] ✅ SetLocalDescription completed successfully
+2025/12/14 18:07:57.030 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.030 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.030 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.030 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.030 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.031 16988 21617 Info Unity [PCStreamClient] 📡 Signaling state: HaveLocalOffer
+2025/12/14 18:07:57.031 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.031 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.031 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.031 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.031 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.031 16988 21617 Info Unity [PCStreamClient] 📤 Sending offer to server...
+2025/12/14 18:07:57.031 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.031 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.031 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.031 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.031 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.047 16988 21617 Info Unity [PCStreamClient] ✅ Offer sent successfully (size: 3839 bytes)
+2025/12/14 18:07:57.047 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.047 16988 21617 Info Unity [PCStreamClient] 📦 No queued ICE candidates to send
+2025/12/14 18:07:57.047 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.047 16988 21617 Info Unity [PCStreamClient] 🔄 Starting ping keepalive...
+2025/12/14 18:07:57.047 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.047 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.047 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.048 16988 21617 Info Unity [PCStreamClient] 📊 Starting connection monitoring...
+2025/12/14 18:07:57.048 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:57.048 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:57.048 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:57.048 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:57.048 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:57.253 16988 21617 Info Unity Webcam texture initialized successfully after 16 frames
+2025/12/14 18:07:57.253 16988 21617 Info Unity <EnsureTextureStarted>d__11:MoveNext()
+2025/12/14 18:07:57.253 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:57.431 16988 21617 Info Unity Stopping camera passthrough
+2025/12/14 18:07:57.431 16988 21617 Info Unity CameraPassthrough:StopCam()
+2025/12/14 18:07:57.431 16988 21617 Info Unity <TransitionRoutine>d__10:MoveNext()
+2025/12/14 18:07:57.431 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:57.432 16988 21617 Info Unity Stopping webcam texture
+2025/12/14 18:07:57.432 16988 21617 Info Unity CameraPassthrough:StopCam()
+2025/12/14 18:07:57.432 16988 21617 Info Unity <TransitionRoutine>d__10:MoveNext()
+2025/12/14 18:07:57.432 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:57.584 16988 21617 Info Unity Destroying webcam texture
+2025/12/14 18:07:57.584 16988 21617 Info Unity CameraPassthrough:StopCam()
+2025/12/14 18:07:57.584 16988 21617 Info Unity <TransitionRoutine>d__10:MoveNext()
+2025/12/14 18:07:57.584 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.055 16988 21617 Info Unity [PCStreamClient] 📊 CONNECTION STATUS:
+2025/12/14 18:07:58.055 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.055 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.055 16988 21617 Info Unity [PCStreamClient]   WebSocket: Open
+2025/12/14 18:07:58.055 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.055 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.056 16988 21617 Info Unity [PCStreamClient]   ICE: New
+2025/12/14 18:07:58.056 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.056 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.056 16988 21617 Info Unity [PCStreamClient]   PC: New
+2025/12/14 18:07:58.056 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.056 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.056 16988 21617 Info Unity [PCStreamClient]   Signaling: HaveLocalOffer
+2025/12/14 18:07:58.056 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.056 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:58.056 16988 21617 Info Unity [PCStreamClient]   Video: ❌ No video
+2025/12/14 18:07:58.056 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:07:58.056 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:59.055 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:07:59.055 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:07:59.055 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:07:59.089 16988 21617 Info Unity [PCStreamClient] RAW WS RECV (4 chars): pong...
+2025/12/14 18:07:59.089 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:59.089 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:59.089 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:59.089 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:59.089 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:07:59.089 16988 21617 Info Unity [PCStreamClient] received pong from server
+2025/12/14 18:07:59.089 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:07:59.089 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:07:59.089 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:07:59.089 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:07:59.089 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.397 16988 21617 Info Unity [PCStreamClient] RAW WS RECV (717 chars): answer:v=0
+2025/12/14 18:08:02.397 16988 21617 Info Unity o=- 74177 0 IN IP4 127.0.0.1
+2025/12/14 18:08:02.397 16988 21617 Info Unity s=sipsorcery
+2025/12/14 18:08:02.397 16988 21617 Info Unity t=0 0
+2025/12/14 18:08:02.397 16988 21617 Info Unity a=group:BUNDLE 0
+2025/12/14 18:08:02.397 16988 21617 Info Unity m=video 9 UDP/TLS/R...
+2025/12/14 18:08:02.397 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.397 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.397 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.397 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.397 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.398 16988 21617 Info Unity [PCStreamClient] Fixing SDP: Replacing all 'IP4 0.0.0.0' with 'IP4 127.0.0.1'
+2025/12/14 18:08:02.398 16988 21617 Info Unity PCStreamClient:FixSdp(String)
+2025/12/14 18:08:02.398 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.398 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.398 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.398 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.398 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.399 16988 21617 Info Unity [PCStreamClient] Received Answer SDP with length: 712
+2025/12/14 18:08:02.399 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.399 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.399 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.399 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.399 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.401 16988 21617 Info Unity [PCStreamClient] FULL ANSWER SDP:
+2025/12/14 18:08:02.401 16988 21617 Info Unity v=0
+2025/12/14 18:08:02.401 16988 21617 Info Unity o=- 74177 0 IN IP4 127.0.0.1
+2025/12/14 18:08:02.401 16988 21617 Info Unity s=sipsorcery
+2025/12/14 18:08:02.401 16988 21617 Info Unity t=0 0
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=group:BUNDLE 0
+2025/12/14 18:08:02.401 16988 21617 Info Unity m=video 9 UDP/TLS/RTP/SAVPF 124
+2025/12/14 18:08:02.401 16988 21617 Info Unity c=IN IP4 127.0.0.1
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=ice-ufrag:QHKT
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=ice-pwd:ESIZPGTLIJWBRSVWYHLXDRVL
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=fingerprint:sha-256 25:B6:D4:3A:03:3F:25:F4:DF:AA:4F:C7:D4:BB:34:B5:09:27:B6:70:12:DD:D7:E8:B9:06:4E:5A:49:FE:2F:57
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=setup:active
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=candidate:3707760737 1 udp 2113937663 192.168.1.9 58486 typ host generation 0
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=ice-options:ice2,trickle
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=mid:0
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=rtpmap:124 H264/90000
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=rtcp-fb:124 transport-cc
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=rtcp-mux
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=rtcp:9 IN IP4 127.0.0.1
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=sendonly
+2025/12/14 18:08:02.401 16988 21617 Info Unity a=ssrc:1259724373 cname:74319dd0-45d1-48e0-8198-0d49205fa3e8
+2025/12/14 18:08:02.401 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.401 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.401 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.401 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.401 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.402 16988 21617 Info Unity [PCStreamClient] 📥 Received Answer from server:
+2025/12/14 18:08:02.402 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.402 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.402 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.402 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.402 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.402 16988 21617 Info Unity [PCStreamClient]    SDP Length: 712 chars
+2025/12/14 18:08:02.402 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.402 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.402 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.402 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.402 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.403 16988 21617 Info Unity [PCStreamClient]    H264 in Answer: ✅ YES
+2025/12/14 18:08:02.403 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.403 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.403 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.403 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.403 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.405 16988 21617 Info Unity [PCStreamClient] 📤 Setting remote Answer SDP...
+2025/12/14 18:08:02.405 16988 21617 Info Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.405 16988 21617 Info Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.405 16988 21617 Info Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.405 16988 21617 Info Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.405 16988 21617 Info Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:02.409 16988 21617 Error Unity [PCStreamClient] Exception setting remote description: Invalid SDP line.
+2025/12/14 18:08:02.409 16988 21617 Error Unity <ConnectAndSignalOffer>d__51:MoveNext()
+2025/12/14 18:08:02.409 16988 21617 Error Unity System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+2025/12/14 18:08:02.409 16988 21617 Error Unity System.Runtime.CompilerServices.MoveNextRunner:Run()
+2025/12/14 18:08:02.409 16988 21617 Error Unity UnityEngine.WorkRequest:Invoke()
+2025/12/14 18:08:02.409 16988 21617 Error Unity UnityEngine.UnitySynchronizationContext:Exec()
+2025/12/14 18:08:04.073 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:08:04.073 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:08:04.073 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.065 16988 21617 Info Unity [PCStreamClient] 📊 CONNECTION STATUS:
+2025/12/14 18:08:08.065 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.065 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.066 16988 21617 Info Unity [PCStreamClient]   WebSocket: Open
+2025/12/14 18:08:08.066 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.066 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.067 16988 21617 Info Unity [PCStreamClient]   ICE: New
+2025/12/14 18:08:08.067 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.067 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.068 16988 21617 Info Unity [PCStreamClient]   PC: New
+2025/12/14 18:08:08.068 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.068 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.070 16988 21617 Info Unity [PCStreamClient]   Signaling: HaveLocalOffer
+2025/12/14 18:08:08.070 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.070 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:08.071 16988 21617 Info Unity [PCStreamClient]   Video: ❌ No video
+2025/12/14 18:08:08.071 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:08.071 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:09.085 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:08:09.085 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:08:09.085 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:14.095 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:08:14.095 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:08:14.095 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.073 16988 21617 Info Unity [PCStreamClient] 📊 CONNECTION STATUS:
+2025/12/14 18:08:18.073 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.073 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.075 16988 21617 Info Unity [PCStreamClient]   WebSocket: Open
+2025/12/14 18:08:18.075 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.075 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.076 16988 21617 Info Unity [PCStreamClient]   ICE: New
+2025/12/14 18:08:18.076 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.076 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.077 16988 21617 Info Unity [PCStreamClient]   PC: New
+2025/12/14 18:08:18.077 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.077 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.079 16988 21617 Info Unity [PCStreamClient]   Signaling: HaveLocalOffer
+2025/12/14 18:08:18.079 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.079 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:18.080 16988 21617 Info Unity [PCStreamClient]   Video: ❌ No video
+2025/12/14 18:08:18.080 16988 21617 Info Unity <MonitorConnection>d__45:MoveNext()
+2025/12/14 18:08:18.080 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:19.111 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:08:19.111 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:08:19.111 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:24.121 16988 21617 Info Unity [PCStreamClient] Sent ping keepalive
+2025/12/14 18:08:24.121 16988 21617 Info Unity <PingKeepalive>d__44:MoveNext()
+2025/12/14 18:08:24.121 16988 21617 Info Unity UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr)
+2025/12/14 18:08:27.385 16988 21617 Info Unity [XR] [CardboardXrInputProvider]: Lifecycle stopped

@@ -928,21 +928,54 @@ public class SignalAndRestServer
         return false;
     }
 
-    private static bool CandidateIsHostPrivateV4(string cand)
+    private static bool CandidateIsHostPrivateV4(string cand, bool relaxedFilter = false)
     {
         if (string.IsNullOrWhiteSpace(cand)) return false;
         var s = cand.Trim();
         if (s.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) s = s.Substring(2);
         if (!s.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase)) return false;
-        if (!s.Contains(" typ host ", StringComparison.OrdinalIgnoreCase)) return false;
+
+        // CRITICAL FIX: Reject TCP candidates to match browser behavior
+        // Unity generates both UDP+TCP, browser only sends UDP. TCP causes ICE failures.
+        if (s.Contains(" tcp ", StringComparison.OrdinalIgnoreCase) || 
+            s.Contains("tcptype", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"[Cluster Signal] ❌ Rejecting TCP candidate (Unity fix): {s.Substring(0, Math.Min(60, s.Length))}...");
+            return false; // Reject TCP candidates
+        }
 
         // candidate:<foundation> <component> <transport> <priority> <address> <port> typ ...
         var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 6) return false;
         var addr = parts[4];
-        if (addr.Contains(':')) return false; // skip IPv6
+        if (addr.Contains(':')) {
+            Console.WriteLine($"[Cluster Signal] ❌ Rejecting IPv6 candidate (not supported): {addr.Substring(0, Math.Min(30, addr.Length))}...");
+            return false; // skip IPv6
+        }
         if (!System.Net.IPAddress.TryParse(addr, out var ip)) return false;
-        return IsPrivateV4(ip);
+        
+        // Accept different candidate types based on filter mode
+        bool isPrivate = IsPrivateV4(ip);
+        bool isHost = s.Contains(" typ host ", StringComparison.OrdinalIgnoreCase);
+        bool isSrflx = s.Contains(" typ srflx ", StringComparison.OrdinalIgnoreCase);
+        bool isRelay = s.Contains(" typ relay ", StringComparison.OrdinalIgnoreCase);
+        
+        // For strict mode (lan=1 without relaxed): accept only host private IPv4
+        if (!relaxedFilter && isHost && isPrivate) {
+            Console.WriteLine($"[Cluster Signal] ✅ Accepting HOST private IPv4 candidate: {addr}");
+            return true;
+        }
+        
+        // For relaxed mode: accept both host and srflx private IPv4, even relay
+        if (relaxedFilter && isPrivate && (isHost || isSrflx || isRelay)) {
+            string relaxedCandidateType = isHost ? "HOST" : (isSrflx ? "SRFLX" : "RELAY");
+            Console.WriteLine($"[Cluster Signal] ✅ RELAXED: Accepting {relaxedCandidateType} private IPv4 candidate: {addr}");
+            return true;
+        }
+        
+        string rejectCandidateType = isHost ? "host" : (isSrflx ? "srflx" : "other");
+        Console.WriteLine($"[Cluster Signal] ❌ Rejecting candidate (type={rejectCandidateType}, private={isPrivate}): {addr.Substring(0, Math.Min(30, addr.Length))}...");
+        return false;
     }
 
     private async Task HandleClusterClient(Guid id, System.Net.WebSockets.WebSocket ws,
@@ -958,18 +991,41 @@ public class SignalAndRestServer
         var pendingIceCandidates = new List<string>();
         var iceLock = new object();
 
+        // Parse filtering mode once for use throughout the connection
+        bool lanRequested = TryParseInt(qs.Get("lan"), 0, 0, 1) == 1;
+        bool relaxedFilter = TryParseInt(qs.Get("relaxed"), 0, 0, 1) == 1;  // New: allow srflx candidates
+        
+        // COMPATIBILITY FIX: Always enable relaxed mode for private IPs 
+        // to support both old Unity clients (without relaxed=1) and new ones
+        if (IsPrivateV4(remoteIp))
+        {
+            relaxedFilter = true;
+            Console.WriteLine($"[Cluster Signal] AUTO-ENABLE relaxed mode for private IP client (remote={remoteIp})");
+        }
+        
+        bool hostOnlyPrivateV4 = (lanRequested || IsPrivateV4(remoteIp)) && !relaxedFilter;
+
         // RX loop (offer + ICE candidates + input)
         var rxLoop = Task.Run(async () =>
         {
             var buf = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
+            var iceCandidatesFromClient = new List<string>();
+            var clientConnected = DateTime.Now;
+            
             try
             {
-                // If client is on private IPv4 (or explicitly requests lan=1), force host-only private IPv4 candidates.
-                bool lanRequested = TryParseInt(qs.Get("lan"), 0, 0, 1) == 1;
-                bool hostOnlyPrivateV4 = lanRequested || IsPrivateV4(remoteIp);
+                // ICE filtering mode already computed above
+                
                 if (hostOnlyPrivateV4)
                     Console.WriteLine($"[Cluster Signal] ICE filter: host-only private IPv4 (remote={remoteIp})");
+                else if (relaxedFilter)
+                    Console.WriteLine($"[Cluster Signal] ICE filter: relaxed mode - host+srflx private IPv4 (remote={remoteIp})");
+                else
+                    Console.WriteLine($"[Cluster Signal] ICE filter: disabled (remote={remoteIp})");
+                
+                // Temporarily disable auto disconnect - let server wait for candidates
+                // TODO: Re-enable after debugging
 
                 while (ws.State == System.Net.WebSockets.WebSocketState.Open)
                 {
@@ -1002,6 +1058,9 @@ public class SignalAndRestServer
                     if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) || 
                         text.StartsWith("a=candidate:", StringComparison.OrdinalIgnoreCase))
                     {
+                        Console.WriteLine($"[Cluster Signal] 🔍 RECEIVED ICE FROM UNITY: '{text.Substring(0, Math.Min(60, text.Length))}...' (len={text.Length})");
+                        iceCandidatesFromClient.Add(text); // Track received candidates
+                        
                         // Extract candidate string - handle if prefix appears twice (Unity bug workaround)
                         string candStr = text;
                         if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) 
@@ -1021,11 +1080,14 @@ public class SignalAndRestServer
                         Console.WriteLine($"[Cluster Signal] Received client ICE: '{candStr.Substring(0, Math.Min(60, candStr.Length))}...' (hex={BitConverter.ToString(Encoding.UTF8.GetBytes(candStr).Take(50).ToArray())})");
                         Console.WriteLine($"[Cluster Signal] Processing received candidate - full length: {candStr.Length}");
 
-                        if (hostOnlyPrivateV4 && !CandidateIsHostPrivateV4(candStr))
+                        if (hostOnlyPrivateV4 && !CandidateIsHostPrivateV4(candStr, relaxedFilter))
                         {
                             Console.WriteLine($"[Cluster Signal] Dropped non-host/private-v4 client ICE: '{candStr.Substring(0, Math.Min(80, candStr.Length))}...'");
                             continue;
                         }
+                        
+                        Console.WriteLine($"[Cluster Signal] ✅ ACCEPTED client ICE: '{candStr.Substring(0, Math.Min(80, candStr.Length))}...'");
+                        Console.WriteLine($"[Cluster Signal] Total ICE from client so far: {iceCandidatesFromClient.Count}");
                         
                         // Add to peer connection if streamer is ready, otherwise queue it
                         lock (iceLock)
@@ -1036,6 +1098,7 @@ public class SignalAndRestServer
                                 {
                                     streamer.AddIceCandidate(candStr);
                                     Console.WriteLine($"[Cluster Signal] Added client ICE successfully");
+                                    Console.WriteLine($"[Cluster Signal] Total ICE from client: {iceCandidatesFromClient.Count}");
                                 }
                                 catch (Exception ex)
                                 {
@@ -1260,8 +1323,7 @@ public class SignalAndRestServer
             var answerSent = false;
             var serverIceLock = new object();
 
-            bool lanRequested = TryParseInt(qs.Get("lan"), 0, 0, 1) == 1;
-            bool hostOnlyPrivateV4 = lanRequested || IsPrivateV4(remoteIp);
+            // Variables already declared at function scope
             
             streamer.OnIceCandidate += (candidate) =>
             {
@@ -1283,7 +1345,7 @@ public class SignalAndRestServer
                             msg = c;
                         }
 
-                        if (hostOnlyPrivateV4 && msg.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && !CandidateIsHostPrivateV4(msg))
+                        if (hostOnlyPrivateV4 && msg.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && !CandidateIsHostPrivateV4(msg, relaxedFilter))
                         {
                             Console.WriteLine($"[Cluster Signal] Dropped non-host/private-v4 server ICE: {msg.Substring(0, Math.Min(80, msg.Length))}...");
                             return;
