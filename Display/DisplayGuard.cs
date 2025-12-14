@@ -264,25 +264,30 @@ static class DisplayGuard
 
         try
         {
-            // 1) Khôi phục độ phân giải with timeout
+            // 1) Khôi phục Text Scale TRƯỚC TIÊN (theo yêu cầu)
             if (cancellationToken.IsCancellationRequested) return;
-            RestoreMonitorModesSafe(snap);
-
-            // 2) Khôi phục taskbar flag
-            if (cancellationToken.IsCancellationRequested) return;
-            RestoreTaskbarFlagSafe(snap);
-
-            // 3) Khôi phục Text size
-            if (cancellationToken.IsCancellationRequested) return;
+            Console.WriteLine("[Guard] Step 1: Restoring Text Scale first...");
             RestoreTextScaleSafe(snap);
 
-            // 3b) Khôi phục per-monitor text scale for virtual monitor
+            // 2) Khôi phục per-monitor text scale
             if (cancellationToken.IsCancellationRequested) return;
+            Console.WriteLine("[Guard] Step 2: Restoring per-monitor text scale...");
             RestorePerMonitorTextScaleSafe(snap);
 
-            // 4) Safe disable VDD (last step, most dangerous)
+            // 3) Khôi phục độ phân giải
+            if (cancellationToken.IsCancellationRequested) return;
+            Console.WriteLine("[Guard] Step 3: Restoring monitor modes...");
+            RestoreMonitorModesSafe(snap);
+
+            // 4) Khôi phục taskbar flag
+            if (cancellationToken.IsCancellationRequested) return;
+            Console.WriteLine("[Guard] Step 4: Restoring taskbar flag...");
+            RestoreTaskbarFlagSafe(snap);
+
+            // 5) Safe disable VDD (last step, most dangerous)
             if (disableVdd && !cancellationToken.IsCancellationRequested)
             {
+                Console.WriteLine("[Guard] Step 5: Disabling VDD...");
                 SafeDisableVdd(snap, cancellationToken);
             }
         }
@@ -569,7 +574,11 @@ static class DisplayGuard
         catch (Exception ex) { Console.WriteLine("[Guard] Cannot read snapshot: " + ex.Message); return; }
         if (snap == null) return;
 
-        // 1) Khôi phục độ phân giải từng màn TRƯỚC (để đảm bảo có màn vật lý usable)
+        // 1) Khôi phục Text size TRƯỚC TIÊN (theo yêu cầu)
+        try { TextScaleUtil.Restore(snap.TextScale); Console.WriteLine("[Guard] Text size restored."); }
+        catch (Exception ex) { Console.WriteLine("[Guard] Text size restore failed: " + ex.Message); }
+
+        // 2) Khôi phục độ phân giải từng màn
         try
         {
             if (snap.Monitors != null)
@@ -588,7 +597,7 @@ static class DisplayGuard
         }
         catch (Exception ex) { Console.WriteLine("[Guard] Restore monitor modes failed: " + ex.Message); }
 
-        // 2) Khôi phục cờ Taskbar multi-monitor
+        // 3) Khôi phục cờ Taskbar multi-monitor
         try
         {
             if (snap.MMTaskbarEnabled is int v)
@@ -601,10 +610,6 @@ static class DisplayGuard
             }
         }
         catch (Exception ex) { Console.WriteLine("[Guard] Taskbar flag restore failed: " + ex.Message); }
-
-        // 3) Khôi phục Text size (global)
-        try { TextScaleUtil.Restore(snap.TextScale); Console.WriteLine("[Guard] Text size restored."); }
-        catch (Exception ex) { Console.WriteLine("[Guard] Text size restore failed: " + ex.Message); }
 
         // 4) SAFE DISABLE VDD (nếu có màn vật lý; tránh disable khi màn ảo còn primary)
         if (disableVdd)

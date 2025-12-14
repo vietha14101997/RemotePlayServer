@@ -48,6 +48,7 @@ public class MultiPCStreamer : IDisposable
         public bool IceConnected { get; set; }
         public long SentCount;
         public long SkipCount;
+        public long EncodeCount;
         public long LastPts100ns;
         
         public void Dispose()
@@ -68,7 +69,7 @@ public class MultiPCStreamer : IDisposable
         for (int i = 0; i < monitorCount; i++)
             _sendLocks[i] = new object();
         
-        Console.WriteLine($"[MultiPC] Created: {monitorCount} monitors, {fps}fps, {kbps}kbps per stream");
+        Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps");
     }
 
     public void SetDevice(ID3D11Device device) => _device = device;
@@ -81,7 +82,7 @@ public class MultiPCStreamer : IDisposable
         if (monitorIndex < 0 || monitorIndex >= _monitorCount)
             throw new ArgumentOutOfRangeException(nameof(monitorIndex));
         
-        Console.WriteLine($"[MultiPC] Processing offer for monitor {monitorIndex}: {width}x{height}");
+        Console.WriteLine($"[MultiPC] m{monitorIndex} offer: {width}x{height}");
         
         MonitorPC monitor;
         lock (_lock)
@@ -95,8 +96,35 @@ public class MultiPCStreamer : IDisposable
             }
             else
             {
-                // Cleanup existing PC if reconnecting
+                // Check if resolution changed
+                bool resolutionChanged = monitor.Width != width || monitor.Height != height;
+                
+                // Cleanup existing PC
                 monitor.PC?.close();
+                
+                // If resolution changed, cleanup encoder and staging texture
+                if (resolutionChanged)
+                {
+                    Console.WriteLine($"[MultiPC] m{monitorIndex} res changed: {monitor.Width}x{monitor.Height} -> {width}x{height}");
+                    
+                    // Dispose old encoder
+                    try { monitor.Encoder?.Dispose(); } catch { }
+                    monitor.Encoder = null;
+                    
+                    // Dispose old staging texture
+                    try { monitor.StagingNV12?.Dispose(); } catch { }
+                    monitor.StagingNV12 = null;
+                    
+                    // Clear captured SPS/PPS for this monitor (no longer valid)
+                    _capturedSPS.TryRemove(monitorIndex, out _);
+                    _capturedPPS.TryRemove(monitorIndex, out _);
+                    
+                    // Reset counters
+                    Interlocked.Exchange(ref monitor.SentCount, 0);
+                    Interlocked.Exchange(ref monitor.SkipCount, 0);
+                    Interlocked.Exchange(ref monitor.LastPts100ns, 0);
+                }
+                
                 monitor.Width = width;
                 monitor.Height = height;
             }
@@ -140,57 +168,28 @@ public class MultiPCStreamer : IDisposable
 
         pc.oniceconnectionstatechange += (state) =>
         {
-            Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE connection state changed to: {state}");
             if (state == RTCIceConnectionState.connected)
             {
                 monitor.IceConnected = true;
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE CONNECTED - initializing encoder");
-                InitializeEncoder(monitor);
+                Console.WriteLine($"[MultiPC] m{monitorIndex} ICE connected");
                 CheckAllConnected();
             }
-            else if (state == RTCIceConnectionState.checking)
-            {
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE is checking candidates...");
-            }
-            else if (state == RTCIceConnectionState.disconnected)
+            else if (state == RTCIceConnectionState.disconnected || 
+                     state == RTCIceConnectionState.failed || 
+                     state == RTCIceConnectionState.closed)
             {
                 monitor.IceConnected = false;
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE disconnected");
-                OnPeerDisconnected?.Invoke(monitorIndex);
-            }
-            else if (state == RTCIceConnectionState.failed)
-            {
-                monitor.IceConnected = false;
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE connection FAILED!");
-                OnPeerDisconnected?.Invoke(monitorIndex);
-            }
-            else if (state == RTCIceConnectionState.closed)
-            {
-                monitor.IceConnected = false;
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} ICE connection closed");
+                Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}");
                 OnPeerDisconnected?.Invoke(monitorIndex);
             }
         };
 
         pc.onconnectionstatechange += (state) =>
         {
-            Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Peer connection state changed to: {state}");
             if (state == RTCPeerConnectionState.connected)
-            {
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Peer connection fully established");
-            }
-            else if (state == RTCPeerConnectionState.disconnected)
-            {
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Peer connection disconnected");
-            }
-            else if (state == RTCPeerConnectionState.failed)
-            {
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Peer connection FAILED");
-            }
-            else if (state == RTCPeerConnectionState.closed)
-            {
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Peer connection closed");
-            }
+                Console.WriteLine($"[MultiPC] m{monitorIndex} PC connected");
+            else if (state != RTCPeerConnectionState.connecting && state != RTCPeerConnectionState.@new)
+                Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
         };
 
         // Set remote offer and create answer
@@ -200,6 +199,10 @@ public class MultiPCStreamer : IDisposable
 
         _running = true;
         
+        // Initialize encoder immediately (don't wait for ICE connected)
+        // This ensures both encoders are ready at the same time
+        InitializeEncoder(monitor);
+        
         var answerSdp = (answer.sdp ?? "").Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
         
         // CRITICAL: Ensure SDP has proper payload type info (fixes video not playing)
@@ -207,17 +210,7 @@ public class MultiPCStreamer : IDisposable
         answerSdp = EnsureVideoMLineHasPayload(answerSdp, chosenPt, h264Fmtp);
         answerSdp = FilterIceCandidates(answerSdp);
         
-        // Log the final m=video line for debugging
-        try
-        {
-            var mLine = answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault(l => l.StartsWith("m=video ", StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrWhiteSpace(mLine))
-                Console.WriteLine($"[MultiPC] Monitor {monitorIndex} Answer m-line: {mLine}");
-        }
-        catch { }
-        
-        Console.WriteLine($"[MultiPC] Monitor {monitorIndex} answer created");
+        Console.WriteLine($"[MultiPC] m{monitorIndex} answer created");
         return answerSdp;
     }
 
@@ -244,10 +237,7 @@ public class MultiPCStreamer : IDisposable
         {
             monitor.PC.addIceCandidate(new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[MultiPC] Monitor {monitorIndex} AddICE error: {ex.Message}");
-        }
+        catch { }
     }
 
     private void InitializeEncoder(MonitorPC monitor)
@@ -267,16 +257,17 @@ public class MultiPCStreamer : IDisposable
                 if (encoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
                 {
                     monitor.Encoder = encoder;
-                    Console.WriteLine($"[MultiPC] Encoder {monitor.Index} ready: {monitor.Width}x{monitor.Height}");
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder ready");
                 }
                 else
                 {
                     encoder.Dispose();
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder init failed");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[MultiPC] Encoder {monitor.Index} init error: {ex.Message}");
+                Console.WriteLine($"[MultiPC] m{monitor.Index} encoder error: {ex.Message}");
             }
         }
     }
@@ -286,10 +277,7 @@ public class MultiPCStreamer : IDisposable
         lock (_lock)
         {
             if (_monitors.Count >= _monitorCount && _monitors.All(m => m.IceConnected))
-            {
-                Console.WriteLine($"[MultiPC] All {_monitorCount} monitors connected!");
                 OnAllConnected?.Invoke();
-            }
         }
     }
 
@@ -311,12 +299,7 @@ public class MultiPCStreamer : IDisposable
         // Check if encoder is ready
         if (monitor.Encoder == null || !monitor.IceConnected)
         {
-            // Log occasionally to help debug
-            var skipCount = Interlocked.Increment(ref monitor.SkipCount);
-            if (skipCount <= 3 || skipCount % 100 == 0)
-            {
-                Console.WriteLine($"[MultiPC] m{monitorIndex} skip #{skipCount}: encoder={monitor.Encoder != null}, ice={monitor.IceConnected}");
-            }
+            Interlocked.Increment(ref monitor.SkipCount);
             return;
         }
         
@@ -341,22 +324,25 @@ public class MultiPCStreamer : IDisposable
                     BindFlags = BindFlags.None,
                     CPUAccessFlags = CpuAccessFlags.None
                 });
-                Console.WriteLine($"[MultiPC] m{monitorIndex} staging created: {encWidth}x{encHeight}");
             }
             
             if (monitor.StagingNV12 != null)
             {
                 _device!.ImmediateContext.CopyResource(monitor.StagingNV12, nv12Texture);
                 long sent = Interlocked.Read(ref monitor.SentCount);
-                // Force IDR for first frame AND every 30 frames (1 second at 30fps) for debugging
-                bool forceIdr = sent == 0 || (sent % 30 == 0);
+                long skipped = Interlocked.Read(ref monitor.SkipCount);
+                
+                // Force IDR for:
+                // - First 3 frames to ensure SPS/PPS capture
+                // - Every 90 frames (3 seconds at 30fps) - reduced from 30 to fix stuttering
+                // - When too many frames skipped waiting for SPS/PPS
+                bool forceIdr = sent < 3 || (sent % 90 == 0) || 
+                               (skipped > 0 && skipped <= 10); // Force keyframe when waiting for SPS/PPS
+                
                 monitor.Encoder.EncodeTexture(monitor.StagingNV12, forceKeyframe: forceIdr);
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[MultiPC] PushTexture m{monitorIndex} error: {ex.Message}");
-        }
+        catch { }
     }
 
     // Per-monitor locks for SendVideo - avoid global lock blocking all streams
@@ -370,6 +356,15 @@ public class MultiPCStreamer : IDisposable
     {
         if (!_running || monitor.PC == null || !monitor.IceConnected) return;
         if (monitor.PC.connectionState != RTCPeerConnectionState.connected) return;
+        
+        // Debug: log first few callbacks per monitor
+        long encCount = Interlocked.Increment(ref monitor.EncodeCount);
+        if (encCount <= 5)
+        {
+            var debugNals = ParseNalUnits(nalData);
+            var nalTypes = string.Join(",", debugNals.Select(n => n.type));
+            Console.WriteLine($"[MultiPC] m{monitor.Index} enc#{encCount}: {nalData.Length}B key={isKeyframe} NALs=[{nalTypes}]");
+        }
         
         try
         {
@@ -387,43 +382,32 @@ public class MultiPCStreamer : IDisposable
             foreach (var (type, data) in nalUnits)
             {
                 if (type == 7 && !_capturedSPS.ContainsKey(monitor.Index))
-                {
                     _capturedSPS[monitor.Index] = data;
-                    Console.WriteLine($"[MultiPC] m{monitor.Index} Captured SPS: {data.Length} bytes");
-                }
                 else if (type == 8 && !_capturedPPS.ContainsKey(monitor.Index))
-                {
                     _capturedPPS[monitor.Index] = data;
-                    Console.WriteLine($"[MultiPC] m{monitor.Index} Captured PPS: {data.Length} bytes");
-                }
                 
                 if (type == 7) hasSps = true;
                 if (type == 8) hasPps = true;
             }
             
             // If keyframe is missing SPS/PPS, prepend captured ones
-            // Don't use fallback - wait for encoder to output real SPS/PPS
-            bool injected = false;
             if (isKeyframe && (!hasSps || !hasPps))
             {
                 // Try captured SPS/PPS first - must match current resolution
                 if (_capturedSPS.TryGetValue(monitor.Index, out var sps) && 
                     _capturedPPS.TryGetValue(monitor.Index, out var pps) &&
-                    sps.Length > 10 && pps.Length > 3) // Valid SPS/PPS
+                    sps.Length > 10 && pps.Length > 3)
                 {
                     var withSpsPps = new byte[sps.Length + pps.Length + au.Length];
                     Buffer.BlockCopy(sps, 0, withSpsPps, 0, sps.Length);
                     Buffer.BlockCopy(pps, 0, withSpsPps, sps.Length, pps.Length);
                     Buffer.BlockCopy(au, 0, withSpsPps, sps.Length + pps.Length, au.Length);
                     au = withSpsPps;
-                    injected = true;
                 }
                 else
                 {
-                    // No captured SPS/PPS yet - skip frame, wait for encoder to output SPS/PPS
-                    long skipCount = Interlocked.Read(ref monitor.SentCount);
-                    if (skipCount < 5)
-                        Console.WriteLine($"[MultiPC] m{monitor.Index} Waiting for encoder SPS/PPS (resolution may have changed)");
+                    // No captured SPS/PPS yet - wait for encoder to output them
+                    Interlocked.Increment(ref monitor.SkipCount);
                     return;
                 }
             }
@@ -437,17 +421,10 @@ public class MultiPCStreamer : IDisposable
             }
             
             long sent = Interlocked.Increment(ref monitor.SentCount);
-            if (sent <= 5 || isKeyframe || sent % 300 == 0)
-            {
-                string nalInfo = GetNalUnitInfo(au);
-                string spsPpsInfo = isKeyframe ? $" (injected={injected})" : "";
-                Console.WriteLine($"[MultiPC] m{monitor.Index} #{sent}: {au.Length}B key={isKeyframe} rtpStep={rtpStep}{spsPpsInfo} {nalInfo}");
-            }
+            if (sent == 1)
+                Console.WriteLine($"[MultiPC] m{monitor.Index} streaming started");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[MultiPC] m{monitor.Index} send error: {ex.Message}");
-        }
+        catch { }
     }
     
     // Parse NAL units from Annex-B stream - returns list of (nalType, fullNalWithStartCode)
@@ -580,7 +557,6 @@ public class MultiPCStreamer : IDisposable
             foreach (var m in _monitors) m.Dispose();
             _monitors.Clear();
         }
-        Console.WriteLine("[MultiPC] Stopped");
     }
 
     public void Dispose()
@@ -589,6 +565,285 @@ public class MultiPCStreamer : IDisposable
         _disposed = true;
         Stop();
     }
+
+    #region Fallback SPS/PPS Generation
+    
+    /// <summary>
+    /// Generate fallback SPS/PPS for common resolutions when encoder doesn't output them inline.
+    /// SPS/PPS are resolution-specific, so we generate them dynamically.
+    /// Profile: Constrained Baseline (42 00), Level: auto-calculated
+    /// </summary>
+    private static (byte[]? sps, byte[]? pps) GenerateFallbackSpsPps(int width, int height)
+    {
+        try
+        {
+            // Calculate level based on resolution (macroblocks per second)
+            int mbWidth = (width + 15) / 16;
+            int mbHeight = (height + 15) / 16;
+            int totalMbs = mbWidth * mbHeight;
+            
+            // Level calculation based on total macroblocks
+            byte level;
+            if (totalMbs <= 99) level = 10;           // 176x144 (99 MBs) - Level 1.0
+            else if (totalMbs <= 396) level = 13;     // 352x288 (396 MBs) - Level 1.3
+            else if (totalMbs <= 792) level = 21;     // 352x576 (792 MBs) - Level 2.1
+            else if (totalMbs <= 1620) level = 30;    // 720x480 (1350 MBs) - Level 3.0
+            else if (totalMbs <= 3600) level = 31;    // 1280x720 (3600 MBs) - Level 3.1
+            else if (totalMbs <= 8192) level = 40;    // 1920x1080 (8160 MBs) - Level 4.0
+            else if (totalMbs <= 8704) level = 41;    // 2048x1024 (8192 MBs) - Level 4.1
+            else level = 42;                          // 2048x1080+ - Level 4.2
+            
+            // Generate SPS NAL unit (type 7)
+            // Using Constrained Baseline profile (profile_idc=66, constraint_set1=1)
+            var spsData = GenerateSpsNal(width, height, level);
+            
+            // Generate PPS NAL unit (type 8)
+            var ppsData = GeneratePpsNal();
+            
+            // Add Annex-B start codes
+            var sps = new byte[4 + spsData.Length];
+            sps[0] = 0; sps[1] = 0; sps[2] = 0; sps[3] = 1;
+            Buffer.BlockCopy(spsData, 0, sps, 4, spsData.Length);
+            
+            var pps = new byte[4 + ppsData.Length];
+            pps[0] = 0; pps[1] = 0; pps[2] = 0; pps[3] = 1;
+            Buffer.BlockCopy(ppsData, 0, pps, 4, ppsData.Length);
+            
+            return (sps, pps);
+        }
+        catch
+        {
+            return (null, null);
+        }
+    }
+    
+    /// <summary>
+    /// Generate SPS NAL unit data (without start code)
+    /// </summary>
+    private static byte[] GenerateSpsNal(int width, int height, byte level)
+    {
+        // Width and height in macroblocks (minus 1 for pic_width/height_in_mbs_minus1)
+        int mbWidth = (width + 15) / 16;
+        int mbHeight = (height + 15) / 16;
+        
+        // Calculate cropping if resolution is not multiple of 16
+        int cropRight = mbWidth * 16 - width;
+        int cropBottom = mbHeight * 16 - height;
+        bool needsCrop = cropRight > 0 || cropBottom > 0;
+        
+        using var ms = new System.IO.MemoryStream();
+        using var bw = new System.IO.BinaryWriter(ms);
+        
+        // NAL unit header: forbidden_zero_bit(1) + nal_ref_idc(2) + nal_unit_type(5)
+        // 0x67 = 0 11 00111 = SPS with high priority
+        bw.Write((byte)0x67);
+        
+        // profile_idc = 66 (Baseline) - but we use 100 (High) for better compatibility
+        bw.Write((byte)100); // High profile
+        
+        // constraint_set0_flag(1) + constraint_set1_flag(1) + constraint_set2_flag(1) + 
+        // constraint_set3_flag(1) + constraint_set4_flag(1) + constraint_set5_flag(1) + reserved(2)
+        bw.Write((byte)0x00); // No constraints
+        
+        // level_idc
+        bw.Write(level);
+        
+        // seq_parameter_set_id = 0 (ue(v) = 1 bit = 1)
+        // log2_max_frame_num_minus4 = 0 (ue(v) = 1 bit = 1)  
+        // pic_order_cnt_type = 2 (ue(v) = 011 = 3 bits)
+        // max_num_ref_frames = 1 (ue(v) = 010 = 3 bits)
+        // gaps_in_frame_num_value_allowed_flag = 0 (1 bit)
+        // This is simplified - real SPS uses exp-golomb coding
+        
+        // For High profile, we need to write more fields
+        // Simplified High profile SPS with hardcoded values
+        byte[] spsPayload;
+        if (needsCrop)
+        {
+            // SPS with cropping for non-16-aligned resolutions
+            spsPayload = BuildSpsWithCropping(mbWidth, mbHeight, cropRight / 2, cropBottom / 2);
+        }
+        else
+        {
+            // SPS without cropping
+            spsPayload = BuildSpsNoCropping(mbWidth, mbHeight);
+        }
+        
+        var result = new byte[4 + spsPayload.Length];
+        result[0] = 0x67; // NAL type SPS
+        result[1] = 100;  // High profile
+        result[2] = 0x00; // Constraints
+        result[3] = level;
+        Buffer.BlockCopy(spsPayload, 0, result, 4, spsPayload.Length);
+        
+        return result;
+    }
+    
+    private static byte[] BuildSpsNoCropping(int mbWidth, int mbHeight)
+    {
+        // Pre-built SPS payload for common resolutions (High profile, no cropping)
+        // seq_parameter_set_id=0, log2_max_frame_num=4, pic_order_cnt_type=2, num_ref_frames=1
+        // This is a simplified version - encoding exp-golomb properly
+        
+        var bits = new System.Collections.Generic.List<bool>();
+        
+        // For High profile: chroma_format_idc = 1 (4:2:0)
+        WriteExpGolomb(bits, 1); // chroma_format_idc
+        WriteExpGolomb(bits, 0); // bit_depth_luma_minus8
+        WriteExpGolomb(bits, 0); // bit_depth_chroma_minus8
+        bits.Add(false); // qpprime_y_zero_transform_bypass_flag
+        bits.Add(false); // seq_scaling_matrix_present_flag
+        
+        // log2_max_frame_num_minus4 = 0
+        WriteExpGolomb(bits, 0);
+        
+        // pic_order_cnt_type = 2 (no POC info needed)
+        WriteExpGolomb(bits, 2);
+        
+        // max_num_ref_frames = 1
+        WriteExpGolomb(bits, 1);
+        
+        // gaps_in_frame_num_value_allowed_flag = 0
+        bits.Add(false);
+        
+        // pic_width_in_mbs_minus1
+        WriteExpGolomb(bits, mbWidth - 1);
+        
+        // pic_height_in_map_units_minus1
+        WriteExpGolomb(bits, mbHeight - 1);
+        
+        // frame_mbs_only_flag = 1 (progressive)
+        bits.Add(true);
+        
+        // direct_8x8_inference_flag = 1
+        bits.Add(true);
+        
+        // frame_cropping_flag = 0
+        bits.Add(false);
+        
+        // vui_parameters_present_flag = 0
+        bits.Add(false);
+        
+        return BitsToBytes(bits);
+    }
+    
+    private static byte[] BuildSpsWithCropping(int mbWidth, int mbHeight, int cropRight, int cropBottom)
+    {
+        var bits = new System.Collections.Generic.List<bool>();
+        
+        // For High profile
+        WriteExpGolomb(bits, 1); // chroma_format_idc = 1 (4:2:0)
+        WriteExpGolomb(bits, 0); // bit_depth_luma_minus8
+        WriteExpGolomb(bits, 0); // bit_depth_chroma_minus8
+        bits.Add(false); // qpprime_y_zero_transform_bypass_flag
+        bits.Add(false); // seq_scaling_matrix_present_flag
+        
+        WriteExpGolomb(bits, 0); // log2_max_frame_num_minus4
+        WriteExpGolomb(bits, 2); // pic_order_cnt_type
+        WriteExpGolomb(bits, 1); // max_num_ref_frames
+        bits.Add(false); // gaps_in_frame_num_value_allowed_flag
+        
+        WriteExpGolomb(bits, mbWidth - 1); // pic_width_in_mbs_minus1
+        WriteExpGolomb(bits, mbHeight - 1); // pic_height_in_map_units_minus1
+        
+        bits.Add(true); // frame_mbs_only_flag
+        bits.Add(true); // direct_8x8_inference_flag
+        
+        // frame_cropping_flag = 1
+        bits.Add(true);
+        WriteExpGolomb(bits, 0); // frame_crop_left_offset
+        WriteExpGolomb(bits, cropRight); // frame_crop_right_offset
+        WriteExpGolomb(bits, 0); // frame_crop_top_offset
+        WriteExpGolomb(bits, cropBottom); // frame_crop_bottom_offset
+        
+        bits.Add(false); // vui_parameters_present_flag
+        
+        return BitsToBytes(bits);
+    }
+    
+    /// <summary>
+    /// Generate PPS NAL unit data (without start code)
+    /// </summary>
+    private static byte[] GeneratePpsNal()
+    {
+        // Simple PPS for High profile
+        // NAL type = 8 (PPS), nal_ref_idc = 3
+        // 0x68 = 0 11 01000
+        
+        var bits = new System.Collections.Generic.List<bool>();
+        
+        WriteExpGolomb(bits, 0); // pic_parameter_set_id
+        WriteExpGolomb(bits, 0); // seq_parameter_set_id
+        bits.Add(false); // entropy_coding_mode_flag (CAVLC)
+        bits.Add(false); // bottom_field_pic_order_in_frame_present_flag
+        WriteExpGolomb(bits, 0); // num_slice_groups_minus1
+        WriteExpGolomb(bits, 0); // num_ref_idx_l0_default_active_minus1
+        WriteExpGolomb(bits, 0); // num_ref_idx_l1_default_active_minus1
+        bits.Add(false); // weighted_pred_flag
+        bits.Add(false); bits.Add(false); // weighted_bipred_idc (2 bits = 0)
+        WriteSignedExpGolomb(bits, 0); // pic_init_qp_minus26
+        WriteSignedExpGolomb(bits, 0); // pic_init_qs_minus26
+        WriteSignedExpGolomb(bits, 0); // chroma_qp_index_offset
+        bits.Add(false); // deblocking_filter_control_present_flag
+        bits.Add(false); // constrained_intra_pred_flag
+        bits.Add(false); // redundant_pic_cnt_present_flag
+        
+        var ppsPayload = BitsToBytes(bits);
+        var result = new byte[1 + ppsPayload.Length];
+        result[0] = 0x68; // NAL type PPS
+        Buffer.BlockCopy(ppsPayload, 0, result, 1, ppsPayload.Length);
+        
+        return result;
+    }
+    
+    private static void WriteExpGolomb(System.Collections.Generic.List<bool> bits, int value)
+    {
+        // Exp-Golomb coding: codeNum = value, code = (leadingZeros, 1, suffix)
+        int codeNum = value;
+        int leadingZeros = 0;
+        int temp = codeNum + 1;
+        while (temp > 1)
+        {
+            temp >>= 1;
+            leadingZeros++;
+        }
+        
+        for (int i = 0; i < leadingZeros; i++)
+            bits.Add(false);
+        
+        for (int i = leadingZeros; i >= 0; i--)
+            bits.Add(((codeNum + 1) >> i & 1) == 1);
+    }
+    
+    private static void WriteSignedExpGolomb(System.Collections.Generic.List<bool> bits, int value)
+    {
+        // Signed exp-golomb: map to unsigned
+        int mapped = value <= 0 ? -2 * value : 2 * value - 1;
+        WriteExpGolomb(bits, mapped);
+    }
+    
+    private static byte[] BitsToBytes(System.Collections.Generic.List<bool> bits)
+    {
+        // Add RBSP trailing bits (1 followed by zeros to byte align)
+        bits.Add(true);
+        while (bits.Count % 8 != 0)
+            bits.Add(false);
+        
+        var bytes = new byte[bits.Count / 8];
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            byte b = 0;
+            for (int j = 0; j < 8; j++)
+            {
+                if (bits[i * 8 + j])
+                    b |= (byte)(1 << (7 - j));
+            }
+            bytes[i] = b;
+        }
+        return bytes;
+    }
+    
+    #endregion
 
     #region Helpers
     
