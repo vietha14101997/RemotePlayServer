@@ -674,7 +674,8 @@ public class WebRTCStreamer_AmfNative : IDisposable
 
     private void OnEncodedData(byte[] nalData, bool isKeyframe, long pts)
     {
-        if (!_running || _pc == null || !_iceConnected) return;
+        // Wait for both ICE connected AND PeerConnection connected before sending frames
+        if (!_running || _pc == null || !_iceConnected || _pc.connectionState != RTCPeerConnectionState.connected) return;
         
         try
         {

@@ -1,18 +1,8 @@
 === RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.9
 [Encoder] AMD AMF (Hardware)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 1.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[Guard] Text size restored.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY2: 96
 [Guard] Saved original text scale for \\.\DISPLAY2: 100%
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
@@ -55,16 +45,15 @@ Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 4b4e3713-fab2-43dc-9c0d-99404f5373fa
-[Cluster Signal] Applying new display config: 2 monitors @ 1280x720, 30 fps
-[Cluster Signal] Received client ICE: candidate:3891620052 1 udp 2113937151 12090218-34a2-4a3d-aa1...
+[Signal] Client connected 1a37f8da-38dc-4773-8ef2-5631f47cb819
+[Cluster Signal] ICE filter: host-only private IPv4 (remote=192.168.1.2)
+[Cluster Signal] Applying new display config: 2 monitors @ 1920x1080, 30 fps
+[Cluster Signal] Received client ICE: 'candidate:1540857278 1 udp 2113937151 192.168.1.2 36263 typ ...' (hex=63-61-6E-64-69-64-61-74-65-3A-31-35-34-30-38-35-37-32-37-38-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-31-20-31-39-32-2E-31-36-38-2E-31-2E-32-20)
+[Cluster Signal] Processing received candidate - full length: 105
 [Cluster Signal] Queued client ICE (count=1)
-[Cluster Signal] Received client ICE: candidate:600106923 1 udp 2113939711 523a3466-0068-4641-b89a...
-[Cluster Signal] Queued client ICE (count=2)
-[Cluster Signal] Received client ICE: candidate:2561648681 1 udp 1677729535 171.241.38.173 47014 t...
-[Cluster Signal] Queued client ICE (count=3)
-[Cluster Signal] Received client ICE: candidate:3938276570 1 udp 1677732095 2402:800:610d:265a:8f5...
-[Cluster Signal] Queued client ICE (count=4)
+[Cluster Signal] Received client ICE: 'candidate:3939954039 1 udp 2113939711 2402:800:610d:265a:e8c...' (hex=63-61-6E-64-69-64-61-74-65-3A-33-39-33-39-39-35-34-30-33-39-20-31-20-75-64-70-20-32-31-31-33-39-33-39-37-31-31-20-32-34-30-32-3A-38-30-30-3A-36-31-30)
+[Cluster Signal] Processing received candidate - full length: 132
+[Cluster Signal] Dropped non-host/private-v4 client ICE: 'candidate:3939954039 1 udp 2113939711 2402:800:610d:265a:e8cb:2f46:607b:f2f0 432...'
 [Cluster Signal] Client sent end-of-candidates
 [VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -73,109 +62,87 @@ Server is running. Press ENTER to exit.
 [VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1280x720@60
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1280x720@60
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
 [Display] Setting \\.\DISPLAY2 as PRIMARY display
 [Display] ✓ \\.\DISPLAY2 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY2 1280x720 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY1 1280x720 [PHYSICAL]
+[Display]   • \\.\DISPLAY2 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL]
 [Cluster Signal] Monitors after config: 2
 [Cluster Signal] Using LibAv (in-process) encoder
-[ClusterCapture] Aligned FrameWidth to even: 2560
-[ClusterCapture] Combined frame: 2560x720, 2 monitors, gap=1
+[ClusterCapture] Aligned FrameWidth to even: 3840
+[ClusterCapture] Combined frame: 3840x1080, 2 monitors, gap=1
 [ClusterCapture] Using adapter (by monitor): AMD Radeon RX 7600
 [ClusterCapture] D3D11 device created (VideoSupport enabled for MFT encoder)
 [ClusterCapture] Added monitor: \\.\DISPLAY2 at offset x=0
-[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=1281
+[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=1921
 [ClusterCapture] Initialized with 2 monitor duplications (zero-copy enabled)
-[EncoderFactory] Creating streamer: mode=LibAv, fps=30, kbps=4000
+[EncoderFactory] Creating streamer: mode=LibAv, fps=30, kbps=8000
 [GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
 [EncoderFactory] AMD GPU detected
-[AmfNativeWrapper] AmfWrapper.dll not found
-[EncoderFactory] Native AMF wrapper available: False
+[EncoderFactory] Native AMF wrapper available: True
 [EncoderFactory] AMF runtime available: True
-[EncoderFactory] Using LibAv with h264_amf encoder
-[RTC-LibAv] Created: 30fps, 4000kbps
-[RTC-LibAv] PeerConnection created
-[RTC-LibAv] Video formats negotiated (H264 supported: True)
-[RTC-LibAv] ice = checking
-[RTC-LibAv] Local ICE: 1416915466 1 udp 2113940223 2402:800:610d:265a:c29...
-[Cluster Signal] Queued server ICE (count=1): candidate:1416915466 1 udp 2113940223 24...
-[RTC-LibAv] Local ICE: 3696738782 1 udp 2113940223 2402:800:610d:265a:20f...
-[Cluster Signal] Queued server ICE (count=2): candidate:3696738782 1 udp 2113940223 24...
-[RTC-LibAv] Local ICE: 3707760737 1 udp 2113937663 192.168.1.9 61620 typ ...
-[Cluster Signal] Queued server ICE (count=3): candidate:3707760737 1 udp 2113937663 19...
+[EncoderFactory] Attempting native AMF encoder...
+[RTC-AmfNative] Created: 30fps, 8000kbps
+[RTC-AmfNative] StartAsync called
+[RTC-AmfNative] Processing offer
+[RTC-AmfNative] PeerConnection created
+[RTC-AmfNative] Offer H264 payloads: pt=103 pli=42001F, pt=107 pli=42001F, pt=109 pli=4D001F, pt=43 pli=4D001F, pt=115 pli=64001F, pt=117 pli=64001F, pt=119 pli=42E01F, pt=121 pli=42E01F
+[RTC-AmfNative] Offer H264 payload type detected: pt=115
+[RTC-AmfNative] Offer H264 fmtp: level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f
+[RTC-AmfNative] canSend(H264) = True
+[RTC-AmfNative] ice = checking
+[RTC-AmfNative] Local ICE: 1416915466 1 udp 2113940223 2402:800:610d:265a:c29...
+[Cluster Signal] Dropped non-host/private-v4 server ICE: candidate:1416915466 1 udp 2113940223 2402:800:610d:265a:c29e:1bd7:cf8d:4ee1 593...
+[RTC-AmfNative] Local ICE: 773104313 1 udp 2113940223 2402:800:610d:265a:74d0...
+[Cluster Signal] Dropped non-host/private-v4 server ICE: candidate:773104313 1 udp 2113940223 2402:800:610d:265a:74d0:81ea:f4ee:9cd 59370...
+[RTC-AmfNative] Local ICE: 3707760737 1 udp 2113937663 192.168.1.9 59370 typ ...
+[Cluster Signal] Queued server ICE (count=1): candidate:3707760737 1 udp 2113937663 19...
+[RTC-AmfNative] SDP: dropped 3 ICE candidate lines (keeping host private IPv4 only)
+[RTC-AmfNative] Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 115 103 109 119
 [Cluster Signal] Answer sent to client
-[Cluster Signal] Flushing 3 queued server ICE candidates
-[Cluster Signal] Sent queued server ICE: candidate:1416915466 1 udp 2113940223 2402:800:610...
-[Cluster Signal] Sent queued server ICE: candidate:3696738782 1 udp 2113940223 2402:800:610...
+[Cluster Signal] Flushing 1 queued server ICE candidates
 [Cluster Signal] Sent queued server ICE: candidate:3707760737 1 udp 2113937663 192.168.1.9 ...
-[Cluster Signal] Processing 4 queued client ICE candidates
-[RTC-LibAv] Added remote ICE: candidate:3891620052 1 udp 2113937151 12090218-34a...
-[Cluster Signal] Added queued ICE: candidate:3891620052 1 udp 2113937151 12090218-34a...
-[RTC-LibAv] Added remote ICE: candidate:600106923 1 udp 2113939711 523a3466-0068...
-[Cluster Signal] Added queued ICE: candidate:600106923 1 udp 2113939711 523a3466-0068...
-[RTC-LibAv] Added remote ICE: candidate:2561648681 1 udp 1677729535 171.241.38.1...
-[Cluster Signal] Added queued ICE: candidate:2561648681 1 udp 1677729535 171.241.38.1...
-[RTC-LibAv] Added remote ICE: candidate:3938276570 1 udp 1677732095 2402:800:610...
-[Cluster Signal] Added queued ICE: candidate:3938276570 1 udp 1677732095 2402:800:610...
+[Cluster Signal] Processing 1 queued client ICE candidates
+[RTC-AmfNative] 📥 RECEIVED CANDIDATE: 'candidate:1540857278 1 udp 2113937151 192.168.1.2 36263 typ host generation 0 ufrag Wtv1 network-cost 999...' (len=105)
+[RTC-AmfNative] 📥 CANDIDATE HEX: 63-61-6E-64-69-64-61-74-65-3A-31-35-34-30-38-35-37-32-37-38-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-31-20-31-39-32-2E-31-36-38-2E-31-2E-32-20
+[RTC-AmfNative] Added remote ICE: candidate:1540857278 1 udp 2113937151 192.168.1.2 36263 typ host gener...
+[RTC-AmfNative] After add ICE: iceState=checking, pcState=new
+[Cluster Signal] Added queued ICE: candidate:1540857278 1 udp 2113937151 192.168.1.2 ...
 [ClusterCapture] Starting combined capture for 2 monitors
-[GpuColorConverter] Initialized 2560x720 BGRA->NV12 converter
+[GpuColorConverter] Initialized 3840x1080 BGRA->NV12 converter
 [ClusterCapture] GPU color converter initialized (BGRA->NV12)
 [ClusterCapture] Capture started
 [ClusterCapture] Target 30fps, frame interval 33ms
-[LibAvEncoder] FFmpeg path: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\Debug\net9.0-windows10.0.26100.0\bin
-[LibAvEncoder] Detected GPU: AMD (AMD Radeon RX 7600)
-[LibAvEncoder] Using encoder: h264_amf
-[LibAvEncoder] Configuring AMD AMF encoder for zero-copy
-[LibAvEncoder] AMD GPU: Trying D3D11VA hardware context for AMF
-[LibAvEncoder] Initializing AMD AMF D3D11 hardware context with shared device...
-[LibAvEncoder] Using shared D3D11 device: 0x1B382ECECB0
-[LibAvEncoder] D3D11VA device context initialized with shared device
-[LibAvEncoder] Configuring D3D11VA frames: 2560x720, pool_size=4
-[LibAvEncoder] D3D11VA frames context configured with BindFlags=0x28
-[LibAvEncoder] AMD AMF D3D11VA initialized with SHARED device (TRUE ZERO-COPY enabled!)
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 2560x720 @ 30fps, 4000kbps (D3D11 zero-copy)
-[RTC-LibAv] Encoder started 2560x720 @ 30fps 4000kbps
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:59 deq:59 sent:0
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] OUTPUT: 30.3 fps, 5254 kbps | AU=61
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:120 deq:120 sent:0
-[RTC-LibAv] OUTPUT: 30.2 fps, 4435 kbps | AU=122
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:181 deq:181 sent:0
-[RTC-LibAv] OUTPUT: 30.4 fps, 4684 kbps | AU=183
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:242 deq:242 sent:0
-[RTC-LibAv] OUTPUT: 30.4 fps, 3528 kbps | AU=244
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:302 deq:302 sent:0
-[RTC-LibAv] OUTPUT: 30.2 fps, 4250 kbps | AU=305
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:363 deq:363 sent:0
-[RTC-LibAv] OUTPUT: 30.4 fps, 4725 kbps | AU=366
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:422 deq:422 sent:0
-[RTC-LibAv] OUTPUT: 29.7 fps, 4482 kbps | AU=426
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] q=enq:483 deq:483 sent:0
-[RTC-LibAv] OUTPUT: 30.3 fps, 4141 kbps | AU=487
-[RTC-LibAv] enqueue NV12 2560x720
-[RTC-LibAv] ice = failed
-[RTC-LibAv] pc.state = failed
-[LibAvEncoder] Disposed
-[RTC-LibAv] pc.state = closed
+[AmfNativeWrapper] Initializing 3840x1080 @ 30fps, 8000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[RTC-AmfNative] Encoder started 3840x1080 @ 30fps (zero-copy)
+[RTC-AmfNative] ice = connected
+[RTC-AmfNative] ICE CONNECTED
+[RTC-AmfNative] pc.state = connecting
+[RTC-AmfNative] Frame #1: 334943 bytes, keyframe=True, rtpStep=3000, avcc2annexb=False
+[RTC-AmfNative] Frame #2: 263693 bytes, keyframe=True, rtpStep=3000, avcc2annexb=False
+[RTC-AmfNative] pc.state = connected
+[RTC-AmfNative] Frame #3: 4338 bytes, keyframe=False, rtpStep=2999, avcc2annexb=False
+[RTC-AmfNative] Frame #4: 1919 bytes, keyframe=False, rtpStep=2999, avcc2annexb=False
+[RTC-AmfNative] Frame #5: 1407 bytes, keyframe=False, rtpStep=2999, avcc2annexb=False
+[RTC-AmfNative] stats: enq=56 sent=54
+[RTC-AmfNative] stats: enq=113 sent=111
+[RTC-AmfNative] stats: enq=173 sent=171
+[RTC-AmfNative] stats: enq=234 sent=232
+[RTC-AmfNative] stats: enq=291 sent=290
+[RTC-AmfNative] stats: enq=350 sent=348
+[RTC-AmfNative] stats: enq=404 sent=403
+[RTC-AmfNative] stats: enq=461 sent=460
+[RTC-AmfNative] stats: enq=520 sent=518
+[RTC-AmfNative] stats: enq=577 sent=574
+[RTC-AmfNative] stats: enq=635 sent=634
+[RTC-AmfNative] Stopping...
+[RTC-AmfNative] pc.state = closed
+[AmfNativeWrapper] Disposed
+[RTC-AmfNative] Stopped
+[RTC-AmfNative] Disposed
 [ClusterCapture] Capture stopped
 [ClusterCapture] Capture stopped
 [Guard] Restoring display settings after client disconnect...
@@ -187,6 +154,7 @@ Server is running. Press ENTER to exit.
 [Guard] ForceDisableVdd: VDD is currently ENABLED
 [Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[RTC-AmfNative] stats: enq=685 sent=683
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
@@ -212,4 +180,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Guard] Display settings restored.
-[Signal] Cluster client disconnected 4b4e3713-fab2-43dc-9c0d-99404f5373fa
+[Signal] Cluster client disconnected 1a37f8da-38dc-4773-8ef2-5631f47cb819

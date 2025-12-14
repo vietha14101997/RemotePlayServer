@@ -544,7 +544,16 @@
           log('track:unmute kind=video');
           attachRemoteVideoTrack(ev.track);
         };
-        ev.track.onmute = () => log('track:mute kind=video');
+        ev.track.onmute = () => {
+          log('track:mute kind=video');
+          // Auto-recovery: try reattaching the track after short delay
+          setTimeout(() => {
+            if (ev.track && !ev.track.muted) {
+              log('Track recovered from mute, reattaching...');
+              attachRemoteVideoTrack(ev.track);
+            }
+          }, 1000);
+        };
         ev.track.onended = () => log('track:ended kind=video');
       }
     };
