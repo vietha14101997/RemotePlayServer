@@ -1,0 +1,349 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.9
+[Encoder] AMD AMF (Hardware)
+[TextScale] Actual DPI for \\.\DISPLAY2: 96
+[Guard] Saved original text scale for \\.\DISPLAY2: 100%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY2: 1920x1080 [Physical]
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.9:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████████████
+█████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █ ███▄██ █ ▄▀▄ ▄█  ▄█      █▀▄█ ▄▄▄▄▄ ████
+████ █   █ ██  ▄▄█ ▄█▄ █▀██▀▄ ▀█▀▄▄▀ ▀█ ▀█ █   █ ████
+████ █▄▄▄█ █ █▀▄▄▄▄███ ▀ ▄▄▄ █ ▄█▀▄▄▀▀▄▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄▀ █ █▄▀▄█ █▄█ ▀▄▀▄█▄█▄█ ▀▄█▄▄▄▄▄▄▄████
+████  ▄ ▀ ▄▀▀▀▄▄▀▀ ▄▄ █▄▄  ▄ █  ▀▀█▄▀██▀▄ ▀▄▄█▀▄▄████
+█████▀▄▀██▄█  █▀▀▀▀▀█▀▀ ▀▀▀▀▄ ▀▄██ ▀▀▄█ ▄▄ ▀▄▀▀▄ ████
+████▄  ▀██▄▀█▄▄ █▄ ▀███▄█▀   ▀ ▄█  █▄ █▀█▄▄▀ █▄ ▀████
+████▀█▀▀ █▄█ ▄▀ ▄  █ █▀▀   █ ▄▄▀   ▄▀▄▀▀▄▄▀█ ▄ ▀ ████
+████▀█  ▀█▄ ▄▀ ▀██ ▀▄█  ▀▀▄▀▄█▄ ▀▀▀▀ ██▀ ▀ ▀▄██ ▀████
+████▀▄▄█▀ ▄  █ ▄▄▀█▀▄█▀▄ ▄▄▀ █▄█ ▄█  █▄▀▄  █ █ █▄████
+████▄    ▄▄▄ ▄ ▀ ▄ ▀▄█ ▀ ▄▄▄ █▄▀█▄█▀▄█▀  ▄▄▄ ▀█ ▄████
+████▀█ ▀ █▄█  ▀▄▄█▀  ▀▄▄ █▄█ ▄▀▄▀▄▀▄█  █ █▄█ █▀  ████
+█████▄ █▄▄▄▄▄▀█▀▀███  ▀▀ ▄▄▄ ▄ █▄█▀█▄█ █▄▄ ▄▄▀██ ████
+████▄█▄█▄ ▄█▀ ▄ ▄▄█▀▀▄▄█ ▄█▄▀ ▀▄ ▄█ ▀▄▄█▀▄█ ▀ ▄█ ████
+████▄▀ ▄ ▄▄▀█▄██▀▀▀▀██ ▄▀█▀███▀ ███▀█ ▀ ██▀█▀ ▀ █████
+████ ▀█▀ █▄   ▄▄▄ ▄   ▄█      ▄█▀▄▄█▀   ▀ ▄ ▄ ▄▀▀████
+█████▄ █▀▀▄ ▄▄   █▀▄▄█  ▄   ▄▀█   ▀ ▄ ▀▄▄█ ▄ ▀█ ▄████
+█████▀▀▀ █▄▄▄██▀▄███▀█▀▄ ▀█ ▄█▀███▀▄███▄████ ▀▀ ▄████
+████▄██▄▄█▄▄█ ▀▄▀ ▀▄█  ▄ ▄▄▄  █▀█ ▄▀ ▄▄▀ ▄▄▄ ▀██ ████
+████ ▄▄▄▄▄ █▀▄▄▀█▄ ▀▄▄   █▄█ ▀▀  ██ ▄▄▀▄ █▄█ ▀▀██████
+████ █   █ █▀▄▀▀▀█▀▀█▄▄▀ ▄   ██  █ ▀▄█ ▀ ▄   ▄  █████
+████ █▄▄▄█ █ █ ▀▀▄██▀ ▀█▀ ▄▀█▀█▀▀█ █▀▄ ▀█ ▄██▄███████
+████▄▄▄▄▄▄▄█▄██████▄▄██▄▄██▄▄██▄███▄▄███▄████▄▄█▄████
+█████████████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 6d14bf3f-22b4-421c-9724-520cdecb9407, mode=multitrack
+[MultiPC Signal] Client 6d14bf3f-22b4-421c-9724-520cdecb9407 connected from 192.168.1.2
+[MultiPC Signal] Config: 2 monitors @ 1600x900, 30fps, 8000kbps/stream
+[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 30 fps
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 0 (target total: 2)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL]
+[Display] Setting Text Scale 125% for \\.\DISPLAY2
+[TextScale] Setting 125% (DPI: 120) for monitor: \\.\DISPLAY2
+[TextScale] Process DPI awareness enabled
+[TextScale] PerMonitorSettings registry written for \\.\DISPLAY2
+[TextScale] Desktop LogPixels updated
+[TextScale] DPI awareness context set to Per-Monitor V2
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Display change broadcast sent
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[TextScale] ✓ Per-monitor 125% set successfully for \\.\DISPLAY2
+[TextScale] Confirmed DPI: 120 (target: 120)
+[Display] Setting Text Scale 125% for \\.\DISPLAY1
+[TextScale] Setting 125% (DPI: 120) for monitor: \\.\DISPLAY1
+[TextScale] Process DPI awareness enabled
+[TextScale] PerMonitorSettings registry written for \\.\DISPLAY1
+[TextScale] Desktop LogPixels updated
+[TextScale] DPI awareness context set to Per-Monitor V2
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Display change broadcast sent
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Registry DPI for \\.\DISPLAY1: 120
+[TextScale] Registry DPI for \\.\DISPLAY1: 120
+[TextScale] ✓ Per-monitor 125% set successfully for \\.\DISPLAY1
+[TextScale] Confirmed DPI: 120 (target: 120)
+[MultiPC Signal] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 30fps
+[PerMonitorCapture] Using adapter: AMD Radeon RX 7600
+[PerMonitorCapture] D3D11 device created
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1600x900
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1600x900
+[PerMonitorCapture] Initialized 2 monitors
+[MultiPC] Created: 2 monitors, 30fps, 8000kbps per stream
+[PerMonitorCapture] Capture started
+[PerMonitorCapture] Target 30fps, interval 33ms
+[MultiPC Signal] Received offer for monitor 0
+[MultiPC] Processing offer for monitor 0: 1600x900
+[MultiPC] Monitor 0 ICE connection state changed to: checking
+[MultiPC] Monitor 0 ICE is checking candidates...
+[MultiPC] Monitor 0 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 124
+[MultiPC] Monitor 0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC] Processing offer for monitor 1: 1600x900
+[MultiPC] m0 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 1 ICE connection state changed to: checking
+[MultiPC] Monitor 1 ICE is checking candidates...
+[MultiPC] m1 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 1 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 124
+[MultiPC] Monitor 1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[MultiPC] m0 skip #2: encoder=False, ice=False
+[MultiPC] m1 skip #2: encoder=False, ice=False
+[MultiPC] m0 skip #3: encoder=False, ice=False
+[MultiPC] m1 skip #3: encoder=False, ice=False
+[MultiPC] m0 skip #100: encoder=False, ice=False
+[MultiPC] m1 skip #100: encoder=False, ice=False
+[MultiPC] m0 skip #200: encoder=False, ice=False
+[MultiPC] m1 skip #200: encoder=False, ice=False
+[MultiPC] m0 skip #300: encoder=False, ice=False
+[MultiPC] m1 skip #300: encoder=False, ice=False
+[MultiPC] m0 skip #400: encoder=False, ice=False
+[MultiPC] m1 skip #400: encoder=False, ice=False
+[MultiPC] Monitor 0 ICE connection state changed to: failed
+[MultiPC] Monitor 0 ICE connection FAILED!
+[MultiPC] Monitor 0 Peer connection state changed to: failed
+[MultiPC] Monitor 0 Peer connection FAILED
+[MultiPC] Monitor 1 ICE connection state changed to: failed
+[MultiPC] Monitor 1 ICE connection FAILED!
+[MultiPC] Monitor 1 Peer connection state changed to: failed
+[MultiPC] Monitor 1 Peer connection FAILED
+[MultiPC] m0 skip #500: encoder=False, ice=False
+[MultiPC] m1 skip #500: encoder=False, ice=False
+[MultiPC] m0 skip #600: encoder=False, ice=False
+[MultiPC] m1 skip #600: encoder=False, ice=False
+[MultiPC RX] An internal WebSocket error occurred. Please see the innerException, if present, for more details.
+[MultiPC] Monitor 0 Peer connection state changed to: closed
+[MultiPC] Monitor 0 Peer connection closed
+[MultiPC] Monitor 1 Peer connection state changed to: closed
+[MultiPC] Monitor 1 Peer connection closed
+[MultiPC] Stopped
+[PerMonitorCapture] Capture stopped
+[PerMonitorCapture] Capture stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected 6d14bf3f-22b4-421c-9724-520cdecb9407
+[Signal] Client connected a7dd0486-7e5c-4be0-9083-345c38c1fb4a, mode=multitrack
+[MultiPC Signal] Client a7dd0486-7e5c-4be0-9083-345c38c1fb4a connected from 192.168.1.2
+[MultiPC Signal] Config: 2 monitors @ 1600x900, 30fps, 8000kbps/stream
+[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 30 fps
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 0 (target total: 2)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[2025-12-14 23:40:17.299] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[2025-12-14 23:40:17.325] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL]
+[Display] Setting Text Scale 125% for \\.\DISPLAY2
+[TextScale] Setting 125% (DPI: 120) for monitor: \\.\DISPLAY2
+[TextScale] Process DPI awareness enabled
+[TextScale] PerMonitorSettings registry written for \\.\DISPLAY2
+[TextScale] Desktop LogPixels updated
+[TextScale] DPI awareness context set to Per-Monitor V2
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Display change broadcast sent
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[TextScale] ✓ Per-monitor 125% set successfully for \\.\DISPLAY2
+[TextScale] Confirmed DPI: 120 (target: 120)
+[Display] Setting Text Scale 125% for \\.\DISPLAY1
+[TextScale] Setting 125% (DPI: 120) for monitor: \\.\DISPLAY1
+[TextScale] Process DPI awareness enabled
+[TextScale] PerMonitorSettings registry written for \\.\DISPLAY1
+[TextScale] Desktop LogPixels updated
+[TextScale] DPI awareness context set to Per-Monitor V2
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Display change broadcast sent
+[TextScale] Enhanced broadcast refresh completed.
+[TextScale] Registry DPI for \\.\DISPLAY1: 120
+[TextScale] Registry DPI for \\.\DISPLAY1: 120
+[TextScale] ✓ Per-monitor 125% set successfully for \\.\DISPLAY1
+[TextScale] Confirmed DPI: 120 (target: 120)
+[MultiPC Signal] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 30fps
+[PerMonitorCapture] Using adapter: AMD Radeon RX 7600
+[PerMonitorCapture] D3D11 device created
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1600x900
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1600x900
+[PerMonitorCapture] Initialized 2 monitors
+[MultiPC] Created: 2 monitors, 30fps, 8000kbps per stream
+[MultiPC Signal] Received offer for monitor 0
+[MultiPC] Processing offer for monitor 0: 1600x900
+[PerMonitorCapture] Capture started
+[PerMonitorCapture] Target 30fps, interval 33ms
+[MultiPC] Monitor 0 ICE connection state changed to: checking
+[MultiPC] Monitor 0 ICE is checking candidates...
+[MultiPC] Monitor 0 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 124
+[MultiPC] Monitor 0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC] Processing offer for monitor 1: 1600x900
+[MultiPC] Monitor 1 ICE connection state changed to: checking
+[MultiPC] Monitor 1 ICE is checking candidates...
+[MultiPC] m0 skip #1: encoder=False, ice=False
+[MultiPC] m1 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 1 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 124
+[MultiPC] Monitor 1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[MultiPC] m0 skip #2: encoder=False, ice=False
+[MultiPC] m1 skip #2: encoder=False, ice=False
+[MultiPC] m0 skip #3: encoder=False, ice=False
+[MultiPC] m1 skip #3: encoder=False, ice=False
+[MultiPC] m0 skip #100: encoder=False, ice=False
+[MultiPC] m1 skip #100: encoder=False, ice=False
+[MultiPC] m0 skip #200: encoder=False, ice=False
+[MultiPC] m1 skip #200: encoder=False, ice=False
+[MultiPC] m0 skip #300: encoder=False, ice=False
+[MultiPC] m1 skip #300: encoder=False, ice=False
+[MultiPC] m0 skip #400: encoder=False, ice=False
+[MultiPC] m1 skip #400: encoder=False, ice=False
+[MultiPC RX] An internal WebSocket error occurred. Please see the innerException, if present, for more details.
+[MultiPC] Monitor 0 Peer connection state changed to: closed
+[MultiPC] Monitor 0 Peer connection closed
+[MultiPC] Monitor 1 Peer connection state changed to: closed
+[MultiPC] Monitor 1 Peer connection closed
+[MultiPC] Stopped
+[PerMonitorCapture] Capture stopped
+[PerMonitorCapture] Capture stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[2025-12-14 23:40:49.255] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] Restoring original state before exit...
+[2025-12-14 23:40:49.256] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected a7dd0486-7e5c-4be0-9083-345c38c1fb4a

@@ -661,14 +661,11 @@ static class StartupSteps
             Console.WriteLine($"[Display]   • {mon.name} {w}x{h} [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
         
-        // Set Text Scale 125% for virtual monitors
+        // Set Text Scale 125% for ALL monitors (better readability in VR)
         foreach (var mon in mons)
         {
-            if (DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
-            {
-                Console.WriteLine($"[Display] Setting Text Scale 125% for {mon.name}");
-                TextScaleUtil.SetPerMonitorTextScale(mon.name, 125);
-            }
+            Console.WriteLine($"[Display] Setting Text Scale 125% for {mon.name}");
+            TextScaleUtil.SetPerMonitorTextScale(mon.name, 125);
         }
     }
 
