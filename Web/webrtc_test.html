@@ -191,6 +191,7 @@
   Status: <span id="st">idle</span> |
   Video: <span id="videoStats">--</span> |
   Frames: <span id="frameStats">--</span> |
+  <strong style="color:#00ff00;">Ping: <span id="pingStats">--</span></strong> |
   <strong style="color:#ff9800;">Est. Bandwidth: <span id="estBandwidth">--</span></strong>
 </div>
 
@@ -273,12 +274,35 @@
     $('estBandwidth').textContent = `${totalMbps} Mbps (${monitors} × ${bitrate / 1000} Mbps)`;
   }
 
+  function updatePingDisplay() {
+    // Prefer WebRTC RTT over WebSocket ping
+    const displayPing = webrtcRtt > 0 ? webrtcRtt : currentPing;
+    if (displayPing > 0) {
+      $('pingStats').textContent = `${displayPing}ms`;
+    } else {
+      $('pingStats').textContent = '--';
+    }
+  }
+
+  function measureWebSocketPing() {
+    if (currentWs && currentWs.readyState === 1) {
+      lastPingTime = performance.now();
+      currentWs.send('ping');
+    }
+  }
+
   let cursorEnabled = false;
   let currentWs = null;
   let currentPc = null;
   let statsInterval = null;
   let pingInterval = null;
   let isDisconnecting = false;
+
+  // Ping measurement variables
+  let lastPingTime = 0;
+  let currentPing = 0;
+  let webrtcRtt = 0;
+  let pingHistory = [];
 
   let videoWatchdogInterval = null;
   let remoteStream = null;
@@ -432,6 +456,13 @@
     stopVideoWatchdog();
     if (currentWs) { try { currentWs.close(); } catch (e) { } currentWs = null; }
     if (currentPc) { try { currentPc.close(); } catch (e) { } currentPc = null; }
+
+    // Reset ping stats
+    currentPing = 0;
+    webrtcRtt = 0;
+    lastPingTime = 0;
+    pingHistory = [];
+    $('pingStats').textContent = '--';
 
     try { videoEl.pause(); } catch { }
     try {
@@ -596,13 +627,13 @@
     ws.onopen = async () => {
       setSt('ws: open → creating offer');
 
-      // Keep signalling WS alive (some networks/proxies drop idle connections).
+      // Keep signalling WS alive and measure ping (some networks/proxies drop idle connections).
       if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
       pingInterval = setInterval(() => {
         try {
-          if (ws.readyState === 1) ws.send('ping');
+          measureWebSocketPing();
         } catch { }
-      }, 10000);
+      }, 2000);
 
       // Apply initial cursor setting
       await initCursor();
@@ -627,6 +658,14 @@
         log('← cand', cand);
       } else if (text.startsWith('end-of-candidates')) {
         log('← end-of-candidates');
+      } else if (text.trim().toLowerCase() === 'pong' && lastPingTime > 0) {
+        // Calculate ping from WebSocket round-trip time
+        const pingTime = Math.round(performance.now() - lastPingTime);
+        currentPing = pingTime;
+        pingHistory.push(pingTime);
+        if (pingHistory.length > 10) pingHistory.shift(); // Keep last 10 pings
+        updatePingDisplay();
+        lastPingTime = 0;
       } else {
         log('←', text);
       }
@@ -640,6 +679,7 @@
       if (pc.connectionState !== 'connected') return;
       try {
         const stats = await pc.getStats();
+        let foundRtt = false;
         stats.forEach(r => {
           if (r.type === 'inbound-rtp' && r.kind === 'video') {
             const now = Date.now();
@@ -660,7 +700,19 @@
             lastFrames = frames;
             lastTime = now;
           }
+          // Get RTT from WebRTC stats (preferred method)
+          if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime !== undefined) {
+            const rttMs = Math.round(r.currentRoundTripTime * 1000);
+            if (rttMs > 0) {
+              webrtcRtt = rttMs;
+              foundRtt = true;
+            }
+          }
         });
+        // Update ping display with latest measurement
+        if (foundRtt || currentPing > 0) {
+          updatePingDisplay();
+        }
       } catch (e) { }
     }, 1000);
 

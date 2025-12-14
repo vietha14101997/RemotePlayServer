@@ -979,9 +979,18 @@ public class SignalAndRestServer
                     if (!res.EndOfMessage) continue;
                     var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
 
-                    // Keepalive (optional). Client may send "ping" periodically to keep NAT bindings.
+                    // Keepalive and ping measurement. Client may send "ping" periodically to keep NAT bindings and measure RTT.
                     if (text.Length <= 16 && text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Reply with pong for ping measurement
+                        try
+                        {
+                            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")), 
+                                             System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        }
+                        catch { }
                         continue;
+                    }
 
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
