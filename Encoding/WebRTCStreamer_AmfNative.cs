@@ -690,13 +690,21 @@ public class WebRTCStreamer_AmfNative : IDisposable
             au = StripLeadingAud(au);
 
             uint rtpStep = GetRtpStepFromPts(pts);
-            _pc.SendVideo(rtpStep, au);
-            long sent = Interlocked.Increment(ref _sentCount);
-            
-            // Debug: log first 5 frames and keyframes
-            if (sent <= 5 || isKeyframe)
+            try 
             {
-                Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {au.Length} bytes, keyframe={isKeyframe}, rtpStep={rtpStep}, avcc2annexb={convertedFromAvcc}");
+                _pc.SendVideo(rtpStep, au);
+                long sent = Interlocked.Increment(ref _sentCount);
+                
+                // Debug: log first 5 frames and keyframes
+                if (sent <= 5 || isKeyframe)
+                {
+                    Console.WriteLine($"[RTC-AmfNative] Frame #{sent}: {au.Length} bytes, keyframe={isKeyframe}, rtpStep={rtpStep}, avcc2annexb={convertedFromAvcc}");
+                }
+            }
+            catch (Exception sendEx)
+            {
+                Console.WriteLine($"[RTC-AmfNative] SendVideo FAILED: {sendEx.Message} (frame size={au.Length}, keyframe={isKeyframe}, pc.state={_pc?.connectionState})");
+                // Don't increment _sentCount on failure
             }
         }
         catch (Exception ex)
@@ -717,7 +725,8 @@ public class WebRTCStreamer_AmfNative : IDisposable
             {
                 lock (_lock)
                 {
-                    if (_encoder == null)
+                    // Only initialize encoder after PeerConnection is fully connected
+                    if (_encoder == null && _pc != null && _pc.connectionState == RTCPeerConnectionState.connected)
                     {
                         InitializeEncoder(item.w, item.h);
                     }

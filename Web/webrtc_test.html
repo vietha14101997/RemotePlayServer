@@ -545,14 +545,21 @@
           attachRemoteVideoTrack(ev.track);
         };
         ev.track.onmute = () => {
-          log('track:mute kind=video');
-          // Auto-recovery: try reattaching the track after short delay
+          log('track:mute kind=video - PC state:', pc.connectionState, 'ICE state:', pc.iceConnectionState);
+          // Stronger recovery: Force restart connection if muted too long
           setTimeout(() => {
-            if (ev.track && !ev.track.muted) {
-              log('Track recovered from mute, reattaching...');
-              attachRemoteVideoTrack(ev.track);
+            if (ev.track && ev.track.muted && pc.connectionState === 'connected') {
+              log('Track still muted after 2s, forcing recovery...'); 
+              // Create fresh connection to recover
+              setTimeout(() => {
+                if (ev.track && ev.track.muted) {
+                  log('Track mute persists - triggering reconnect');
+                  disconnect();
+                  setTimeout(() => connect(), 1000);
+                }
+              }, 3000);
             }
-          }, 1000);
+          }, 2000);
         };
         ev.track.onended = () => log('track:ended kind=video');
       }
