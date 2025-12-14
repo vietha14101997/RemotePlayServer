@@ -7,24 +7,26 @@ Cursor initialized: ON
 → offer sent, length= 6127
 WARNING: Browser is sending mDNS host candidate (.local). RemotePlayServer may not resolve it.
 Action: disable mDNS local IP hiding and reconnect.
-→ cand candidate:945443411 1 udp 2113937151 2fdc8b15-3257-4c48-a6b7-c93e3c69438d.local 55299 typ host generation 0 ufrag s+Zy network-cost 999
+→ cand candidate:3184717016 1 udp 2113937151 7740ad5c-d496-4541-af64-3f5d8c8f36e7.local 50254 typ host generation 0 ufrag Rczk network-cost 999
 → end-of-candidates
 NOTE: Did not see any private LAN IPv4 host candidates (e.g., 192.168.x.x). If you are on LAN, this is a strong sign mDNS hiding is enabled.
 ICE = checking
-ontrack kind= video id= 86a4314d-fa63-4864-9bce-e3a5e3523f96
+PC  = connecting
+ontrack kind= video id= c6a3a520-9b48-4bed-8ecb-6eea00f5ac3d
 track:unmute kind=video
 ← answer set (chars= 1235 )
-← cand candidate:3707760737 1 udp 2113937663 192.168.1.9 54540 typ host generation 0
-video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0
+← cand candidate:3707760737 1 udp 2113937663 192.168.1.9 58596 typ host generation 0
 ICE = connected
-PC  = connecting
+video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0
+ICE selected pair: host/udp :50254 -> host/udp 192.168.1.9:58596
 PC  = connected
-ICE selected pair: host/udp :55299 -> host/udp 192.168.1.9:54540
 video event: loadedmetadata readyState= 4 paused= false ct= 0.000 size= 3840x1080
 video event: playing readyState= 4 paused= false ct= 0.000 size= 3840x1080
-track:mute kind=video
+track:mute kind=video - PC state: connected ICE state: connected
 Video render stall detected; rebinding srcObject. inboundFps= 0 readyState= 4 size= 3840x1080
 video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0
+Track still muted after 2s, forcing recovery...
+Track mute persists - triggering reconnect
 Disconnecting...
 Disconnected
 video.play() blocked: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
