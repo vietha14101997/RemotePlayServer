@@ -1378,6 +1378,10 @@ public class SignalAndRestServer
 
                     long frameCount = 0;
                     
+                    // Frame timing tracking for latency measurement
+                    var frameTiming = new System.Collections.Concurrent.ConcurrentQueue<(long frameNum, long captureTime)>();
+                    var lastTimingSyncTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    
                     // DISABLED: Texture zero-copy path has issues with AMF CreateSurfaceFromDX11Native
                     // AMF doesn't correctly read P-frames from NV12 texture created by Video Processor
                     // Result: video freezes after first keyframe
@@ -1389,9 +1393,12 @@ public class SignalAndRestServer
                     {
                         Console.WriteLine("[ClusterCapture] Using TRUE ZERO-COPY texture path!");
                         clusterCap.UseNV12Output = true;
-                        clusterCap.OnNV12TextureFrame += (texture, w, h) =>
+                        clusterCap.OnNV12TextureFrame += (texture, w, h, timestamp) =>
                         {
                             frameCount++;
+                            frameTiming.Enqueue((frameCount, timestamp));
+                            // Keep only last 100 frames in timing queue
+                            while (frameTiming.Count > 100) frameTiming.TryDequeue(out _);
                             try { if (streamer.IsRunning) streamer.PushTexture(texture, w, h); }
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };
@@ -1400,9 +1407,12 @@ public class SignalAndRestServer
                     else if (streamer.UseNV12Input)
                     {
                         clusterCap.UseNV12Output = true;
-                        clusterCap.OnNV12Frame += (buf, w, h) =>
+                        clusterCap.OnNV12Frame += (buf, w, h, timestamp) =>
                         {
                             frameCount++;
+                            frameTiming.Enqueue((frameCount, timestamp));
+                            // Keep only last 100 frames in timing queue
+                            while (frameTiming.Count > 100) frameTiming.TryDequeue(out _);
                             try { if (streamer.IsRunning) streamer.PushNV12BytesAsync(buf, w, h); }
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };
@@ -1410,9 +1420,12 @@ public class SignalAndRestServer
                     // Priority 3: BGRA path (CPU color conversion in FFmpeg)
                     else
                     {
-                        clusterCap.OnFrame += (buf, w, h, stride) =>
+                        clusterCap.OnFrame += (buf, w, h, stride, timestamp) =>
                         {
                             frameCount++;
+                            frameTiming.Enqueue((frameCount, timestamp));
+                            // Keep only last 100 frames in timing queue
+                            while (frameTiming.Count > 100) frameTiming.TryDequeue(out _);
                             try { if (streamer.IsRunning) streamer.PushBgraBytesAsync(buf, w, h, stride); }
                             catch (Exception ex) { Console.WriteLine("[ClusterCapture->RTC] " + ex.Message); }
                         };
@@ -1422,6 +1435,40 @@ public class SignalAndRestServer
 
                     clusterCap.Start();
                     _captures[id] = (-1, false, -1, clusterCap);
+                    
+                    // Start timing sync task to send frame timing data to client
+                    var timingSyncTask = Task.Run(async () =>
+                    {
+                        while (!stopCapture.Token.IsCancellationRequested && ws.State == System.Net.WebSockets.WebSocketState.Open)
+                        {
+                            try
+                            {
+                                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                                if (now - lastTimingSyncTime >= 1000) // Send every 1 second
+                                {
+                                    lastTimingSyncTime = now;
+                                    // Get recent frame timing data
+                                    var recentFrames = frameTiming.ToArray().TakeLast(10).ToArray();
+                                    if (recentFrames.Length > 0)
+                                    {
+                                        var timingData = new {
+                                            type = "frameTiming",
+                                            serverTime = now,
+                                            currentFrame = frameCount,
+                                            recentFrames = recentFrames.Select(f => new { frameNum = f.frameNum, captureTime = f.captureTime }).ToArray()
+                                        };
+                                        var json = System.Text.Json.JsonSerializer.Serialize(timingData);
+                                        await ws.SendAsync(new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(json)),
+                                                         System.Net.WebSockets.WebSocketMessageType.Text, true, stopCapture.Token);
+                                    }
+                                }
+                                await Task.Delay(500, stopCapture.Token); // Check every 500ms
+                            }
+                            catch (OperationCanceledException) { break; }
+                            catch { }
+                        }
+                    });
+                    
                     stopCapture.Token.WaitHandle.WaitOne();
                 }
                 catch (Exception ex) { Console.WriteLine("[ClusterCapture] ERROR: " + ex.Message + "\n" + ex.StackTrace); }

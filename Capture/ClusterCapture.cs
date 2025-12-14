@@ -109,16 +109,16 @@ public sealed class ClusterCapture : IDisposable
     private Thread? _captureThread;
 
     /// <summary>CPU frame callback for BGRA (copies to system memory)</summary>
-    public event Action<byte[], int, int, int>? OnFrame;
+    public event Action<byte[], int, int, int, long>? OnFrame;
     
     /// <summary>CPU frame callback for NV12 (GPU-converted, then copied to system memory)</summary>
-    public event Action<byte[], int, int>? OnNV12Frame;
+    public event Action<byte[], int, int, long>? OnNV12Frame;
     
     /// <summary>GPU texture callback for BGRA (zero-copy path, no CPU memory access)</summary>
-    public event Action<ID3D11Texture2D, int, int>? OnTextureFrame;
+    public event Action<ID3D11Texture2D, int, int, long>? OnTextureFrame;
     
     /// <summary>GPU texture callback for NV12 (TRUE ZERO-COPY: GPU-converted NV12 texture)</summary>
-    public event Action<ID3D11Texture2D, int, int>? OnNV12TextureFrame;
+    public event Action<ID3D11Texture2D, int, int, long>? OnNV12TextureFrame;
     
     /// <summary>Expose D3D11 device for encoder initialization</summary>
     public ID3D11Device Device => _device;
@@ -482,9 +482,10 @@ public sealed class ClusterCapture : IDisposable
                 if (anyFrameCaptured)
                 {
                     frameCount++;
+                    long captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
                     // Zero-copy BGRA path: invoke texture callback first
-                    OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight);
+                    OnTextureFrame?.Invoke(_combinedTexture, FrameWidth, FrameHeight, captureTimestamp);
                     
                     // TRUE ZERO-COPY NV12 path: GPU texture directly to encoder (no CPU copy!)
                     if (_useNV12Output && OnNV12TextureFrame != null && _colorConverter != null && !_showCursor)
@@ -495,7 +496,7 @@ public sealed class ClusterCapture : IDisposable
                             var nv12Texture = _colorConverter.ConvertToTexture(_combinedTexture);
                             if (nv12Texture != null)
                             {
-                                OnNV12TextureFrame(nv12Texture, FrameWidth, FrameHeight);
+                                OnNV12TextureFrame(nv12Texture, FrameWidth, FrameHeight, captureTimestamp);
                             }
                         }
                         catch (ObjectDisposedException) { }
@@ -538,7 +539,7 @@ public sealed class ClusterCapture : IDisposable
                             
                                 // Convert BGRA with cursor to NV12 via software (since we modified the buffer)
                                 ConvertBgraToNv12(_combinedBuffer, _nv12Buffer!, FrameWidth, FrameHeight, _combinedStride);
-                                OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
+                                OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight, captureTimestamp);
                             }
                             else
                             {
@@ -546,7 +547,7 @@ public sealed class ClusterCapture : IDisposable
                                 var converter = _colorConverter;
                                 if (converter != null && converter.Convert(_combinedTexture, _nv12Buffer))
                                 {
-                                    OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight);
+                                    OnNV12Frame(_nv12Buffer, FrameWidth, FrameHeight, captureTimestamp);
                                 }
                             }
                         }
@@ -598,7 +599,7 @@ public sealed class ClusterCapture : IDisposable
                             DrawCursorOnBuffer(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
                         }
 
-                        OnFrame(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride);
+                        OnFrame(_combinedBuffer, FrameWidth, FrameHeight, _combinedStride, captureTimestamp);
                     }
                 }
             }

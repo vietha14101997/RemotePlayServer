@@ -192,6 +192,7 @@
   Video: <span id="videoStats">--</span> |
   Frames: <span id="frameStats">--</span> |
   <strong style="color:#00ff00;">Ping: <span id="pingStats">--</span></strong> |
+  <strong style="color:#ff4444;">Frame Latency: <span id="frameLatencyStats">--</span></strong> |
   <strong style="color:#ff9800;">Est. Bandwidth: <span id="estBandwidth">--</span></strong>
 </div>
 
@@ -291,6 +292,59 @@
     }
   }
 
+  function updateFrameLatencyDisplay() {
+    if (lastFrameLatency > 0) {
+      $('frameLatencyStats').textContent = `${lastFrameLatency}ms`;
+    } else {
+      $('frameLatencyStats').textContent = '--';
+    }
+  }
+
+  function processFrameTiming(timingData) {
+    try {
+      // Calculate server-client time offset
+      const clientTime = Date.now();
+      serverTimeOffset = timingData.serverTime - clientTime;
+      
+      // Store recent frame timing data from server
+      serverFrameTiming = timingData.recentFrames || [];
+      
+      // Calculate frame latency estimate
+      calculateFrameLatency();
+      
+    } catch (e) {
+      console.log('Frame timing processing error:', e);
+    }
+  }
+
+  function calculateFrameLatency() {
+    if (serverFrameTiming.length === 0) return;
+    
+    try {
+      // Get the most recent frame from server
+      const latestServerFrame = serverFrameTiming[serverFrameTiming.length - 1];
+      const serverCaptureTime = latestServerFrame.captureTime;
+      
+      // Estimate current client display time
+      const clientTime = Date.now();
+      const estimatedServerTime = clientTime + serverTimeOffset;
+      
+      // Calculate total latency: capture → encode → transmit → decode → display
+      const totalLatency = estimatedServerTime - serverCaptureTime;
+      
+      // Reasonable bounds check (should be 10-500ms for local streaming)
+      if (totalLatency > 5 && totalLatency < 2000) {
+        lastFrameLatency = Math.round(totalLatency);
+        frameLatencyHistory.push(lastFrameLatency);
+        if (frameLatencyHistory.length > 10) frameLatencyHistory.shift();
+        updateFrameLatencyDisplay();
+      }
+      
+    } catch (e) {
+      console.log('Frame latency calculation error:', e);
+    }
+  }
+
   let cursorEnabled = false;
   let currentWs = null;
   let currentPc = null;
@@ -303,6 +357,12 @@
   let currentPing = 0;
   let webrtcRtt = 0;
   let pingHistory = [];
+  
+  // Frame latency measurement variables
+  let serverFrameTiming = [];
+  let serverTimeOffset = 0; // Difference between server and client time
+  let lastFrameLatency = 0;
+  let frameLatencyHistory = [];
 
   let videoWatchdogInterval = null;
   let remoteStream = null;
@@ -463,6 +523,13 @@
     lastPingTime = 0;
     pingHistory = [];
     $('pingStats').textContent = '--';
+    
+    // Reset frame latency stats
+    serverFrameTiming = [];
+    serverTimeOffset = 0;
+    lastFrameLatency = 0;
+    frameLatencyHistory = [];
+    $('frameLatencyStats').textContent = '--';
 
     try { videoEl.pause(); } catch { }
     try {
@@ -666,6 +733,18 @@
         if (pingHistory.length > 10) pingHistory.shift(); // Keep last 10 pings
         updatePingDisplay();
         lastPingTime = 0;
+      } else if (text.startsWith('{')) {
+        // Try to parse JSON data (frame timing, etc.)
+        try {
+          const data = JSON.parse(text);
+          if (data.type === 'frameTiming') {
+            processFrameTiming(data);
+          } else {
+            log('← JSON:', data);
+          }
+        } catch (e) {
+          log('←', text);
+        }
       } else {
         log('←', text);
       }
