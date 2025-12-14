@@ -22,6 +22,39 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   }
 
+  .video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .video-grid video {
+    flex: 1;
+    min-width: 300px;
+    max-width: 640px;
+  }
+
+  .video-grid.single video {
+    max-width: 1280px;
+  }
+
+  .track-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.7);
+    color: #00d4ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .video-container {
+    position: relative;
+    display: inline-block;
+  }
+
   pre {
     white-space: pre-wrap;
     background: #0a0a15;
@@ -128,10 +161,16 @@
   <label>Port:</label>
   <input type="text" id="port" value="8288" style="width: 60px;" />
 
+  <label>Mode:</label>
+  <select id="streamMode" title="Cluster: 1 combined stream. MultiTrack: N separate streams (recommended for Android)">
+    <option value="cluster">Cluster (1 stream)</option>
+    <option value="multitrack" selected>MultiTrack (N streams)</option>
+  </select>
+
   <label>Monitors:</label>
   <select id="monitors">
-    <option value="1">1</option>
-    <option value="2" selected>2</option>
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
     <option value="3">3</option>
     <option value="4">4</option>
     <option value="5">5</option>
@@ -196,7 +235,12 @@
   <strong style="color:#ff9800;">Est. Bandwidth: <span id="estBandwidth">--</span></strong>
 </div>
 
-<video id="v" autoplay playsinline muted></video>
+<div id="videoGrid" class="video-grid single">
+  <div class="video-container">
+    <video id="v" autoplay playsinline muted></video>
+    <span class="track-label" id="trackLabel0" style="display:none;">Track 0</span>
+  </div>
+</div>
 
 <pre id="log"></pre>
 
@@ -347,7 +391,8 @@
 
   let cursorEnabled = false;
   let currentWs = null;
-  let currentPc = null;
+  let currentPc = null;      // Single PC for cluster mode
+  let multiPCs = [];         // Array of PCs for multitrack mode (Option B)
   let statsInterval = null;
   let pingInterval = null;
   let isDisconnecting = false;
@@ -516,6 +561,9 @@
     stopVideoWatchdog();
     if (currentWs) { try { currentWs.close(); } catch (e) { } currentWs = null; }
     if (currentPc) { try { currentPc.close(); } catch (e) { } currentPc = null; }
+    // Close all multi-PCs
+    multiPCs.forEach(pc => { try { pc.close(); } catch (e) { } });
+    multiPCs = [];
 
     // Reset ping stats
     currentPing = 0;
@@ -531,6 +579,7 @@
     frameLatencyHistory = [];
     $('frameLatencyStats').textContent = '--';
 
+    // Stop all video elements
     try { videoEl.pause(); } catch { }
     try {
       const so = videoEl.srcObject;
@@ -538,6 +587,13 @@
     } catch { }
     videoEl.srcObject = null;
     try { videoEl.load(); } catch { }
+    
+    // Clean up multi-track video elements
+    clearVideoElements();
+    videoStreams.forEach(stream => {
+      if (stream && stream.getTracks) stream.getTracks().forEach(t => { try { t.stop(); } catch { } });
+    });
+    videoStreams = [];
 
     setSt('disconnected');
     $('btn').style.display = '';
@@ -549,14 +605,15 @@
   function buildWsUrl() {
     const host = $('host').value.trim() || 'localhost';
     const port = $('port').value.trim() || '8288';
-    const monitors = $('monitors').value || '3';
-    const resolution = $('resolution').value || '1366x768';
+    const mode = $('streamMode').value || 'cluster';
+    const monitors = $('monitors').value || '2';
+    const resolution = $('resolution').value || '1920x1080';
     const bitrate = $('bitrate').value || '6000';
     const fps = $('fps').value || '30';
     const preferGpu = $('preferGpu').value || 'auto';
     const [resW, resH] = resolution.split('x');
 
-    let url = `ws://${host}:${port}/signal?mode=cluster&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
+    let url = `ws://${host}:${port}/signal?mode=${mode}&monitors=${monitors}&resW=${resW}&resH=${resH}&kbps=${bitrate}&fps=${fps}`;
     if (preferGpu !== 'auto') {
       url += `&preferGpu=${preferGpu}`;
     }
@@ -566,6 +623,300 @@
       url += `&lan=1`;
     }
     return url;
+  }
+
+  function isMultiTrackMode() {
+    return $('streamMode').value === 'multitrack';
+  }
+
+  // Multi-track video elements management
+  let videoElements = [];
+  let videoStreams = [];
+
+  function clearVideoElements() {
+    const grid = $('videoGrid');
+    // Keep first video element, remove others
+    while (grid.children.length > 1) {
+      grid.removeChild(grid.lastChild);
+    }
+    videoElements = [videoEl];
+    videoStreams = [];
+    grid.classList.add('single');
+    grid.classList.remove('multitrack');
+    const label = $('trackLabel0');
+    if (label) label.style.display = 'none';
+  }
+
+  function createVideoElement(trackIndex) {
+    const grid = $('videoGrid');
+    
+    // For track 0, use existing video element
+    if (trackIndex === 0) {
+      const label = $('trackLabel0');
+      if (label && isMultiTrackMode()) {
+        label.style.display = 'block';
+        label.textContent = `Monitor ${trackIndex}`;
+      }
+      return videoEl;
+    }
+
+    // Create new video element for additional tracks
+    const container = document.createElement('div');
+    container.className = 'video-container';
+    
+    const video = document.createElement('video');
+    video.id = `v${trackIndex}`;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    
+    const label = document.createElement('span');
+    label.className = 'track-label';
+    label.textContent = `Monitor ${trackIndex}`;
+    
+    container.appendChild(video);
+    container.appendChild(label);
+    grid.appendChild(container);
+    
+    videoElements.push(video);
+    return video;
+  }
+
+  function setupMultiTrackMode() {
+    const monitors = parseInt($('monitors').value) || 2;
+    const grid = $('videoGrid');
+    
+    clearVideoElements();
+    
+    if (isMultiTrackMode() && monitors > 1) {
+      grid.classList.remove('single');
+      grid.classList.add('multitrack');
+      const label = $('trackLabel0');
+      if (label) {
+        label.style.display = 'block';
+        label.textContent = 'Monitor 0';
+      }
+    }
+  }
+
+  // Multi-PC mode: Create N PeerConnections, one per monitor
+  async function runMultiPC() {
+    if (currentWs || currentPc || multiPCs.length > 0) disconnect();
+
+    const monitors = parseInt($('monitors').value) || 2;
+    const WS_URL = buildWsUrl();
+    $('log').textContent = '';
+    $('btn').style.display = 'none';
+    $('disconnectBtn').style.display = '';
+
+    setupMultiTrackMode();
+
+    const ws = new WebSocket(WS_URL);
+    currentWs = ws;
+    setSt('ws: connecting');
+    log('WS →', WS_URL);
+    log(`MultiPC mode: Creating ${monitors} PeerConnections`);
+
+    // Create N PeerConnections
+    multiPCs = [];
+    const pendingAnswers = new Map(); // monitorIndex -> resolve function
+
+    for (let i = 0; i < monitors; i++) {
+      const pc = new RTCPeerConnection({ iceServers: [], iceCandidatePoolSize: 0 });
+      multiPCs.push(pc);
+
+      // Add video transceiver with H264 preference
+      try {
+        const trans = pc.addTransceiver('video', { direction: 'recvonly' });
+        if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
+        const caps = RTCRtpReceiver.getCapabilities('video');
+        const h264Codecs = caps.codecs.filter(c => /H264/i.test(c.mimeType));
+        const others = caps.codecs.filter(c => !h264Codecs.some(h => h.mimeType === c.mimeType && h.clockRate === c.clockRate));
+        if (trans.setCodecPreferences) trans.setCodecPreferences(h264Codecs.concat(others));
+      } catch (e) { log(`PC${i} codec note:`, e.message); }
+
+      pc.oniceconnectionstatechange = () => log(`PC${i} ICE:`, pc.iceConnectionState);
+      pc.onconnectionstatechange = () => {
+        log(`PC${i} state:`, pc.connectionState);
+        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+          log(`PC${i} connection lost, checking for reconnect...`);
+          setTimeout(() => {
+            if (!isDisconnecting && multiPCs[i] && multiPCs[i].connectionState !== 'connected') {
+              log(`Monitor ${i} connection still failed, triggering reconnect...`);
+              disconnect();
+              setTimeout(() => runMultiPC(), 1000);
+            }
+          }, 3000);
+        }
+      };
+
+      // ICE candidates - send with monitor index
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate && ws.readyState === 1) {
+          const msg = `candidate:${i}:${ev.candidate.candidate}`;
+          ws.send(msg);
+          log(`→ ICE[${i}]:`, ev.candidate.candidate.substring(0, 50) + '...');
+        }
+      };
+
+      // Track received - bind to video element
+      pc.ontrack = (ev) => {
+        if (ev.track && ev.track.kind === 'video') {
+          const targetVideo = createVideoElement(i);
+          const stream = new MediaStream([ev.track]);
+          videoStreams[i] = stream;
+          targetVideo.srcObject = stream;
+          log(`PC${i} track received, bound to video`);
+          try { targetVideo.play().catch(() => {}); } catch {}
+        }
+      };
+    }
+
+    ws.onopen = async () => {
+      setSt('ws: open → creating offers');
+      log('WebSocket connected');
+
+      // Start ping keepalive (with measurement)
+      if (pingInterval) clearInterval(pingInterval);
+      pingInterval = setInterval(() => {
+        measureWebSocketPing();
+      }, 2000);
+
+      // Create and send offers for all PCs
+      for (let i = 0; i < monitors; i++) {
+        const pc = multiPCs[i];
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        // Create promise for answer
+        pendingAnswers.set(i, null);
+        
+        // Send offer:N:sdp
+        ws.send(`offer:${i}:${offer.sdp}`);
+        log(`→ offer[${i}] sent`);
+      }
+      setSt('offers sent, waiting for answers...');
+    };
+
+    ws.onmessage = async (ev) => {
+      const text = ev.data;
+      
+      // answer:N:sdp
+      if (text.startsWith('answer:')) {
+        const rest = text.substring(7);
+        const colonIdx = rest.indexOf(':');
+        if (colonIdx > 0) {
+          const monIdx = parseInt(rest.substring(0, colonIdx));
+          const sdp = rest.substring(colonIdx + 1).replace(/UDP\/TLS\/RTP\/SAVP\b/g, 'UDP/TLS/RTP/SAVPF');
+          if (monIdx >= 0 && monIdx < multiPCs.length) {
+            await multiPCs[monIdx].setRemoteDescription({ type: 'answer', sdp });
+            log(`← answer[${monIdx}] set`);
+          }
+        }
+        return;
+      }
+
+      // candidate:N:candidate
+      if (text.startsWith('candidate:')) {
+        const rest = text.substring(10);
+        const colonIdx = rest.indexOf(':');
+        if (colonIdx > 0) {
+          const monIdx = parseInt(rest.substring(0, colonIdx));
+          const cand = rest.substring(colonIdx + 1);
+          if (monIdx >= 0 && monIdx < multiPCs.length) {
+            try {
+              await multiPCs[monIdx].addIceCandidate({ candidate: 'candidate:' + cand, sdpMLineIndex: 0, sdpMid: '0' });
+              log(`← ICE[${monIdx}] added`);
+            } catch (e) { log(`← ICE[${monIdx}] error:`, e.message); }
+          }
+        }
+        return;
+      }
+
+      if (text === 'pong' || text.trim().toLowerCase() === 'pong') {
+        if (lastPingTime > 0) {
+          const pingTime = Math.round(performance.now() - lastPingTime);
+          currentPing = pingTime;
+          pingHistory.push(pingTime);
+          if (pingHistory.length > 10) pingHistory.shift();
+          updatePingDisplay();
+          lastPingTime = 0;
+        }
+        return;
+      }
+      if (text.startsWith('{')) {
+        try {
+          const data = JSON.parse(text);
+          if (data.type === 'frameTiming') {
+            processFrameTiming(data);
+          } else {
+            log('← JSON:', data);
+          }
+        } catch (e) {
+          log('←', text);
+        }
+        return;
+      }
+      log('←', text);
+    };
+
+    ws.onerror = (e) => log('WS error');
+    ws.onclose = () => {
+      if (currentWs === ws) disconnect();
+      setSt('ws: closed');
+    };
+
+    // Stats update with full metrics
+    let lastBytes = new Array(monitors).fill(0);
+    let lastFrames = new Array(monitors).fill(0);
+    let lastTime = Date.now();
+    
+    statsInterval = setInterval(async () => {
+      let totalBitrate = 0, totalFps = 0, totalFrames = 0;
+      let connectedCount = 0;
+      const now = Date.now();
+      const elapsed = (now - lastTime) / 1000;
+      
+      for (let i = 0; i < multiPCs.length; i++) {
+        const pc = multiPCs[i];
+        if (pc.connectionState !== 'connected') continue;
+        connectedCount++;
+        try {
+          const stats = await pc.getStats();
+          stats.forEach(r => {
+            if (r.type === 'inbound-rtp' && r.kind === 'video') {
+              const bytes = r.bytesReceived || 0;
+              const frames = r.framesDecoded || 0;
+              
+              const bitrate = Math.round((bytes - (lastBytes[i] || 0)) * 8 / elapsed / 1000);
+              const fps = Math.round((frames - (lastFrames[i] || 0)) / elapsed);
+              
+              totalBitrate += bitrate;
+              totalFps += fps;
+              totalFrames += frames;
+              
+              lastBytes[i] = bytes;
+              lastFrames[i] = frames;
+            }
+            // Get RTT from WebRTC stats
+            if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime !== undefined) {
+              const rttMs = Math.round(r.currentRoundTripTime * 1000);
+              if (rttMs > 0) {
+                webrtcRtt = rttMs;
+              }
+            }
+          });
+        } catch {}
+      }
+      
+      lastTime = now;
+      
+      if (connectedCount > 0) {
+        $('videoStats').textContent = `${totalBitrate} kbps`;
+        $('frameStats').textContent = `${Math.round(totalFps / connectedCount)} fps, ${totalFrames} total`;
+        updatePingDisplay();
+      }
+    }, 1000);
   }
 
   async function run() {
@@ -602,15 +953,27 @@
     let warnedMdns = false;
     let sawPrivateHostV4 = false;
 
-    // Prefer H264 first if available
+    // Setup video elements for multi-track mode
+    setupMultiTrackMode();
+    let trackCount = 0;
+
+    // Prefer H264 first if available - add transceivers based on mode
     try {
-      const trans = pc.addTransceiver('video', { direction: 'recvonly' });
-      if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
+      const monitors = parseInt($('monitors').value) || 2;
+      const numTransceivers = isMultiTrackMode() ? monitors : 1;
+      
       const caps = RTCRtpReceiver.getCapabilities('video');
       const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
       const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType && h.clockRate === c.clockRate));
       const prefer = h264.concat(others);
-      if (trans.setCodecPreferences) trans.setCodecPreferences(prefer);
+      
+      for (let i = 0; i < numTransceivers; i++) {
+        const trans = pc.addTransceiver('video', { direction: 'recvonly' });
+        if (trans.receiver && 'playoutDelayHint' in trans.receiver) trans.receiver.playoutDelayHint = 0.04;
+        if (trans.setCodecPreferences) trans.setCodecPreferences(prefer);
+      }
+      
+      log(`Added ${numTransceivers} video transceiver(s), mode=${isMultiTrackMode() ? 'multitrack' : 'cluster'}`);
       log('Codecs (H264 first):', prefer.map(c => c.mimeType).join(', '));
     } catch (e) { log('Codec pref note:', e.message); }
 
@@ -618,8 +981,30 @@
       setSt('ice: ' + pc.iceConnectionState);
       log('ICE =', pc.iceConnectionState);
       if (pc.iceConnectionState === 'connected') logSelectedCandidatePair(pc);
+      else if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+        log('ICE connection failed, attempting to reconnect in 3 seconds...');
+        setTimeout(() => {
+          if (!isDisconnecting && ws.readyState === 1) {
+            log('Reconnecting due to ICE failure...');
+            disconnect();
+            setTimeout(() => run(), 1000);
+          }
+        }, 3000);
+      }
     };
-    pc.onconnectionstatechange = () => { log('PC  =', pc.connectionState); };
+    pc.onconnectionstatechange = () => { 
+      log('PC  =', pc.connectionState);
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        log('Connection lost, checking for reconnect...');
+        setTimeout(() => {
+          if (!isDisconnecting && (!multiPCs || multiPCs.every(pc => pc.connectionState !== 'connected'))) {
+            log('All connections failed, triggering reconnect...');
+            disconnect();
+            setTimeout(() => run(), 1000);
+          }
+        }, 2000);
+      }
+    };
     pc.onicecandidateerror = (e) => {
       try {
         log('ICE cand error:', JSON.stringify({
@@ -633,33 +1018,60 @@
     };
 
     pc.ontrack = ev => {
-      log('ontrack kind=', ev.track.kind, 'id=', ev.track && ev.track.id);
+      log('ontrack kind=', ev.track.kind, 'id=', ev.track && ev.track.id, 'trackIndex=', trackCount);
       if (ev.track && ev.track.kind === 'video') {
-        attachRemoteVideoTrack(ev.track);
-        startVideoWatchdog();
-
-        ev.track.onunmute = () => {
-          log('track:unmute kind=video');
+        const currentTrackIndex = trackCount;
+        trackCount++;
+        
+        if (isMultiTrackMode()) {
+          // Multi-track mode: each track goes to separate video element
+          const targetVideo = createVideoElement(currentTrackIndex);
+          const stream = new MediaStream([ev.track]);
+          videoStreams[currentTrackIndex] = stream;
+          targetVideo.srcObject = stream;
+          
+          log(`MultiTrack: Bound track ${currentTrackIndex} to video element`);
+          
+          try {
+            const p = targetVideo.play();
+            if (p && typeof p.catch === 'function') p.catch(e => log(`video[${currentTrackIndex}].play() blocked:`, e.message));
+          } catch (e) { log(`video[${currentTrackIndex}].play() error:`, e.message); }
+          
+          ev.track.onunmute = () => {
+            log(`track:unmute track=${currentTrackIndex}`);
+            targetVideo.srcObject = new MediaStream([ev.track]);
+            targetVideo.play().catch(() => {});
+          };
+          ev.track.onmute = () => log(`track:mute track=${currentTrackIndex}`);
+          ev.track.onended = () => log(`track:ended track=${currentTrackIndex}`);
+        } else {
+          // Cluster mode: single combined stream
           attachRemoteVideoTrack(ev.track);
-        };
-        ev.track.onmute = () => {
-          log('track:mute kind=video - PC state:', pc.connectionState, 'ICE state:', pc.iceConnectionState);
-          // Stronger recovery: Force restart connection if muted too long
-          setTimeout(() => {
-            if (ev.track && ev.track.muted && pc.connectionState === 'connected') {
-              log('Track still muted after 2s, forcing recovery...'); 
-              // Create fresh connection to recover
-              setTimeout(() => {
-                if (ev.track && ev.track.muted) {
-                  log('Track mute persists - triggering reconnect');
-                  disconnect();
-                  setTimeout(() => connect(), 1000);
-                }
-              }, 3000);
-            }
-          }, 2000);
-        };
-        ev.track.onended = () => log('track:ended kind=video');
+          startVideoWatchdog();
+
+          ev.track.onunmute = () => {
+            log('track:unmute kind=video');
+            attachRemoteVideoTrack(ev.track);
+          };
+          ev.track.onmute = () => {
+            log('track:mute kind=video - PC state:', pc.connectionState, 'ICE state:', pc.iceConnectionState);
+            // Stronger recovery: Force restart connection if muted too long
+            setTimeout(() => {
+              if (ev.track && ev.track.muted && pc.connectionState === 'connected') {
+                log('Track still muted after 2s, forcing recovery...'); 
+                // Create fresh connection to recover
+                setTimeout(() => {
+                  if (ev.track && ev.track.muted) {
+                    log('Track mute persists - triggering reconnect');
+                    disconnect();
+                    setTimeout(() => run(), 1000);
+                  }
+                }, 3000);
+              }
+            }, 2000);
+          };
+          ev.track.onended = () => log('track:ended kind=video');
+        }
       }
     };
 
@@ -811,11 +1223,25 @@
     };
   }
 
-  $('btn').onclick = run;
+  $('btn').onclick = () => {
+    if (isMultiTrackMode()) {
+      runMultiPC();
+    } else {
+      run();
+    }
+  };
 
   // Update bandwidth estimate on change
   $('monitors').onchange = updateBandwidthEstimate;
   $('bitrate').onchange = updateBandwidthEstimate;
+  
+  // Mode change handler
+  $('streamMode').onchange = () => {
+    const mode = $('streamMode').value;
+    log(`Mode changed to: ${mode}`);
+    // Update bandwidth estimate based on mode
+    updateBandwidthEstimate();
+  };
 
   // Initial calculation
   updateBandwidthEstimate();

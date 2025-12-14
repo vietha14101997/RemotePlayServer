@@ -1,0 +1,617 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.9
+[Encoder] AMD AMF (Hardware)
+[Guard] Detected stale session. Restoring previous snapshot before new capture...
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
+[Guard] Text size restored.
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] Virtual Display Driver disabled safely.
+[TextScale] Actual DPI for \\.\DISPLAY2: 96
+[Guard] Saved original text scale for \\.\DISPLAY2: 100%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY2: 1920x1080 [Physical]
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.9:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████████████
+█████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █ ███▄██ █ ▄▀▄ ▄█  ▄█      █▀▄█ ▄▄▄▄▄ ████
+████ █   █ ██  ▄▄█ ▄█▄ █▀██▀▄ ▀█▀▄▄▀ ▀█ ▀█ █   █ ████
+████ █▄▄▄█ █ █▀▄▄▄▄███ ▀ ▄▄▄ █ ▄█▀▄▄▀▀▄▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄▀ █ █▄▀▄█ █▄█ ▀▄▀▄█▄█▄█ ▀▄█▄▄▄▄▄▄▄████
+████  ▄ ▀ ▄▀▀▀▄▄▀▀ ▄▄ █▄▄  ▄ █  ▀▀█▄▀██▀▄ ▀▄▄█▀▄▄████
+█████▀▄▀██▄█  █▀▀▀▀▀█▀▀ ▀▀▀▀▄ ▀▄██ ▀▀▄█ ▄▄ ▀▄▀▀▄ ████
+████▄  ▀██▄▀█▄▄ █▄ ▀███▄█▀   ▀ ▄█  █▄ █▀█▄▄▀ █▄ ▀████
+████▀█▀▀ █▄█ ▄▀ ▄  █ █▀▀   █ ▄▄▀   ▄▀▄▀▀▄▄▀█ ▄ ▀ ████
+████▀█  ▀█▄ ▄▀ ▀██ ▀▄█  ▀▀▄▀▄█▄ ▀▀▀▀ ██▀ ▀ ▀▄██ ▀████
+████▀▄▄█▀ ▄  █ ▄▄▀█▀▄█▀▄ ▄▄▀ █▄█ ▄█  █▄▀▄  █ █ █▄████
+████▄    ▄▄▄ ▄ ▀ ▄ ▀▄█ ▀ ▄▄▄ █▄▀█▄█▀▄█▀  ▄▄▄ ▀█ ▄████
+████▀█ ▀ █▄█  ▀▄▄█▀  ▀▄▄ █▄█ ▄▀▄▀▄▀▄█  █ █▄█ █▀  ████
+█████▄ █▄▄▄▄▄▀█▀▀███  ▀▀ ▄▄▄ ▄ █▄█▀█▄█ █▄▄ ▄▄▀██ ████
+████▄█▄█▄ ▄█▀ ▄ ▄▄█▀▀▄▄█ ▄█▄▀ ▀▄ ▄█ ▀▄▄█▀▄█ ▀ ▄█ ████
+████▄▀ ▄ ▄▄▀█▄██▀▀▀▀██ ▄▀█▀███▀ ███▀█ ▀ ██▀█▀ ▀ █████
+████ ▀█▀ █▄   ▄▄▄ ▄   ▄█      ▄█▀▄▄█▀   ▀ ▄ ▄ ▄▀▀████
+█████▄ █▀▀▄ ▄▄   █▀▄▄█  ▄   ▄▀█   ▀ ▄ ▀▄▄█ ▄ ▀█ ▄████
+█████▀▀▀ █▄▄▄██▀▄███▀█▀▄ ▀█ ▄█▀███▀▄███▄████ ▀▀ ▄████
+████▄██▄▄█▄▄█ ▀▄▀ ▀▄█  ▄ ▄▄▄  █▀█ ▄▀ ▄▄▀ ▄▄▄ ▀██ ████
+████ ▄▄▄▄▄ █▀▄▄▀█▄ ▀▄▄   █▄█ ▀▀  ██ ▄▄▀▄ █▄█ ▀▀██████
+████ █   █ █▀▄▀▀▀█▀▀█▄▄▀ ▄   ██  █ ▀▄█ ▀ ▄   ▄  █████
+████ █▄▄▄█ █ █ ▀▀▄██▀ ▀█▀ ▄▀█▀█▀▀█ █▀▄ ▀█ ▄██▄███████
+████▄▄▄▄▄▄▄█▄██████▄▄██▄▄██▄▄██▄███▄▄███▄████▄▄█▄████
+█████████████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 6e9100cb-ecef-4f43-bead-5df9efa2de1d, mode=multitrack
+[MultiPC Signal] Client 6e9100cb-ecef-4f43-bead-5df9efa2de1d connected from 192.168.1.9
+[MultiPC Signal] Config: 4 monitors @ 1280x720, 30fps, 8000kbps/stream
+[MultiPC Signal] Applying new display config: 4 monitors @ 1280x720, 30 fps
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 2 (target total: 4)
+[VDD] Set monitor count to 2 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Added resolution 1280x720@60 to C:\VirtualDisplayDriver\vdd_settings.xml
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 4, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1280x720@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1280x720@60
+[Display] Setting \\.\DISPLAY14 [PHYSICAL] -> 1280x720@60
+[Display] Setting \\.\DISPLAY15 [PHYSICAL] -> 1280x720@60
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1280x720 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1280x720 [PHYSICAL]
+[Display]   • \\.\DISPLAY14 1280x720 [PHYSICAL]
+[Display]   • \\.\DISPLAY15 1280x720 [PHYSICAL]
+[MultiPC Signal] Available monitors: 4, using: 4
+[PerMonitorCapture] Initializing 4 monitors @ 30fps
+[PerMonitorCapture] Using adapter: AMD Radeon RX 7600
+[PerMonitorCapture] D3D11 device created
+[GpuColorConverter] Initialized 1280x720 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1280x720
+[GpuColorConverter] Initialized 1280x720 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1280x720
+[GpuColorConverter] Initialized 1280x720 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 2: \\.\DISPLAY14 1280x720
+[GpuColorConverter] Initialized 1280x720 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 3: \\.\DISPLAY15 1280x720
+[PerMonitorCapture] Initialized 4 monitors
+[MultiPC] Created: 4 monitors, 30fps, 8000kbps per stream
+[PerMonitorCapture] Capture started
+[PerMonitorCapture] Target 30fps, interval 33ms
+[MultiPC Signal] Received offer for monitor 0
+[MultiPC] Processing offer for monitor 0: 1280x720
+[MultiPC] Monitor 0 ICE connection state changed to: checking
+[MultiPC] Monitor 0 ICE is checking candidates...
+[MultiPC] Monitor 0 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 103 109 117 41 119
+[MultiPC] Monitor 0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC] Processing offer for monitor 1: 1280x720
+[MultiPC] m0 skip #1: encoder=False, ice=False
+[MultiPC] m1 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 1 ICE connection state changed to: checking
+[MultiPC] Monitor 1 ICE is checking candidates...
+[MultiPC] Monitor 1 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 103 109 117 41 119
+[MultiPC] Monitor 1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[Cluster Signal] Attempting to resolve mDNS: '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local'
+[MultiPC] m0 skip #2: encoder=False, ice=False
+[MultiPC] m1 skip #2: encoder=False, ice=False
+[MultiPC] m0 skip #3: encoder=False, ice=False
+[MultiPC] m1 skip #3: encoder=False, ice=False
+[Cluster Signal] mDNS resolved '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local' -> 192.168.1.9 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[MultiPC] Monitor 0 ICE connection state changed to: connected
+[MultiPC] Monitor 0 ICE CONNECTED - initializing encoder
+[AmfNativeWrapper] Initializing 1280x720 @ 30fps, 8000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] Encoder 0 ready: 1280x720
+[MultiPC] m0 staging created: 1280x720
+[MultiPC] Monitor 0 Peer connection state changed to: connecting
+[MultiPC] Monitor 0 Peer connection state changed to: connected
+[MultiPC] Monitor 0 Peer connection fully established
+[MultiPC] m0 Captured SPS: 36 bytes
+[MultiPC] m0 Captured PPS: 8 bytes
+[MultiPC] m0 #1: 142619B key=True rtpStep=3000 (injected=False) NAL=[7,8,5]
+[MultiPC] m0 #2: 151994B key=True rtpStep=3000 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #3: 49358B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #4: 99B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #5: 3143B key=False rtpStep=2999 NAL=[1]
+[Cluster Signal] mDNS resolve attempt 1/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] mDNS resolve attempt 2/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS fallback: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local' -> 192.168.1.9 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:3913049266 1 udp 2113939711 192.168.1.9 59672 typ host generation 0 ufrag wVrw network-cost 999
+[MultiPC Signal] Received offer for monitor 2
+[MultiPC] Processing offer for monitor 2: 1280x720
+[MultiPC] m2 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 2 ICE connection state changed to: checking
+[MultiPC] Monitor 2 ICE is checking candidates...
+[MultiPC] Monitor 2 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 103 109 117 41 119
+[MultiPC] Monitor 2 answer created
+[MultiPC Signal] Sent answer for monitor 2
+[Cluster Signal] Attempting to resolve mDNS: '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local'
+[Cluster Signal] mDNS resolved '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local' -> 192.168.1.9 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[MultiPC] Monitor 1 ICE connection state changed to: connected
+[MultiPC] Monitor 1 ICE CONNECTED - initializing encoder
+[AmfNativeWrapper] Initializing 1280x720 @ 30fps, 8000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] Encoder 1 ready: 1280x720
+[MultiPC] m2 skip #2: encoder=False, ice=False
+[MultiPC] Monitor 1 Peer connection state changed to: connecting
+[MultiPC] Monitor 1 Peer connection state changed to: connected
+[MultiPC] Monitor 1 Peer connection fully established
+[MultiPC] m1 staging created: 1280x720
+[MultiPC] m2 skip #3: encoder=False, ice=False
+[Cluster Signal] mDNS resolve attempt 2/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS fallback: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local' -> 192.168.1.9 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:2959564187 1 udp 2113939711 192.168.1.9 59674 typ host generation 0 ufrag 5HlX network-cost 999
+[MultiPC Signal] Received offer for monitor 3
+[MultiPC] Processing offer for monitor 3: 1280x720
+[MultiPC] m3 skip #1: encoder=False, ice=False
+[MultiPC] Monitor 3 ICE connection state changed to: checking
+[MultiPC] Monitor 3 ICE is checking candidates...
+[MultiPC] m1 Captured SPS: 36 bytes
+[MultiPC] m1 Captured PPS: 8 bytes
+[MultiPC] Monitor 3 Answer m-line: m=video 9 UDP/TLS/RTP/SAVPF 103 109 117 41 119
+[MultiPC] Monitor 3 answer created
+[MultiPC Signal] Sent answer for monitor 3
+[Cluster Signal] Attempting to resolve mDNS: '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local'
+[Cluster Signal] mDNS resolved '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local' -> 192.168.1.9 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[MultiPC] m1 #1: 83856B key=True rtpStep=3000 (injected=False) NAL=[7,8,5]
+[Cluster Signal] mDNS resolve attempt 1/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[MultiPC] m1 #2: 116960B key=True rtpStep=3000 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 skip #2: encoder=False, ice=False
+[MultiPC] Monitor 2 ICE connection state changed to: connected
+[MultiPC] Monitor 2 ICE CONNECTED - initializing encoder
+[AmfNativeWrapper] Initializing 1280x720 @ 30fps, 8000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] Encoder 2 ready: 1280x720
+[MultiPC] Monitor 2 Peer connection state changed to: connecting
+[MultiPC] Monitor 2 Peer connection state changed to: connected
+[MultiPC] Monitor 2 Peer connection fully established
+[MultiPC] m2 staging created: 1280x720
+[MultiPC] m3 skip #3: encoder=False, ice=False
+[Cluster Signal] mDNS resolve attempt 2/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS fallback: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local' -> 192.168.1.9 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:2206712899 1 udp 2113939711 192.168.1.9 59676 typ host generation 0 ufrag 0bQ0 network-cost 999
+[Cluster Signal] Attempting to resolve mDNS: '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local'
+[Cluster Signal] mDNS resolved '5100bd7e-2dd0-4b15-87a8-9e1a2f570165.local' -> 192.168.1.9 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[MultiPC] m1 #3: 24175B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 Captured SPS: 36 bytes
+[MultiPC] m2 Captured PPS: 8 bytes
+[MultiPC] m2 #1: 52416B key=True rtpStep=3000 (injected=False) NAL=[7,8,5]
+[MultiPC] m2 #2: 95775B key=True rtpStep=3000 (injected=True) NAL=[7,8,5]
+[MultiPC] Monitor 3 ICE connection state changed to: connected
+[MultiPC] Monitor 3 ICE CONNECTED - initializing encoder
+[AmfNativeWrapper] Initializing 1280x720 @ 30fps, 8000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] Encoder 3 ready: 1280x720
+[MultiPC] All 4 monitors connected!
+[MultiPC] Monitor 3 Peer connection state changed to: connecting
+[MultiPC] Monitor 3 Peer connection state changed to: connected
+[MultiPC] Monitor 3 Peer connection fully established
+[MultiPC] m1 #4: 16569B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 staging created: 1280x720
+[Cluster Signal] mDNS resolve attempt 2/2 failed for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local'
+[Cluster Signal] mDNS fallback: 'd4d3d5d9-9529-4dc0-958c-dbdf1c045e5c.local' -> 192.168.1.9 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:3633198489 1 udp 2113939711 192.168.1.9 59678 typ host generation 0 ufrag Lhql network-cost 999
+[MultiPC] m1 #5: 20235B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #3: 96B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 Captured SPS: 36 bytes
+[MultiPC] m3 Captured PPS: 8 bytes
+[MultiPC] m3 #1: 73263B key=True rtpStep=3000 (injected=False) NAL=[7,8,5]
+[MultiPC] m3 #2: 141435B key=True rtpStep=3000 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #4: 15B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #5: 121B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #3: 41B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #4: 11B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #5: 11B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #32: 129674B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #32: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #32: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #62: 258611B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #61: 114429B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #62: 120352B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #62: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #62: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #92: 281162B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #92: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #92: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #122: 287629B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #122: 162668B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #122: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #122: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #152: 287114B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #151: 162806B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #152: 162811B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #152: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #152: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #182: 288449B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #182: 165405B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #182: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #182: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #212: 298235B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #212: 182194B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #212: 219748B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #212: 297833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #242: 368856B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #242: 225690B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #242: 325651B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #242: 415933B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #271: 415075B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #272: 415075B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #271: 394809B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #272: 394808B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #272: 491719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #300: 6716B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #302: 413134B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #300: 11345B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #301: 253566B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #302: 253705B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #300: 16117B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #302: 394809B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #300: 14988B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #302: 491719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #331: 391259B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #332: 391306B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #332: 251635B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #332: 394809B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #331: 491719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #332: 491720B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #362: 248820B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #362: 394809B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #362: 491719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #392: 128199B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #422: 255169B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #422: 221850B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #422: 394809B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #422: 491719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #452: 286316B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #452: 179940B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #452: 394805B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #452: 491651B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #482: 278800B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #482: 180012B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #481: 394273B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #482: 394272B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #482: 491951B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #511: 224209B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #512: 224235B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #512: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #512: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #542: 159996B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #542: 176266B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #541: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #542: 395400B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #542: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #572: 175847B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #572: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #571: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #572: 492192B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #600: 32838B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #601: 146185B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #602: 146501B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #600: 6102B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #601: 170092B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #602: 169892B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #600: 16143B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #602: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #600: 17261B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #602: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #632: 169774B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #632: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #632: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #661: 170007B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #662: 170007B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #662: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #662: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #692: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #692: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #721: 143647B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #722: 144348B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #722: 169682B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #722: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #722: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #751: 165178B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #752: 165327B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #752: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #752: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #782: 169090B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #782: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #782: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #812: 169188B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #812: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #812: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #841: 124962B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #842: 120511B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #842: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #842: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #871: 144717B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #872: 145108B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #871: 108964B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #872: 157609B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #872: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #900: 21598B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #902: 146113B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #900: 63110B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #901: 104960B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #902: 102814B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #900: 16143B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #902: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #900: 16578B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #902: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #932: 146842B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #931: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #932: 395400B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #932: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #962: 170839B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #962: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #962: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #991: 146013B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #992: 144461B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #992: 169998B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #992: 395401B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #992: 492190B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1022: 140898B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1022: 119833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1022: 237033B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1021: 239624B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1022: 312138B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1052: 119833B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1052: 237033B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1052: 312138B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1081: 116836B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1082: 143911B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1082: 157573B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1082: 377026B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1082: 298304B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1112: 169834B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1112: 395402B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1112: 492191B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1141: 169282B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1142: 168873B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1142: 395402B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1142: 492191B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1172: 169177B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1172: 395402B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1172: 492191B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1200: 34217B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #1200: 18996B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #1202: 169294B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1200: 16142B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #1202: 395402B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1200: 14938B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #1202: 492191B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1232: 143719B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1231: 166425B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1232: 166778B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1232: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1232: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1262: 170034B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1261: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1262: 395432B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1262: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1292: 138517B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1292: 169333B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1292: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1292: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1322: 170035B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1322: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1351: 140499B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1352: 140844B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1351: 169955B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1352: 169621B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1352: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1352: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1382: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1382: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1411: 167262B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1412: 167265B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1412: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1412: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1441: 169008B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1442: 168785B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1442: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1442: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1472: 138523B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1472: 169224B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1472: 395431B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1472: 492256B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1500: 25722B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #1502: 162820B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1500: 11904B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #1502: 174100B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1500: 16108B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m2 #1502: 395406B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1500: 16579B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #1502: 492233B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1532: 169953B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1532: 395406B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1532: 492233B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1561: 134941B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1562: 135132B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1561: 168235B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1562: 168062B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1562: 395406B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1562: 492233B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1591: 139323B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1592: 138556B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1592: 169472B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1592: 395406B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1622: 140466B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1622: 395406B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1622: 492233B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1652: 168129B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1652: 395359B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1652: 492137B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1682: 395496B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1682: 492325B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1712: 184567B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1712: 174704B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1712: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1712: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1742: 179770B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1742: 180943B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1742: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1742: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1772: 180467B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1772: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1772: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1800: 6981B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #1802: 174409B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1800: 5276B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m1 #1802: 179522B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1800: 16135B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m3 #1800: 16598B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #1832: 175180B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1832: 179850B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1832: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1831: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1832: 492713B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1862: 175733B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1861: 179921B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1862: 180102B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1862: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1862: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1892: 177300B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1892: 180394B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1892: 395870B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1892: 492712B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1922: 115344B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1922: 180589B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1922: 395359B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1921: 492137B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1922: 492138B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1951: 153239B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1952: 153626B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1952: 167885B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1952: 395359B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #1952: 492137B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1981: 155948B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #1982: 157371B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m1 #1982: 176978B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #1982: 395375B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #2011: 161886B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #2012: 162169B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #2012: 395375B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #2042: 394733B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #2042: 491589B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m2 #2072: 394733B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m3 #2072: 491589B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #2100: 32696B key=False rtpStep=2999 NAL=[1]
+[MultiPC] m0 #2101: 246929B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[MultiPC] m0 #2102: 257634B key=True rtpStep=2999 (injected=True) NAL=[7,8,5]
+[AmfNativeWrapper] Disposed
+[MultiPC] Monitor 0 Peer connection state changed to: closed
+[MultiPC] Monitor 0 Peer connection closed
+[AmfNativeWrapper] Disposed
+[MultiPC] Monitor 1 Peer connection state changed to: closed
+[MultiPC] Monitor 1 Peer connection closed
+[AmfNativeWrapper] Disposed
+[MultiPC] Monitor 2 Peer connection state changed to: closed
+[MultiPC] Monitor 2 Peer connection closed
+[AmfNativeWrapper] Disposed
+[MultiPC] Monitor 3 Peer connection state changed to: closed
+[MultiPC] Monitor 3 Peer connection closed
+[MultiPC] Stopped
+[PerMonitorCapture] Capture stopped
+[PerMonitorCapture] Capture stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1, \\.\DISPLAY14, \\.\DISPLAY15
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[2025-12-14 23:11:38.554] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected 6e9100cb-ecef-4f43-bead-5df9efa2de1d

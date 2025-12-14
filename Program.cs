@@ -69,7 +69,7 @@ partial class Program
         return false;
     }
 
-    internal static async Task<string> MaybeResolveMdnsCandidateAsync(string candStr, int timeoutMs = 1200)
+    internal static async Task<string> MaybeResolveMdnsCandidateAsync(string candStr, int timeoutMs = 2000)
     {
         // Chrome/Edge may hide local IPs by using mDNS hostnames like "<uuid>.local".
         // SIPSorcery does not resolve these automatically; resolve via OS (Windows supports mDNS) and rewrite candidate.
@@ -79,7 +79,9 @@ partial class Program
         var addr = parts[4];
         if (!addr.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return candStr;
 
-        const int maxAttempts = 4;
+        Console.WriteLine($"[Cluster Signal] Attempting to resolve mDNS: '{addr}'");
+        
+        const int maxAttempts = 2; // Reduced attempts to speed up fallback
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
@@ -88,15 +90,15 @@ partial class Program
                 var completed = await Task.WhenAny(resolveTask, Task.Delay(timeoutMs));
                 if (completed != resolveTask)
                 {
-                    Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve timed out for '{addr}' (timeout={timeoutMs}ms)");
-                    return candStr;
+                    Console.WriteLine($"[Cluster Signal] mDNS resolve timed out for '{addr}' (attempt {attempt}/{maxAttempts}, timeout={timeoutMs}ms)");
+                    return candStr; // Return original to trigger fallback faster
                 }
 
                 var addrs = resolveTask.Result;
                 if (addrs == null || addrs.Length == 0)
                 {
-                    Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve returned no addresses for '{addr}'");
-                    return candStr;
+                    Console.WriteLine($"[Cluster Signal] mDNS resolve returned no addresses for '{addr}' (attempt {attempt}/{maxAttempts})");
+                    return candStr; // Return original to trigger fallback
                 }
 
                 var chosen = addrs.FirstOrDefault(IsPrivateV4)
@@ -104,19 +106,20 @@ partial class Program
                           ?? addrs[0];
 
                 parts[4] = chosen.ToString();
-                Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]}");
+                Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]} after {attempt} attempt(s)");
                 return string.Join(' ', parts);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[Cluster Signal] mDNS resolve attempt {attempt}/{maxAttempts} failed for '{addr}': {ex.Message}");
                 if (attempt < maxAttempts)
                 {
-                    await Task.Delay(200);
-                    continue;
+                    await Task.Delay(100);
                 }
-
-                Console.WriteLine($"[Cluster Signal] WARNING: mDNS resolve failed for '{addr}': {ex.Message}");
-                return candStr;
+                else
+                {
+                    Console.WriteLine($"[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '{addr}'");
+                }
             }
         }
 
@@ -133,9 +136,14 @@ partial class Program
         var addr = parts[4];
         if (!addr.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return candStr;
 
+        // Replace mDNS hostname with remote IP immediately for faster connection
         parts[4] = remoteIp.ToString();
+        var newCandStr = string.Join(' ', parts);
+        
         Console.WriteLine($"[Cluster Signal] mDNS fallback: '{addr}' -> {parts[4]} (using remote IP)");
-        return string.Join(' ', parts);
+        Console.WriteLine($"[Cluster Signal] Rewritten candidate: {newCandStr}");
+        
+        return newCandStr;
     }
 
     static string DetectEncoder()
@@ -894,8 +902,20 @@ public class SignalAndRestServer
                 var wsCtx = await ctx.AcceptWebSocketAsync(null);
                 var clientId = Guid.NewGuid();
                 var remoteIp = ctx.Request.RemoteEndPoint?.Address;
-                Console.WriteLine($"[Signal] Client connected {clientId}");
-                _ = Task.Run(() => HandleClusterClient(clientId, wsCtx.WebSocket, qs, remoteIp));
+                var mode = qs.Get("mode") ?? "cluster";
+                
+                Console.WriteLine($"[Signal] Client connected {clientId}, mode={mode}");
+                
+                if (mode.Equals("multitrack", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Multi-track mode: N separate streams, one per monitor
+                    _ = Task.Run(() => HandleMultiTrackClient(clientId, wsCtx.WebSocket, qs, remoteIp));
+                }
+                else
+                {
+                    // Default cluster mode: combined stream
+                    _ = Task.Run(() => HandleClusterClient(clientId, wsCtx.WebSocket, qs, remoteIp));
+                }
                 continue;
             }
 
@@ -1578,6 +1598,317 @@ public class SignalAndRestServer
 
             try { await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None); } catch { }
             Console.WriteLine($"[Signal] Cluster client disconnected {id}");
+        }
+    }
+
+    // Multi-PC capture instance (shared)
+    private PerMonitorCapture? _multiPCCapture;
+    private readonly object _multiPCLock = new();
+
+    /// <summary>
+    /// Handle multi-PC mode: N separate PeerConnections, one per monitor.
+    /// Protocol (multiplexed over single WebSocket):
+    /// - Client: "offer:N:sdp" for monitor N
+    /// - Server: "answer:N:sdp" for monitor N  
+    /// - ICE: "candidate:N:candidate" for monitor N
+    /// </summary>
+    private async Task HandleMultiTrackClient(Guid id, System.Net.WebSockets.WebSocket ws,
+        System.Collections.Specialized.NameValueCollection qs,
+        System.Net.IPAddress? remoteIp)
+    {
+        CancellationTokenSource? stopCapture = null;
+        Thread? capThread = null;
+        RemotePlayServer.Encoding.MultiPCStreamer? streamer = null;
+        
+        // Pending ICE per monitor
+        var pendingIce = new Dictionary<int, List<string>>();
+        var iceLock = new object();
+        var answersReady = new HashSet<int>();
+
+        Console.WriteLine($"[MultiPC Signal] Client {id} connected from {remoteIp}");
+
+        int fps = TryParseInt(qs.Get("fps"), DisplayConfig.StreamFps, 5, 120);
+        int kbps = TryParseInt(qs.Get("kbps"), 4000, 0, 50000);
+        int reqMonitors = TryParseInt(qs.Get("monitors"), 2, 1, 6);
+        int reqResW = TryParseInt(qs.Get("resW"), 1920, 640, 1920);
+        int reqResH = TryParseInt(qs.Get("resH"), 1080, 480, 1080);
+        string? preferGpu = qs.Get("preferGpu");
+
+        Console.WriteLine($"[MultiPC Signal] Config: {reqMonitors} monitors @ {reqResW}x{reqResH}, {fps}fps, {kbps}kbps/stream");
+
+        // Apply display configuration if changed (like Cluster mode)
+        bool noActiveCapture;
+        lock (_multiPCLock) { noActiveCapture = _multiPCCapture == null; }
+        bool configChanged = (reqMonitors != DisplayConfig.MonitorCount ||
+                              reqResW != DisplayConfig.MonitorWidth ||
+                              reqResH != DisplayConfig.MonitorHeight ||
+                              fps != DisplayConfig.StreamFps);
+
+        if (configChanged || noActiveCapture)
+        {
+            Console.WriteLine($"[MultiPC Signal] Applying new display config: {reqMonitors} monitors @ {reqResW}x{reqResH}, {fps} fps");
+            
+            // Stop existing capture if config changed
+            lock (_multiPCLock)
+            {
+                if (_multiPCCapture != null && configChanged)
+                {
+                    Console.WriteLine("[MultiPC Signal] Stopping existing capture for reconfiguration...");
+                    _multiPCCapture.Stop();
+                    _multiPCCapture.Dispose();
+                    _multiPCCapture = null;
+                }
+            }
+
+            // Update config
+            DisplayConfig.MonitorCount = reqMonitors;
+            DisplayConfig.MonitorWidth = reqResW;
+            DisplayConfig.MonitorHeight = reqResH;
+            DisplayConfig.StreamFps = fps;
+
+            // Apply VDD and resolution changes (same as Cluster mode)
+            await Task.Run(() => {
+                StartupSteps.EnsureVddResolutionThenToggleDriver();
+                Thread.Sleep(2000);
+                StartupSteps.EnsureExtendDesktopWithVirtual();
+                Thread.Sleep(1000);
+            });
+        }
+
+        // Setup monitors (refresh after VDD changes)
+        var monsNow = WgcInterop.ListMonitorsDXGI();
+        _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+        int actualMonitors = Math.Min(reqMonitors, _monitors.Count);
+        
+        Console.WriteLine($"[MultiPC Signal] Available monitors: {_monitors.Count}, using: {actualMonitors}");
+
+        // Create capture
+        PerMonitorCapture capture;
+        lock (_multiPCLock)
+        {
+            if (_multiPCCapture == null)
+            {
+                _multiPCCapture = new PerMonitorCapture(
+                    _monitors.Take(actualMonitors).ToList(),
+                    targetFps: fps,
+                    preferredGpu: preferGpu);
+            }
+            capture = _multiPCCapture;
+        }
+
+        // Create MultiPCStreamer
+        streamer = new RemotePlayServer.Encoding.MultiPCStreamer(actualMonitors, fps, kbps, capture.Device);
+
+        // ICE candidate forwarding with monitor index
+        streamer.OnIceCandidate += (monitorIndex, candidate) =>
+        {
+            try
+            {
+                if (ws.State != System.Net.WebSockets.WebSocketState.Open) return;
+                var msg = $"candidate:{monitorIndex}:{candidate}";
+                _ = ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
+                    System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+            catch { }
+        };
+
+        // RX loop - handle multiplexed offers and ICE
+        var rxLoop = Task.Run(async () =>
+        {
+            var buf = new byte[128 * 1024];
+            var ms = new System.IO.MemoryStream();
+
+            try
+            {
+                while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    var res = await ws.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None);
+                    if (res.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
+                    ms.Write(buf, 0, res.Count);
+                    if (!res.EndOfMessage) continue;
+                    var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
+
+                    // Ping/pong
+                    if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")),
+                            System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        continue;
+                    }
+
+                    // offer:N:sdp - Offer for monitor N
+                    if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var rest = text.Substring(6);
+                        var colonIdx = rest.IndexOf(':');
+                        if (colonIdx > 0 && int.TryParse(rest.Substring(0, colonIdx), out int monIdx))
+                        {
+                            var offerSdp = rest.Substring(colonIdx + 1);
+                            Console.WriteLine($"[MultiPC Signal] Received offer for monitor {monIdx}");
+                            
+                            try
+                            {
+                                var answerSdp = await streamer.ProcessOfferAsync(monIdx, offerSdp, reqResW, reqResH);
+                                
+                                // Send answer
+                                var answerMsg = $"answer:{monIdx}:{answerSdp}";
+                                await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(answerMsg)),
+                                    System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                                Console.WriteLine($"[MultiPC Signal] Sent answer for monitor {monIdx}");
+                                
+                                lock (iceLock)
+                                {
+                                    answersReady.Add(monIdx);
+                                    // Process pending ICE for this monitor
+                                    if (pendingIce.TryGetValue(monIdx, out var pending))
+                                    {
+                                        foreach (var cand in pending)
+                                            streamer.AddIceCandidate(monIdx, cand);
+                                        pending.Clear();
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[MultiPC Signal] ProcessOffer error m{monIdx}: {ex.Message}");
+                            }
+                        }
+                        continue;
+                    }
+
+                    // candidate:N:candidate - ICE for monitor N
+                    if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var rest = text.Substring(10);
+                        var colonIdx = rest.IndexOf(':');
+                        if (colonIdx > 0 && int.TryParse(rest.Substring(0, colonIdx), out int monIdx))
+                        {
+                            var candStr = rest.Substring(colonIdx + 1);
+                            candStr = await Program.MaybeResolveMdnsCandidateAsync(candStr);
+                            candStr = Program.MaybeReplaceMdnsWithRemoteIp(candStr, remoteIp);
+                            
+                            lock (iceLock)
+                            {
+                                if (answersReady.Contains(monIdx))
+                                {
+                                    streamer.AddIceCandidate(monIdx, candStr);
+                                }
+                                else
+                                {
+                                    if (!pendingIce.ContainsKey(monIdx))
+                                        pendingIce[monIdx] = new List<string>();
+                                    pendingIce[monIdx].Add(candStr);
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"[MultiPC RX] {ex.Message}"); }
+        });
+
+        // Frame timing tracking for MultiTrack
+        var frameTiming = new ConcurrentQueue<(long frameNum, long captureTime)>();
+        long frameCount = 0;
+        long lastTimingSyncTime = 0;
+
+        try
+        {
+            // Start capture thread
+            stopCapture = new CancellationTokenSource();
+            capThread = new Thread(() =>
+            {
+                try { RoInitialize(1); } catch { }
+                try
+                {
+                    capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
+                    {
+                        streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
+                        // Track frame timing (only for monitor 0 to avoid duplicates)
+                        if (monitorIndex == 0)
+                        {
+                            var fn = Interlocked.Increment(ref frameCount);
+                            frameTiming.Enqueue((fn, timestamp));
+                            while (frameTiming.Count > 30) frameTiming.TryDequeue(out _);
+                        }
+                    };
+                    capture.Start();
+                    stopCapture.Token.WaitHandle.WaitOne();
+                }
+                catch (Exception ex) { Console.WriteLine($"[MultiPC Capture] {ex.Message}"); }
+            })
+            { IsBackground = true, Name = "MultiPC-Capture" };
+            capThread.Start();
+
+            // Start timing sync task to send frame timing data to client (like Cluster mode)
+            var timingSyncTask = Task.Run(async () =>
+            {
+                while (!stopCapture.Token.IsCancellationRequested && ws.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    try
+                    {
+                        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                        if (now - lastTimingSyncTime >= 1000)
+                        {
+                            lastTimingSyncTime = now;
+                            var recentFrames = frameTiming.ToArray().TakeLast(10).ToArray();
+                            if (recentFrames.Length > 0)
+                            {
+                                var timingData = new {
+                                    type = "frameTiming",
+                                    serverTime = now,
+                                    currentFrame = frameCount,
+                                    recentFrames = recentFrames.Select(f => new { frameNum = f.frameNum, captureTime = f.captureTime }).ToArray()
+                                };
+                                var json = System.Text.Json.JsonSerializer.Serialize(timingData);
+                                await ws.SendAsync(new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(json)),
+                                    System.Net.WebSockets.WebSocketMessageType.Text, true, stopCapture.Token);
+                            }
+                        }
+                        await Task.Delay(500, stopCapture.Token);
+                    }
+                    catch (OperationCanceledException) { break; }
+                    catch { }
+                }
+            });
+
+            // Wait for connection close
+            while (ws.State == System.Net.WebSockets.WebSocketState.Open) 
+                await Task.Delay(200);
+            await rxLoop;
+        }
+        catch (Exception ex) { Console.WriteLine($"[MultiPC Signal] {ex.Message}"); }
+        finally
+        {
+            try { stopCapture?.Cancel(); } catch { }
+            try { capThread?.Join(500); } catch { }
+            streamer?.Dispose();
+
+            lock (_multiPCLock)
+            {
+                if (_multiPCCapture != null)
+                {
+                    _multiPCCapture.Stop();
+                    _multiPCCapture.Dispose();
+                    _multiPCCapture = null;
+                    
+                    // Restore display settings after client disconnect (like Cluster mode)
+                    Console.WriteLine("[Guard] Restoring display settings after MultiPC client disconnect...");
+                    try
+                    {
+                        DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
+                        Console.WriteLine("[Guard] Display settings restored.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Guard] Restore failed: {ex.Message}");
+                    }
+                }
+            }
+
+            try { await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None); } catch { }
+            Console.WriteLine($"[Signal] MultiPC client disconnected {id}");
         }
     }
 
