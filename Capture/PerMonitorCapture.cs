@@ -8,7 +8,8 @@ using Vortice.DXGI;
 
 /// <summary>
 /// Captures individual monitors separately (not combined).
-/// Each monitor produces its own NV12 texture stream for multi-track encoding.
+/// Each monitor has its own D3D11 Device and capture thread for TRUE PARALLEL capture.
+/// This eliminates context serialization bottleneck when capturing multiple monitors.
 /// </summary>
 public sealed class PerMonitorCapture : IDisposable
 {
@@ -23,6 +24,10 @@ public sealed class PerMonitorCapture : IDisposable
         public string Name { get; set; } = "";
         public int Width { get; set; }
         public int Height { get; set; }
+        
+        // Per-monitor D3D11 resources (isolated - no context contention!)
+        public ID3D11Device? Device { get; set; }
+        public ID3D11DeviceContext? Context { get; set; }
         public IDXGIOutputDuplication? Duplication { get; set; }
         public ID3D11Texture2D? LastFrame { get; set; }
         public GpuColorConverter? ColorConverter { get; set; }
@@ -30,16 +35,22 @@ public sealed class PerMonitorCapture : IDisposable
         // For NVIDIA software conversion path (NV12 bytes, not texture)
         public ID3D11Texture2D? BgraStagingTexture { get; set; }
         public byte[]? Nv12Buffer { get; set; }
+        
+        // Per-monitor capture thread
+        public Thread? CaptureThread { get; set; }
+        public volatile bool Running;
+        
+        // GPU vendor detection per monitor
+        public bool IsNvidia { get; set; }
+        
+        // FPS tracking for diagnostics
+        public long CaptureFrameCount;
+        public long LastFpsLogTime;
+        public long LastFpsLogFrameCount;
     }
     
-    // NVIDIA needs special handling - Video Processor doesn't work with Desktop Duplication
-    private bool _isNvidia = false;
-
-    private readonly ID3D11Device _device;
-    private readonly ID3D11DeviceContext _context;
-    
     private volatile bool _running;
-    private Thread? _captureThread;
+    private string? _preferredGpu;
 
     /// <summary>
     /// Callback for each monitor's NV12 texture frame.
@@ -54,9 +65,19 @@ public sealed class PerMonitorCapture : IDisposable
     public event Action<int, byte[], int, int, long>? OnMonitorNV12Bytes;
 
     /// <summary>
-    /// Expose D3D11 device for encoder initialization
+    /// Get D3D11 device for a specific monitor (for encoder initialization)
     /// </summary>
-    public ID3D11Device Device => _device;
+    public ID3D11Device? GetDeviceForMonitor(int monitorIndex)
+    {
+        if (monitorIndex >= 0 && monitorIndex < Monitors.Count)
+            return Monitors[monitorIndex].Device;
+        return null;
+    }
+
+    /// <summary>
+    /// Expose first monitor's device for backward compatibility
+    /// </summary>
+    public ID3D11Device Device => Monitors.Count > 0 ? Monitors[0].Device! : throw new InvalidOperationException("No monitors");
 
     public PerMonitorCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int targetFps = 30, string? preferredGpu = null)
     {
@@ -65,82 +86,13 @@ public sealed class PerMonitorCapture : IDisposable
 
         MonitorCount = monitors.Count;
         TargetFps = Math.Clamp(targetFps, 10, 60);
+        _preferredGpu = preferredGpu;
 
-        Console.WriteLine($"[PerMonitorCapture] Initializing {MonitorCount} monitors @ {TargetFps}fps");
+        Console.WriteLine($"[PerMonitorCapture] Initializing {MonitorCount} monitors @ {TargetFps}fps (PARALLEL MODE - separate D3D11 devices)");
 
-        // Find adapter
         using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
-        
-        IDXGIAdapter1? primaryAdapter = null;
-        
-        // Try preferred GPU
-        if (!string.IsNullOrEmpty(preferredGpu))
-        {
-            for (uint ai = 0; ; ai++)
-            {
-                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
-                var adapterDesc = adapter.Description.Description.ToLowerInvariant();
-                bool matches = preferredGpu.ToLowerInvariant() switch
-                {
-                    "intel" => adapterDesc.Contains("intel"),
-                    "amd" => adapterDesc.Contains("amd") || adapterDesc.Contains("radeon"),
-                    "nvidia" => adapterDesc.Contains("nvidia") || adapterDesc.Contains("geforce"),
-                    _ => false
-                };
-                if (matches)
-                {
-                    primaryAdapter = adapter;
-                    Console.WriteLine($"[PerMonitorCapture] Using preferred adapter: {adapter.Description.Description}");
-                    break;
-                }
-                adapter.Dispose();
-            }
-        }
-        
-        // Fallback: find by first monitor
-        if (primaryAdapter == null)
-        {
-            for (uint ai = 0; ; ai++)
-            {
-                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
-                for (uint oi = 0; ; oi++)
-                {
-                    if (adapter.EnumOutputs(oi, out var output).Failure) break;
-                    if (output.Description.Monitor == monitors[0].hmon)
-                    {
-                        primaryAdapter = adapter;
-                        Console.WriteLine($"[PerMonitorCapture] Using adapter: {adapter.Description.Description}");
-                        output.Dispose();
-                        break;
-                    }
-                    output.Dispose();
-                }
-                if (primaryAdapter != null) break;
-                adapter.Dispose();
-            }
-        }
 
-        if (primaryAdapter == null)
-            throw new InvalidOperationException("Could not find adapter for monitors");
-
-        // Create D3D11 device
-        var levels = new[] { FeatureLevel.Level_11_0 };
-        D3D11.D3D11CreateDevice(
-            primaryAdapter,
-            DriverType.Unknown,
-            DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
-            levels,
-            out _device,
-            out _context
-        );
-        // Detect if NVIDIA for special handling
-        var adapterName = primaryAdapter.Description.Description.ToUpperInvariant();
-        _isNvidia = adapterName.Contains("NVIDIA") || adapterName.Contains("GEFORCE") || 
-                    adapterName.Contains("GTX") || adapterName.Contains("RTX");
-        primaryAdapter.Dispose();
-        Console.WriteLine($"[PerMonitorCapture] D3D11 device created (NVIDIA={_isNvidia})");
-
-        // Setup each monitor
+        // Setup each monitor with its OWN D3D11 device
         for (int i = 0; i < monitors.Count; i++)
         {
             var mon = monitors[i];
@@ -153,45 +105,110 @@ public sealed class PerMonitorCapture : IDisposable
                 Height = mon.h
             };
 
-            // Find output duplication
+            // Find adapter for this monitor
+            IDXGIAdapter1? monitorAdapter = null;
             IDXGIOutput? targetOutput = null;
-            for (uint ai = 0; ; ai++)
+            
+            // First try preferred GPU
+            if (!string.IsNullOrEmpty(preferredGpu))
             {
-                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
-                for (uint oi = 0; ; oi++)
+                for (uint ai = 0; ; ai++)
                 {
-                    if (adapter.EnumOutputs(oi, out var output).Failure) break;
-                    if (output.Description.Monitor == mon.hmon)
+                    if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
+                    var adapterDesc = adapter.Description.Description.ToLowerInvariant();
+                    bool matches = preferredGpu.ToLowerInvariant() switch
                     {
-                        targetOutput = output;
-                        break;
+                        "intel" => adapterDesc.Contains("intel"),
+                        "amd" => adapterDesc.Contains("amd") || adapterDesc.Contains("radeon"),
+                        "nvidia" => adapterDesc.Contains("nvidia") || adapterDesc.Contains("geforce"),
+                        _ => false
+                    };
+                    if (matches)
+                    {
+                        // Check if this adapter has our monitor
+                        for (uint oi = 0; ; oi++)
+                        {
+                            if (adapter.EnumOutputs(oi, out var output).Failure) break;
+                            if (output.Description.Monitor == mon.hmon)
+                            {
+                                monitorAdapter = adapter;
+                                targetOutput = output;
+                                break;
+                            }
+                            output.Dispose();
+                        }
+                        if (monitorAdapter != null) break;
                     }
-                    output.Dispose();
+                    adapter.Dispose();
                 }
-                adapter.Dispose();
-                if (targetOutput != null) break;
+            }
+            
+            // Fallback: find adapter by monitor handle
+            if (monitorAdapter == null)
+            {
+                for (uint ai = 0; ; ai++)
+                {
+                    if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
+                    for (uint oi = 0; ; oi++)
+                    {
+                        if (adapter.EnumOutputs(oi, out var output).Failure) break;
+                        if (output.Description.Monitor == mon.hmon)
+                        {
+                            monitorAdapter = adapter;
+                            targetOutput = output;
+                            break;
+                        }
+                        output.Dispose();
+                    }
+                    if (monitorAdapter != null) break;
+                    adapter.Dispose();
+                }
             }
 
+            if (monitorAdapter == null)
+            {
+                Console.WriteLine($"[PerMonitorCapture] Warning: No adapter for monitor {i} ({mon.name})");
+                Monitors.Add(info);
+                continue;
+            }
+
+            // Detect GPU vendor for this monitor
+            var adapterName = monitorAdapter.Description.Description.ToUpperInvariant();
+            info.IsNvidia = adapterName.Contains("NVIDIA") || adapterName.Contains("GEFORCE") || 
+                            adapterName.Contains("GTX") || adapterName.Contains("RTX");
+
+            // Create SEPARATE D3D11 device for THIS monitor
+            var levels = new FeatureLevel[] { FeatureLevel.Level_11_0 };
+            ID3D11Device device;
+            ID3D11DeviceContext context;
+            D3D11.D3D11CreateDevice(
+                monitorAdapter,
+                DriverType.Unknown,
+                DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
+                levels,
+                out device,
+                out context
+            );
+            
+            info.Device = device;
+            info.Context = context;
+            
+            Console.WriteLine($"[PerMonitorCapture] Monitor {i}: Created D3D11 device (adapter={monitorAdapter.Description.Description}, NVIDIA={info.IsNvidia})");
+            
+            // Create output duplication using THIS monitor's device
             if (targetOutput != null)
             {
                 using var output1 = targetOutput.QueryInterface<IDXGIOutput1>();
                 targetOutput.Dispose();
-                info.Duplication = output1.DuplicateOutput(_device);
-                
-                // NOTE: Don't create GpuColorConverter here - use lazy init in CaptureLoop
-                // This avoids issues with Video Processor when display config changes after init
-                
-                Console.WriteLine($"[PerMonitorCapture] Monitor {i}: {mon.name} {mon.w}x{mon.h}");
+                info.Duplication = output1.DuplicateOutput(device);
+                Console.WriteLine($"[PerMonitorCapture] Monitor {i}: {mon.name} {mon.w}x{mon.h} - duplication ready");
             }
-            else
-            {
-                Console.WriteLine($"[PerMonitorCapture] Warning: No output for {mon.name}");
-            }
-
+            
+            monitorAdapter.Dispose();
             Monitors.Add(info);
         }
 
-        Console.WriteLine($"[PerMonitorCapture] Initialized {Monitors.Count} monitors");
+        Console.WriteLine($"[PerMonitorCapture] Initialized {Monitors.Count} monitors with SEPARATE D3D11 devices");
     }
 
     public void Start()
@@ -199,123 +216,158 @@ public sealed class PerMonitorCapture : IDisposable
         if (_running) return;
         _running = true;
 
-        _captureThread = new Thread(CaptureLoop)
+        // Start SEPARATE capture thread for EACH monitor (true parallelism!)
+        foreach (var mon in Monitors)
         {
-            IsBackground = true,
-            Name = "PerMonitor-Capture"
-        };
-        _captureThread.Start();
-        Console.WriteLine("[PerMonitorCapture] Capture started");
+            if (mon.Device == null || mon.Duplication == null) continue;
+            
+            mon.Running = true;
+            mon.CaptureThread = new Thread(() => CaptureLoopForMonitor(mon))
+            {
+                IsBackground = true,
+                Name = $"Capture-Mon{mon.Index}"
+            };
+            mon.CaptureThread.Start();
+        }
+        
+        Console.WriteLine($"[PerMonitorCapture] Started {Monitors.Count} parallel capture threads");
     }
 
     public void Stop()
     {
         _running = false;
-        _captureThread?.Join(1000);
-        Console.WriteLine("[PerMonitorCapture] Capture stopped");
+        
+        // Stop all monitor threads
+        foreach (var mon in Monitors)
+        {
+            mon.Running = false;
+        }
+        
+        // Wait for threads to finish
+        foreach (var mon in Monitors)
+        {
+            mon.CaptureThread?.Join(1000);
+        }
+        
+        Console.WriteLine("[PerMonitorCapture] All capture threads stopped");
     }
 
-    private void CaptureLoop()
+    /// <summary>
+    /// Capture loop for a single monitor - runs in its own thread with its own D3D11 device
+    /// No context contention with other monitors!
+    /// </summary>
+    private void CaptureLoopForMonitor(MonitorInfo mon)
     {
         int frameTimeMs = 1000 / TargetFps;
-        Console.WriteLine($"[PerMonitorCapture] Target {TargetFps}fps, interval {frameTimeMs}ms");
+        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread started @ {TargetFps}fps");
         var sw = System.Diagnostics.Stopwatch.StartNew();
+        mon.LastFpsLogTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        mon.LastFpsLogFrameCount = 0;
+        mon.CaptureFrameCount = 0;
 
-        while (_running)
+        while (mon.Running && _running)
         {
             try
             {
                 long captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                // Capture each monitor
-                foreach (var mon in Monitors)
+                
+                // FPS logging every 3 seconds
+                long timeSinceLastLog = captureTimestamp - mon.LastFpsLogTime;
+                if (timeSinceLastLog >= 3000)
                 {
-                    if (mon.Duplication == null) continue;
+                    long framesSinceLastLog = mon.CaptureFrameCount - mon.LastFpsLogFrameCount;
+                    double fps = framesSinceLastLog * 1000.0 / timeSinceLastLog;
+                    Console.WriteLine($"[Capture FPS] Mon{mon.Index}: {fps:F1} fps (captured {framesSinceLastLog} frames in {timeSinceLastLog}ms)");
+                    mon.LastFpsLogTime = captureTimestamp;
+                    mon.LastFpsLogFrameCount = mon.CaptureFrameCount;
+                }
 
-                    var result = mon.Duplication.AcquireNextFrame(5, out var frameInfo, out var desktopResource);
+                if (mon.Duplication == null) continue;
+
+                var result = mon.Duplication.AcquireNextFrame(8, out var frameInfo, out var desktopResource);
+                
+                if (result.Success && desktopResource != null)
+                {
+                    mon.CaptureFrameCount++;
                     
-                    if (result.Success && desktopResource != null)
+                    try
                     {
-                        try
+                        using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
+                        
+                        if (mon.IsNvidia)
                         {
-                            using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
+                            // NVIDIA path: Software BGRA->NV12 conversion
+                            var nv12Bytes = ConvertFrameForNvidiaToByte(mon, texture);
+                            if (nv12Bytes != null)
+                            {
+                                OnMonitorNV12Bytes?.Invoke(mon.Index, nv12Bytes, mon.Width, mon.Height, captureTimestamp);
+                            }
+                        }
+                        else
+                        {
+                            // AMD/Intel path: GPU Video Processor conversion
+                            if (mon.ColorConverter == null && mon.Device != null)
+                            {
+                                mon.ColorConverter = new GpuColorConverter(mon.Device, mon.Width, mon.Height);
+                                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created");
+                            }
                             
-                            // NVIDIA path: Use software conversion to NV12 bytes (not texture!)
-                            // This matches how Cluster mode works with NVIDIA - bytes path is compatible
-                            if (_isNvidia)
+                            // Keep a copy for static screen (no new frames)
+                            if (mon.LastFrame == null && mon.Device != null)
                             {
-                                var nv12Bytes = ConvertFrameForNvidiaToByte(mon, texture);
-                                if (nv12Bytes != null)
+                                mon.LastFrame = mon.Device.CreateTexture2D(new Texture2DDescription
                                 {
-                                    OnMonitorNV12Bytes?.Invoke(mon.Index, nv12Bytes, mon.Width, mon.Height, captureTimestamp);
-                                }
+                                    Width = (uint)mon.Width,
+                                    Height = (uint)mon.Height,
+                                    MipLevels = 1,
+                                    ArraySize = 1,
+                                    Format = Vortice.DXGI.Format.B8G8R8A8_UNorm,
+                                    SampleDescription = new Vortice.DXGI.SampleDescription(1, 0),
+                                    Usage = ResourceUsage.Default,
+                                    BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+                                    CPUAccessFlags = CpuAccessFlags.None
+                                });
                             }
-                            else
-                            {
-                                // AMD/Intel path: Use GpuColorConverter with Video Processor
-                                if (mon.ColorConverter == null)
-                                {
-                                    mon.ColorConverter = new GpuColorConverter(_device, mon.Width, mon.Height);
-                                    Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created (lazy init)");
-                                }
-                                
-                                // Save a copy for use when screen is static (no new frames)
-                                if (mon.LastFrame == null)
-                                {
-                                    mon.LastFrame = _device.CreateTexture2D(new Texture2DDescription
-                                    {
-                                        Width = (uint)mon.Width,
-                                        Height = (uint)mon.Height,
-                                        MipLevels = 1,
-                                        ArraySize = 1,
-                                        Format = Vortice.DXGI.Format.B8G8R8A8_UNorm,
-                                        SampleDescription = new Vortice.DXGI.SampleDescription(1, 0),
-                                        Usage = ResourceUsage.Default,
-                                        BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
-                                        CPUAccessFlags = CpuAccessFlags.None
-                                    });
-                                }
-                                _context.CopyResource(mon.LastFrame, texture);
-                                
-                                var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
-                                if (nv12Texture != null)
-                                {
-                                    OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            desktopResource.Dispose();
-                            mon.Duplication.ReleaseFrame();
-                        }
-                    }
-                    else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
-                    {
-                        // No new frame - use last frame if available (screen is static)
-                        if (_isNvidia)
-                        {
-                            // NVIDIA: Use cached NV12 bytes
-                            if (mon.Nv12Buffer != null)
-                            {
-                                OnMonitorNV12Bytes?.Invoke(mon.Index, mon.Nv12Buffer, mon.Width, mon.Height, captureTimestamp);
-                            }
-                        }
-                        else if (mon.LastFrame != null && mon.ColorConverter != null)
-                        {
-                            var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
+                            
+                            mon.Context?.CopyResource(mon.LastFrame!, texture);
+                            
+                            var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
                             if (nv12Texture != null)
                             {
                                 OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
                             }
                         }
                     }
+                    finally
+                    {
+                        desktopResource.Dispose();
+                        mon.Duplication.ReleaseFrame();
+                    }
+                }
+                else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
+                {
+                    // No new frame - use cached frame
+                    if (mon.IsNvidia)
+                    {
+                        if (mon.Nv12Buffer != null)
+                        {
+                            OnMonitorNV12Bytes?.Invoke(mon.Index, mon.Nv12Buffer, mon.Width, mon.Height, captureTimestamp);
+                        }
+                    }
+                    else if (mon.LastFrame != null && mon.ColorConverter != null)
+                    {
+                        var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
+                        if (nv12Texture != null)
+                        {
+                            OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PerMonitorCapture] Error: {ex.Message}");
-                Thread.Sleep(100);
+                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index} error: {ex.Message}");
+                Thread.Sleep(50);
             }
 
             // Frame pacing
@@ -326,23 +378,26 @@ public sealed class PerMonitorCapture : IDisposable
                 Thread.Sleep(sleepTime);
             }
         }
+        
+        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread stopped");
     }
 
     /// <summary>
-    /// NVIDIA-specific frame conversion: BGRA -> NV12 bytes
-    /// This matches how Cluster mode works with NVIDIA - uses bytes path which is compatible
+    /// NVIDIA-specific frame conversion: BGRA -> NV12 bytes (uses monitor's own device)
     /// </summary>
     private byte[]? ConvertFrameForNvidiaToByte(MonitorInfo mon, ID3D11Texture2D bgraTexture)
     {
+        if (mon.Device == null || mon.Context == null) return null;
+        
         try
         {
             int w = mon.Width;
             int h = mon.Height;
             
-            // Lazy init resources
+            // Lazy init resources using monitor's OWN device
             if (mon.BgraStagingTexture == null)
             {
-                mon.BgraStagingTexture = _device.CreateTexture2D(new Texture2DDescription
+                mon.BgraStagingTexture = mon.Device.CreateTexture2D(new Texture2DDescription
                 {
                     Width = (uint)w,
                     Height = (uint)h,
@@ -355,16 +410,14 @@ public sealed class PerMonitorCapture : IDisposable
                     CPUAccessFlags = CpuAccessFlags.Read
                 });
                 
-                mon.Nv12Buffer = new byte[w * h * 3 / 2]; // NV12 size = Y plane + UV plane
-                
-                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: NVIDIA NV12 bytes conversion initialized (w={w}, h={h})");
+                mon.Nv12Buffer = new byte[w * h * 3 / 2];
+                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: NVIDIA staging texture initialized");
             }
             
-            // Copy BGRA to staging
-            _context.CopyResource(mon.BgraStagingTexture!, bgraTexture);
+            // Use monitor's OWN context (no contention!)
+            mon.Context.CopyResource(mon.BgraStagingTexture!, bgraTexture);
             
-            // Map BGRA staging for read and convert to NV12 bytes
-            var bgraMapped = _context.Map(mon.BgraStagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+            var bgraMapped = mon.Context.Map(mon.BgraStagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
             try
             {
                 unsafe
@@ -374,21 +427,20 @@ public sealed class PerMonitorCapture : IDisposable
                     
                     fixed (byte* nv12Dst = mon.Nv12Buffer)
                     {
-                        // For byte array, use width as pitch (contiguous memory)
                         ConvertBgraToNv12Safe(bgraSrc, bgraPitch, nv12Dst, w, w, h);
                     }
                 }
             }
             finally
             {
-                _context.Unmap(mon.BgraStagingTexture!, 0);
+                mon.Context.Unmap(mon.BgraStagingTexture!, 0);
             }
             
             return mon.Nv12Buffer;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[PerMonitorCapture] NVIDIA conversion error: {ex.Message}");
+            Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index} NVIDIA conversion error: {ex.Message}");
             return null;
         }
     }
@@ -398,11 +450,10 @@ public sealed class PerMonitorCapture : IDisposable
     /// </summary>
     private static unsafe void ConvertBgraToNv12Safe(byte* bgra, int bgraPitch, byte* nv12, int nv12Pitch, int width, int height)
     {
-        // Ensure even dimensions
         width = width & ~1;
         height = height & ~1;
         
-        // Y plane - write Y values row by row
+        // Y plane
         for (int y = 0; y < height; y++)
         {
             byte* bgraRow = bgra + y * bgraPitch;
@@ -415,14 +466,12 @@ public sealed class PerMonitorCapture : IDisposable
                 byte g = bgraRow[bgraIdx + 1];
                 byte r = bgraRow[bgraIdx + 2];
                 
-                // BT.601 Y conversion
                 int yVal = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
                 yRow[x] = (byte)(yVal < 0 ? 0 : (yVal > 255 ? 255 : yVal));
             }
         }
         
-        // UV plane starts after Y plane
-        // For NV12 staging texture, UV plane is at pitch * height offset
+        // UV plane
         byte* uvPlane = nv12 + nv12Pitch * height;
         int uvHeight = height / 2;
         int uvWidth = width / 2;
@@ -439,22 +488,18 @@ public sealed class PerMonitorCapture : IDisposable
             {
                 int srcX0 = x * 2;
                 int srcX1 = srcX0 + 1;
-                
-                // Get 2x2 block pixels
                 int idx00 = srcX0 * 4;
                 int idx10 = srcX1 * 4;
                 
-                // Average 2x2 block
                 int b = (bgraRow0[idx00 + 0] + bgraRow0[idx10 + 0] + bgraRow1[idx00 + 0] + bgraRow1[idx10 + 0]) >> 2;
                 int g = (bgraRow0[idx00 + 1] + bgraRow0[idx10 + 1] + bgraRow1[idx00 + 1] + bgraRow1[idx10 + 1]) >> 2;
                 int r = (bgraRow0[idx00 + 2] + bgraRow0[idx10 + 2] + bgraRow1[idx00 + 2] + bgraRow1[idx10 + 2]) >> 2;
                 
-                // BT.601 U, V conversion
                 int u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
                 int v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
                 
-                uvRow[x * 2 + 0] = (byte)(u < 0 ? 0 : (u > 255 ? 255 : u)); // U
-                uvRow[x * 2 + 1] = (byte)(v < 0 ? 0 : (v > 255 ? 255 : v)); // V
+                uvRow[x * 2 + 0] = (byte)(u < 0 ? 0 : (u > 255 ? 255 : u));
+                uvRow[x * 2 + 1] = (byte)(v < 0 ? 0 : (v > 255 ? 255 : v));
             }
         }
     }
@@ -469,10 +514,9 @@ public sealed class PerMonitorCapture : IDisposable
             try { mon.LastFrame?.Dispose(); } catch { }
             try { mon.ColorConverter?.Dispose(); } catch { }
             try { mon.BgraStagingTexture?.Dispose(); } catch { }
+            try { mon.Context?.Dispose(); } catch { }
+            try { mon.Device?.Dispose(); } catch { }
         }
         Monitors.Clear();
-        
-        try { _context?.Dispose(); } catch { }
-        try { _device?.Dispose(); } catch { }
     }
 }

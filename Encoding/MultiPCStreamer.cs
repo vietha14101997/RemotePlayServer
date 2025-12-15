@@ -25,6 +25,9 @@ public class MultiPCStreamer : IDisposable
     private readonly int _monitorCount;
     private ID3D11Device? _device;
     
+    // Per-monitor devices for parallel encoding
+    private readonly Dictionary<int, ID3D11Device> _perMonitorDevices = new();
+    
     private readonly List<MonitorPC> _monitors = new();
     private readonly object _lock = new();
     
@@ -51,11 +54,19 @@ public class MultiPCStreamer : IDisposable
         public long EncodeCount;
         public long LastPts100ns;
         
+        // FPS tracking for diagnostics
+        public long LastFpsLogTime;
+        public long LastFpsLogSentCount;
+        
+        // Per-monitor D3D11 device for parallel encoding (no contention!)
+        public ID3D11Device? Device { get; set; }
+        
         public void Dispose()
         {
             try { Encoder?.Dispose(); } catch { }
             try { StagingNV12?.Dispose(); } catch { }
             try { PC?.close(); } catch { }
+            // Note: Don't dispose Device here - it's owned by PerMonitorCapture
         }
     }
 
@@ -69,10 +80,31 @@ public class MultiPCStreamer : IDisposable
         for (int i = 0; i < monitorCount; i++)
             _sendLocks[i] = new object();
         
-        Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps");
+        Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps (parallel device mode)");
     }
 
     public void SetDevice(ID3D11Device device) => _device = device;
+    
+    /// <summary>
+    /// Set D3D11 device for a specific monitor (for parallel encoding)
+    /// This should be called before ProcessOfferAsync for that monitor
+    /// </summary>
+    public void SetDeviceForMonitor(int monitorIndex, ID3D11Device device)
+    {
+        lock (_lock)
+        {
+            // Store in dictionary (will be applied when monitor is created in ProcessOfferAsync)
+            _perMonitorDevices[monitorIndex] = device;
+            
+            // Also apply to existing monitor if already created
+            var monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
+            if (monitor != null)
+            {
+                monitor.Device = device;
+            }
+            Console.WriteLine($"[MultiPC] m{monitorIndex} device registered (parallel mode)");
+        }
+    }
 
     /// <summary>
     /// Process offer for a specific monitor and return answer
@@ -92,6 +124,14 @@ public class MultiPCStreamer : IDisposable
             if (monitor == null)
             {
                 monitor = new MonitorPC { Index = monitorIndex, Width = width, Height = height };
+                
+                // Apply per-monitor device if registered (for parallel encoding)
+                if (_perMonitorDevices.TryGetValue(monitorIndex, out var perMonDevice))
+                {
+                    monitor.Device = perMonDevice;
+                    Console.WriteLine($"[MultiPC] m{monitorIndex} using dedicated D3D11 device");
+                }
+                
                 _monitors.Add(monitor);
             }
             else
@@ -242,7 +282,9 @@ public class MultiPCStreamer : IDisposable
 
     private void InitializeEncoder(MonitorPC monitor)
     {
-        if (_device == null || monitor.Encoder != null) return;
+        // Use per-monitor device if available, otherwise fall back to shared device
+        var device = monitor.Device ?? _device;
+        if (device == null || monitor.Encoder != null) return;
         
         lock (_lock)
         {
@@ -253,6 +295,12 @@ public class MultiPCStreamer : IDisposable
                 // Detect GPU vendor and select appropriate encoder
                 var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
                 ITextureEncoder? encoder = null;
+                
+                bool usingPerMonitorDevice = monitor.Device != null;
+                if (usingPerMonitorDevice)
+                {
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} using DEDICATED D3D11 device (parallel mode)");
+                }
                 
                 switch (gpuVendor)
                 {
@@ -265,7 +313,7 @@ public class MultiPCStreamer : IDisposable
                             amfEncoder.OnEncodedData += (nalData, isKeyframe, pts) => 
                                 OnEncodedData(monitor, nalData, isKeyframe, pts);
                             
-                            if (amfEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
+                            if (amfEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, device))
                             {
                                 encoder = amfEncoder;
                             }
@@ -301,7 +349,7 @@ public class MultiPCStreamer : IDisposable
                     libAvEncoder.OnEncodedData += (nalData, isKeyframe, pts) => 
                         OnEncodedData(monitor, nalData, isKeyframe, pts);
                     
-                    if (libAvEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
+                    if (libAvEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, device))
                     {
                         encoder = libAvEncoder;
                     }
@@ -315,7 +363,7 @@ public class MultiPCStreamer : IDisposable
                 if (encoder != null)
                 {
                     monitor.Encoder = encoder;
-                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder ready");
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder ready (parallel={usingPerMonitorDevice})");
                 }
                 else
                 {
@@ -517,7 +565,24 @@ public class MultiPCStreamer : IDisposable
             
             long sent = Interlocked.Increment(ref monitor.SentCount);
             if (sent == 1)
+            {
                 Console.WriteLine($"[MultiPC] m{monitor.Index} streaming started");
+                monitor.LastFpsLogTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                monitor.LastFpsLogSentCount = 0;
+            }
+            
+            // FPS logging every 3 seconds
+            long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long timeSinceLastLog = now - monitor.LastFpsLogTime;
+            if (timeSinceLastLog >= 3000 && monitor.LastFpsLogTime > 0)
+            {
+                long framesSinceLastLog = sent - monitor.LastFpsLogSentCount;
+                double fps = framesSinceLastLog * 1000.0 / timeSinceLastLog;
+                long skipped = Interlocked.Read(ref monitor.SkipCount);
+                Console.WriteLine($"[Encode FPS] Mon{monitor.Index}: {fps:F1} fps (sent {framesSinceLastLog} in {timeSinceLastLog}ms, skipped={skipped})");
+                monitor.LastFpsLogTime = now;
+                monitor.LastFpsLogSentCount = sent;
+            }
         }
         catch { }
     }

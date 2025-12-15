@@ -55,6 +55,25 @@
     display: inline-block;
   }
 
+  .video-stats {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: monospace;
+    display: none;
+  }
+
+  .video-stats .fps { color: #00ff00; }
+  .video-stats .bitrate { color: #00d4ff; }
+  .video-stats .latency { color: #ff4444; }
+  .video-stats .ping { color: #ff9800; }
+
   pre {
     white-space: pre-wrap;
     background: #0a0a15;
@@ -236,9 +255,15 @@
 </div>
 
 <div id="videoGrid" class="video-grid single">
-  <div class="video-container">
+  <div class="video-container" id="container0">
     <video id="v" autoplay playsinline muted></video>
-    <span class="track-label" id="trackLabel0" style="display:none;">Track 0</span>
+    <span class="track-label" id="trackLabel0" style="display:none;">Monitor 0</span>
+    <div class="video-stats" id="stats0">
+      <span class="fps">FPS: --</span> | 
+      <span class="bitrate">-- kbps</span> | 
+      <span class="latency">Latency: --</span> | 
+      <span class="ping">Ping: --</span>
+    </div>
   </div>
 </div>
 
@@ -645,6 +670,8 @@
     grid.classList.remove('multitrack');
     const label = $('trackLabel0');
     if (label) label.style.display = 'none';
+    const stats = $('stats0');
+    if (stats) stats.style.display = 'none';
   }
 
   function createVideoElement(trackIndex) {
@@ -653,9 +680,13 @@
     // For track 0, use existing video element
     if (trackIndex === 0) {
       const label = $('trackLabel0');
+      const stats = $('stats0');
       if (label && isMultiTrackMode()) {
         label.style.display = 'block';
         label.textContent = `Monitor ${trackIndex}`;
+      }
+      if (stats && isMultiTrackMode()) {
+        stats.style.display = 'block';
       }
       return videoEl;
     }
@@ -663,6 +694,7 @@
     // Create new video element for additional tracks
     const container = document.createElement('div');
     container.className = 'video-container';
+    container.id = `container${trackIndex}`;
     
     const video = document.createElement('video');
     video.id = `v${trackIndex}`;
@@ -674,8 +706,21 @@
     label.className = 'track-label';
     label.textContent = `Monitor ${trackIndex}`;
     
+    // Create stats overlay
+    const stats = document.createElement('div');
+    stats.className = 'video-stats';
+    stats.id = `stats${trackIndex}`;
+    stats.innerHTML = `
+      <span class="fps">FPS: --</span> | 
+      <span class="bitrate">-- kbps</span> | 
+      <span class="latency">Latency: --</span> | 
+      <span class="ping">Ping: --</span>
+    `;
+    stats.style.display = 'block';
+    
     container.appendChild(video);
     container.appendChild(label);
+    container.appendChild(stats);
     grid.appendChild(container);
     
     videoElements.push(video);
@@ -866,10 +911,32 @@
       setSt('ws: closed');
     };
 
-    // Stats update with full metrics
-    let lastBytes = new Array(monitors).fill(0);
-    let lastFrames = new Array(monitors).fill(0);
+    // Per-monitor stats tracking
+    let perMonitorStats = new Array(monitors).fill(null).map(() => ({
+      lastBytes: 0,
+      lastFrames: 0,
+      fps: 0,
+      bitrate: 0,
+      rtt: 0,
+      jitter: 0
+    }));
     let lastTime = Date.now();
+    
+    // Function to update per-monitor stats display
+    function updateMonitorStats(monitorIndex, fps, bitrate, rtt, jitter) {
+      const statsEl = $(`stats${monitorIndex}`);
+      if (!statsEl) return;
+      
+      const fpsEl = statsEl.querySelector('.fps');
+      const bitrateEl = statsEl.querySelector('.bitrate');
+      const latencyEl = statsEl.querySelector('.latency');
+      const pingEl = statsEl.querySelector('.ping');
+      
+      if (fpsEl) fpsEl.textContent = `FPS: ${fps}`;
+      if (bitrateEl) bitrateEl.textContent = `${bitrate} kbps`;
+      if (latencyEl) latencyEl.textContent = `Jitter: ${jitter}ms`;
+      if (pingEl) pingEl.textContent = `RTT: ${rtt}ms`;
+    }
     
     statsInterval = setInterval(async () => {
       let totalBitrate = 0, totalFps = 0, totalFrames = 0;
@@ -879,41 +946,55 @@
       
       for (let i = 0; i < multiPCs.length; i++) {
         const pc = multiPCs[i];
-        if (pc.connectionState !== 'connected') continue;
+        if (pc.connectionState !== 'connected') {
+          updateMonitorStats(i, '--', '--', '--', '--');
+          continue;
+        }
         connectedCount++;
         try {
           const stats = await pc.getStats();
+          let monFps = 0, monBitrate = 0, monRtt = 0, monJitter = 0;
+          
           stats.forEach(r => {
             if (r.type === 'inbound-rtp' && r.kind === 'video') {
               const bytes = r.bytesReceived || 0;
               const frames = r.framesDecoded || 0;
               
-              const bitrate = Math.round((bytes - (lastBytes[i] || 0)) * 8 / elapsed / 1000);
-              const fps = Math.round((frames - (lastFrames[i] || 0)) / elapsed);
+              monBitrate = Math.round((bytes - perMonitorStats[i].lastBytes) * 8 / elapsed / 1000);
+              monFps = Math.round((frames - perMonitorStats[i].lastFrames) / elapsed);
+              monJitter = r.jitter ? Math.round(r.jitter * 1000) : 0;
               
-              totalBitrate += bitrate;
-              totalFps += fps;
+              totalBitrate += monBitrate;
+              totalFps += monFps;
               totalFrames += frames;
               
-              lastBytes[i] = bytes;
-              lastFrames[i] = frames;
+              perMonitorStats[i].lastBytes = bytes;
+              perMonitorStats[i].lastFrames = frames;
+              perMonitorStats[i].fps = monFps;
+              perMonitorStats[i].bitrate = monBitrate;
             }
             // Get RTT from WebRTC stats
             if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime !== undefined) {
               const rttMs = Math.round(r.currentRoundTripTime * 1000);
               if (rttMs > 0) {
+                monRtt = rttMs;
+                perMonitorStats[i].rtt = rttMs;
                 webrtcRtt = rttMs;
               }
             }
           });
+          
+          // Update per-monitor stats display
+          updateMonitorStats(i, monFps, monBitrate, monRtt, monJitter);
+          
         } catch {}
       }
       
       lastTime = now;
       
       if (connectedCount > 0) {
-        $('videoStats').textContent = `${totalBitrate} kbps`;
-        $('frameStats').textContent = `${Math.round(totalFps / connectedCount)} fps, ${totalFrames} total`;
+        $('videoStats').textContent = `${totalBitrate} kbps (total)`;
+        $('frameStats').textContent = `Avg: ${Math.round(totalFps / connectedCount)} fps, ${connectedCount}/${monitors} connected`;
         updatePingDisplay();
       }
     }, 1000);

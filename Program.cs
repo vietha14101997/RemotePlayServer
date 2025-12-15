@@ -1691,8 +1691,20 @@ public class SignalAndRestServer
             capture = _multiPCCapture;
         }
 
-        // Create MultiPCStreamer
+        // Create MultiPCStreamer with per-monitor devices for PARALLEL encoding
+        // Each monitor has its own D3D11 device now (no context contention!)
         streamer = new RemotePlayServer.Encoding.MultiPCStreamer(actualMonitors, fps, kbps, capture.Device);
+        
+        // Wire up per-monitor devices for parallel encoding
+        for (int i = 0; i < actualMonitors; i++)
+        {
+            var perMonDevice = capture.GetDeviceForMonitor(i);
+            if (perMonDevice != null)
+            {
+                streamer.SetDeviceForMonitor(i, perMonDevice);
+                Console.WriteLine($"[MultiPC Signal] Monitor {i}: Using dedicated D3D11 device for parallel encoding");
+            }
+        }
 
         // ICE candidate forwarding with monitor index
         streamer.OnIceCandidate += (monitorIndex, candidate) =>
