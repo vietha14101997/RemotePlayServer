@@ -36,6 +36,11 @@ public unsafe class LibAvEncoder : IDisposable
     private D3D11DeviceContext? _context;
     private D3D11Texture2D? _stagingTexture;
     
+    // FFmpeg D3D11 device/context for zero-copy (when using D3D11VA mode)
+    private FFmpegD3D11Device* _ffmpegD3D11Device;
+    private FFmpeg.AutoGen.ID3D11DeviceContext* _ffmpegD3D11Context;
+    private bool _isD3D11VAMode;
+    
     private int _width;
     private int _height;
     private int _fps;
@@ -52,6 +57,11 @@ public unsafe class LibAvEncoder : IDisposable
     public bool IsInitialized => _initialized;
     public int Width => _width;
     public int Height => _height;
+    
+    /// <summary>
+    /// True if encoder supports true zero-copy D3D11 texture encoding (D3D11VA mode)
+    /// </summary>
+    public bool SupportsZeroCopyTexture => _isD3D11VAMode && _useHardwareFrames;
 
     /// <summary>
     /// Event fired when encoded H.264 data is available.
@@ -391,12 +401,13 @@ public unsafe class LibAvEncoder : IDisposable
         switch (vendor)
         {
             case GpuVendorType.NVIDIA:
-                // NVIDIA: Try CUDA first (best for NVENC), then D3D11VA
-                Console.WriteLine("[LibAvEncoder] NVIDIA GPU: Trying CUDA hardware context");
-                if (TryInitializeCuda())
+                // NVIDIA: Use D3D11VA for true zero-copy from D3D11 textures
+                // D3D11VA allows direct texture copy without CPU roundtrip
+                Console.WriteLine("[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding");
+                if (TryInitializeNvencD3D11VA())
                     return true;
-                Console.WriteLine("[LibAvEncoder] NVIDIA: CUDA failed, trying D3D11VA");
-                if (TryInitializeD3D11VA())
+                Console.WriteLine("[LibAvEncoder] NVIDIA: D3D11VA failed, trying CUDA (will require CPU copy)");
+                if (TryInitializeCuda())
                     return true;
                 break;
                 
@@ -432,6 +443,82 @@ public unsafe class LibAvEncoder : IDisposable
         
         Console.WriteLine($"[LibAvEncoder] Hardware frames init failed, using software upload ({_encoderName} still active)");
         return false;
+    }
+    
+    /// <summary>
+    /// Initialize D3D11VA hardware context for NVIDIA NVENC.
+    /// This enables true zero-copy encoding from D3D11 textures.
+    /// </summary>
+    private bool TryInitializeNvencD3D11VA()
+    {
+        try
+        {
+            Console.WriteLine("[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...");
+            
+            // Create D3D11VA hardware device context
+            AVBufferRef* hwDeviceCtx = null;
+            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] D3D11VA device not available for NVENC: {GetErrorMessage(ret)}");
+                return false;
+            }
+            _hwDeviceCtx = hwDeviceCtx;
+            
+            // Create hardware frames context
+            _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Failed to allocate D3D11VA frames context for NVENC");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Configure D3D11VA frames context
+            AVHWFramesContext* framesCtx = (AVHWFramesContext*)_hwFramesCtx->data;
+            framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
+            framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+            framesCtx->width = _width;
+            framesCtx->height = _height;
+            framesCtx->initial_pool_size = 4;
+            
+            // Set bind flags for NVENC compatibility
+            AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
+            if (d3d11vaFramesCtx != null)
+            {
+                d3d11vaFramesCtx->BindFlags = (uint)(BindFlags.RenderTarget | BindFlags.ShaderResource);
+                d3d11vaFramesCtx->MiscFlags = 0;
+            }
+            
+            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret < 0)
+            {
+                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames context for NVENC: {GetErrorMessage(ret)}");
+                CleanupHwContext();
+                return false;
+            }
+            
+            // Set encoder to use D3D11VA frames
+            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
+            
+            // Store the D3D11 device context from FFmpeg for zero-copy
+            AVHWDeviceContext* deviceCtx = (AVHWDeviceContext*)_hwDeviceCtx->data;
+            AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceCtx->hwctx;
+            _ffmpegD3D11Device = d3d11vaDeviceCtx->device;
+            _ffmpegD3D11Context = d3d11vaDeviceCtx->device_context;
+            
+            Console.WriteLine("[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)");
+            _isD3D11VAMode = true;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LibAvEncoder] NVENC D3D11VA init exception: {ex.Message}");
+            CleanupHwContext();
+            return false;
+        }
     }
     
     private bool TryInitializeCuda()
@@ -1110,6 +1197,96 @@ public unsafe class LibAvEncoder : IDisposable
             catch (Exception ex)
             {
                 Console.WriteLine($"[LibAvEncoder] EncodeTexture exception: {ex.Message}");
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// TRUE ZERO-COPY: Encode D3D11 NV12 texture directly without CPU roundtrip.
+    /// Only works when SupportsZeroCopyTexture is true (D3D11VA mode).
+    /// Uses the capture device's D3D11 context to copy texture to FFmpeg's hardware frame.
+    /// </summary>
+    public bool EncodeD3D11TextureZeroCopy(D3D11Texture2D nv12Texture)
+    {
+        if (!_initialized || _disposed || !_isD3D11VAMode || !_useHardwareFrames || _context == null) 
+            return false;
+        
+        lock (_lock)
+        {
+            try
+            {
+                // Get a fresh hardware frame from the pool
+                int ret = ffmpeg.av_hwframe_get_buffer(_hwFramesCtx, _hwFrame, 0);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] Failed to get hw frame buffer: {GetErrorMessage(ret)}");
+                    return false;
+                }
+                
+                // In D3D11VA mode, _hwFrame->data[0] is ID3D11Texture2D*
+                // and _hwFrame->data[1] is the array index
+                IntPtr hwTexPtr = (IntPtr)_hwFrame->data[0];
+                int arrayIndex = (int)_hwFrame->data[1];
+                
+                if (hwTexPtr == IntPtr.Zero)
+                {
+                    Console.WriteLine("[LibAvEncoder] Hardware frame texture is null");
+                    return false;
+                }
+                
+                // Wrap FFmpeg's D3D11 texture as Vortice texture for CopySubresourceRegion
+                // Note: We use our capture device's context since FFmpeg's D3D11VA device
+                // should be the same GPU (they share the adapter)
+                using var hwTexture = new D3D11Texture2D(hwTexPtr);
+                
+                // Copy our NV12 texture to the hardware frame's texture
+                // For texture arrays, copy to the specific array index
+                _context.CopySubresourceRegion(
+                    hwTexture, 
+                    (uint)arrayIndex,  // DstSubresource (array index)
+                    0, 0, 0,           // DstX, DstY, DstZ
+                    nv12Texture, 
+                    0                  // SrcSubresource
+                );
+                
+                // Set PTS
+                _hwFrame->pts = _frameCount++;
+                
+                // Send frame to encoder
+                ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
+                    return false;
+                }
+                
+                // Receive encoded packets
+                while (true)
+                {
+                    ret = ffmpeg.avcodec_receive_packet(_codecCtx, _packet);
+                    if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN) || ret == ffmpeg.AVERROR_EOF)
+                        break;
+                    if (ret < 0)
+                    {
+                        Console.WriteLine($"[LibAvEncoder] Receive packet error: {GetErrorMessage(ret)}");
+                        break;
+                    }
+                    
+                    byte[] nalData = new byte[_packet->size];
+                    Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
+                    
+                    bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
+                    OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
+                    
+                    ffmpeg.av_packet_unref(_packet);
+                }
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LibAvEncoder] ZeroCopy encode exception: {ex.Message}");
                 return false;
             }
         }

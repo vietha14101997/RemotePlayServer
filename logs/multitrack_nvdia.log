@@ -1,0 +1,136 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.20
+[Encoder] NVIDIA NVENC (Hardware)
+[Guard] Detected stale session. Restoring previous snapshot before new capture...
+[Guard] Text size restored.
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.20:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.20","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████
+█████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▀██▀ ▀▄▄ █▄ █ ▀▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █  █▀▀ ▄▀▄  ▀ ▄█▀▄▄█▄██ █   █ ████
+████ █▄▄▄█ █▄▄▄▄▄▀███▀█▀▀█ ██▀▄▀▀█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ █ █▄▀▄▀▄█ ▀▄█ ▀ █▄█▄▄▄▄▄▄▄████
+█████▄█ ▀ ▄▀ ▄ █▀▀▄█▀ ▄ ▄▄▀▀▀ ▄ ▄  █ ▄ ▄▄████
+████▄▄█▄█▀▄ ▀▄███▄▀▀ ▄██▄▄▀▀ ▄▄█▀ ██ ▄██ ████
+████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
+█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
+███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
+████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
+████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
+████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
+████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
+█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
+███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
+████ ▄▄▄▄▄ █▀█▄▄ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ █   █ █▀▀ ▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+█████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected ab17f0ff-5518-43dd-8cec-ee787640056d, mode=multitrack
+[MultiPC Signal] Client ab17f0ff-5518-43dd-8cec-ee787640056d connected from 192.168.1.20
+[MultiPC Signal] Config: 1 monitors @ 1920x1080, 30fps, 8000kbps/stream
+[MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 30 fps
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 0 (target total: 1)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 1, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[MultiPC Signal] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 30fps
+[PerMonitorCapture] Using adapter: NVIDIA GeForce GTX 1660 Ti
+[PerMonitorCapture] D3D11 device created (NVIDIA=True)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080
+[PerMonitorCapture] Initialized 1 monitors
+[MultiPC] Created: 1mon 30fps 8000kbps
+[PerMonitorCapture] Capture started
+[MultiPC Signal] Received offer for monitor 0
+[PerMonitorCapture] Target 30fps, interval 33ms
+[PerMonitorCapture] Monitor 0: NVIDIA NV12 bytes conversion initialized (w=1920, h=1080)
+[MultiPC] m0 offer: 1920x1080
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[MultiPC] m0 NVIDIA GPU detected, using NVENC encoder
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 30fps, 8000kbps
+[LibAvEncoder] FFmpeg path: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
+[LibAvEncoder] Using encoder: h264_nvenc
+[LibAvEncoder] Configuring NVIDIA NVENC encoder
+[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
+[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
+[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1920x1080 @ 30fps, 8000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready
+[MultiPC] m0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[Cluster Signal] Attempting to resolve mDNS: '1a6ea640-c3df-4f45-95b7-40c1d19ae8d3.local'
+[Cluster Signal] mDNS resolved '1a6ea640-c3df-4f45-95b7-40c1d19ae8d3.local' -> 192.168.1.20 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: 'f41f0ac8-77a0-4349-a1a8-bc6872f47320.local'
+[MultiPC] m0 ICE connected
+[MultiPC] m0 PC connected
+[MultiPC] m0 enc#1: 11568B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 12631B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 4768B key=False NALs=[6,1]
+[Cluster Signal] mDNS resolved 'f41f0ac8-77a0-4349-a1a8-bc6872f47320.local' -> 125.235.4.59 after 1 attempt(s)
+[MultiPC] m0 enc#4: 3128B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 19206B key=False NALs=[6,1]
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 PC closed
+[PerMonitorCapture] Capture stopped
+[PerMonitorCapture] Capture stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently DISABLED
+[Guard] ForceDisableVdd: Already disabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected ab17f0ff-5518-43dd-8cec-ee787640056d

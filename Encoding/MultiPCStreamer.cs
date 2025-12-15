@@ -43,7 +43,7 @@ public class MultiPCStreamer : IDisposable
         public int Width { get; set; }
         public int Height { get; set; }
         public RTCPeerConnection? PC { get; set; }
-        public AmfNativeWrapper? Encoder { get; set; }
+        public ITextureEncoder? Encoder { get; set; }
         public ID3D11Texture2D? StagingNV12 { get; set; }
         public bool IceConnected { get; set; }
         public long SentCount;
@@ -250,19 +250,76 @@ public class MultiPCStreamer : IDisposable
             
             try
             {
-                var encoder = new AmfNativeWrapper();
-                encoder.OnEncodedData += (nalData, isKeyframe, pts) => 
-                    OnEncodedData(monitor, nalData, isKeyframe, pts);
+                // Detect GPU vendor and select appropriate encoder
+                var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
+                ITextureEncoder? encoder = null;
                 
-                if (encoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
+                switch (gpuVendor)
+                {
+                    case GpuVendorDetector.GpuVendor.AMD:
+                        // AMD: Use native AMF encoder for best performance
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} AMD GPU detected, using AMF encoder");
+                        try
+                        {
+                            var amfEncoder = new AmfNativeWrapper();
+                            amfEncoder.OnEncodedData += (nalData, isKeyframe, pts) => 
+                                OnEncodedData(monitor, nalData, isKeyframe, pts);
+                            
+                            if (amfEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
+                            {
+                                encoder = amfEncoder;
+                            }
+                            else
+                            {
+                                amfEncoder.Dispose();
+                                Console.WriteLine($"[MultiPC] m{monitor.Index} AMF failed, falling back to LibAv");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[MultiPC] m{monitor.Index} AMF exception: {ex.Message}, falling back to LibAv");
+                        }
+                        break;
+                        
+                    case GpuVendorDetector.GpuVendor.NVIDIA:
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} NVIDIA GPU detected, using NVENC encoder");
+                        break;
+                        
+                    case GpuVendorDetector.GpuVendor.Intel:
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} Intel GPU detected, using QSV encoder");
+                        break;
+                        
+                    default:
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} Unknown GPU, using LibAv encoder");
+                        break;
+                }
+                
+                // Use LibAvEncoder for NVIDIA/Intel/Unknown or as fallback for AMD
+                if (encoder == null)
+                {
+                    var libAvEncoder = new LibAvEncoderAdapter();
+                    libAvEncoder.OnEncodedData += (nalData, isKeyframe, pts) => 
+                        OnEncodedData(monitor, nalData, isKeyframe, pts);
+                    
+                    if (libAvEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, _device))
+                    {
+                        encoder = libAvEncoder;
+                    }
+                    else
+                    {
+                        libAvEncoder.Dispose();
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} LibAv encoder init failed");
+                    }
+                }
+                
+                if (encoder != null)
                 {
                     monitor.Encoder = encoder;
                     Console.WriteLine($"[MultiPC] m{monitor.Index} encoder ready");
                 }
                 else
                 {
-                    encoder.Dispose();
-                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder init failed");
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} encoder init failed - no working encoder found");
                 }
             }
             catch (Exception ex)
@@ -343,6 +400,44 @@ public class MultiPCStreamer : IDisposable
             }
         }
         catch { }
+    }
+
+    /// <summary>
+    /// Push NV12 bytes for a specific monitor - used for NVIDIA compatibility
+    /// This path matches how Cluster mode works with LibAv encoder
+    /// </summary>
+    public void PushNV12Bytes(int monitorIndex, byte[] nv12Bytes, int width, int height)
+    {
+        if (!_running || _disposed) return;
+        
+        MonitorPC? monitor;
+        lock (_lock)
+        {
+            monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
+        }
+        if (monitor == null) return;
+        
+        // Check if encoder is ready
+        if (monitor.Encoder == null || !monitor.IceConnected)
+        {
+            Interlocked.Increment(ref monitor.SkipCount);
+            return;
+        }
+        
+        try
+        {
+            // Use encoder's EncodeNV12Bytes if available (LibAvEncoderAdapter)
+            if (monitor.Encoder is LibAvEncoderAdapter libAvEncoder)
+            {
+                long sent = Interlocked.Read(ref monitor.SentCount);
+                bool forceIdr = sent < 3 || (sent % 90 == 0);
+                libAvEncoder.EncodeNV12Bytes(nv12Bytes, width, height, forceIdr);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MultiPC] PushNV12Bytes m{monitorIndex} error: {ex.Message}");
+        }
     }
 
     // Per-monitor locks for SendVideo - avoid global lock blocking all streams

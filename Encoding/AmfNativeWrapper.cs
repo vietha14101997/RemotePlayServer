@@ -9,7 +9,7 @@ namespace RemotePlayServer.Encoding;
 /// C# wrapper for native AmfWrapper.dll
 /// Provides true zero-copy H.264 encoding from D3D11 textures on AMD GPUs
 /// </summary>
-public unsafe class AmfNativeWrapper : IDisposable
+public unsafe class AmfNativeWrapper : ITextureEncoder
 {
     private const string DLL_NAME = "AmfWrapper.dll";
     

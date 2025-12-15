@@ -186,7 +186,7 @@ partial class Program
                 }
             }
             catch { }
-        }
+        } 
         
         return "FFmpeg x264 (Software)";
     }
@@ -1817,6 +1817,7 @@ public class SignalAndRestServer
                 try { RoInitialize(1); } catch { }
                 try
                 {
+                    // AMD/Intel: Use texture path (GPU Video Processor works)
                     capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
                     {
                         streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
@@ -1828,6 +1829,20 @@ public class SignalAndRestServer
                             while (frameTiming.Count > 30) frameTiming.TryDequeue(out _);
                         }
                     };
+                    
+                    // NVIDIA: Use NV12 bytes path (texture path causes crashes)
+                    capture.OnMonitorNV12Bytes += (monitorIndex, nv12Bytes, w, h, timestamp) =>
+                    {
+                        streamer?.PushNV12Bytes(monitorIndex, nv12Bytes, w, h);
+                        // Track frame timing (only for monitor 0 to avoid duplicates)
+                        if (monitorIndex == 0)
+                        {
+                            var fn = Interlocked.Increment(ref frameCount);
+                            frameTiming.Enqueue((fn, timestamp));
+                            while (frameTiming.Count > 30) frameTiming.TryDequeue(out _);
+                        }
+                    };
+                    
                     capture.Start();
                     stopCapture.Token.WaitHandle.WaitOne();
                 }

@@ -1,0 +1,315 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.20
+[Encoder] NVIDIA NVENC (Hardware)
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.20:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.20","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████
+█████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▀██▀ ▀▄▄ █▄ █ ▀▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █  █▀▀ ▄▀▄  ▀ ▄█▀▄▄█▄██ █   █ ████
+████ █▄▄▄█ █▄▄▄▄▄▀███▀█▀▀█ ██▀▄▀▀█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ █ █▄▀▄▀▄█ ▀▄█ ▀ █▄█▄▄▄▄▄▄▄████
+█████▄█ ▀ ▄▀ ▄ █▀▀▄█▀ ▄ ▄▄▀▀▀ ▄ ▄  █ ▄ ▄▄████
+████▄▄█▄█▀▄ ▀▄███▄▀▀ ▄██▄▄▀▀ ▄▄█▀ ██ ▄██ ████
+████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
+█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
+███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
+████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
+████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
+████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
+████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
+█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
+███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
+████ ▄▄▄▄▄ █▀█▄▄ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ █   █ █▀▀ ▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+█████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 08218250-3c02-4e2d-8ff8-15484f8c0d2d, mode=cluster
+[Cluster Signal] AUTO-ENABLE relaxed mode for private IP client (remote=192.168.1.20)
+[Cluster Signal] ICE filter: relaxed mode - host+srflx private IPv4 (remote=192.168.1.20)
+[Cluster Signal] Applying new display config: 2 monitors @ 1920x1080, 30 fps
+[Cluster Signal] 🔍 RECEIVED ICE FROM UNITY: 'candidate:3688486726 1 udp 2113937151 95524871-6019-4bbd-bd3...' (len=136)
+[Cluster Signal] Attempting to resolve mDNS: '95524871-6019-4bbd-bd36-3b77d8f71ad9.local'
+[Cluster Signal] mDNS resolved '95524871-6019-4bbd-bd36-3b77d8f71ad9.local' -> 192.168.1.20 after 1 attempt(s)
+[Cluster Signal] mDNS rewritten: 'candidate:3688486726 1 udp 2113937151 95524871-6019-4bbd-bd3...' -> 'candidate:3688486726 1 udp 2113937151 192.168.1.20 58729 typ...'
+[Cluster Signal] Received client ICE: 'candidate:3688486726 1 udp 2113937151 192.168.1.20 58729 typ...' (hex=63-61-6E-64-69-64-61-74-65-3A-33-36-38-38-34-38-36-37-32-36-20-31-20-75-64-70-20-32-31-31-33-39-33-37-31-35-31-20-31-39-32-2E-31-36-38-2E-31-2E-32-30)
+[Cluster Signal] Processing received candidate - full length: 106
+[Cluster Signal] ✅ ACCEPTED client ICE: 'candidate:3688486726 1 udp 2113937151 192.168.1.20 58729 typ host generation 0 u...'
+[Cluster Signal] Total ICE from client so far: 1
+[Cluster Signal] Queued client ICE (count=1)
+[Cluster Signal] 🔍 RECEIVED ICE FROM UNITY: 'candidate:2444307042 1 udp 2113939711 7c09ce0d-515b-4997-944...' (len=136)
+[Cluster Signal] Attempting to resolve mDNS: '7c09ce0d-515b-4997-9447-d6564e4e4ed1.local'
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+[Cluster Signal] mDNS resolved '7c09ce0d-515b-4997-9447-d6564e4e4ed1.local' -> 125.235.4.59 after 1 attempt(s)
+[Cluster Signal] mDNS rewritten: 'candidate:2444307042 1 udp 2113939711 7c09ce0d-515b-4997-944...' -> 'candidate:2444307042 1 udp 2113939711 125.235.4.59 58730 typ...'
+[Cluster Signal] Received client ICE: 'candidate:2444307042 1 udp 2113939711 125.235.4.59 58730 typ...' (hex=63-61-6E-64-69-64-61-74-65-3A-32-34-34-34-33-30-37-30-34-32-20-31-20-75-64-70-20-32-31-31-33-39-33-39-37-31-31-20-31-32-35-2E-32-33-35-2E-34-2E-35-39)
+[Cluster Signal] Processing received candidate - full length: 106
+[Cluster Signal] ✅ ACCEPTED client ICE: 'candidate:2444307042 1 udp 2113939711 125.235.4.59 58730 typ host generation 0 u...'
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Cluster Signal] Total ICE from client so far: 2
+[Cluster Signal] Queued client ICE (count=2)
+[Cluster Signal] Client sent end-of-candidates
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY13 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY13 1920x1080 [PHYSICAL]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[Cluster Signal] Monitors after config: 2
+[Cluster Signal] Using LibAv (in-process) encoder
+[ClusterCapture] Aligned FrameWidth to even: 3840
+[ClusterCapture] Combined frame: 3840x1080, 2 monitors, gap=1
+[ClusterCapture] Using adapter (by monitor): NVIDIA GeForce GTX 1660 Ti
+[ClusterCapture] D3D11 device created (VideoSupport enabled for MFT encoder)
+[ClusterCapture] Added monitor: \\.\DISPLAY1 at offset x=0
+[ClusterCapture] Added monitor: \\.\DISPLAY13 at offset x=1921
+[ClusterCapture] Initialized with 2 monitor duplications (zero-copy enabled)
+[EncoderFactory] Creating streamer: mode=LibAv, fps=30, kbps=8000
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[EncoderFactory] NVIDIA GPU detected
+[EncoderFactory] Using LibAv with h264_nvenc encoder (CUDA accelerated)
+[RTC-LibAv] Created: 30fps, 8000kbps
+[RTC-LibAv] PeerConnection created
+[RTC-LibAv] Video formats negotiated (H264 supported: True)
+[RTC-LibAv] ice = checking
+[RTC-LibAv] Local ICE: 819075586 1 udp 2113940223 2402:800:6d62:428c:916f...
+[Cluster Signal] Queued server ICE (count=1): candidate:819075586 1 udp 2113940223 240...
+[RTC-LibAv] Local ICE: 317599547 1 udp 2113940223 2402:800:6d62:428c:ddb7...
+[Cluster Signal] Queued server ICE (count=2): candidate:317599547 1 udp 2113940223 240...
+[RTC-LibAv] Local ICE: 1430878299 1 udp 2113937663 192.168.1.20 55340 typ...
+[Cluster Signal] Queued server ICE (count=3): candidate:1430878299 1 udp 2113937663 19...
+[Cluster Signal] Answer sent to client
+[Cluster Signal] Flushing 3 queued server ICE candidates
+[Cluster Signal] Sent queued server ICE: candidate:819075586 1 udp 2113940223 2402:800:6d62...
+[Cluster Signal] Sent queued server ICE: candidate:317599547 1 udp 2113940223 2402:800:6d62...
+[Cluster Signal] Sent queued server ICE: candidate:1430878299 1 udp 2113937663 192.168.1.20...
+[Cluster Signal] Processing 2 queued client ICE candidates
+[RTC-LibAv] Added remote ICE: candidate:3688486726 1 udp 2113937151 192.168.1.20...
+[Cluster Signal] Added queued ICE: candidate:3688486726 1 udp 2113937151 192.168.1.20...
+[RTC-LibAv] Added remote ICE: candidate:2444307042 1 udp 2113939711 125.235.4.59...
+[Cluster Signal] Added queued ICE: candidate:2444307042 1 udp 2113939711 125.235.4.59...
+[ClusterCapture] Starting combined capture for 2 monitors
+[GpuColorConverter] Initialized 3840x1080 BGRA->NV12 converter
+[ClusterCapture] GPU color converter initialized (BGRA->NV12)
+[ClusterCapture] Capture started
+[RTC-LibAv] ice = connected
+[RTC-LibAv] ICE CONNECTED (connected) - Starting Video Flow
+[RTC-LibAv] pc.state = connecting
+[ClusterCapture] Target 30fps, frame interval 33ms
+[LibAvEncoder] FFmpeg path: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
+[RTC-LibAv] pc.state = connected
+[LibAvEncoder] Using encoder: h264_nvenc
+[LibAvEncoder] Configuring NVIDIA NVENC encoder
+[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
+[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
+[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 3840x1080 @ 30fps, 8000kbps (D3D11 zero-copy)
+[RTC-LibAv] Encoder started 3840x1080 @ 30fps 8000kbps
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:47 deq:37 sent:36
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 29.2 fps, 7000 kbps | AU=59
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:104 deq:94 sent:93
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 27.2 fps, 7283 kbps | AU=114
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:151 deq:141 sent:140
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 23.3 fps, 7071 kbps | AU=161
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:201 deq:191 sent:190
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 24.7 fps, 7605 kbps | AU=211
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:250 deq:240 sent:239
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 25.2 fps, 4823 kbps | AU=262
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:303 deq:293 sent:291
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 24.8 fps, 7053 kbps | AU=312
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:355 deq:345 sent:344
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 28.4 fps, 8035 kbps | AU=370
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:409 deq:399 sent:398
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 25.4 fps, 7803 kbps | AU=421
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:459 deq:449 sent:448
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 23.7 fps, 4392 kbps | AU=469
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:510 deq:500 sent:499
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 24.9 fps, 7410 kbps | AU=520
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:556 deq:546 sent:545
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 23.0 fps, 5375 kbps | AU=567
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:602 deq:592 sent:590
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 24.2 fps, 6498 kbps | AU=616
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:653 deq:643 sent:641
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 25.4 fps, 7935 kbps | AU=667
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:702 deq:692 sent:691
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 22.0 fps, 4669 kbps | AU=712
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:746 deq:736 sent:735
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 22.5 fps, 6991 kbps | AU=758
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:792 deq:782 sent:780
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 22.9 fps, 5107 kbps | AU=804
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:833 deq:823 sent:822
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 21.4 fps, 6831 kbps | AU=847
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:884 deq:874 sent:872
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 23.6 fps, 5188 kbps | AU=895
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:928 deq:918 sent:916
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] OUTPUT: 23.0 fps, 6618 kbps | AU=942
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] IDR frame
+[RTC-LibAv] q=enq:974 deq:964 sent:962
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 22.5 fps, 5525 kbps | AU=988
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] q=enq:1020 deq:1010 sent:1008
+[RTC-LibAv] IDR frame
+[RTC-LibAv] enqueue NV12 3840x1080
+[RTC-LibAv] OUTPUT: 25.4 fps, 6769 kbps | AU=1039
+[LibAvEncoder] Disposed
+[GpuColorConverter] Convert error: Object reference not set to an instance of an object.
+[RTC-LibAv] pc.state = closed
+[ClusterCapture] Capture stopped
+[ClusterCapture] Capture stopped
+[Guard] Restoring display settings after client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY13
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ✓ VDD disabled successfully!
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] Cluster client disconnected 08218250-3c02-4e2d-8ff8-15484f8c0d2d
