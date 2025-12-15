@@ -1,0 +1,10 @@
+^C:\USERS\SUPER\ONEDRIVE\DOCUMENTS\VRWORKSPACEPROJECTS\REMOTEPLAYSERVER\NATIVE\AMFWRAPPER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper -BC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build --check-stamp-file C:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

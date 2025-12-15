@@ -113,17 +113,22 @@ AMFWRAPPER_API int AmfCreateEncoder(
         return AMF_WRAPPER_FAIL;
     }
     
-    // Configure encoder for low-latency streaming
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_ULTRA_LOW_LATENCY);
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_SPEED);
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_BASELINE);
+    // Configure encoder for low-latency streaming with better quality
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_HIGH);  // HIGH profile: CABAC + 8x8 transform = much better quality
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 42);  // Level 4.2 for 1080p60
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1500);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1200);  // Tighter peak for more consistent quality
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0); // No B-frames
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0); // No B-frames for low latency
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2); // IDR every 2 seconds
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
+    
+    // Quality improvements for desktop/text streaming
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);  // Reduce blocking artifacts
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_CABAC_ENABLE, AMF_VIDEO_ENCODER_CABAC);  // Force CABAC entropy coding for better compression
     
     // CRITICAL: Insert SPS/PPS with EVERY IDR frame for WebRTC compatibility
     // Without this, decoder will fail after first IDR because it lacks parameter sets

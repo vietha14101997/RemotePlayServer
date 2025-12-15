@@ -1719,6 +1719,20 @@ public class SignalAndRestServer
             catch { }
         };
 
+        // Auto-recovery: Request client to re-offer when PC closed abnormally
+        streamer.OnMonitorNeedsReconnect += (monitorIndex) =>
+        {
+            try
+            {
+                if (ws.State != System.Net.WebSockets.WebSocketState.Open) return;
+                Console.WriteLine($"[MultiPC Signal] Requesting reconnect for monitor {monitorIndex}");
+                var msg = $"reconnect:{monitorIndex}";
+                _ = ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(msg)),
+                    System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+            catch { }
+        };
+
         // RX loop - handle multiplexed offers and ICE
         var rxLoop = Task.Run(async () =>
         {

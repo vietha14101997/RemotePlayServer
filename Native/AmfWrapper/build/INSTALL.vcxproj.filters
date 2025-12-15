@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\build\CMakeFiles\ef785ad70fdaf0594323c9f6b88e9c52\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{EE43DFF1-8707-3355-9052-31805D02BA34}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

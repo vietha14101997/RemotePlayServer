@@ -20,6 +20,8 @@ add_library(AmfWrapper SHARED
     ${AMF_SDK_PATH}/common/Thread.cpp
     ${AMF_SDK_PATH}/common/AMFSTL.cpp
     ${AMF_SDK_PATH}/common/TraceAdapter.cpp
+    # Windows platform-specific files
+    ${AMF_SDK_PATH}/common/Windows/ThreadWindows.cpp
 )
 
 # Include directories

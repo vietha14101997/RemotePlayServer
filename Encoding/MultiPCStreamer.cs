@@ -39,6 +39,7 @@ public class MultiPCStreamer : IDisposable
     public event Action? OnAllConnected;
     public event Action<int, string>? OnIceCandidate; // monitorIndex, candidate
     public event Action<int>? OnPeerDisconnected; // monitorIndex
+    public event Action<int>? OnMonitorNeedsReconnect; // monitorIndex - fired when PC closed abnormally, needs re-offer
 
     private class MonitorPC : IDisposable
     {
@@ -214,13 +215,27 @@ public class MultiPCStreamer : IDisposable
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE connected");
                 CheckAllConnected();
             }
-            else if (state == RTCIceConnectionState.disconnected || 
-                     state == RTCIceConnectionState.failed || 
-                     state == RTCIceConnectionState.closed)
+            else if (state == RTCIceConnectionState.disconnected)
+            {
+                // ICE disconnected can be temporary - don't immediately trigger reconnect
+                monitor.IceConnected = false;
+                Console.WriteLine($"[MultiPC] m{monitorIndex} ICE disconnected (may recover)");
+            }
+            else if (state == RTCIceConnectionState.failed || state == RTCIceConnectionState.closed)
             {
                 monitor.IceConnected = false;
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}");
-                OnPeerDisconnected?.Invoke(monitorIndex);
+                
+                // If still running (not intentionally stopped), request reconnect
+                if (_running && !_disposed)
+                {
+                    Console.WriteLine($"[MultiPC] m{monitorIndex} ICE failed/closed, requesting reconnect...");
+                    OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                }
+                else
+                {
+                    OnPeerDisconnected?.Invoke(monitorIndex);
+                }
             }
         };
 
@@ -228,6 +243,21 @@ public class MultiPCStreamer : IDisposable
         {
             if (state == RTCPeerConnectionState.connected)
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC connected");
+            else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
+            {
+                Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
+                
+                // If still running (not intentionally stopped), request reconnect
+                if (_running && !_disposed)
+                {
+                    Console.WriteLine($"[MultiPC] m{monitorIndex} abnormal close detected, requesting reconnect...");
+                    OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                }
+                else
+                {
+                    OnPeerDisconnected?.Invoke(monitorIndex);
+                }
+            }
             else if (state != RTCPeerConnectionState.connecting && state != RTCPeerConnectionState.@new)
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
         };
@@ -408,6 +438,14 @@ public class MultiPCStreamer : IDisposable
             return;
         }
         
+        // Use per-monitor device for parallel encoding, fallback to shared device
+        var device = monitor.Device ?? _device;
+        if (device == null)
+        {
+            Interlocked.Increment(ref monitor.SkipCount);
+            return;
+        }
+        
         try
         {
             // Use encoder dimensions (from client request), not capture dimensions
@@ -415,9 +453,9 @@ public class MultiPCStreamer : IDisposable
             int encHeight = monitor.Height;
             
             // Create staging texture if needed (use encoder dimensions)
-            if (monitor.StagingNV12 == null && _device != null)
+            if (monitor.StagingNV12 == null)
             {
-                monitor.StagingNV12 = _device.CreateTexture2D(new Texture2DDescription
+                monitor.StagingNV12 = device.CreateTexture2D(new Texture2DDescription
                 {
                     Width = (uint)encWidth,
                     Height = (uint)encHeight,
@@ -433,7 +471,7 @@ public class MultiPCStreamer : IDisposable
             
             if (monitor.StagingNV12 != null)
             {
-                _device!.ImmediateContext.CopyResource(monitor.StagingNV12, nv12Texture);
+                device.ImmediateContext.CopyResource(monitor.StagingNV12, nv12Texture);
                 long sent = Interlocked.Read(ref monitor.SentCount);
                 long skipped = Interlocked.Read(ref monitor.SkipCount);
                 
@@ -549,9 +587,44 @@ public class MultiPCStreamer : IDisposable
                 }
                 else
                 {
-                    // No captured SPS/PPS yet - wait for encoder to output them
-                    Interlocked.Increment(ref monitor.SkipCount);
-                    return;
+                    // No captured SPS/PPS yet - try to borrow from another monitor with same resolution
+                    bool borrowed = false;
+                    foreach (var kvp in _capturedSPS)
+                    {
+                        if (kvp.Key != monitor.Index && 
+                            _capturedPPS.TryGetValue(kvp.Key, out var otherPps) &&
+                            kvp.Value.Length > 10 && otherPps.Length > 3)
+                        {
+                            // Use SPS/PPS from another monitor (same resolution assumed)
+                            var withSpsPps = new byte[kvp.Value.Length + otherPps.Length + au.Length];
+                            Buffer.BlockCopy(kvp.Value, 0, withSpsPps, 0, kvp.Value.Length);
+                            Buffer.BlockCopy(otherPps, 0, withSpsPps, kvp.Value.Length, otherPps.Length);
+                            Buffer.BlockCopy(au, 0, withSpsPps, kvp.Value.Length + otherPps.Length, au.Length);
+                            au = withSpsPps;
+                            borrowed = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!borrowed)
+                    {
+                        // Use fallback SPS/PPS generator
+                        var (fallbackSps, fallbackPps) = GenerateFallbackSpsPps(monitor.Width, monitor.Height);
+                        if (fallbackSps != null && fallbackPps != null)
+                        {
+                            var withSpsPps = new byte[fallbackSps.Length + fallbackPps.Length + au.Length];
+                            Buffer.BlockCopy(fallbackSps, 0, withSpsPps, 0, fallbackSps.Length);
+                            Buffer.BlockCopy(fallbackPps, 0, withSpsPps, fallbackSps.Length, fallbackPps.Length);
+                            Buffer.BlockCopy(au, 0, withSpsPps, fallbackSps.Length + fallbackPps.Length, au.Length);
+                            au = withSpsPps;
+                        }
+                        else
+                        {
+                            // Last resort: skip frame
+                            Interlocked.Increment(ref monitor.SkipCount);
+                            return;
+                        }
+                    }
                 }
             }
 
