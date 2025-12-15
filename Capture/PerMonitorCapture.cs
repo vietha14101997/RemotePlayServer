@@ -284,7 +284,10 @@ public sealed class PerMonitorCapture : IDisposable
 
                 if (mon.Duplication == null) continue;
 
-                var result = mon.Duplication.AcquireNextFrame(8, out var frameInfo, out var desktopResource);
+                // Use a longer timeout (2x frame time) to ensure we catch the VSync interval.
+                // Short timeout (8ms) causes missed frames if thread timing drifts relative to VSync.
+                int timeoutMs = frameTimeMs * 2;
+                var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
                 
                 if (result.Success && desktopResource != null)
                 {
