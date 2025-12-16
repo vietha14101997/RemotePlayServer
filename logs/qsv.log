@@ -51,10 +51,10 @@ Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 6343a951-b3b5-47dd-add9-4480159f1baf, mode=multitrack
-[MultiPC Signal] Client 6343a951-b3b5-47dd-add9-4480159f1baf connected from 192.168.1.20
-[MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
-[MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
+[Signal] Client connected a388e14c-8b12-40df-9d54-1afe3ba73b90, mode=multitrack
+[MultiPC Signal] Client a388e14c-8b12-40df-9d54-1afe3ba73b90 connected from 192.168.1.20
+[MultiPC Signal] Config: 1 monitors @ 1600x900, 60fps, 20000kbps/stream
+[MultiPC Signal] Applying new display config: 1 monitors @ 1600x900, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
@@ -69,17 +69,17 @@ The device is not connected.
 [VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 1, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
 [MultiPC Signal] Available monitors: 1, using: 1
 [PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
 [PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
 [MultiPC] Created: 1mon 60fps 20000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
@@ -88,47 +88,175 @@ The device is not connected.
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [MultiPC Signal] Received offer for monitor 0
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[MultiPC] m0 offer: 1920x1080
+[MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
-[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 Intel GPU detected, using QSV encoder
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 20000kbps
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
 [LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] Using encoder: h264_qsv
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1D6846EA360
-[AVHWDeviceContext @ 000001d68438c640] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x24802C1F600
+[AVHWDeviceContext @ 0000024806dc3780] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1D689808300
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x24806FBA170
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] Fallback Mode: Skipping QSV derivation. Creating independent QSV frames.
 [LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
 [LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
-Fatal error. 0xC0000005
-   at FFmpeg.AutoGen.DynamicallyLoadedBindings+<>c.<Initialize>b__2_251(FFmpeg.AutoGen.AVBufferRef*, FFmpeg.AutoGen.AVFrame*, Int32)
-   at FFmpeg.AutoGen.ffmpeg.av_hwframe_get_buffer(FFmpeg.AutoGen.AVBufferRef*, FFmpeg.AutoGen.AVFrame*, Int32)
-   at RemotePlayServer.Encoding.LibAvEncoder.Initialize()
-   at RemotePlayServer.Encoding.LibAvEncoderAdapter.Initialize(Int32, Int32, Int32, Int32, Vortice.Direct3D11.ID3D11Device)
-   at RemotePlayServer.Encoding.MultiPCStreamer.InitializeEncoder(MonitorPC)
-   at RemotePlayServer.Encoding.MultiPCStreamer+<ProcessOfferAsync>d__27.MoveNext()
-   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[RemotePlayServer.Encoding.MultiPCStreamer+<ProcessOfferAsync>d__27, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]](<ProcessOfferAsync>d__27 ByRef)
-   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[RemotePlayServer.Encoding.MultiPCStreamer+<ProcessOfferAsync>d__27, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]](<ProcessOfferAsync>d__27 ByRef)
-   at RemotePlayServer.Encoding.MultiPCStreamer.ProcessOfferAsync(Int32, System.String, Int32, Int32)
-   at SignalAndRestServer+<>c__DisplayClass20_0+<<HandleMultiTrackClient>b__4>d.MoveNext()
-   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[SignalAndRestServer+<>c__DisplayClass20_0+<<HandleMultiTrackClient>b__4>d, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]](<<HandleMultiTrackClient>b__4>d ByRef)
-   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start[[SignalAndRestServer+<>c__DisplayClass20_0+<<HandleMultiTrackClient>b__4>d, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]](<<HandleMultiTrackClient>b__4>d ByRef)
-   at SignalAndRestServer+<>c__DisplayClass20_0.<HandleMultiTrackClient>b__4()
-   at System.Threading.Tasks.Task`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].InnerInvoke()
-   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(System.Threading.Thread, System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
-   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(System.Threading.Tasks.Task ByRef, System.Threading.Thread)
-   at System.Threading.ThreadPoolWorkQueue.Dispatch()
-   at System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
+[MultiPC] m0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[MultiPC] m0 ICE connected
+[MultiPC] m0 ICE connected
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[MultiPC] m0 PC connected
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[Capture FPS] Mon0: 34.9 fps (captured 105 frames in 3009ms)
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[
