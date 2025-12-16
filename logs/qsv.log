@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected f76e3972-de01-4f92-b161-b0c3132cdda2, mode=multitrack
-[MultiPC Signal] Client f76e3972-de01-4f92-b161-b0c3132cdda2 connected from 192.168.1.3
+[Signal] Client connected 8b49c3c6-b659-421c-806f-d61ed8fa166c, mode=multitrack
+[MultiPC Signal] Client 8b49c3c6-b659-421c-806f-d61ed8fa166c connected from 192.168.1.3
 [MultiPC Signal] Config: 1 monitors @ 1600x900, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -79,9 +79,9 @@ Server is running. Press ENTER to exit.
 [PerMonitorCapture] Started 1 parallel capture threads
 [MultiPC Signal] Received offer for monitor 0
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
@@ -95,44 +95,136 @@ Server is running. Press ENTER to exit.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x20602C87710
-[AVHWDeviceContext @ 0000020606df8640] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x16A02C31DB0
+[AVHWDeviceContext @ 0000016a06e01700] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x20607E897D0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x16A07F5CDC0
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Attempting to create D3D11VA frames context for Zero-Copy...
-[LibAvEncoder] QSV: Zero-Copy Frames Context initialized successfully.
+[LibAvEncoder] QSV: D3D11VA Frames Context initialized. Deriving QSV Frames...
+[LibAvEncoder] QSV: QSV Frames Context derived successfully.
 [LibAvEncoder] Intel QSV initialized in ZERO-COPY Mode.
-[h264_qsv @ 00000206071c1380] Specified pixel format d3d11 is not supported by the h264_qsv encoder.
-[h264_qsv @ 00000206071c1380] Supported pixel formats:
-[h264_qsv @ 00000206071c1380]   nv12
-[h264_qsv @ 00000206071c1380]   qsv
-[LibAvEncoder] Failed to open codec: Invalid argument
-[LibAvEncoderAdapter] LibAvEncoder initialization failed
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 LibAv encoder init failed
-[MultiPC] m0 encoder init failed - no working encoder found
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
 [Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:1431167407 1 udp 2113937151 192.168.1.3 52447 typ host generation 0 ufrag xuws network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:3213058900 1 udp 2113937151 192.168.1.3 56694 typ host generation 0 ufrag hQAp network-cost 999
 [Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
+[MultiPC] m0 ICE connected
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented. Switching to SW Fallback forever.
+[h264_qsv @ 0000016a06dff4c0] Invalid FrameType:0.
+[LibAvEncoder] Send frame error: Invalid data found when processing input
 [Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:3217520396 1 udp 2113939711 192.168.1.3 52448 typ host generation 0 ufrag xuws network-cost 999
-[MultiPC] m0 ICE connected
+[Cluster Signal] Rewritten candidate: candidate:1804726125 1 udp 2113939711 192.168.1.3 56695 typ host generation 0 ufrag hQAp network-cost 999
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
 [MultiPC] m0 PC connected
-[Capture FPS] Mon0: 54.4 fps (captured 164 frames in 3012ms)
-[Capture FPS] Mon0: 58.2 fps (captured 175 frames in 3006ms)
-[Capture FPS] Mon0: 55.5 fps (captured 167 frames in 3011ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3009ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3009ms)
-[Capture FPS] Mon0: 57.7 fps (captured 174 frames in 3016ms)
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[h264_qsv @ 0000016a06dff4c0] Error during encoding: undefined behavior (-16)
+[LibAvEncoder] Send frame error: Internal bug, should not have happened
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
 [MultiPC] m0 PC closed
 [PerMonitorCapture] Monitor 0: Capture thread stopped
 [PerMonitorCapture] All capture threads stopped
 [PerMonitorCapture] All capture threads stopped
+Fatal error. 0xC0000005
+   at SharpGen.Runtime.ComObject.DisposeCore(IntPtr, Boolean)
+   at SharpGen.Runtime.CppObject.Dispose(Boolean)
+   at SharpGen.Runtime.DisposeBase.CheckAndDispose(Boolean)
+   at PerMonitorCapture.Dispose()
+   at SignalAndRestServer+<HandleMultiTrackClient>d__20.MoveNext()
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[SignalAndRestServer+<HandleMultiTrackClient>d__20, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].ExecutionContextCallback(System.Object)
+   at System.Threading.ExecutionContext.RunInternal(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[SignalAndRestServer+<HandleMultiTrackClient>d__20, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].MoveNext(System.Threading.Thread)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[[System.Threading.Tasks.VoidTaskResult, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[SignalAndRestServer+<HandleMultiTrackClient>d__20, RemotePlayServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].MoveNext()
+   at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(System.Runtime.CompilerServices.IAsyncStateMachineBox, Boolean)
+   at System.Threading.Tasks.Task.RunContinuations(System.Object)
+   at System.Threading.Tasks.Task.TrySetResult()
+   at System.Threading.Tasks.Task+DelayPromise.CompleteTimedOut()
+   at System.Threading.TimerQueueTimer.Fire(Boolean)
+   at System.Threading.TimerQueue.FireNextTimers()
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()
+   at System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
