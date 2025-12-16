@@ -1627,6 +1627,7 @@ public unsafe class LibAvEncoder : IDisposable
                     return false;
                 }
                 
+                FrameSent:
                 // Receive encoded packets
                 while (true)
                 {
