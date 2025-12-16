@@ -41,6 +41,14 @@ public unsafe class LibAvEncoder : IDisposable
     private FFmpeg.AutoGen.ID3D11DeviceContext* _ffmpegD3D11Context;
     private bool _isD3D11VAMode;
     
+    // For Cross-Device Bridging (when Encoder uses a different device than Capture)
+    private D3D11Device? _encoderD3D11Device;
+    private D3D11DeviceContext? _encoderD3D11Context;
+    private D3D11Texture2D? _sharedBridgeTexture; // On Capture Device
+    private D3D11Texture2D? _importedBridgeTexture; // On Encoder Device
+    private IntPtr _lastSharedHandle = IntPtr.Zero;
+    private bool _usingCrossDeviceBridge;
+    
     private int _width;
     private int _height;
     private int _fps;
@@ -303,13 +311,16 @@ public unsafe class LibAvEncoder : IDisposable
                 
                 Console.WriteLine($"[LibAvEncoder] Using encoder: {_encoderName}");
 
-                // Allocate codec context
-                _codecCtx = ffmpeg.avcodec_alloc_context3(codec);
                 if (_codecCtx == null)
                 {
                     Console.WriteLine("[LibAvEncoder] Failed to allocate codec context");
                     return false;
                 }
+
+                // Default: Encoder uses the same device as capture
+                _encoderD3D11Device = _device;
+                _encoderD3D11Context = _context;
+                _usingCrossDeviceBridge = false;
 
                 // Configure encoder with vendor-specific options
                 ConfigureEncoderOptions();
@@ -690,9 +701,31 @@ public unsafe class LibAvEncoder : IDisposable
                     return false;
                 }
                 
+                
                 d3d11vaDeviceRef = ffmpeg.av_buffer_ref(d3d11vaDevice);
                 ffmpeg.av_buffer_unref(&d3d11vaDevice);
-                Console.WriteLine("[LibAvEncoder] QSV device created via new D3D11VA device");
+                
+                // --- CROSS-DEVICE SETUP ---
+                // We created a NEW device. We must extract it to use for bridging.
+                // QSV Context -> HW Device -> D3D11VA Context -> Device Pointer
+                AVHWDeviceContext* qsvDevCtx = (AVHWDeviceContext*)hwDeviceCtx->data;
+                // The QSV device context doesn't expose D3D11 device directly easily here?
+                // Wait, hwDeviceCtx is QSV type.
+                // We need to look at the D3D11VA base.
+                // Actually we already have d3d11vaDeviceRef which IS the D3D11VA device!
+                
+                AVHWDeviceContext* d3d11Ctx = (AVHWDeviceContext*)d3d11vaDeviceRef->data;
+                AVD3D11VADeviceContext* d3d11vaCtx = (AVD3D11VADeviceContext*)d3d11Ctx->hwctx;
+                
+                IntPtr newDevicePtr = (IntPtr)d3d11vaCtx->device;
+                Console.WriteLine($"[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x{newDevicePtr:X}");
+                
+                // Create Vortice wrappers for the new device so we can issue Copy commands on it
+                _encoderD3D11Device = new D3D11Device(newDevicePtr);
+                _encoderD3D11Context = _encoderD3D11Device.ImmediateContext;
+                _usingCrossDeviceBridge = true;
+                
+                Console.WriteLine("[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)");
             }
             
             _hwDeviceCtx = hwDeviceCtx;
@@ -1402,15 +1435,67 @@ public unsafe class LibAvEncoder : IDisposable
                 Marshal.AddRef(hwTexPtr);
                 using var hwTexture = new D3D11Texture2D(hwTexPtr);
                 
-                // Copy our NV12 texture to the hardware frame's texture
-                // For texture arrays, copy to the specific array index
-                _context.CopySubresourceRegion(
-                    hwTexture, 
-                    (uint)arrayIndex,  // DstSubresource (array index)
-                    0, 0, 0,           // DstX, DstY, DstZ
-                    nv12Texture, 
-                    0                  // SrcSubresource
-                );
+                if (_usingCrossDeviceBridge && _encoderD3D11Device != null && _encoderD3D11Context != null)
+                {
+                    // --- CROSS-DEVICE BRIDGE ---
+                    // 1. Ensure Shared Bridge Texture exists on Capture Device
+                    if (_sharedBridgeTexture == null || _sharedBridgeTexture.Description.Width != _width || _sharedBridgeTexture.Description.Height != _height)
+                    {
+                        Console.WriteLine("[LibAvEncoder] Creating Shared Bridge Texture...");
+                        _sharedBridgeTexture?.Dispose();
+                        _sharedBridgeTexture = _device!.CreateTexture2D(new Texture2DDescription
+                        {
+                            Width = (uint)_width,
+                            Height = (uint)_height,
+                            MipLevels = 1,
+                            ArraySize = 1,
+                            Format = Vortice.DXGI.Format.NV12,
+                            SampleDescription = new SampleDescription(1, 0),
+                            Usage = ResourceUsage.Default,
+                            BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
+                            CPUAccessFlags = CpuAccessFlags.None,
+                            MiscFlags = ResourceOptionFlags.Shared // KEY: Allow sharing
+                        });
+                        
+                        // Get Shared Handle
+                        using var resource = _sharedBridgeTexture.QueryInterface<IDXGIResource>();
+                        _lastSharedHandle = resource.SharedHandle;
+                        
+                        // Force re-import on next step
+                        _importedBridgeTexture?.Dispose();
+                        _importedBridgeTexture = null;
+                    }
+                    
+                    // 2. Copy Input Texture -> Shared Bridge Texture (On Capture Device)
+                    _context.CopyResource(_sharedBridgeTexture, nv12Texture);
+                    _context.Flush(); // Ensure copy is committed
+                    
+                    // 3. Ensure Imported Texture exists on Encoder Device
+                    if (_importedBridgeTexture == null)
+                    {
+                        Console.WriteLine($"[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x{_lastSharedHandle:X})...");
+                        _importedBridgeTexture = _encoderD3D11Device.OpenSharedResource<D3D11Texture2D>(_lastSharedHandle);
+                    }
+                    
+                    // 4. Copy Imported Texture -> HW Frame Texture (On Encoder Device)
+                    // Note: Use CopySubresourceRegion for NV12 plane copying if needed, or CopyResource if full match
+                    // Since both are NV12 and same size, CopyResource is fastest
+                    _encoderD3D11Context.CopyResource(hwTexture, _importedBridgeTexture);
+                    _encoderD3D11Context.Flush();
+                }
+                else
+                {
+                    // --- SAME-DEVICE COPY ---
+                    // Copy our NV12 texture to the hardware frame's texture
+                    // For texture arrays, copy to the specific array index
+                    _context.CopySubresourceRegion(
+                        hwTexture, 
+                        (uint)arrayIndex,  // DstSubresource (array index)
+                        0, 0, 0,           // DstX, DstY, DstZ
+                        nv12Texture, 
+                        0                  // SrcSubresource
+                    );
+                }
                 
                 // Set PTS
                 _hwFrame->pts = _frameCount++;
