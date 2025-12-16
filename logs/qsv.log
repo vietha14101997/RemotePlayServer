@@ -3,19 +3,6 @@
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.1.13
 [Encoder] FFmpeg x264 (Software)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Text size restored.
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Snapshot captured.
@@ -51,8 +38,8 @@ Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected cfc02704-1253-46f7-b502-3df0f457d922, mode=multitrack
-[MultiPC Signal] Client cfc02704-1253-46f7-b502-3df0f457d922 connected from 192.168.1.3
+[Signal] Client connected b0130001-e52b-4575-94c3-0d31273f949d, mode=multitrack
+[MultiPC Signal] Client b0130001-e52b-4575-94c3-0d31273f949d connected from 192.168.1.3
 [MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -91,12 +78,12 @@ Scan complete.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
-[Display] Setting \\.\DISPLAY28 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY31 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY28 1600x900 [PHYSICAL]
+[Display]   • \\.\DISPLAY31 1600x900 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
 [MultiPC Signal] Available monitors: 2, using: 2
@@ -104,7 +91,7 @@ Scan complete.
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY28 1600x900 - duplication ready
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY31 1600x900 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [MultiPC] Created: 2mon 60fps 20000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
@@ -113,8 +100,8 @@ Scan complete.
 [MultiPC Signal] Monitor 1: Using dedicated D3D11 device for parallel encoding
 [PerMonitorCapture] Started 2 parallel capture threads
 [MultiPC Signal] Received offer for monitor 0
-[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
 [MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
@@ -135,11 +122,11 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1F602D20470
-[AVHWDeviceContext @ 000001f606e87740] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x18C82BB3120
+[AVHWDeviceContext @ 0000018c80035e40] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1F60755F5D0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x18C8B390E90
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...
@@ -163,11 +150,11 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1F65D4F3CE0
-[AVHWDeviceContext @ 000001f60b746680] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x18C82C6F3C0
+[AVHWDeviceContext @ 0000018c8b6982c0] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1F60F0555C0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x18C86DB3730
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...
@@ -182,1290 +169,669 @@ Scan complete.
 [Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
 [Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:2143221110 1 udp 2113937151 192.168.1.3 55464 typ host generation 0 ufrag Gm0k network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:1756270796 1 udp 2113937151 192.168.1.3 64850 typ host generation 0 ufrag i9Zv network-cost 999
 [Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
+[MultiPC] m0 ICE connected
+[LibAvEncoder] Creating Shared Bridge Texture...
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x80002F02)...
+[MultiPC] m0 PC connected
+[MultiPC] m0 enc#1: 32506B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 26218B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 37951B key=False NALs=[6,1]
+[MultiPC] m0 enc#4: 41203B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 54868B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Failed to map frame into derived frame context: -22.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Failed to map frame into derived frame context: -22.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
 [Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:544174066 1 udp 2113939711 192.168.1.3 55465 typ host generation 0 ufrag Gm0k network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:931072584 1 udp 2113939711 192.168.1.3 64851 typ host generation 0 ufrag i9Zv network-cost 999
 [Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
 [Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:356232782 1 udp 2113937151 192.168.1.3 55466 typ host generation 0 ufrag /JWJ network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:413945851 1 udp 2113937151 192.168.1.3 64852 typ host generation 0 ufrag rOza network-cost 999
 [Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
 [Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:1256862922 1 udp 2113939711 192.168.1.3 55467 typ host generation 0 ufrag /JWJ network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:1199428991 1 udp 2113939711 192.168.1.3 64853 typ host generation 0 ufrag rOza network-cost 999
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
 [MultiPC] m1 ICE connected
-[MultiPC] m0 ICE connected
 [LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x40002002)...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x800033C2)...
-[MultiPC] m1 ICE connected
-[MultiPC] m0 ICE connected
-[MultiPC] m0 PC connected
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0xC0002BC2)...
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
 [MultiPC] m1 PC connected
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[MultiPC] m0 enc#1: 10218B key=False NALs=[6,1]
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[MultiPC] m0 streaming started
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[AVHWFramesContext @ 000001f60056a140] [LibAvEncoder] QSV get_buffer failed: Invalid argument
-Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[AVHWFramesContext @ 000001f60056abc0] [LibAvEncoder] QSV get_buffer failed: Invalid argument
-Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[Capture FPS] Mon1: 42.9 fps (captured 129 frames in 3007ms)
-[Capture FPS] Mon0: 43.2 fps (captured 130 frames in 3010ms)
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[AVHWFramesContext @ 000001f60056abc0] [LibAvEncoder] QSV get_buffer failed: Invalid argument
-Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[AVHWFramesContext @ 000001f60056abc0] [LibAvEncoder] QSV get_buffer failed: Invalid argument
-Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Trying to map from a surface which is not in the mapped frames context.
-[AVHWFramesContext @ 000001f60056abc0] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
-[AVHWFramesContext @ 000001f60056a140] Failed to map frame into derived frame context: -22.
-[LibAvEncoder] QSV get_buffer failed: Invalid argument
+[MultiPC] m1 enc#1: 92668B key=True NALs=[7,8,6,5]
+[MultiPC] m1 streaming started
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[MultiPC] m1 enc#2: 34191B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[MultiPC] m1 enc#3: 6838B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[MultiPC] m1 enc#4: 26208B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[MultiPC] m1 enc#5: 35080B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Failed to map frame into derived frame context: -22.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Failed to map frame into derived frame context: -22.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[Capture FPS] Mon1: 0.7 fps (captured 2 frames in 3007ms)
+[Capture FPS] Mon0: 29.2 fps (captured 88 frames in 3015ms)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Encode FPS] Mon0: 38.9 fps (sent 117 in 3007ms, skipped=16)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Encode FPS] Mon1: 30.3 fps (sent 91 in 3005ms, skipped=41)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3010ms)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3005ms)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Encode FPS] Mon0: 42.6 fps (sent 128 in 3003ms, skipped=16)
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Encode FPS] Mon1: 30.0 fps (sent 91 in 3029ms, skipped=41)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[Capture FPS] Mon0: 31.7 fps (captured 95 frames in 3000ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3010ms)
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8753b900] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000018c8b55b2c0] Trying to map from a surface which is not in the mapped frames context.
 [LibAvEncoder] Disposed
 [LibAvEncoderAdapter] Disposed
 [MultiPC] m0 PC closed
@@ -1483,7 +849,7 @@ Trying to map from a surface which is not in the mapped frames context.
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY28
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY31
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
@@ -1514,4 +880,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Guard] Display settings restored.
-[Signal] MultiPC client disconnected cfc02704-1253-46f7-b502-3df0f457d922
+[Signal] MultiPC client disconnected b0130001-e52b-4575-94c3-0d31273f949d
