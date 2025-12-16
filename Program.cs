@@ -102,8 +102,13 @@ partial class Program
                 }
 
                 var chosen = addrs.FirstOrDefault(IsPrivateV4)
-                          ?? addrs.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                          ?? addrs[0];
+                          ?? addrs.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+
+                if (chosen == null || !IsPrivateV4(chosen))
+                {
+                     Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {chosen} (Public/Invalid IP). Ignoring to prevent loopback failure.");
+                     return candStr; // Return original to allow fallback to Remote IP
+                }
 
                 parts[4] = chosen.ToString();
                 Console.WriteLine($"[Cluster Signal] mDNS resolved '{addr}' -> {parts[4]} after {attempt} attempt(s)");

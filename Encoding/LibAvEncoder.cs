@@ -1561,7 +1561,8 @@ public unsafe class LibAvEncoder : IDisposable
                     {
                         // 2. HW Transfer Failed: Use SW Fallback (Readback -> Upload)
                         // This handles the "Function not implemented" / "Invalid argument" errors.
-                        // Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}. Using SW Fallback...");
+                        // Log this occurrence as it affects performance significantly
+                        Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}. Using SW Fallback (Slow)...");
                         
                         ffmpeg.av_frame_unref(qsvFrame); // Clear failed content
                         ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0); // Re-get clean buffer
