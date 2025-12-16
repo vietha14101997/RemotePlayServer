@@ -51,82 +51,203 @@ Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected b5fa3db5-52b3-4b5e-b937-ff84744cae65, mode=multitrack
-[MultiPC Signal] Client b5fa3db5-52b3-4b5e-b937-ff84744cae65 connected from 127.0.0.1
-[MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
-[MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
+[Signal] Client connected fb87ca6d-0768-4034-9f62-975c914f3df6, mode=multitrack
+[MultiPC Signal] Client fb87ca6d-0768-4034-9f62-975c914f3df6 connected from 192.168.1.3
+[MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 20000kbps/stream
+[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 0 (target total: 1)
-[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
 [Display] Setting up 3-monitor system...
-[Display] Physical monitors: 1, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY21 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY21 1600x900 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
-[MultiPC Signal] Available monitors: 1, using: 1
-[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[MultiPC Signal] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
-[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
-[MultiPC] Created: 1mon 60fps 20000kbps (parallel device mode)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY21 1600x900 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[MultiPC] Created: 2mon 60fps 20000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
 [MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
-[PerMonitorCapture] Started 1 parallel capture threads
+[MultiPC] m1 device registered (parallel mode)
+[MultiPC Signal] Monitor 1: Using dedicated D3D11 device for parallel encoding
+[PerMonitorCapture] Started 2 parallel capture threads
 [MultiPC Signal] Received offer for monitor 0
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
-[MultiPC] m0 offer: 1920x1080
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
+[MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
-[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 Intel GPU detected, using QSV encoder
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 20000kbps
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
 [LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] Using encoder: h264_qsv
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x13F02D47470
-[AVHWDeviceContext @ 0000013f02cdcd80] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x19882CC9F20
+[AVHWDeviceContext @ 00000198804b6980] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
-[LibAvEncoder] QSV: Shared device unavailable. Trying to create separate device context...
-[AVHWDeviceContext @ 0000013f02dd2c00] Using device 8086:5917 (Intel(R) UHD Graphics 620).
-[LibAvEncoder] Failed to derive D3D11 from QSV: Function not implemented
-[LibAvEncoder] QSV: Strategy B failed. Trying Strategy A (D3D11 -> QSV)...
-[LibAvEncoder] QSV: Created new D3D11 device and derived QSV from it (Strategy A)
-[LibAvEncoder] QSV: Allocating D3D11VA frames context for QSV...
-[LibAvEncoder] QSV: Forcing Independent QSV Frames (Skipping derivation).
-[LibAvEncoder] QSV: Using Independent QSV Frames (Transfer Mode)
-[LibAvEncoder] Using Internal QSV Frames (System Memory Fallback Mode). PixelFormat set to NV12.
-[LibAvEncoder] Intel QSV setup complete. Bridge=True
+[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x19887542010
+[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
+[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
+[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
+[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1920x1080 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
 [LibAvEncoderAdapter] Initialized successfully
 [MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
-[Cluster Signal] Attempting to resolve mDNS: '6714abbe-b6c3-4008-800d-8e5f20d97906.local'
-[Cluster Signal] mDNS resolved '6714abbe-b6c3-4008-800d-8e5f20d97906.local' -> 125.235.4.59 after 1 attempt(s)
-[Capture FPS] Mon0: 16.3 fps (captured 49 frames in 3015ms)
-[Capture FPS] Mon0: 18.0 fps (captured 54 frames in 3003ms)
-[Capture FPS] Mon0: 5.0 fps (captured 15 frames in 3020ms)
-[Capture FPS] Mon0: 16.9 fps (captured 51 frames in 3014ms)
-[Capture FPS] Mon0: 14.6 fps (captured 44 frames in 3016ms)
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC] m1 offer: 1600x900
+[MultiPC] m1 using dedicated D3D11 device
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 Intel GPU detected, using QSV encoder
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x19882D74F60
+[AVHWDeviceContext @ 000001988aa36600] Error setting child device handle: -16
+[LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
+[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1988F077050
+[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
+[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
+[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
+[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m1 encoder ready (parallel=True)
+[MultiPC] m1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
+[Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
+[Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
+[Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 after 1 attempt(s)
+[Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
+[Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 after 1 attempt(s)
+[Capture FPS] Mon0: 47.0 fps (captured 141 frames in 3003ms)
+[Capture FPS] Mon1: 0.7 fps (captured 2 frames in 3010ms)
+[Capture FPS] Mon0: 58.5 fps (captured 176 frames in 3009ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3015ms)
+[Capture FPS] Mon0: 58.5 fps (captured 176 frames in 3009ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3014ms)
+[Capture FPS] Mon0: 57.0 fps (captured 172 frames in 3015ms)
+[Capture FPS] Mon1: 7.3 fps (captured 22 frames in 3006ms)
+[Capture FPS] Mon1: 5.0 fps (captured 15 frames in 3004ms)
+[Capture FPS] Mon0: 58.1 fps (captured 175 frames in 3014ms)
 [MultiPC] m0 ICE failed
 [MultiPC] m0 ICE failed/closed, requesting reconnect...
 [MultiPC Signal] Requesting reconnect for monitor 0
 [MultiPC] m0 PC failed
 [MultiPC] m0 abnormal close detected, requesting reconnect...
 [MultiPC Signal] Requesting reconnect for monitor 0
-[Capture FPS] Mon0: 6.0 fps (captured 18 frames in 3015ms)
-[Capture FPS] Mon0: 20.8 fps (captured 63 frames in 3026ms)
-[Capture FPS] Mon0: 6.0 fps (captured 18 frames in 3024ms)
+[MultiPC] m1 ICE failed
+[MultiPC] m1 ICE failed/closed, requesting reconnect...
+[MultiPC Signal] Requesting reconnect for monitor 1
+[MultiPC] m1 PC failed
+[MultiPC] m1 abnormal close detected, requesting reconnect...
+[MultiPC Signal] Requesting reconnect for monitor 1
+[Capture FPS] Mon0: 57.0 fps (captured 171 frames in 3002ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3016ms)
+[Capture FPS] Mon0: 10.7 fps (captured 32 frames in 3003ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3007ms)
+[Capture FPS] Mon0: 15.7 fps (captured 47 frames in 3002ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3002ms)
+[Capture FPS] Mon0: 58.0 fps (captured 175 frames in 3016ms)
+[Capture FPS] Mon1: 6.3 fps (captured 19 frames in 3003ms)
+[Capture FPS] Mon1: 2.3 fps (captured 7 frames in 3006ms)
+[Capture FPS] Mon0: 58.4 fps (captured 176 frames in 3012ms)
+[Capture FPS] Mon1: 1.7 fps (captured 5 frames in 3001ms)
+[Capture FPS] Mon0: 57.6 fps (captured 173 frames in 3003ms)
+[Capture FPS] Mon1: 36.6 fps (captured 110 frames in 3008ms)
+[Capture FPS] Mon0: 55.7 fps (captured 168 frames in 3015ms)
+[Capture FPS] Mon1: 58.2 fps (captured 175 frames in 3009ms)
+[Capture FPS] Mon0: 58.4 fps (captured 176 frames in 3013ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3010ms)
+[Capture FPS] Mon0: 58.6 fps (captured 176 frames in 3001ms)
+[Capture FPS] Mon1: 58.3 fps (captured 175 frames in 3003ms)
+[Capture FPS] Mon0: 58.7 fps (captured 177 frames in 3013ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3009ms)
+[Capture FPS] Mon0: 58.2 fps (captured 175 frames in 3009ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3009ms)
+[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3009ms)
+[Capture FPS] Mon1: 58.7 fps (captured 177 frames in 3013ms)
+[Capture FPS] Mon0: 58.4 fps (captured 176 frames in 3012ms)
+[Capture FPS] Mon1: 58.7 fps (captured 177 frames in 3014ms)
+[Capture FPS] Mon0: 58.5 fps (captured 176 frames in 3009ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3010ms)
+[Capture FPS] Mon0: 58.1 fps (captured 175 frames in 3013ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3009ms)
+[Capture FPS] Mon0: 58.5 fps (captured 176 frames in 3009ms)
+[Capture FPS] Mon1: 58.8 fps (captured 177 frames in 3012ms)
+[Capture FPS] Mon0: 57.7 fps (captured 174 frames in 3013ms)
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 PC closed
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m1 PC closed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
