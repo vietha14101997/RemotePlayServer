@@ -1,0 +1,239 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.92
+[Encoder] FFmpeg x264 (Software)
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.92:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████
+█████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▄▀█    ▄▀▀▀▄▄ ▄▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █ █▄▄█▀▄▀ ▀ █  ▀▄█  ▀▀█ █   █ ████
+████ █▄▄▄█ █▄▄▀▄ ███▄ ▄▀▀▄▀█   ▀ █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀ ▀ ▀▄▀▄▀ █ ▀ █ █ ▀ █▄▄▄▄▄▄▄████
+█████▄█ ▀ ▄▀ ▄  ▀▄ ▄▄█  █▄▀▀▄ ▀██▄▄▀ ▄▄▄ ████
+████▄▄█▄█▀▄ ▀▄██▄█▀  ▄█▄██   ▄█▄ ▀█▄▀▄█▄ ████
+████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
+█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
+███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
+████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
+████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
+████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
+████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
+█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
+███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
+████ ▄▄▄▄▄ █▀█ █ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ █   █ █▀▀▀  ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+█████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 910e71a7-d1dc-4ab7-8cdf-222df5271299, mode=multitrack
+[MultiPC Signal] Client 910e71a7-d1dc-4ab7-8cdf-222df5271299 connected from 192.168.1.20
+[MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
+[MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
+[VDD] Temporarily disabling VDD to count physical monitors...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Failed to disable device:  ROOT\DISPLAY\0000
+The device is not connected.
+
+
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 0 (target total: 1)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 1, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[MultiPC Signal] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
+[MultiPC] Created: 1mon 60fps 20000kbps (parallel device mode)
+[MultiPC] m0 device registered (parallel mode)
+[MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
+[PerMonitorCapture] Started 1 parallel capture threads
+[MultiPC Signal] Received offer for monitor 0
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[MultiPC] m0 offer: 1920x1080
+[MultiPC] m0 using dedicated D3D11 device
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m0 Intel GPU detected, using QSV encoder
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 20000kbps
+[LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context...
+[AVHWDeviceContext @ 000001ad00622c40] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] QSV device created directly
+[LibAvEncoder] QSV frames config: 1920x1080, format=QSV/NV12, pool=8
+[LibAvEncoder] Intel QSV hardware context initialized (zero-copy enabled)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1920x1080 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
+[MultiPC] m0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[Capture FPS] Mon0: 0.6 fps (captured 6 frames in 10006ms)
+[MultiPC] m0 ICE connected
+[MultiPC] m0 PC connected
+[MultiPC] m0 enc#1: 13264B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 20756B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 8796B key=False NALs=[6,1]
+[MultiPC] m0 enc#4: 4719B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 3882B key=False NALs=[6,1]
+[Capture FPS] Mon0: 4.2 fps (captured 13 frames in 3066ms)
+[Encode FPS] Mon0: 14.5 fps (sent 45 in 3100ms, skipped=6)
+[Capture FPS] Mon0: 2.3 fps (captured 7 frames in 3012ms)
+[Encode FPS] Mon0: 13.7 fps (sent 42 in 3063ms, skipped=6)
+[Capture FPS] Mon0: 10.6 fps (captured 32 frames in 3033ms)
+[Encode FPS] Mon0: 18.1 fps (sent 55 in 3038ms, skipped=6)
+[Capture FPS] Mon0: 18.8 fps (captured 57 frames in 3033ms)
+[Encode FPS] Mon0: 19.1 fps (sent 58 in 3032ms, skipped=6)
+[Capture FPS] Mon0: 17.8 fps (captured 54 frames in 3028ms)
+[Encode FPS] Mon0: 17.7 fps (sent 54 in 3043ms, skipped=6)
+[Capture FPS] Mon0: 18.3 fps (captured 56 frames in 3053ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3032ms, skipped=6)
+[Capture FPS] Mon0: 18.5 fps (captured 56 frames in 3026ms)
+[Encode FPS] Mon0: 18.2 fps (sent 55 in 3027ms, skipped=6)
+[Capture FPS] Mon0: 17.9 fps (captured 54 frames in 3016ms)
+[Encode FPS] Mon0: 18.5 fps (sent 56 in 3031ms, skipped=6)
+[Capture FPS] Mon0: 18.8 fps (captured 57 frames in 3039ms)
+[Encode FPS] Mon0: 19.2 fps (sent 58 in 3025ms, skipped=6)
+[Capture FPS] Mon0: 18.2 fps (captured 55 frames in 3022ms)
+[Encode FPS] Mon0: 18.2 fps (sent 55 in 3020ms, skipped=6)
+[Capture FPS] Mon0: 18.0 fps (captured 54 frames in 3001ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3037ms, skipped=6)
+[Capture FPS] Mon0: 16.6 fps (captured 50 frames in 3014ms)
+[Encode FPS] Mon0: 17.3 fps (sent 52 in 3002ms, skipped=6)
+[Capture FPS] Mon0: 17.8 fps (captured 54 frames in 3026ms)
+[Encode FPS] Mon0: 18.3 fps (sent 55 in 3008ms, skipped=6)
+[Capture FPS] Mon0: 18.9 fps (captured 57 frames in 3014ms)
+[Encode FPS] Mon0: 18.6 fps (sent 57 in 3057ms, skipped=6)
+[Capture FPS] Mon0: 19.1 fps (captured 58 frames in 3029ms)
+[Encode FPS] Mon0: 19.5 fps (sent 59 in 3031ms, skipped=6)
+[Capture FPS] Mon0: 17.9 fps (captured 54 frames in 3020ms)
+[Encode FPS] Mon0: 17.9 fps (sent 54 in 3011ms, skipped=6)
+[Capture FPS] Mon0: 18.8 fps (captured 57 frames in 3030ms)
+[Encode FPS] Mon0: 18.2 fps (sent 55 in 3030ms, skipped=6)
+[Capture FPS] Mon0: 17.9 fps (captured 54 frames in 3011ms)
+[Encode FPS] Mon0: 18.0 fps (sent 55 in 3049ms, skipped=6)
+[Capture FPS] Mon0: 18.5 fps (captured 56 frames in 3025ms)
+[Encode FPS] Mon0: 17.5 fps (sent 53 in 3026ms, skipped=6)
+[Capture FPS] Mon0: 17.6 fps (captured 53 frames in 3003ms)
+[Encode FPS] Mon0: 18.3 fps (sent 55 in 3013ms, skipped=6)
+[Capture FPS] Mon0: 18.1 fps (captured 55 frames in 3033ms)
+[Encode FPS] Mon0: 18.6 fps (sent 56 in 3013ms, skipped=6)
+[Capture FPS] Mon0: 18.1 fps (captured 55 frames in 3046ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3029ms, skipped=6)
+[Capture FPS] Mon0: 17.5 fps (captured 53 frames in 3032ms)
+[Encode FPS] Mon0: 17.7 fps (sent 54 in 3049ms, skipped=6)
+[Capture FPS] Mon0: 17.2 fps (captured 52 frames in 3018ms)
+[Encode FPS] Mon0: 17.2 fps (sent 52 in 3015ms, skipped=6)
+[Capture FPS] Mon0: 17.8 fps (captured 54 frames in 3031ms)
+[Encode FPS] Mon0: 17.5 fps (sent 53 in 3037ms, skipped=6)
+[Capture FPS] Mon0: 17.1 fps (captured 52 frames in 3046ms)
+[Encode FPS] Mon0: 17.5 fps (sent 53 in 3031ms, skipped=6)
+[Capture FPS] Mon0: 18.3 fps (captured 56 frames in 3053ms)
+[Encode FPS] Mon0: 18.3 fps (sent 55 in 3010ms, skipped=6)
+[Capture FPS] Mon0: 18.0 fps (captured 54 frames in 3008ms)
+[Encode FPS] Mon0: 17.6 fps (sent 53 in 3010ms, skipped=6)
+[Capture FPS] Mon0: 18.0 fps (captured 55 frames in 3061ms)
+[Encode FPS] Mon0: 17.7 fps (sent 53 in 3001ms, skipped=6)
+[Capture FPS] Mon0: 18.6 fps (captured 56 frames in 3016ms)
+[Encode FPS] Mon0: 18.7 fps (sent 56 in 3001ms, skipped=6)
+[Capture FPS] Mon0: 18.1 fps (captured 55 frames in 3037ms)
+[Encode FPS] Mon0: 18.4 fps (sent 56 in 3037ms, skipped=6)
+[Capture FPS] Mon0: 17.8 fps (captured 54 frames in 3042ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3037ms, skipped=6)
+[Capture FPS] Mon0: 17.6 fps (captured 53 frames in 3009ms)
+[Encode FPS] Mon0: 17.9 fps (sent 54 in 3012ms, skipped=6)
+[Capture FPS] Mon0: 17.5 fps (captured 53 frames in 3021ms)
+[Encode FPS] Mon0: 17.3 fps (sent 52 in 3003ms, skipped=6)
+[Capture FPS] Mon0: 18.2 fps (captured 55 frames in 3025ms)
+[Encode FPS] Mon0: 18.2 fps (sent 55 in 3028ms, skipped=6)
+[Capture FPS] Mon0: 17.8 fps (captured 54 frames in 3037ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3029ms, skipped=6)
+[Capture FPS] Mon0: 18.0 fps (captured 55 frames in 3050ms)
+[Encode FPS] Mon0: 17.9 fps (sent 54 in 3024ms, skipped=6)
+[Capture FPS] Mon0: 18.0 fps (captured 55 frames in 3058ms)
+[Encode FPS] Mon0: 18.1 fps (sent 55 in 3038ms, skipped=6)
+[Capture FPS] Mon0: 18.2 fps (captured 55 frames in 3028ms)
+[Encode FPS] Mon0: 18.2 fps (sent 55 in 3030ms, skipped=6)
+[Capture FPS] Mon0: 18.7 fps (captured 56 frames in 3001ms)
+[Encode FPS] Mon0: 17.9 fps (sent 54 in 3010ms, skipped=6)
+[Capture FPS] Mon0: 18.2 fps (captured 55 frames in 3029ms)
+[Encode FPS] Mon0: 18.4 fps (sent 57 in 3103ms, skipped=6)
+[Capture FPS] Mon0: 18.2 fps (captured 55 frames in 3015ms)
+[Encode FPS] Mon0: 18.7 fps (sent 57 in 3048ms, skipped=6)
+[MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 PC closed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[2025-12-16 15:43:51.164] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Failed to disable device:  ROOT\DISPLAY\0000
+The device is not connected.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[Guard] Restore timeout.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected 910e71a7-d1dc-4ab7-8cdf-222df5271299
