@@ -311,6 +311,8 @@ public unsafe class LibAvEncoder : IDisposable
                 
                 Console.WriteLine($"[LibAvEncoder] Using encoder: {_encoderName}");
 
+                // Allocate codec context
+                _codecCtx = ffmpeg.avcodec_alloc_context3(codec);
                 if (_codecCtx == null)
                 {
                     Console.WriteLine("[LibAvEncoder] Failed to allocate codec context");
