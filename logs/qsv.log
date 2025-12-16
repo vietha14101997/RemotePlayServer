@@ -3,6 +3,19 @@
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.1.9
 [Encoder] FFmpeg x264 (Software)
+[Guard] Detected stale session. Restoring previous snapshot before new capture...
+[Guard] Text size restored.
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 0.
+[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Snapshot captured.
@@ -38,18 +51,10 @@ Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected d337b9a7-6770-4022-a90d-d70c53cd92d4, mode=multitrack
-[MultiPC Signal] Client d337b9a7-6770-4022-a90d-d70c53cd92d4 connected from 192.168.1.6
+[Signal] Client connected 2b4abdd3-4b23-4b3d-ac32-dae29500d4e3, mode=multitrack
+[MultiPC Signal] Client 2b4abdd3-4b23-4b3d-ac32-dae29500d4e3 connected from 192.168.1.6
 [MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 25000kbps/stream
 [MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
-[VDD] Temporarily disabling VDD to count physical monitors...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
-
-
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
 [VDD] Virtual monitors needed: 1 (target total: 2)
@@ -65,8 +70,8 @@ Scan complete.
 [pnputil] /enable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
 
-Failed to enable device:  ROOT\DISPLAY\0000
-The device is not connected.
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
 
 
 [pnputil] /scan-devices
@@ -84,31 +89,42 @@ Scan complete.
 
 
 [Display] Setting up 3-monitor system...
-[Display] Physical monitors: 1, Virtual monitors: 0
+[Display] Physical monitors: 2, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY6 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY6 1600x900 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
-[MultiPC Signal] Available monitors: 1, using: 1
-[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[MultiPC Signal] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
-[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
-[MultiPC] Created: 1mon 60fps 25000kbps (parallel device mode)
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY6 1600x900 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[MultiPC] Created: 2mon 60fps 25000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
 [MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
-[PerMonitorCapture] Started 1 parallel capture threads
-[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[MultiPC] m1 device registered (parallel mode)
+[MultiPC Signal] Monitor 1: Using dedicated D3D11 device for parallel encoding
+[PerMonitorCapture] Started 2 parallel capture threads
 [MultiPC Signal] Received offer for monitor 0
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 Intel GPU detected, using QSV encoder
@@ -119,147 +135,74 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x166D0B04D30
-[AVHWDeviceContext @ 0000016682a36080] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x23102C64550
+[AVHWDeviceContext @ 0000023106e48080] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x16687DDCE80
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x23107233B00
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
-[LibAvEncoder] Cross-Bridge Mode: Skipping QSV derivation to ensure Transfer works. Creating independent QSV frames.
-[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
-[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
-[LibAvEncoderAdapter] Initialized successfully
-[MultiPC] m0 encoder ready (parallel=True)
+[LibAvEncoder] QSV: Using D3D11VA frames directly (Implicit Mapping)
+[LibAvEncoder] Intel QSV hardware context initialized (Direct D3D11 Frames)
+[h264_qsv @ 0000023107527300] Mismatching AVCodecContext.pix_fmt and AVHWFramesContext.format
+[LibAvEncoder] Failed to open codec: Invalid argument
+[LibAvEncoderAdapter] LibAvEncoder initialization failed
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 LibAv encoder init failed
+[MultiPC] m0 encoder init failed - no working encoder found
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [MultiPC Signal] Received offer for monitor 1
-[MultiPC Signal] ProcessOffer error m1: Specified argument was out of the range of valid values. (Parameter 'monitorIndex')
+[MultiPC] m1 offer: 1600x900
+[MultiPC] m1 using dedicated D3D11 device
 [MultiPC] m0 ICE connected
-[LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x400002C2)...
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 Intel GPU detected, using QSV encoder
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 25000kbps
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x23102D12C00
 [MultiPC] m0 PC connected
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented. Trying Transfer...
-[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[AVHWDeviceContext @ 0000023107469640] Error setting child device handle: -16
+[LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
+[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x2310B67B960
+[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
+[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
+[LibAvEncoder] QSV: Using D3D11VA frames directly (Implicit Mapping)
+[LibAvEncoder] Intel QSV hardware context initialized (Direct D3D11 Frames)
+[h264_qsv @ 000002310b5c1400] Mismatching AVCodecContext.pix_fmt and AVHWFramesContext.format
+[LibAvEncoder] Failed to open codec: Invalid argument
+[LibAvEncoderAdapter] LibAvEncoder initialization failed
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m1 LibAv encoder init failed
+[MultiPC] m1 encoder init failed - no working encoder found
+[MultiPC] m1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[MultiPC] m1 ICE connected
+[MultiPC] m1 PC connected
+[Capture FPS] Mon1: 44.0 fps (captured 132 frames in 3003ms)
+[Capture FPS] Mon0: 44.2 fps (captured 133 frames in 3006ms)
+[Capture FPS] Mon1: 54.0 fps (captured 163 frames in 3016ms)
+[Capture FPS] Mon0: 53.1 fps (captured 160 frames in 3013ms)
+[Capture FPS] Mon1: 53.4 fps (captured 161 frames in 3015ms)
+[Capture FPS] Mon0: 53.7 fps (captured 162 frames in 3016ms)
+[Capture FPS] Mon1: 52.1 fps (captured 157 frames in 3012ms)
+[Capture FPS] Mon0: 52.5 fps (captured 158 frames in 3011ms)
+[Capture FPS] Mon1: 47.4 fps (captured 143 frames in 3014ms)
+[Capture FPS] Mon0: 47.8 fps (captured 144 frames in 3014ms)
+[Capture FPS] Mon1: 52.4 fps (captured 158 frames in 3016ms)
+[Capture FPS] Mon0: 52.4 fps (captured 158 frames in 3017ms)
+[MultiPC RX] An internal WebSocket error occurred. Please see the innerException, if present, for more details.
+[MultiPC] m0 PC closed
+[MultiPC] m1 PC closed
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
