@@ -270,9 +270,11 @@ public sealed class PerMonitorCapture : IDisposable
 
                 if (mon.Duplication == null) continue;
 
-                // Use a longer timeout (2x frame time) to ensure we catch the VSync interval.
-                // Short timeout (8ms) causes missed frames if thread timing drifts relative to VSync.
-                int timeoutMs = frameTimeMs * 2;
+                // Use a short timeout (5ms) to just check for new frames.
+                // If we wait the full frame time (16ms) AND do processing (copy/encode), we exceed the 16ms budget,
+                // causing FPS to drop (e.g. 16ms wait + 6ms work = 22ms loop = ~45fps).
+                // Our Pacing loop at the bottom handles the rest of the wait to exact 60fps.
+                int timeoutMs = 5;
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
                 
                 if (result.Success && desktopResource != null)
@@ -356,17 +358,15 @@ public sealed class PerMonitorCapture : IDisposable
 
                 if (timeToSleep > 0)
                 {
-                    int sleepInt = (int)timeToSleep;
+                    // HIGH PRECISION PACING:
+                    // Standard Thread.Sleep() has ~15ms resolution on Windows, which causes massive jitter
+                    // and FPS drops (e.g. asking for 5ms sleep -> getting 15ms -> 40fps).
+                    // We use pure SpinWait for the remaining time to guarantee rock-solid 60fps.
+                    // This uses slightly more CPU but is required for low-latency streaming.
                     
-                    if (sleepInt > 4)
+                    while ((sw.ElapsedMilliseconds - loopStart) < (frameTimeMs + 0.1)) // +0.1 margin
                     {
-                        Thread.Sleep(sleepInt - 2); 
-                    }
-                    
-                    // Spin carefully
-                    while ((sw.ElapsedMilliseconds - loopStart) < (frameTimeMs + 0.2)) // +0.2 margin
-                    {
-                        Thread.SpinWait(10);
+                        Thread.SpinWait(10); // Lightweight spin
                     }
                 }
             }
