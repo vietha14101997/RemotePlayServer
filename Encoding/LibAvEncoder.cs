@@ -774,24 +774,57 @@ public unsafe class LibAvEncoder : IDisposable
             }
             
             // 4. QSV Frames Setup
-            // EXPERIMENTAL: Skip creating explicit QSV frames. Use D3D11 frames directly.
-            // FFmpeg's QSV encoder should internally map D3D11 frames to QSV surfaces if the device context allows.
-            // This avoids the failed "Map" and "Transfer" operations we saw with manual handling.
+            // Use Independent QSV Frames by default (Transfer Mode) to avoid "Function not implemented" on Map.
+            // Deriving QSV -> D3D11 is brittle on some drivers.
             
-            Console.WriteLine("[LibAvEncoder] QSV: Using D3D11VA frames directly (Implicit Mapping)");
-            
-            // Assign _hwFramesCtx to the D3D11VA frames context
-            _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
+            AVBufferRef* qsvFramesRef = null;
+            int framesInitRet = -1;
+
+            if (usedSharedDevice)
+            {
+                 Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
+                 framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
+            }
+
+            if (framesInitRet >= 0)
+            {
+                Console.WriteLine("[LibAvEncoder] QSV frames derived from D3D11VA frames successfully");
+                _qsvFramesCtx = qsvFramesRef; 
+            }
+            else
+            {
+                if (usedSharedDevice)
+                     Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
+                
+                // Create Independent QSV Frames Context
+                _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+                var indepFramesCtx = (AVHWFramesContext*)_qsvFramesCtx->data;
+                indepFramesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
+                indepFramesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+                indepFramesCtx->width = _width;
+                indepFramesCtx->height = _height;
+                indepFramesCtx->initial_pool_size = 16;
+                
+                if (ffmpeg.av_hwframe_ctx_init(_qsvFramesCtx) < 0)
+                {
+                     Console.WriteLine("[LibAvEncoder] Independent QSV frames init failed");
+                     return false;
+                }
+                Console.WriteLine($"[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)");
+            }
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
-            ffmpeg.av_buffer_unref(&d3d11FramesRef); 
-            
-            // Set encoder to use D3D11 frames, but tell it we want QSV encoding
+            ffmpeg.av_buffer_unref(&d3d11FramesRef);
+
+            // Fix: Assign _hwFramesCtx so Initialize() works
+            _hwFramesCtx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+
+            // Set encoder to use QSV frames
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV; // Encoder expects this pix_fmt
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
-            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (Direct D3D11 Frames)");
+            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice}, Separation Mode)");
             _isD3D11VAMode = true;
             return true;
         }
@@ -1520,7 +1553,7 @@ public unsafe class LibAvEncoder : IDisposable
                         
                         // We need to allocate the real buffer for QSV frame first
                         int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
-                        if (getBufRet < 0)
+                        if (getBufRet < 0) 
                         {
                              Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}");
                              ffmpeg.av_frame_free(&qsvFrame);
@@ -1531,13 +1564,55 @@ public unsafe class LibAvEncoder : IDisposable
                         int transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, _hwFrame, 0);
                         if (transferRet < 0)
                         {
-                            Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}");
-                            ffmpeg.av_frame_free(&qsvFrame);
-                            return false;
+                            Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}. Using SW Fallback...");
+                            
+                            // --- SW FALLBACK: Read D3D11 to CPU -> SW Frame -> Upload to QSV Frame ---
+                            ffmpeg.av_frame_unref(qsvFrame); // Reset/clear the QSV frame we just allocated
+                            
+                            if (_stagingTexture == null) CreateStagingTexture();
+                            
+                            // Copy input texture to staging
+                            _context!.CopyResource(_stagingTexture!, nv12Texture);
+                            var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                            AVFrame* swFrame = null;
+                            
+                            try
+                            {
+                                swFrame = ffmpeg.av_frame_alloc();
+                                swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                                swFrame->width = _width;
+                                swFrame->height = _height;
+                                ffmpeg.av_frame_get_buffer(swFrame, 32);
+                                
+                                byte* src = (byte*)mapped.DataPointer;
+                                int srcPitch = (int)mapped.RowPitch;
+                                
+                                // Copy Y
+                                for(int y=0; y<_height; y++) 
+                                    Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
+                                    
+                                // Copy UV
+                                byte* srcUV = src + srcPitch*_height;
+                                for(int y=0; y<_height/2; y++) 
+                                    Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
+                                
+                                // Re-alloc QSV buffer
+                                ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
+                                
+                                // Upload SW -> QSV
+                                transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, swFrame, 0);
+                                if (transferRet < 0) 
+                                    Console.WriteLine($"[LibAvEncoder] SW->QSV upload failed: {GetErrorMessage(transferRet)}");
+                            }
+                            finally 
+                            { 
+                                if(swFrame != null) ffmpeg.av_frame_free(&swFrame);
+                                _context.Unmap(_stagingTexture, 0); 
+                            }
                         }
                     }
                     
-                    // Send Mapped QSV Frame
+                    // Send Mapped/Transferred QSV Frame
                     ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
                     ffmpeg.av_frame_free(&qsvFrame);
                 }
@@ -1556,6 +1631,8 @@ public unsafe class LibAvEncoder : IDisposable
                 // Receive encoded packets
                 while (true)
                 {
+                    // Label for loop matching not needed as we replaced block
+                    // Just normal receive loop
                     ret = ffmpeg.avcodec_receive_packet(_codecCtx, _packet);
                     if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN) || ret == ffmpeg.AVERROR_EOF)
                         break;
