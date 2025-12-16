@@ -1569,8 +1569,9 @@ public unsafe class LibAvEncoder : IDisposable
                         {
                             // Map the TARGET QSV frame to D3D11 so we can write to it
                             AVFrame* mappedQsvFrame = ffmpeg.av_frame_alloc();
-                            // AV_HWFRAME_MAP_WRITE(2)
-                            int mapRet = ffmpeg.av_hwframe_map(mappedQsvFrame, qsvFrame, 2);
+                            // AV_HWFRAME_MAP_READ(1) | AV_HWFRAME_MAP_WRITE(2) = 3
+                            // Some drivers require Read/Write access even for write-only operations
+                            int mapRet = ffmpeg.av_hwframe_map(mappedQsvFrame, qsvFrame, 3);
                             
                             if (mapRet >= 0)
                             {
@@ -1582,24 +1583,31 @@ public unsafe class LibAvEncoder : IDisposable
                                         Marshal.AddRef(qsvTexPtr);
                                         using var qsvD3D11Texture = new D3D11Texture2D(qsvTexPtr);
                                         
-                                        // We already have the content in 'hwTexture' (which is actually _importedBridgeTexture in bridge mode)
-                                        // Wait, 'hwTexture' wraps the SOURCE frame's texture.
-                                        // If we are in CrossBridge mode, _importedBridgeTexture is what holds the data on the Encoder Device.
-                                        // So we copy: _importedBridgeTexture (Source) -> qsvD3D11Texture (Dest)
-                                        
                                         if (_importedBridgeTexture != null)
                                         {
                                             _encoderD3D11Context.CopyResource(qsvD3D11Texture, _importedBridgeTexture);
                                             _encoderD3D11Context.Flush();
                                             gpuCopySuccess = true;
-                                            // Console.WriteLine("[LibAvEncoder] Recovered QSV Transfer using Direct GPU Copy!");
                                         }
+                                        else
+                                        {
+                                             Console.WriteLine("[LibAvEncoder] GPU Copy failed: _importedBridgeTexture is null");
+                                        }
+                                    }
+                                    else
+                                    {
+                                         Console.WriteLine("[LibAvEncoder] GPU Copy failed: Mapped texture pointer is zero");
                                     }
                                 }
                                 finally
                                 {
                                     ffmpeg.av_frame_free(&mappedQsvFrame);
                                 }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[LibAvEncoder] GPU Copy failed: Map QSV->D3D11 failed: {GetErrorMessage(mapRet)}");
+                                ffmpeg.av_frame_free(&mappedQsvFrame);
                             }
                         }
 
