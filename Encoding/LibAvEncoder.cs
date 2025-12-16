@@ -58,6 +58,7 @@ public unsafe class LibAvEncoder : IDisposable
     private int _bitrate;
     private long _frameCount;
     private bool _disposed;
+    private bool _qsvMapFailed = false; // Persistent flag to switch to SW fallback if HW map fails
     private bool _initialized;
     private bool _useHardwareFrames;
     private GpuVendorType _gpuVendor = GpuVendorType.Unknown;
@@ -1539,13 +1540,15 @@ public unsafe class LibAvEncoder : IDisposable
                 
                 // If we have a separate QSV Frames Context (Independent Mode), we must Transfer D3D11 -> QSV
                 // Transfer / Map / Fallback Logic
-                if (_qsvFramesCtx != null)
+                if (_qsvFramesCtx != null && !_qsvMapFailed)
                 {
                     AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
                     int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
                     
                     if (getBufRet < 0) 
                     {
+                         _qsvMapFailed = true; // Permanently switch to SW Fallback
+                         Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}. Switching to Optimized SW Fallback forever.");
                          ffmpeg.av_frame_free(&qsvFrame); // cleaning up
                          qsvFrame = null;
                          goto SwFallback; // Jump to SW logic
@@ -1565,11 +1568,19 @@ public unsafe class LibAvEncoder : IDisposable
                     else
                     {
                         // Map Failed
+                        _qsvMapFailed = true; // Permanently switch to SW Fallback
+                        // Console.WriteLine($"[LibAvEncoder] QSV Map failed: {GetErrorMessage(mapRet)}. Switching to Optimized SW Fallback forever.");
+                        
                         ffmpeg.av_frame_unref(qsvFrame);
                         ffmpeg.av_frame_free(&qsvFrame);
                         qsvFrame = null;
                         // Fall through to SwFallback
                     }
+                }
+                else if (_qsvFramesCtx != null && _qsvMapFailed)
+                {
+                    // Already failed before, just go straight to fallback
+                    goto SwFallback;
                 }
                 else
                 {
