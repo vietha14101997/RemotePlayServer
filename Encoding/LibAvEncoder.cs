@@ -814,12 +814,14 @@ public unsafe class LibAvEncoder : IDisposable
             }
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
+
+            // FIX: Use D3D11 Frames as the PRIMARY hardware frames context for the encoder class.
+            // This ensures EncodeD3D11TextureZeroCopy works with D3D11 textures.
+            // We basically "hide" QSV frames from the upper logic and only use them at the very end of encoding.
+            _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
             ffmpeg.av_buffer_unref(&d3d11FramesRef);
 
-            // Fix: Assign _hwFramesCtx so Initialize() works
-            _hwFramesCtx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
-
-            // Set encoder to use QSV frames
+            // Set encoder to use QSV frames (it demands QSV frames)
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
             _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
             _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
