@@ -3,19 +3,6 @@
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.1.9
 [Encoder] FFmpeg x264 (Software)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Text size restored.
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Snapshot captured.
@@ -51,8 +38,8 @@ Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected ca183502-fee6-4dd4-85de-481ce47e64f0, mode=multitrack
-[MultiPC Signal] Client ca183502-fee6-4dd4-85de-481ce47e64f0 connected from 192.168.1.6
+[Signal] Client connected efde688e-a913-4319-80ef-a8639c1a013f, mode=multitrack
+[MultiPC Signal] Client efde688e-a913-4319-80ef-a8639c1a013f connected from 192.168.1.6
 [MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 25000kbps/stream
 [MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -91,12 +78,12 @@ Scan complete.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
-[Display] Setting \\.\DISPLAY14 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY15 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY14 1600x900 [PHYSICAL]
+[Display]   • \\.\DISPLAY15 1600x900 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
 [MultiPC Signal] Available monitors: 2, using: 2
@@ -104,7 +91,7 @@ Scan complete.
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY14 1600x900 - duplication ready
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY15 1600x900 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [MultiPC] Created: 2mon 60fps 25000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
@@ -123,8 +110,8 @@ Scan complete.
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
-[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 Intel GPU detected, using QSV encoder
@@ -135,11 +122,11 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1F082D80F70
-[AVHWDeviceContext @ 000001f082bc8a00] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1E90071BC70
+[AVHWDeviceContext @ 000001e90061f480] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable. Trying to create separate device context...
-[AVHWDeviceContext @ 000001f082bc86c0] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[AVHWDeviceContext @ 000001e900620940] Using device 8086:5917 (Intel(R) UHD Graphics 620).
 [LibAvEncoder] Failed to derive D3D11 from QSV: Function not implemented
 [LibAvEncoder] QSV: Strategy B failed. Trying Strategy A (D3D11 -> QSV)...
 [LibAvEncoder] QSV: Created new D3D11 device and derived QSV from it (Strategy A)
@@ -157,26 +144,24 @@ Scan complete.
 [MultiPC] m1 using dedicated D3D11 device
 [MultiPC] m0 ICE connected
 [LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x40001E02)...
-[AVHWFramesContext @ 000001f08066b8c0] Error synchronizing the operation
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x80000BC2)...
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[AVHWFramesContext @ 000001f08066b8c0] [MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m1 Intel GPU detected, using QSV encoder
-Error uploading the surface
 [LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 25000kbps
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] Using encoder: h264_qsv
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1F082E36190
-[MultiPC] m0 PC connected
-[AVHWDeviceContext @ 000001f08b856b80] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1E902DDCE00
+[AVHWFramesContext @ 000001e90b6adb80] Error synchronizing the operation
+[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
+[AVHWDeviceContext @ 000001e90de66740] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable. Trying to create separate device context...
-[AVHWDeviceContext @ 000001f08c9bf600] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[MultiPC] m0 PC connected
+[AVHWDeviceContext @ 000001e90e732780] Using device 8086:5917 (Intel(R) UHD Graphics 620).
 [LibAvEncoder] Failed to derive D3D11 from QSV: Function not implemented
 [LibAvEncoder] QSV: Strategy B failed. Trying Strategy A (D3D11 -> QSV)...
 [LibAvEncoder] QSV: Created new D3D11 device and derived QSV from it (Strategy A)
@@ -189,478 +174,436 @@ Error uploading the surface
 [MultiPC] m1 encoder ready (parallel=True)
 [MultiPC] m1 answer created
 [MultiPC Signal] Sent answer for monitor 1
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
+[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
 [MultiPC] m1 ICE connected
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] [LibAvEncoder] Creating Shared Bridge Texture...
+Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x80003602)...
 [MultiPC] m1 PC connected
-[LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x400012C2)...
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error synchronizing the operation
+[AVHWFramesContext @ 000001e90e6b4d00] Error synchronizing the operation
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[Capture FPS] Mon1: 0.7 fps (captured 2 frames in 3028ms)
-[Capture FPS] Mon0: 23.4 fps (captured 71 frames in 3028ms)
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[Capture FPS] Mon0: 31.3 fps (captured 94 frames in 3002ms)
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[Capture FPS] Mon1: 2.6 fps (captured 8 frames in 3038ms)
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
 [MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
-[AVHWFramesContext @ 000001f08066c1c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90e6b4d00] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
-[LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
-[AVHWFramesContext @ 000001f08066b8c0] Error uploading the surface
+[AVHWFramesContext @ 000001e90b6adb80] Error uploading the surface
 [LibAvEncoder] SW->QSV Upload failed: Unknown error occurred
 [LibAvEncoder] Disposed
 [LibAvEncoderAdapter] Disposed
@@ -679,7 +622,7 @@ Error uploading the surface
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY14
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY15
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
@@ -710,4 +653,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Guard] Display settings restored.
-[Signal] MultiPC client disconnected ca183502-fee6-4dd4-85de-481ce47e64f0
+[Signal] MultiPC client disconnected efde688e-a913-4319-80ef-a8639c1a013f
