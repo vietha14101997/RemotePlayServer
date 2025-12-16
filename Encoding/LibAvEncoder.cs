@@ -774,58 +774,26 @@ public unsafe class LibAvEncoder : IDisposable
                 return false;
             }
             
-            // 4. QSV Frames Setup (REVERTED STRATEGY: Independent QSV Frames)
-            // 'h264_qsv' requires AV_PIX_FMT_QSV. The D3D11-Input strategy failed on some drivers.
-            // We revert to creating a QSV Frames Context and will handle mapping/transfer manually.
-            
-            AVBufferRef* qsvFramesRef = null;
-            int framesInitRet = -1;
-
-            // Try to DERIVE QSV frames from D3D11 frames (Best case)
-            Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
-            framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
-
-            if (framesInitRet >= 0)
-            {
-                Console.WriteLine("[LibAvEncoder] QSV frames derived from D3D11VA frames successfully");
-                _qsvFramesCtx = qsvFramesRef; 
-            }
-            else
-            {
-                // Fallback: Create Independent QSV Frames
-                Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
-                
-                _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
-                var indepFramesCtx = (AVHWFramesContext*)_qsvFramesCtx->data;
-                // Important: QSV frames context needs to know the SW format match
-                indepFramesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
-                indepFramesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
-                indepFramesCtx->width = _width;
-                indepFramesCtx->height = _height;
-                indepFramesCtx->initial_pool_size = 16;
-                
-                if (ffmpeg.av_hwframe_ctx_init(_qsvFramesCtx) < 0)
-                {
-                     Console.WriteLine("[LibAvEncoder] Independent QSV frames init failed");
-                     return false;
-                }
-                Console.WriteLine($"[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)");
-            }
+            // 4. QSV Frames Setup (Strategy: D3D11 Frames with NV12 Format)
+            // We abandon QSV Frames Context because mapping fails.
+            // We instead use D3D11 Frames Context directly, but set pix_fmt to NV12 to satisfy the codec's supported list.
+            // Modern FFmpeg/Intel drivers often accept D3D11 frames if the logical format matches.
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
 
-            // FIX: Use D3D11 Frames as the PRIMARY hardware frames context for the encoder class.
-            // This ensures EncodeD3D11TextureZeroCopy works with D3D11 textures.
-            // We basically "hide" QSV frames from the upper logic and only use them at the very end of encoding.
+            // Use D3D11 Frames as the PRIMARY hardware frames context
             _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
             ffmpeg.av_buffer_unref(&d3d11FramesRef);
 
-            // Set encoder to use QSV frames (it demands QSV frames)
+            // Set encoder to use D3D11 frames
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
             
-            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice}, Separation Mode)");
+            // KEY CHANGE: Set format to NV12 (supported by h264_qsv) instead of D3D11 or QSV.
+            // The hw_frames_ctx is still set, so FFmpeg should treat input frames as hardware-backed NV12.
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
+            
+            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (Hybrid D3D11-NV12 Mode).");
             _isD3D11VAMode = true;
             return true;
         }
