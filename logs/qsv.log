@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 1987fb84-f4eb-4de6-9c9e-69c30c8cba96, mode=multitrack
-[MultiPC Signal] Client 1987fb84-f4eb-4de6-9c9e-69c30c8cba96 connected from 192.168.1.20
+[Signal] Client connected 5f88c42f-6e3a-4ad5-b004-1aba334d0f8a, mode=multitrack
+[MultiPC Signal] Client 5f88c42f-6e3a-4ad5-b004-1aba334d0f8a connected from 192.168.1.20
 [MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
@@ -88,9 +88,9 @@ The device is not connected.
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [MultiPC Signal] Received offer for monitor 0
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [MultiPC] m0 offer: 1920x1080
 [MultiPC] m0 using dedicated D3D11 device
-[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
@@ -103,11 +103,11 @@ The device is not connected.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1CD02C5FD40
-[AVHWDeviceContext @ 000001cd07049dc0] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1F580F638D0
+[AVHWDeviceContext @ 000001f5810c8780] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1CD07EA38F0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1F5818FC200
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] QSV frames derived from D3D11VA frames successfully
@@ -119,260 +119,143 @@ The device is not connected.
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [MultiPC] m0 ICE connected
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
 [MultiPC] m0 PC connected
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[Capture FPS] Mon0: 40.9 fps (captured 123 frames in 3009ms)
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
-[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[Capture FPS] Mon0: 32.5 fps (captured 98 frames in 3011ms)
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
 [
