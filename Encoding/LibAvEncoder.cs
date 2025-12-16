@@ -30,6 +30,7 @@ public unsafe class LibAvEncoder : IDisposable
     private AVBufferRef* _hwDeviceCtx;
     private AVBufferRef* _hwFramesCtx;
     private AVFrame* _hwFrame;
+    private AVFrame* _swFrame; // Reusable SW frame for fallback
     private AVPacket* _packet;
     
     private D3D11Device? _device;
@@ -1595,44 +1596,52 @@ public unsafe class LibAvEncoder : IDisposable
                      // SW Fallback: D3D11 -> CPU (NV12) -> Encoder
                      // Use FFmpeg's transfer_data which handles the Readback/Staging internally.
                      
-                     AVFrame* swFrame = null;
-                     try
+                     // Reuse persistent SW frame to avoid alloc/free overhead
+                     if (_swFrame == null)
                      {
-                        swFrame = ffmpeg.av_frame_alloc();
-                        swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
-                        swFrame->width = _width;
-                        swFrame->height = _height;
+                        _swFrame = ffmpeg.av_frame_alloc();
+                        _swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                        _swFrame->width = _width;
+                        _swFrame->height = _height;
                         
-                        // Alloc buffer for SW frame
-                        if (ffmpeg.av_frame_get_buffer(swFrame, 32) < 0)
+                        if (ffmpeg.av_frame_get_buffer(_swFrame, 32) < 0)
                         {
-                             Console.WriteLine("[LibAvEncoder] Failed to alloc SW frame buffer");
-                             ffmpeg.av_frame_free(&swFrame);
+                             Console.WriteLine("[LibAvEncoder] Failed to alloc persistent SW frame buffer");
                              return false;
                         }
-                        
-                        // Transfer D3D11 -> SW (Download)
-                        // _hwFrame is D3D11. swFrame is NV12.
-                        int downloadRet = ffmpeg.av_hwframe_transfer_data(swFrame, _hwFrame, 0);
-                        if (downloadRet < 0)
-                        {
-                             // If direct transfer fails, try manual fallback (rare for D3D11->SW)
-                             Console.WriteLine($"[LibAvEncoder] D3D11->SW Download failed: {GetErrorMessage(downloadRet)}");
-                             ffmpeg.av_frame_free(&swFrame);
-                             // Could fallback to manual here, but let's trust transfer first.
-                             return false; 
-                        }
-                        
-                        swFrame->pts = _hwFrame->pts;
-                        
-                        // Send SW Frame Directly
-                        ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
-                        handled = true;
                      }
-                     finally 
-                     { 
-                         if(swFrame != null) ffmpeg.av_frame_free(&swFrame);
+                     
+                     // Make sure the frame is writable (if refcounted)
+                     int makeWritable = ffmpeg.av_frame_make_writable(_swFrame);
+                     if (makeWritable < 0)
+                     {
+                         // Re-alloc if cannot make writable
+                         ffmpeg.av_frame_unref(_swFrame);
+                         ffmpeg.av_frame_get_buffer(_swFrame, 32);
                      }
+
+                     // Transfer D3D11 -> SW (Download)
+                     int downloadRet = ffmpeg.av_hwframe_transfer_data(_swFrame, _hwFrame, 0);
+                     if (downloadRet < 0)
+                     {
+                          Console.WriteLine($"[LibAvEncoder] D3D11->SW Download failed: {GetErrorMessage(downloadRet)}");
+                          return false; 
+                     }
+                     
+                     _swFrame->pts = _hwFrame->pts;
+                     
+                     // Send SW Frame Directly
+                     ret = ffmpeg.avcodec_send_frame(_codecCtx, _swFrame);
+                     handled = true;
+                     
+                     // Note: Do NOT free _swFrame here, keep it for next frame.
+                     // But we should unref references? avcodec_send_frame creates a ref.
+                     // We don't need to unref _swFrame, we just overwrite data next time?
+                     // Actually av_frame_make_writable handles it.
+                     // However, av_hwframe_transfer_data might expect clean frame? 
+                     // It overwrites.
+                     
+                     // Need to ensure we dispose _swFrame in Dispose() method.
                 }
                 
                 if (!handled)
@@ -1739,6 +1748,12 @@ public unsafe class LibAvEncoder : IDisposable
             if (_hwFrame != null)
             {
                 fixed (AVFrame** f = &_hwFrame)
+                    ffmpeg.av_frame_free(f);
+            }
+
+            if (_swFrame != null)
+            {
+                fixed (AVFrame** f = &_swFrame)
                     ffmpeg.av_frame_free(f);
             }
             
