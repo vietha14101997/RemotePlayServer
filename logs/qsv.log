@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 1209ac91-7773-4d46-a4bd-d9068e7452f8, mode=multitrack
-[MultiPC Signal] Client 1209ac91-7773-4d46-a4bd-d9068e7452f8 connected from 192.168.1.20
+[Signal] Client connected 020dbd29-15e4-432d-acba-6462b0e7ea9d, mode=multitrack
+[MultiPC Signal] Client 020dbd29-15e4-432d-acba-6462b0e7ea9d connected from 192.168.1.20
 [MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
@@ -100,61 +100,45 @@ The device is not connected.
 [LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] Using encoder: h264_qsv
-[LibAvEncoder] Failed to allocate codec context
-[LibAvEncoderAdapter] LibAvEncoder initialization failed
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 LibAv encoder init failed
-[MultiPC] m0 encoder init failed - no working encoder found
+[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x27B82BA9520
+[AVHWDeviceContext @ 0000027b8295d540] Error setting child device handle: -16
+[LibAvEncoder] Failed to derive QSV from shared D3D11VA: Unknown error occurred
+[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x27B87E0FFF0
+[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
+[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
+[LibAvEncoder] QSV frames derived from D3D11VA frames successfully
+[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1920x1080 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [MultiPC] m0 ICE connected
 [MultiPC] m0 PC connected
-[Capture FPS] Mon0: 12.6 fps (captured 38 frames in 3005ms)
-[Capture FPS] Mon0: 43.0 fps (captured 129 frames in 3003ms)
-[Capture FPS] Mon0: 50.2 fps (captured 151 frames in 3005ms)
-[Capture FPS] Mon0: 50.4 fps (captured 152 frames in 3015ms)
-[Capture FPS] Mon0: 54.1 fps (captured 163 frames in 3013ms)
-[Capture FPS] Mon0: 55.5 fps (captured 167 frames in 3007ms)
-[MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
-[MultiPC] m0 PC closed
-[PerMonitorCapture] Monitor 0: Capture thread stopped
-[PerMonitorCapture] All capture threads stopped
-[PerMonitorCapture] All capture threads stopped
-[Guard] Restoring display settings after MultiPC client disconnect...
-[Guard] RestoreAndCleanupWithTimeout called...
-[Guard] SnapshotPath exists: True
-[Guard] Attempting to disable VDD...
-[Guard] ForceDisableVdd: Finding VDD instance...
-[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[2025-12-16 16:13:21.506] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
-[Guard] ForceDisableVdd: Disabling VDD...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
-
-
-[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
-[Guard] Restoring original state before exit...
-[Guard] Step 1: Restoring Text Scale first...
-[Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Step 2: Restoring per-monitor text scale...
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[Guard] Restore timeout.
-[Guard] Display settings restored.
-[Signal] MultiPC client disconnected 1209ac91-7773-4d46-a4bd-d9068e7452f8
+[MultiPC] m0 enc#1: 3927B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 13527B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 20844B key=False NALs=[6,1]
+[MultiPC] m0 enc#4: 7207B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 39328B key=False NALs=[6,1]
+[Capture FPS] Mon0: 4.9 fps (captured 15 frames in 3049ms)
+[Encode FPS] Mon0: 12.8 fps (sent 39 in 3050ms, skipped=4)
+[Capture FPS] Mon0: 3.0 fps (captured 9 frames in 3026ms)
+[Encode FPS] Mon0: 12.1 fps (sent 37 in 3051ms, skipped=4)
+[Capture FPS] Mon0: 2.0 fps (captured 6 frames in 3067ms)
+[Encode FPS] Mon0: 12.7 fps (sent 39 in 3068ms, skipped=4)
+[Capture FPS] Mon0: 10.6 fps (captured 32 frames in 3016ms)
+[Encode FPS] Mon0: 19.2 fps (sent 58 in 3013ms, skipped=4)
+[Capture FPS] Mon0: 17.5 fps (captured 53 frames in 3031ms)
+[Encode FPS] Mon0: 17.8 fps (sent 54 in 3037ms, skipped=4)
+[Capture FPS] Mon0: 18.4 fps (captured 56 frames in 3048ms)
+[Encode FPS] Mon0: 18.5 fps (sent 56 in 3020ms, skipped=4)
+[Capture FPS] Mon0: 18.4 fps (captured 56 frames in 3046ms)
+[Encode FPS] Mon0: 18.8 fps (sent 57 in 3030ms, skipped=4)
+[Capture FPS] Mon0: 19.3 fps (captured 58 frames in 3012ms)
+[Encode FPS] Mon0: 18.5 fps (sent 56 in 3019ms, skipped=4)
