@@ -1615,7 +1615,11 @@ public unsafe class LibAvEncoder : IDisposable
                         Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
                     
                     swFrame->pts = _hwFrame->pts;
+                    swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE; // Let encoder decide (force IDR if needed)
                     
+                    if (_frameCount % 60 == 0) 
+                        Console.WriteLine($"[LibAvEncoder] SW Fallback: Sending Frame PTS={swFrame->pts}");
+
                     ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
                 }
                 finally 
