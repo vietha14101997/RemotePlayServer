@@ -774,21 +774,13 @@ public unsafe class LibAvEncoder : IDisposable
             }
             
             // 4. QSV Frames Setup
-            // If usedSharedDevice (True Zero Copy): Try to Derive QSV frames from D3D11.
-            // If !usedSharedDevice (Fallback/CrossBridge): Create INDEPENDENT QSV frames manually.
+            // Always try to derive QSV frames from D3D11 frames first.
+            // Even if we created a new device (!usedSharedDevice), deriving frames maintains the link 
+            // allowing efficient mapping without full copy/convert.
             
             AVBufferRef* qsvFramesRef = null;
-            int framesInitRet = -1;
-
-            if (usedSharedDevice)
-            {
-                 Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
-                 framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
-            }
-            else
-            {
-                 Console.WriteLine("[LibAvEncoder] Fallback Mode: Skipping QSV derivation. Creating independent QSV frames.");
-            }
+            Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
+            int framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
 
             if (framesInitRet >= 0)
             {
@@ -797,8 +789,7 @@ public unsafe class LibAvEncoder : IDisposable
             }
             else
             {
-                if (usedSharedDevice)
-                     Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
+                Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
                 
                 // Create Independent QSV Frames Context
                 _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
@@ -1556,7 +1547,7 @@ public unsafe class LibAvEncoder : IDisposable
                     if (mapRet < 0)
                     {
                         // Fallback: Try Transfer Data (Copy) if Map fails
-                        // Console.WriteLine($"[LibAvEncoder] Map D3D11 to QSV failed: {GetErrorMessage(mapRet)}. Trying Transfer...");
+                        Console.WriteLine($"[LibAvEncoder] Map D3D11 to QSV failed: {GetErrorMessage(mapRet)}. Trying Transfer...");
                         
                         // We need to allocate the real buffer for QSV frame first
                         int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
