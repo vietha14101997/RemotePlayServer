@@ -41,6 +41,9 @@ public unsafe class LibAvEncoder : IDisposable
     private FFmpeg.AutoGen.ID3D11DeviceContext* _ffmpegD3D11Context;
     private bool _isD3D11VAMode;
     
+    // QSV Specific: Frames context for the encoder (derived from D3D11)
+    private AVBufferRef* _qsvFramesCtx;
+    
     // For Cross-Device Bridging (when Encoder uses a different device than Capture)
     private D3D11Device? _encoderD3D11Device;
     private D3D11DeviceContext? _encoderD3D11Context;
@@ -781,15 +784,16 @@ public unsafe class LibAvEncoder : IDisposable
             if (ctxRet >= 0)
             {
                 Console.WriteLine("[LibAvEncoder] QSV frames derived from D3D11VA frames successfully");
-                _hwFramesCtx = qsvFramesRef;
-                ffmpeg.av_buffer_unref(&d3d11FramesRef); // Release our ref, qsv ref holds it
+                _qsvFramesCtx = qsvFramesRef; // Store QSV frames separately
+                // Do NOT unref d3d11FramesRef yet, we will use it as the main _hwFramesCtx
             }
             else
             {
                 Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames from D3D11 frames: {GetErrorMessage(ctxRet)}. Fallback to direct QSV alloc.");
                 ffmpeg.av_buffer_unref(&d3d11FramesRef);
                 
-                // Fallback: Alloc directly on QSV Device
+                // Fallback: Alloc directly on QSV Device (Previous logic)
+                 // If this happens, we are back to square one with mapping issues likely, but it's a fallback.
                 _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
                 framesCtx = (AVHWFramesContext*)_hwFramesCtx->data;
                 framesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
@@ -805,17 +809,30 @@ public unsafe class LibAvEncoder : IDisposable
                      ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
                      return false;
                 }
+                
+                // Set encoder to use THIS QSV frames
+                _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+                _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
+                
+                ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
+                Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (FALLBACK MODE)");
+                _isD3D11VAMode = true; 
+                return true;
             }
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
             
-            // Set encoder to use QSV frames
+            // PRIMARY STRATEGY: Use D3D11 Frames for writing, QSV Frames for Encoder
+            _hwFramesCtx = d3d11FramesRef; // Main context is D3D11 (matches Capture)
+            
+            // Set encoder to use QSV frames (it demands QSV)
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
             _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
-            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice})");
-            _isD3D11VAMode = true; // IMPORTANT: Enable D3D11VA mode so EncodeD3D11TextureZeroCopy works
+            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice}, D3D11->QSV Mode)");
+            _isD3D11VAMode = true;
             return true;
         }
         catch (Exception ex)
@@ -1424,6 +1441,8 @@ public unsafe class LibAvEncoder : IDisposable
                 AVFrame* mappedFrame = null;
                 
                 // If the frame is QSV, we must map it to D3D11 to get the texture pointer
+                // NOTE: With our new strategy (using D3D11 frames for hw_frames_ctx), this shouldn't happen often
+                // unless we fell back to direct QSV alloc.
                 if (_hwFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
                 {
                      mappedFrame = ffmpeg.av_frame_alloc();
@@ -1499,8 +1518,6 @@ public unsafe class LibAvEncoder : IDisposable
                     }
                     
                     // 4. Copy Imported Texture -> HW Frame Texture (On Encoder Device)
-                    // Note: Use CopySubresourceRegion for NV12 plane copying if needed, or CopyResource if full match
-                    // Since both are NV12 and same size, CopyResource is fastest
                     _encoderD3D11Context.CopyResource(hwTexture, _importedBridgeTexture);
                     _encoderD3D11Context.Flush();
                 }
@@ -1517,18 +1534,36 @@ public unsafe class LibAvEncoder : IDisposable
                         0                  // SrcSubresource
                     );
                 }
-                
-                if (mappedFrame != null)
-                {
-                    // Unref the mapped frame (commits data back to QSV surface if needed, though usually zero-copy)
-                    ffmpeg.av_frame_free(&mappedFrame);
-                }
-                
-                // Set PTS on the ORIGINAL frame
+
+                // Set PTS on the D3D11 frame (source)
                 _hwFrame->pts = _frameCount++;
                 
-                // Send frame to encoder
-                ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
+                // If we have a separate QSV Frames Context, we must Map D3D11 -> QSV
+                if (_qsvFramesCtx != null)
+                {
+                    AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
+                    // Set context so map knows where to go
+                    qsvFrame->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+                    qsvFrame->pts = _hwFrame->pts;
+                    
+                    int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0); // Direction usually 0 for auto
+                    if (mapRet < 0)
+                    {
+                        Console.WriteLine($"[LibAvEncoder] Map D3D11 to QSV failed: {GetErrorMessage(mapRet)}");
+                        ffmpeg.av_frame_free(&qsvFrame);
+                        return false;
+                    }
+                    
+                    // Send Mapped QSV Frame
+                    ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
+                    ffmpeg.av_frame_free(&qsvFrame);
+                }
+                else
+                {
+                     // Send d3d11 frame directly (or whatever _hwFrame is)
+                     ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
+                }
+
                 if (ret < 0)
                 {
                     Console.WriteLine($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
