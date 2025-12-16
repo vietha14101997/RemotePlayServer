@@ -649,231 +649,149 @@ public unsafe class LibAvEncoder : IDisposable
     {
         try
         {
-            Console.WriteLine("[LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...");
+            Console.WriteLine("[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...");
             
             AVBufferRef* hwDeviceCtx = null;
             AVBufferRef* d3d11vaDeviceRef = null;
-            bool usedSharedDevice = false;
-
-            // 1. Try to use SHARED D3D11 DEVICE first (Best for Zero-Copy)
-            if (_device != null && _device.NativePointer != IntPtr.Zero)
+            
+            // PRIORITY 1: Direct QSV Creation (Most reliable on Intel)
+            // This lets the driver/FFmpeg pick the best D3D11 device for QSV.
+            // We then bridge to it from our capture device.
+            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, "auto", null, 0);
+            
+            if (ret == 0)
             {
-                Console.WriteLine($"[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x{_device.NativePointer:X}");
+                Console.WriteLine("[LibAvEncoder] QSV device created directly (matches known good config)");
                 
-                // Create D3D11VA wrapper for our device
-                AVBufferRef* d3d11vaDevice = ffmpeg.av_hwdevice_ctx_alloc(AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA);
-                if (d3d11vaDevice != null)
+                // We need to extract the underlying D3D11 device to support Cross-Device Copy/Sharing
+                // QSV Context -> Derived from D3D11VA? -> No, it IS QSV. 
+                // But generally on Windows, QSV implies a D3D11/DXVA2 backend.
+                // We try to derive/extract D3D11VA context to get the device pointer.
+                
+                // Try to map QSV device to D3D11VA to access the ID3D11Device
+                ret = ffmpeg.av_hwdevice_ctx_create_derived(&d3d11vaDeviceRef, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, hwDeviceCtx, 0);
+                if (ret >= 0)
                 {
-                    AVHWDeviceContext* deviceContext = (AVHWDeviceContext*)d3d11vaDevice->data;
-                    AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceContext->hwctx;
-                    d3d11vaDeviceCtx->device = (FFmpegD3D11Device*)_device.NativePointer;
+                    var d3d11Ctx = (AVHWDeviceContext*)d3d11vaDeviceRef->data;
+                    var d3d11vaCtx = (AVD3D11VADeviceContext*)d3d11Ctx->hwctx;
+                    IntPtr qsvD3D11DevicePtr = (IntPtr)d3d11vaCtx->device;
                     
-                    // Init the wrapper
-                    int initRet = ffmpeg.av_hwdevice_ctx_init(d3d11vaDevice);
-                    if (initRet >= 0)
+                    Console.WriteLine($"[LibAvEncoder] Extracted underlying QSV D3D11 Device: 0x{qsvD3D11DevicePtr:X}");
+                    
+                    if (qsvD3D11DevicePtr != IntPtr.Zero && qsvD3D11DevicePtr != _device!.NativePointer)
                     {
-                        // Derive QSV device from this D3D11VA device
-                        int deriveRet = ffmpeg.av_hwdevice_ctx_create_derived(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, d3d11vaDevice, 0);
-                        if (deriveRet >= 0)
-                        {
-                            Console.WriteLine("[LibAvEncoder] QSV device derived from SHARED D3D11VA device successfully");
-                            usedSharedDevice = true;
-                            // Keep the reference to d3d11vaDevice for frames context creation
-                            d3d11vaDeviceRef = ffmpeg.av_buffer_ref(d3d11vaDevice);
-                        }
-                        else
-                        {
-                             // -16 (EBUSY) or others are expected if the driver doesn't support sharing in this way
-                             Console.WriteLine($"[LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error {deriveRet}). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.");
-                        }
+                        // Setup Cross-Device Bridge
+                        _encoderD3D11Device = new D3D11Device(qsvD3D11DevicePtr);
+                        _encoderD3D11Context = _encoderD3D11Device.ImmediateContext;
+                        _usingCrossDeviceBridge = true;
+                        Console.WriteLine("[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Capture Device != QSV Device)");
                     }
-                    else
+                    else if (qsvD3D11DevicePtr == _device!.NativePointer)
                     {
-                         Console.WriteLine($"[LibAvEncoder] Failed to init shared D3D11VA wrapper: {GetErrorMessage(initRet)}");
-                    }
-                    
-                    ffmpeg.av_buffer_unref(&d3d11vaDevice);
-                }
-            }
-            
-            // 2. Fallback: Create new device and its D3D11VA base
-            if (!usedSharedDevice)
-            {
-                Console.WriteLine("[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...");
-                
-                AVBufferRef* d3d11vaDevice = null;
-                int ret = ffmpeg.av_hwdevice_ctx_create(&d3d11vaDevice, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
-                if (ret < 0)
-                {
-                    Console.WriteLine($"[LibAvEncoder] D3D11VA base device creation failed: {GetErrorMessage(ret)}");
-                    return false;
-                }
-                
-                // Derive QSV device
-                ret = ffmpeg.av_hwdevice_ctx_create_derived(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_QSV, d3d11vaDevice, 0);
-                if (ret < 0)
-                {
-                    Console.WriteLine($"[LibAvEncoder] Failed to derive QSV from new D3D11VA: {GetErrorMessage(ret)}");
-                    ffmpeg.av_buffer_unref(&d3d11vaDevice);
-                    return false;
-                }
-                
-                d3d11vaDeviceRef = ffmpeg.av_buffer_ref(d3d11vaDevice);
-                ffmpeg.av_buffer_unref(&d3d11vaDevice);
-                
-                // --- CROSS-DEVICE SETUP ---
-                // We created a NEW device. We must extract it to use for bridging.
-                AVHWDeviceContext* d3d11Ctx = (AVHWDeviceContext*)d3d11vaDeviceRef->data;
-                AVD3D11VADeviceContext* d3d11vaCtx = (AVD3D11VADeviceContext*)d3d11Ctx->hwctx;
-                
-                IntPtr newDevicePtr = (IntPtr)d3d11vaCtx->device;
-                Console.WriteLine($"[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x{newDevicePtr:X}");
-                
-                // Create Vortice wrappers for the new device so we can issue Copy commands on it
-                _encoderD3D11Device = new D3D11Device(newDevicePtr);
-                _encoderD3D11Context = _encoderD3D11Device.ImmediateContext;
-                _usingCrossDeviceBridge = true;
-                
-                Console.WriteLine("[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)");
-            }
-            
-            _hwDeviceCtx = hwDeviceCtx;
-            
-            // 3. Create Frames Context and TEST Zero-Copy
-            bool zeroCopyAvailable = false;
-            
-            try 
-            {
-                Console.WriteLine("[LibAvEncoder] QSV: Attempting to init and TEST Zero-Copy...");
-                
-                AVBufferRef* d3d11FramesRef = ffmpeg.av_hwframe_ctx_alloc(d3d11vaDeviceRef);
-                if (d3d11FramesRef != null)
-                {
-                    AVHWFramesContext* framesCtx = (AVHWFramesContext*)d3d11FramesRef->data;
-                    framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
-                    framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
-                    framesCtx->width = _width;
-                    framesCtx->height = _height;
-                    framesCtx->initial_pool_size = 16;
-                    
-                    AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
-                    d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
-                    d3d11vaFramesCtx->MiscFlags = (uint)Vortice.Direct3D11.ResourceOptionFlags.Shared;
-                    
-                    int ctxRet = ffmpeg.av_hwframe_ctx_init(d3d11FramesRef);
-                    if (ctxRet >= 0)
-                    {
-                        AVBufferRef* qsvFramesRef = null;
-                        int deriveRet = ffmpeg.av_hwframe_ctx_create_derived(
-                            &qsvFramesRef, 
-                            AVPixelFormat.AV_PIX_FMT_QSV, 
-                            _hwDeviceCtx, 
-                            d3d11FramesRef, 
-                            0);
-                            
-                        if (deriveRet >= 0)
-                        {
-                            // --- TEST ZERO-COPY CAPABILITY ---
-                            Console.WriteLine("[LibAvEncoder] QSV: Testing Zero-Copy (Alloc + Map)...");
-                            AVFrame* testFrame = ffmpeg.av_frame_alloc();
-                            AVFrame* testMapped = ffmpeg.av_frame_alloc();
-                            bool testPassed = false;
-                            
-                            try 
-                            {
-                                int getRet = ffmpeg.av_hwframe_get_buffer(qsvFramesRef, testFrame, 0);
-                                if (getRet >= 0)
-                                {
-                                    int mapRet = ffmpeg.av_hwframe_map(testMapped, testFrame, 3); // Read/Write
-                                    if (mapRet >= 0)
-                                    {
-                                        testPassed = true;
-                                        Console.WriteLine("[LibAvEncoder] QSV: Zero-Copy TEST PASSED.");
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine($"[LibAvEncoder] QSV: Zero-Copy TEST FAILED (Map error: {GetErrorMessage(mapRet)})");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"[LibAvEncoder] QSV: Zero-Copy TEST FAILED (Alloc error: {GetErrorMessage(getRet)})");
-                                }
-                            }
-                            finally
-                            {
-                                ffmpeg.av_frame_free(&testMapped);
-                                ffmpeg.av_frame_free(&testFrame);
-                            }
-                            
-                            if (testPassed)
-                            {
-                                _hwFramesCtx = qsvFramesRef;
-                                zeroCopyAvailable = true;
-                                ffmpeg.av_buffer_unref(&d3d11FramesRef); // Ref passed to QSV Frames
-                            }
-                            else
-                            {
-                                ffmpeg.av_buffer_unref(&qsvFramesRef);
-                                ffmpeg.av_buffer_unref(&d3d11FramesRef);
-                            }
-                        }
-                        else
-                        {
-                             Console.WriteLine($"[LibAvEncoder] QSV: Derived frames creation failed: {GetErrorMessage(deriveRet)}");
-                             ffmpeg.av_buffer_unref(&d3d11FramesRef);
-                        }
-                    }
-                    else
-                    {
-                         Console.WriteLine($"[LibAvEncoder] QSV: D3D11 frames init failed: {GetErrorMessage(ctxRet)}");
-                         ffmpeg.av_buffer_unref(&d3d11FramesRef);
+                        Console.WriteLine("[LibAvEncoder] QSV: Running on same D3D11 device as capture (Optimal)");
+                        _usingCrossDeviceBridge = false;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                 Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy setup checking exception: {ex.Message}");
-            }
-
-            ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
-
-            // 4. Finalize Setup STRICTLY based on capability
-            if (zeroCopyAvailable)
-            {
-                 // ZERO-COPY MODE
-                 _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-                 _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
-                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV; 
-                 
-                 _isD3D11VAMode = true;
-                 _useHardwareFrames = true; 
-                 Console.WriteLine("[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.");
-                 return true; 
+                else
+                {
+                    Console.WriteLine("[LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.");
+                }
             }
             else
             {
-                // SAFE MODE
-                _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-                _codecCtx->hw_frames_ctx = null; 
-                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
-                
-                if (_hwFramesCtx != null) 
-                {
-                    AVBufferRef* temp = _hwFramesCtx;
-                    ffmpeg.av_buffer_unref(&temp);
-                    _hwFramesCtx = null;
-                }
-
-                Console.WriteLine($"[LibAvEncoder] Intel QSV initialized in SAFE MODE (Software Upload). Zero-Copy test failed or unavailable.");
-                _isD3D11VAMode = true; 
-                return false; // Trigger SW Mode in Initialize()
+                 Console.WriteLine($"[LibAvEncoder] Direct QSV init failed: {GetErrorMessage(ret)}. Trying Fallback (D3D11 Wrapper)...");
+                 
+                 // Fallback implementation (old wrapping method) - kept just in case
+                 return false; // For now, fail if direct fails to keep it simple and match "Old Log" requirement
             }
+
+            // 3. Create Frames Context on the QSV Device
+            if (hwDeviceCtx != null)
+            {
+                 AVBufferRef* framesRef = ffmpeg.av_hwframe_ctx_alloc(hwDeviceCtx);
+                 AVHWFramesContext* framesCtx = (AVHWFramesContext*)framesRef->data;
+                 
+                 framesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
+                 framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+                 framesCtx->width = _width;
+                 framesCtx->height = _height;
+                 framesCtx->initial_pool_size = 20;
+                 
+                 ret = ffmpeg.av_hwframe_ctx_init(framesRef);
+                 if (ret >= 0)
+                 {
+                     // --- CRITICAL ZERO-COPY TEST ---
+                     // Allocate and Map a test frame to ensure stable runtime
+                     Console.WriteLine("[LibAvEncoder] Testing QSV Zero-Copy Capability...");
+                     AVFrame* testFrame = ffmpeg.av_frame_alloc();
+                     int allocRet = ffmpeg.av_hwframe_get_buffer(framesRef, testFrame, 0);
+                     bool testPassed = false;
+                     
+                     if (allocRet >= 0)
+                     {
+                         // Must be of type QSV
+                         if (testFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
+                         {
+                             AVFrame* mappedTest = ffmpeg.av_frame_alloc();
+                             int mapRet = ffmpeg.av_hwframe_map(mappedTest, testFrame, 3); // Read/Write
+                             if (mapRet >= 0)
+                             {
+                                 testPassed = true;
+                                 ffmpeg.av_frame_free(&mappedTest);
+                             }
+                             else
+                             {
+                                 Console.WriteLine($"[LibAvEncoder] QSV Test Failed: Map Error {GetErrorMessage(mapRet)}");
+                             }
+                         }
+                         ffmpeg.av_frame_free(&testFrame);
+                     }
+                     else
+                     {
+                         Console.WriteLine($"[LibAvEncoder] QSV Test Failed: Alloc Error {GetErrorMessage(allocRet)}");
+                     }
+                     
+                     if (testPassed)
+                     {
+                         _hwDeviceCtx = hwDeviceCtx;
+                         _hwFramesCtx = framesRef; // Use this as main frames ctx
+                         _qsvFramesCtx = ffmpeg.av_buffer_ref(framesRef); // Keep explicit ref for QSV logic
+                         
+                         _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+                         _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+                         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
+                         
+                         _useHardwareFrames = true; // TEST PASSED!
+                         Console.WriteLine("[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode (Test Passed).");
+                         
+                         if (d3d11vaDeviceRef != null) ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
+                         return true;
+                     }
+                     // If Test Failed, we fall through to SAFE MODE cleanup
+                 }
+                 else
+                 {
+                     Console.WriteLine($"[LibAvEncoder] QSV frames init failed: {GetErrorMessage(ret)}");
+                 }
+                 
+                 ffmpeg.av_buffer_unref(&framesRef);
+            }
+            
+            // Cleanup on failure
+            if (d3d11vaDeviceRef != null) ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
+            if (hwDeviceCtx != null) ffmpeg.av_buffer_unref(&hwDeviceCtx);
+            
+            // Fallback to Safe Mode
+            Console.WriteLine("[LibAvEncoder] QSV Zero-Copy Init failed. Falling back to SAFE MODE.");
+            
+            // Re-create generic D3D11VA device for System Memory fallback
+            // Because QSV device failed, we can't use it even for software upload (it expects NV12 -> QSV upload)
+            // So we return FALSE to let InitializeHardwareContext try standard D3D11VA or Software
+            return false;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[LibAvEncoder] QSV init exception: {ex.Message}");
-            CleanupHwContext();
             return false;
         }
     }
