@@ -1428,7 +1428,8 @@ public unsafe class LibAvEncoder : IDisposable
                 {
                      mappedFrame = ffmpeg.av_frame_alloc();
                      // Map QSV frame to D3D11 for WRITING (we overwrite it)
-                     int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, AVHWFrameTransferDirection.AV_HWFRAME_MAP_WRITE | AVHWFrameTransferDirection.AV_HWFRAME_MAP_READ);
+                     // AV_HWFRAME_MAP_READ(1) | AV_HWFRAME_MAP_WRITE(2) = 3
+                     int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, 3);
                      if (mapRet < 0) {
                          Console.WriteLine($"[LibAvEncoder] Map QSV to D3D11 failed: {GetErrorMessage(mapRet)}");
                          ffmpeg.av_frame_free(&mappedFrame);
