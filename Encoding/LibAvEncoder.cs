@@ -739,12 +739,12 @@ public unsafe class LibAvEncoder : IDisposable
             
             _hwDeviceCtx = hwDeviceCtx;
             
-            // 3. Create Frames Context (Try Zero-Copy)
-            bool zeroCopySuccess = false;
+            // 3. Create Frames Context and TEST Zero-Copy
+            bool zeroCopyAvailable = false;
             
             try 
             {
-                Console.WriteLine("[LibAvEncoder] QSV: Attempting to create D3D11VA frames context for Zero-Copy...");
+                Console.WriteLine("[LibAvEncoder] QSV: Attempting to init and TEST Zero-Copy...");
                 
                 AVBufferRef* d3d11FramesRef = ffmpeg.av_hwframe_ctx_alloc(d3d11vaDeviceRef);
                 if (d3d11FramesRef != null)
@@ -756,7 +756,6 @@ public unsafe class LibAvEncoder : IDisposable
                     framesCtx->height = _height;
                     framesCtx->initial_pool_size = 16;
                     
-                    // Set BindFlags (Crucial for QSV/AMF/NVENC compatibility)
                     AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
                     d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
                     d3d11vaFramesCtx->MiscFlags = (uint)Vortice.Direct3D11.ResourceOptionFlags.Shared;
@@ -764,9 +763,6 @@ public unsafe class LibAvEncoder : IDisposable
                     int ctxRet = ffmpeg.av_hwframe_ctx_init(d3d11FramesRef);
                     if (ctxRet >= 0)
                     {
-                        Console.WriteLine("[LibAvEncoder] QSV: D3D11VA Frames Context initialized. Deriving QSV Frames...");
-                        
-                        // Derive QSV frames context from D3D11 frames context
                         AVBufferRef* qsvFramesRef = null;
                         int deriveRet = ffmpeg.av_hwframe_ctx_create_derived(
                             &qsvFramesRef, 
@@ -777,57 +773,101 @@ public unsafe class LibAvEncoder : IDisposable
                             
                         if (deriveRet >= 0)
                         {
-                            Console.WriteLine("[LibAvEncoder] QSV: QSV Frames Context derived successfully.");
-                            _hwFramesCtx = qsvFramesRef; // Use QSV Frames
-                            // We don't keep d3d11FramesRef explicitly, it's ref-counted by qsvFramesRef
-                            ffmpeg.av_buffer_unref(&d3d11FramesRef); 
-                            zeroCopySuccess = true;
+                            // --- TEST ZERO-COPY CAPABILITY ---
+                            Console.WriteLine("[LibAvEncoder] QSV: Testing Zero-Copy (Alloc + Map)...");
+                            AVFrame* testFrame = ffmpeg.av_frame_alloc();
+                            AVFrame* testMapped = ffmpeg.av_frame_alloc();
+                            bool testPassed = false;
+                            
+                            try 
+                            {
+                                int getRet = ffmpeg.av_hwframe_get_buffer(qsvFramesRef, testFrame, 0);
+                                if (getRet >= 0)
+                                {
+                                    int mapRet = ffmpeg.av_hwframe_map(testMapped, testFrame, 3); // Read/Write
+                                    if (mapRet >= 0)
+                                    {
+                                        testPassed = true;
+                                        Console.WriteLine("[LibAvEncoder] QSV: Zero-Copy TEST PASSED.");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"[LibAvEncoder] QSV: Zero-Copy TEST FAILED (Map error: {GetErrorMessage(mapRet)})");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"[LibAvEncoder] QSV: Zero-Copy TEST FAILED (Alloc error: {GetErrorMessage(getRet)})");
+                                }
+                            }
+                            finally
+                            {
+                                ffmpeg.av_frame_free(&testMapped);
+                                ffmpeg.av_frame_free(&testFrame);
+                            }
+                            
+                            if (testPassed)
+                            {
+                                _hwFramesCtx = qsvFramesRef;
+                                zeroCopyAvailable = true;
+                                ffmpeg.av_buffer_unref(&d3d11FramesRef); // Ref passed to QSV Frames
+                            }
+                            else
+                            {
+                                ffmpeg.av_buffer_unref(&qsvFramesRef);
+                                ffmpeg.av_buffer_unref(&d3d11FramesRef);
+                            }
                         }
                         else
                         {
-                             Console.WriteLine($"[LibAvEncoder] QSV: Failed to derive QSV frames: {GetErrorMessage(deriveRet)}");
+                             Console.WriteLine($"[LibAvEncoder] QSV: Derived frames creation failed: {GetErrorMessage(deriveRet)}");
                              ffmpeg.av_buffer_unref(&d3d11FramesRef);
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy frames init failed: {GetErrorMessage(ctxRet)}");
-                        ffmpeg.av_buffer_unref(&d3d11FramesRef);
+                         Console.WriteLine($"[LibAvEncoder] QSV: D3D11 frames init failed: {GetErrorMessage(ctxRet)}");
+                         ffmpeg.av_buffer_unref(&d3d11FramesRef);
                     }
                 }
             }
             catch (Exception ex)
             {
-                 Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy setup exception: {ex.Message}");
+                 Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy setup checking exception: {ex.Message}");
             }
 
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
 
-            // 4. Finalize Setup based on mode
-            if (zeroCopySuccess)
+            // 4. Finalize Setup STRICTLY based on capability
+            if (zeroCopyAvailable)
             {
                  // ZERO-COPY MODE
                  _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
                  _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
-                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV; // Must be QSV for h264_qsv
+                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV; 
+                 
                  _isD3D11VAMode = true;
-                 Console.WriteLine("[LibAvEncoder] Intel QSV initialized in ZERO-COPY Mode.");
-                 return true; // _useHardwareFrames = true
+                 _useHardwareFrames = true; 
+                 Console.WriteLine("[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.");
+                 return true; 
             }
             else
             {
-                // SAFE MODE (Fallback)
-                // We have a HW Encoder Device, but we will feed it System Memory Frames.
+                // SAFE MODE
                 _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-                _codecCtx->hw_frames_ctx = null; // No HW Frames
+                _codecCtx->hw_frames_ctx = null; 
                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
                 
-                CleanupHwContextSourceInfo();
-                _hwFramesCtx = null;
+                if (_hwFramesCtx != null) 
+                {
+                    AVBufferRef* temp = _hwFramesCtx;
+                    ffmpeg.av_buffer_unref(&temp);
+                    _hwFramesCtx = null;
+                }
 
-                Console.WriteLine($"[LibAvEncoder] Intel QSV initialized in Safe Mode (System Memory Input). Zero-Copy unavailable.");
-                _isD3D11VAMode = true;
-                return false; // _useHardwareFrames = false (Trigger SW Fallback in Initialize)
+                Console.WriteLine($"[LibAvEncoder] Intel QSV initialized in SAFE MODE (Software Upload). Zero-Copy test failed or unavailable.");
+                _isD3D11VAMode = true; 
+                return false; // Trigger SW Mode in Initialize()
             }
         }
         catch (Exception ex)
@@ -1432,244 +1472,155 @@ public unsafe class LibAvEncoder : IDisposable
             {
                 long currentPts = _frameCount++;
                 
+
                 int ret = 0;
 
-                // Check if we permanently fell back (but allow first attempt)
-                if (_qsvMapFailed) goto SwFallback;
-
-                if (!_qsvMapFailed)
+                // STRICT SEPARATION: If _useHardwareFrames is true (set by TryInitializeQSV only after successful test),
+                // we assume Zero-Copy works. If it fails here, it's a fatal stream error, not a fallback candidate.
+                if (_useHardwareFrames)
                 {
-                    // Get a fresh hardware frame from the pool
+                    // --- HARDWARE ZERO-COPY PATH ---
                     ret = ffmpeg.av_hwframe_get_buffer(_hwFramesCtx, _hwFrame, 0);
                     if (ret < 0)
                     {
-                        Console.WriteLine($"[LibAvEncoder] Failed to get hw frame buffer: {GetErrorMessage(ret)}");
-                        return false;
+                        Console.WriteLine($"[LibAvEncoder] HW Error: get_buffer failed: {GetErrorMessage(ret)}");
+                        return false; 
                     }
                     
                     _hwFrame->pts = currentPts;
                     
                     AVFrame* d3d11Frame = _hwFrame;
                     AVFrame* mappedFrame = null;
-                    bool fallbackNeeded = false;
                     
                     try {
-                        // If the frame is QSV, we must map it to D3D11 to get the texture pointer
+                        // 1. QSV Mapping Logic (if needed)
                         if (_hwFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
                         {
                              mappedFrame = ffmpeg.av_frame_alloc();
-                             // Map QSV frame to D3D11 for WRITING (we overwrite it)
-                             int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, 3);
+                             int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, 3); // Read/Write
                              if (mapRet < 0) {
-                                 Console.WriteLine($"[LibAvEncoder] Map QSV to D3D11 failed: {GetErrorMessage(mapRet)}. Switching to SW Fallback forever.");
-                                 ffmpeg.av_frame_free(&mappedFrame);
-                                 _qsvMapFailed = true;
-                                 fallbackNeeded = true;
+                                  Console.WriteLine($"[LibAvEncoder] HW Error: Map QSV -> D3D11 failed: {GetErrorMessage(mapRet)}");
+                                  ffmpeg.av_frame_free(&mappedFrame);
+                                  return false; // Abort, do not fallback
                              }
-                             else d3d11Frame = mappedFrame; 
+                             d3d11Frame = mappedFrame; 
                         }
 
-                        if (!fallbackNeeded)
-                        {
-                            // In D3D11VA mode, data[0] is ID3D11Texture2D*
-                            IntPtr hwTexPtr = (IntPtr)d3d11Frame->data[0];
+                        // 2. Texture Copy Logic (Capture -> Encoder)
+                        IntPtr hwTexPtr = (IntPtr)d3d11Frame->data[0];
                         int arrayIndex = (int)d3d11Frame->data[1];
                         
-                        if (hwTexPtr == IntPtr.Zero)
-                        {
-                            Console.WriteLine($"[LibAvEncoder] Hardware frame texture is null (Format: {d3d11Frame->format})");
-                            if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
-                            return false;
-                        }
-                        
-                        // Wrap FFmpeg's D3D11 texture as Vortice texture for CopySubresourceRegion
+                        // Wrap D3D11 Texture
                         Marshal.AddRef(hwTexPtr);
                         using var hwTexture = new D3D11Texture2D(hwTexPtr);
                         
                         if (_usingCrossDeviceBridge && _encoderD3D11Device != null && _encoderD3D11Context != null)
                         {
-                            // --- CROSS-DEVICE BRIDGE ---
+                            // Cross-Device Copy
                             if (_sharedBridgeTexture == null || _sharedBridgeTexture.Description.Width != _width || _sharedBridgeTexture.Description.Height != _height)
                             {
-                                Console.WriteLine("[LibAvEncoder] Creating Shared Bridge Texture...");
+                                // ... (Recreate Shared Texture Logic) ...
                                 _sharedBridgeTexture?.Dispose();
-                                _sharedBridgeTexture = _device!.CreateTexture2D(new Texture2DDescription
-                                {
-                                    Width = (uint)_width,
-                                    Height = (uint)_height,
-                                    MipLevels = 1,
-                                    ArraySize = 1,
-                                    Format = Vortice.DXGI.Format.NV12,
-                                    SampleDescription = new SampleDescription(1, 0),
-                                    Usage = ResourceUsage.Default,
-                                    BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
-                                    CPUAccessFlags = CpuAccessFlags.None,
-                                    MiscFlags = ResourceOptionFlags.Shared 
+                                _sharedBridgeTexture = _device!.CreateTexture2D(new Texture2DDescription {
+                                    Width = (uint)_width, Height = (uint)_height, MipLevels = 1, ArraySize = 1,
+                                    Format = Vortice.DXGI.Format.NV12, SampleDescription = new SampleDescription(1, 0),
+                                    Usage = ResourceUsage.Default, BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
+                                    CPUAccessFlags = CpuAccessFlags.None, MiscFlags = ResourceOptionFlags.Shared 
                                 });
-                                
                                 using var resource = _sharedBridgeTexture.QueryInterface<IDXGIResource>();
                                 _lastSharedHandle = resource.SharedHandle;
-                                
                                 _importedBridgeTexture?.Dispose();
                                 _importedBridgeTexture = null;
                             }
                             
                             _context.CopyResource(_sharedBridgeTexture, nv12Texture);
-                            _context.Flush(); 
+                            _context.Flush();
                             
                             if (_importedBridgeTexture == null)
-                            {
-                                Console.WriteLine($"[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x{_lastSharedHandle:X})...");
                                 _importedBridgeTexture = _encoderD3D11Device.OpenSharedResource<D3D11Texture2D>(_lastSharedHandle);
-                            }
                             
                             _encoderD3D11Context.CopyResource(hwTexture, _importedBridgeTexture);
                             _encoderD3D11Context.Flush();
                         }
                         else
                         {
-                            // --- SAME-DEVICE COPY ---
-                            _context.CopySubresourceRegion(
-                                hwTexture, 
-                                (uint)arrayIndex, 
-                                0, 0, 0, 
-                                nv12Texture, 
-                                0 
-                            );
-                        }
+                            // Same-Device Copy
+                            _context.CopySubresourceRegion(hwTexture, (uint)arrayIndex, 0, 0, 0, nv12Texture, 0);
                         }
                     }
                     finally {
-                         if (mappedFrame != null) {
-                             ffmpeg.av_frame_free(&mappedFrame);
-                         }
+                        if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
                     }
-                    
-                    if (fallbackNeeded) goto SwFallback;
 
-                    if (_qsvFramesCtx != null && !_qsvMapFailed)
-                    {
-                        AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
-                        int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
-                        
-                        if (getBufRet < 0) 
-                        {
-                             _qsvMapFailed = true; 
-                             Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}. Switching to Optimized SW Fallback forever.");
-                             ffmpeg.av_frame_free(&qsvFrame); 
-                             qsvFrame = null;
-                             goto SwFallback; 
-                        }
-                        
-                        qsvFrame->pts = _hwFrame->pts;
-
-                        int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0);
-                        if (mapRet >= 0)
-                        {
-                            ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
-                            ffmpeg.av_frame_free(&qsvFrame); 
-                            goto CheckSendRet; 
-                        }
-                        else
-                        {
-                            _qsvMapFailed = true; 
-                            
-                            ffmpeg.av_frame_unref(qsvFrame);
-                            ffmpeg.av_frame_free(&qsvFrame);
-                            qsvFrame = null;
-                        }
-                    }
-                    else if (_qsvFramesCtx != null && _qsvMapFailed)
-                    {
-                        goto SwFallback;
-                    }
-                    else
-                    {
-                        ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
-                        goto CheckSendRet;
-                    }
+                    // 3. Send Frame to Encoder
+                    // Since we used create_derived, _hwFrame from get_buffer(_hwFramesCtx) IS the QSV frame.
+                    ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
                 }
-                
-                goto SwFallback;
-
-                SwFallback:
-                // --- SW Fallback Logic ---
-                if (_stagingTexture == null) CreateStagingTexture();
-                
-                // CRITICAL FIX: Ensure we copy from the texture that resides on the same device as the encoder context
-                // In Cross-Device mode, 'nv12Texture' is on the Capture Device, while '_context' is the Encoder Device.
-                // We must use '_importedBridgeTexture' (which is on the Encoder Device) as the source.
-                var sourceTex = (_usingCrossDeviceBridge && _importedBridgeTexture != null) ? _importedBridgeTexture : nv12Texture;
-                
-                _context!.CopyResource(_stagingTexture!, sourceTex!);
-                var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                
-                AVFrame* swFrame = ffmpeg.av_frame_alloc();
-                try
+                else
                 {
-                    swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
-                    swFrame->width = _width;
-                    swFrame->height = _height;
-                    ffmpeg.av_frame_get_buffer(swFrame, 32);
+                    // --- SOFTWARE FALLBACK PATH (Safe Mode) ---
+                    // This path is strictly taken if Initialize determined HW frames are unusable.
+                    if (_stagingTexture == null) CreateStagingTexture();
                     
-                    byte* src = (byte*)mapped.DataPointer;
-                    int srcPitch = (int)mapped.RowPitch;
+                    var sourceTex = (_usingCrossDeviceBridge && _importedBridgeTexture != null) ? _importedBridgeTexture : nv12Texture;
+                    _context!.CopyResource(_stagingTexture!, sourceTex!);
                     
-                    for(int y=0; y<_height; y++) 
-                        Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
+                    var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                    AVFrame* swFrame = ffmpeg.av_frame_alloc();
+                    try
+                    {
+                        swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                        swFrame->width = _width;
+                        swFrame->height = _height;
+                        ffmpeg.av_frame_get_buffer(swFrame, 32);
                         
-                    byte* srcUV = src + srcPitch*_height;
-                    for(int y=0; y<_height/2; y++) 
-                        Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
-                    
-                    swFrame->pts = currentPts; // Uses the PTS captured at start of function
-                    swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE; // Let encoder decide (force IDR if needed)
-                    
-                    if (_frameCount % 60 == 0) 
-                        Console.WriteLine($"[LibAvEncoder] SW Fallback: Sending Frame PTS={swFrame->pts}");
-
-                    ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
-                }
-                finally 
-                { 
-                    ffmpeg.av_frame_free(&swFrame);
-                    _context.Unmap(_stagingTexture, 0); 
-                }
-
-                CheckSendRet:
-                
-                // Reduce CPU/GPU pressure if we are in SW Fallback mode to let Capture thread breathe
-                if (_qsvMapFailed) System.Threading.Thread.Sleep(5); 
-
-                if (ret < 0)
-                {
-                    Console.WriteLine($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
-                    return false;
+                        byte* src = (byte*)mapped.DataPointer;
+                        int srcPitch = (int)mapped.RowPitch;
+                        
+                        // Copy Y Plane
+                        for(int y=0; y<_height; y++) 
+                            Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], _width, _width);
+                        
+                        // Copy UV Plane
+                        byte* srcUV = src + srcPitch*_height;
+                        for(int y=0; y<_height/2; y++) 
+                             Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], _width, _width);
+                        
+                        swFrame->pts = currentPts;
+                        swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE; 
+                        
+                        ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
+                    }
+                    finally 
+                    { 
+                        ffmpeg.av_frame_free(&swFrame);
+                        _context.Unmap(_stagingTexture, 0); 
+                    }
                 }
                 
-                FrameSent:
-                // Receive encoded packets
+                // Common Result Check
+                if (ret < 0) {
+                     Console.WriteLine($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
+                     return false;
+                }
+                
+                // Receive Packet (Common)
                 while (true)
                 {
-                    // Label for loop matching not needed as we replaced block
-                    // Just normal receive loop
-                    ret = ffmpeg.avcodec_receive_packet(_codecCtx, _packet);
-                    if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN) || ret == ffmpeg.AVERROR_EOF)
-                        break;
-                    if (ret < 0)
-                    {
-                        Console.WriteLine($"[LibAvEncoder] Receive packet error: {GetErrorMessage(ret)}");
-                        break;
-                    }
-                    
+                    int recvRet = ffmpeg.avcodec_receive_packet(_codecCtx, _packet);
+                    if (recvRet == ffmpeg.AVERROR(ffmpeg.EAGAIN) || recvRet == ffmpeg.AVERROR_EOF) break;
+                    if (recvRet < 0) break;
+
                     byte[] nalData = new byte[_packet->size];
                     Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
-                    
-                    bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
-                    OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
-                    
+                    OnEncodedData?.Invoke(nalData, (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0, _packet->pts);
                     ffmpeg.av_packet_unref(_packet);
                 }
+                
+                // Remove unused labels/variable usage
+                return true; 
+
+
                 
                 return true;
             }
