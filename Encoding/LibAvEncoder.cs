@@ -1559,59 +1559,89 @@ public unsafe class LibAvEncoder : IDisposable
                     int transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, _hwFrame, 0);
                     if (transferRet < 0)
                     {
-                        // 2. HW Transfer Failed: Use SW Fallback (Readback -> Upload)
-                        // This handles the "Function not implemented" / "Invalid argument" errors.
-                        // Log this occurrence as it affects performance significantly
-                        Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}. Using SW Fallback (Slow)...");
+                        // 2. HW Transfer Failed: Try Direct GPU Copy (GPU -> GPU)
+                        // This bypasses FFmpeg's strict transfer validation and uses raw D3D11 CopyResource via our Bridge Context.
+                        // This is CRITICAL for Intel QSV when Cross-Device Bridge is active.
                         
-                        ffmpeg.av_frame_unref(qsvFrame); // Clear failed content
-                        ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0); // Re-get clean buffer
+                        bool gpuCopySuccess = false;
                         
-                        if (_stagingTexture == null) CreateStagingTexture();
-                        
-                        // A. Copy input texture (HW) to Staging Texture
-                        _context!.CopyResource(_stagingTexture!, nv12Texture);
-                        
-                        // B. Map Staging Texture (Read to CPU)
-                        var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                        
-                        AVFrame* swFrame = null;
-                        try
+                        if (_usingCrossDeviceBridge && _encoderD3D11Context != null)
                         {
-                            // C. Create Temp SW Frame
-                            swFrame = ffmpeg.av_frame_alloc();
-                            swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
-                            swFrame->width = _width;
-                            swFrame->height = _height;
-                            ffmpeg.av_frame_get_buffer(swFrame, 32);
+                            // Map the TARGET QSV frame to D3D11 so we can write to it
+                            AVFrame* mappedQsvFrame = ffmpeg.av_frame_alloc();
+                            // AV_HWFRAME_MAP_WRITE(2)
+                            int mapRet = ffmpeg.av_hwframe_map(mappedQsvFrame, qsvFrame, 2);
                             
-                            byte* src = (byte*)mapped.DataPointer;
-                            int srcPitch = (int)mapped.RowPitch;
-                            
-                            // D. Copy Memory (CPU -> CPU)
-                            // Y Plane
-                            for(int y=0; y<_height; y++) 
-                                Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
-                                
-                            // UV Plane
-                            byte* srcUV = src + srcPitch*_height;
-                            for(int y=0; y<_height/2; y++) 
-                                Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
-                            
-                            // E. Upload SW Frame -> QSV Frame (CPU -> VRAM)
-                            transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, swFrame, 0);
-                            if (transferRet < 0) {
-                                 Console.WriteLine($"[LibAvEncoder] SW->QSV upload failed: {GetErrorMessage(transferRet)}");
-                                 ffmpeg.av_frame_free(&qsvFrame);
-                                 return false;
+                            if (mapRet >= 0)
+                            {
+                                try
+                                {
+                                    IntPtr qsvTexPtr = (IntPtr)mappedQsvFrame->data[0];
+                                    if (qsvTexPtr != IntPtr.Zero)
+                                    {
+                                        Marshal.AddRef(qsvTexPtr);
+                                        using var qsvD3D11Texture = new D3D11Texture2D(qsvTexPtr);
+                                        
+                                        // We already have the content in 'hwTexture' (which is actually _importedBridgeTexture in bridge mode)
+                                        // Wait, 'hwTexture' wraps the SOURCE frame's texture.
+                                        // If we are in CrossBridge mode, _importedBridgeTexture is what holds the data on the Encoder Device.
+                                        // So we copy: _importedBridgeTexture (Source) -> qsvD3D11Texture (Dest)
+                                        
+                                        if (_importedBridgeTexture != null)
+                                        {
+                                            _encoderD3D11Context.CopyResource(qsvD3D11Texture, _importedBridgeTexture);
+                                            _encoderD3D11Context.Flush();
+                                            gpuCopySuccess = true;
+                                            // Console.WriteLine("[LibAvEncoder] Recovered QSV Transfer using Direct GPU Copy!");
+                                        }
+                                    }
+                                }
+                                finally
+                                {
+                                    ffmpeg.av_frame_free(&mappedQsvFrame);
+                                }
                             }
-                            
-                            qsvFrame->pts = _hwFrame->pts;
                         }
-                        finally 
-                        { 
-                            if(swFrame != null) ffmpeg.av_frame_free(&swFrame);
-                            _context.Unmap(_stagingTexture, 0); 
+
+                        if (!gpuCopySuccess)
+                        {
+                            // 3. Fallback to SW (Slow) only if GPU Copy failed
+                            Console.WriteLine($"[LibAvEncoder] GPU Copy failed. Using SW Fallback (Slow)...");
+                            
+                            ffmpeg.av_frame_unref(qsvFrame);
+                            ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
+                            
+                            if (_stagingTexture == null) CreateStagingTexture();
+                            
+                            _context!.CopyResource(_stagingTexture!, nv12Texture);
+                            var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                            
+                            AVFrame* swFrame = null;
+                            try
+                            {
+                                swFrame = ffmpeg.av_frame_alloc();
+                                swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                                swFrame->width = _width;
+                                swFrame->height = _height;
+                                ffmpeg.av_frame_get_buffer(swFrame, 32);
+                                
+                                byte* src = (byte*)mapped.DataPointer;
+                                int srcPitch = (int)mapped.RowPitch;
+                                
+                                for(int y=0; y<_height; y++) 
+                                    Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
+                                    
+                                byte* srcUV = src + srcPitch*_height;
+                                for(int y=0; y<_height/2; y++) 
+                                    Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
+                                
+                                transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, swFrame, 0);
+                            }
+                            finally 
+                            { 
+                                if(swFrame != null) ffmpeg.av_frame_free(&swFrame);
+                                _context.Unmap(_stagingTexture, 0); 
+                            }
                         }
                     }
                     
