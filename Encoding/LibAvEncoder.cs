@@ -1588,7 +1588,9 @@ public unsafe class LibAvEncoder : IDisposable
                 ret = 0;
                 bool handled = false;
 
-                if (_codecCtx->pix_fmt == AVPixelFormat.AV_PIX_FMT_QSV && _codecCtx->hw_frames_ctx == null)
+                if ((_codecCtx->pix_fmt == AVPixelFormat.AV_PIX_FMT_QSV || 
+                     _codecCtx->pix_fmt == AVPixelFormat.AV_PIX_FMT_NV12) && 
+                     _codecCtx->hw_frames_ctx == null)
                 {
                      // SW Fallback: D3D11 -> CPU (NV12) -> Encoder
                      // Use FFmpeg's transfer_data which handles the Readback/Staging internally.
