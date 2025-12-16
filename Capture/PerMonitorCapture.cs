@@ -30,6 +30,7 @@ public sealed class PerMonitorCapture : IDisposable
         public ID3D11DeviceContext? Context { get; set; }
         public IDXGIOutputDuplication? Duplication { get; set; }
         public ID3D11Texture2D? LastFrame { get; set; }
+        public ID3D11Texture2D? LastNV12Frame { get; set; } // Cached NV12 frame to avoid re-conversion on Timeout
         public GpuColorConverter? ColorConverter { get; set; }
         
         // Per-monitor capture thread
@@ -315,7 +316,14 @@ public sealed class PerMonitorCapture : IDisposable
                         
                         mon.Context?.CopyResource(mon.LastFrame!, texture);
                         
+                        // Convert AND Cache the result
                         var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
+                        
+                        // Store reference to the latest valid NV12 frame
+                        // Note: GpuColorConverter usually returns a persistent texture or one from a small pool.
+                        // We hold a reference to it.
+                        mon.LastNV12Frame = nv12Texture;
+                        
                         if (nv12Texture != null)
                         {
                             OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
@@ -339,14 +347,22 @@ public sealed class PerMonitorCapture : IDisposable
                 // We MUST sleep to avoid a busy loop consuming 100% CPU.
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
-                    // No new frame - use cached frame
-                    if (mon.LastFrame != null && mon.ColorConverter != null)
+                    // No new frame - use cached NV12 frame if available (Avoid Re-Conversion!)
+                    if (mon.LastNV12Frame != null)
                     {
-                        var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
-                        if (nv12Texture != null)
-                        {
-                            OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
-                        }
+                        // Direct REUSE of the last converted frame. 
+                        // This saves significant GPU bandwidth/VideoProcessor usage on static screens.
+                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                    }
+                    else if (mon.LastFrame != null && mon.ColorConverter != null)
+                    {
+                         // Fallback: If no NV12 cache yet, convert (First frame timeout?)
+                         var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
+                         if (nv12Texture != null)
+                         {
+                             mon.LastNV12Frame = nv12Texture;
+                             OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                         }
                     }
                 }
 

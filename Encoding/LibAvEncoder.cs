@@ -58,7 +58,7 @@ public unsafe class LibAvEncoder : IDisposable
     private int _bitrate;
     private long _frameCount;
     private bool _disposed;
-    private bool _qsvMapFailed = false; // Persistent flag to switch to SW fallback if HW map fails
+
     private bool _initialized;
     private bool _useHardwareFrames;
     private GpuVendorType _gpuVendor = GpuVendorType.Unknown;
@@ -464,7 +464,7 @@ public unsafe class LibAvEncoder : IDisposable
                 
                 Console.WriteLine("[LibAvEncoder] Intel: QSV failed completely. D3D11VA fallback is NOT supported for h264_qsv. Using Software Upload.");
                 return false; 
-                break;
+
                 
             default:
                 // Unknown: Try all in order
@@ -1526,7 +1526,7 @@ public unsafe class LibAvEncoder : IDisposable
 
 
                 
-                return true;
+
             }
             catch (Exception ex)
             {
