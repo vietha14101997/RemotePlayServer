@@ -445,6 +445,15 @@ public unsafe class LibAvEncoder : IDisposable
                 Console.WriteLine("[LibAvEncoder] Intel GPU: Trying QSV hardware context");
                 if (TryInitializeQSV())
                     return true;
+                
+                // If QSV returned false but _hwDeviceCtx is set, it means we are in Safe Mode (System Memory Input).
+                // Do NOT fallback to generic D3D11VA, as h264_qsv needs the QSV device we just created.
+                if (_hwDeviceCtx != null)
+                {
+                    Console.WriteLine("[LibAvEncoder] Intel: QSV Safe Mode active. Skipping D3D11VA fallback.");
+                    return false;
+                }
+
                 Console.WriteLine("[LibAvEncoder] Intel: QSV failed, trying generic D3D11VA");
                 if (TryInitializeD3D11VA())
                     return true;
@@ -634,6 +643,7 @@ public unsafe class LibAvEncoder : IDisposable
     /// <summary>
     /// Initialize QSV-specific hardware context for Intel GPU.
     /// QSV encoder requires AV_HWDEVICE_TYPE_QSV device context.
+    /// Implements gradual fallback: Shared Device Zero-Copy -> Cross-Device Zero-Copy -> Safe Mode (System Memory).
     /// </summary>
     private bool TryInitializeQSV()
     {
@@ -642,7 +652,7 @@ public unsafe class LibAvEncoder : IDisposable
             Console.WriteLine("[LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...");
             
             AVBufferRef* hwDeviceCtx = null;
-            AVBufferRef* d3d11vaDeviceRef = null; // Assert: We must hold a ref to the base device
+            AVBufferRef* d3d11vaDeviceRef = null;
             bool usedSharedDevice = false;
 
             // 1. Try to use SHARED D3D11 DEVICE first (Best for Zero-Copy)
@@ -708,19 +718,11 @@ public unsafe class LibAvEncoder : IDisposable
                     return false;
                 }
                 
-                
                 d3d11vaDeviceRef = ffmpeg.av_buffer_ref(d3d11vaDevice);
                 ffmpeg.av_buffer_unref(&d3d11vaDevice);
                 
                 // --- CROSS-DEVICE SETUP ---
                 // We created a NEW device. We must extract it to use for bridging.
-                // QSV Context -> HW Device -> D3D11VA Context -> Device Pointer
-                AVHWDeviceContext* qsvDevCtx = (AVHWDeviceContext*)hwDeviceCtx->data;
-                // The QSV device context doesn't expose D3D11 device directly easily here?
-                // Wait, hwDeviceCtx is QSV type.
-                // We need to look at the D3D11VA base.
-                // Actually we already have d3d11vaDeviceRef which IS the D3D11VA device!
-                
                 AVHWDeviceContext* d3d11Ctx = (AVHWDeviceContext*)d3d11vaDeviceRef->data;
                 AVD3D11VADeviceContext* d3d11vaCtx = (AVD3D11VADeviceContext*)d3d11Ctx->hwctx;
                 
@@ -737,60 +739,78 @@ public unsafe class LibAvEncoder : IDisposable
             
             _hwDeviceCtx = hwDeviceCtx;
             
-            // 3. Create Frames Context
-            // Improved strategy: Create D3D11VA frames context first (with BindFlags) then derive QSV frames
-            // This matches AMF/NVENC logic and ensures textures are compatible
+            // 3. Create Frames Context (Try Zero-Copy)
+            bool zeroCopySuccess = false;
             
-            Console.WriteLine("[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...");
-            
-            AVBufferRef* d3d11FramesRef = ffmpeg.av_hwframe_ctx_alloc(d3d11vaDeviceRef);
-            if (d3d11FramesRef == null)
+            try 
             {
-                 Console.WriteLine("[LibAvEncoder] Failed to alloc D3D11VA frames context");
-                 ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
-                 CleanupHwContext();
-                 return false;
+                Console.WriteLine("[LibAvEncoder] QSV: Attempting to create D3D11VA frames context for Zero-Copy...");
+                
+                AVBufferRef* d3d11FramesRef = ffmpeg.av_hwframe_ctx_alloc(d3d11vaDeviceRef);
+                if (d3d11FramesRef != null)
+                {
+                    AVHWFramesContext* framesCtx = (AVHWFramesContext*)d3d11FramesRef->data;
+                    framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
+                    framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+                    framesCtx->width = _width;
+                    framesCtx->height = _height;
+                    framesCtx->initial_pool_size = 16;
+                    
+                    // Set BindFlags (Crucial for QSV/AMF/NVENC compatibility)
+                    AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
+                    d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
+                    d3d11vaFramesCtx->MiscFlags = (uint)Vortice.Direct3D11.ResourceOptionFlags.Shared;
+                    
+                    int ctxRet = ffmpeg.av_hwframe_ctx_init(d3d11FramesRef);
+                    if (ctxRet >= 0)
+                    {
+                        Console.WriteLine("[LibAvEncoder] QSV: Zero-Copy Frames Context initialized successfully.");
+                        _hwFramesCtx = d3d11FramesRef; // Keep this reference
+                        zeroCopySuccess = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy frames init failed: {GetErrorMessage(ctxRet)}");
+                        ffmpeg.av_buffer_unref(&d3d11FramesRef);
+                    }
+                }
             }
-            
-            AVHWFramesContext* framesCtx = (AVHWFramesContext*)d3d11FramesRef->data;
-            framesCtx->format = AVPixelFormat.AV_PIX_FMT_D3D11;
-            framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
-            framesCtx->width = _width;
-            framesCtx->height = _height;
-            framesCtx->initial_pool_size = 16;
-            
-            // Set BindFlags (Crucial for QSV/AMF/NVENC compatibility)
-            AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
-            d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
-            d3d11vaFramesCtx->MiscFlags = (uint)Vortice.Direct3D11.ResourceOptionFlags.Shared;
-            
-            int ctxRet = ffmpeg.av_hwframe_ctx_init(d3d11FramesRef);
-            if (ctxRet < 0)
+            catch (Exception ex)
             {
-                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames: {GetErrorMessage(ctxRet)}");
-                ffmpeg.av_buffer_unref(&d3d11FramesRef);
-                ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
-                CleanupHwContext();
-                return false;
+                 Console.WriteLine($"[LibAvEncoder] QSV Zero-Copy setup exception: {ex.Message}");
             }
-            
-            // 4. QSV Frames Setup (SAFE MODE)
-            // We disable QSV/D3D11 Frames Context entirely to prevent Driver Crashes (DXGI_ERROR_DEVICE_REMOVED).
-            // We will feed System Memory (NV12) frames to the encoder.
-            // The Driver/FFmpeg will handle the upload internally. This is safer but slightly slower than Zero-Copy.
-            
-            _qsvFramesCtx = null; // Disable HW Frames
 
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
 
-            // Set encoder to use System Memory Input
-            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = null; // No HW Frames
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
-            
-            Console.WriteLine($"[LibAvEncoder] Intel QSV initialized in Safe Mode (System Memory Input). Zero-Copy disabled to prevent driver crash.");
-            _isD3D11VAMode = true;
-            return true;
+            // 4. Finalize Setup based on mode
+            if (zeroCopySuccess)
+            {
+                 // ZERO-COPY MODE
+                 _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+                 _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
+                 _isD3D11VAMode = true;
+                 Console.WriteLine("[LibAvEncoder] Intel QSV initialized in ZERO-COPY Mode.");
+                 return true; // _useHardwareFrames = true
+            }
+            else
+            {
+                // SAFE MODE (Fallback)
+                // We have a HW Encoder Device, but we will feed it System Memory Frames.
+                _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+                _codecCtx->hw_frames_ctx = null; // No HW Frames
+                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
+                
+                // _qsvFramesCtx has been removed in cleanup or never created
+                CleanupHwContextSourceInfo(); // Helper to only clean frames if partial? 
+                // CleanupHwContext actually cleans everything including Device. We want to keep Device.
+                // So manually clean frames ref if it existed (it didn't if we are here).
+                _hwFramesCtx = null;
+
+                Console.WriteLine($"[LibAvEncoder] Intel QSV initialized in Safe Mode (System Memory Input). Zero-Copy unavailable.");
+                _isD3D11VAMode = true;
+                return false; // _useHardwareFrames = false (Trigger SW Fallback in Initialize)
+            }
         }
         catch (Exception ex)
         {
@@ -798,6 +818,10 @@ public unsafe class LibAvEncoder : IDisposable
             CleanupHwContext();
             return false;
         }
+    }
+
+    private void CleanupHwContextSourceInfo() {
+        // Just a placeholder if needed, but logic above is cleaner
     }
     /// Initialize D3D11VA hardware context specifically for AMD AMF encoder.
     /// AMF encoder works best with D3D11 hardware frames.
@@ -1546,12 +1570,6 @@ public unsafe class LibAvEncoder : IDisposable
                 else
                 {
                     // Standard Zero-Copy (AMF/NVENC/Derived)
-                    // For Intel QSV without Frames Context (Safe Mode), we MUST use SW Fallback (Readback)
-                    if (_gpuVendor == GpuVendorType.Intel)
-                    {
-                        goto SwFallback;
-                    }
-
                     ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
                     goto CheckSendRet;
                 }
