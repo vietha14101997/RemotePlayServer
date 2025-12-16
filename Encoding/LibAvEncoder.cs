@@ -802,17 +802,13 @@ public unsafe class LibAvEncoder : IDisposable
                     // Usually QSV encoder accepts D3D11 frames if the device is derived.
                     // But explicitly creating QSV frames derived from D3D11 frames is safer.
                     
-                    AVBufferRef* qsvFramesRef = null;
-                    int fRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, _hwFramesCtx, 0);
-                    if (fRet >= 0)
-                    {
-                         Console.WriteLine("[LibAvEncoder] Derived QSV frames from D3D11 frames.");
-                         _qsvFramesCtx = qsvFramesRef;
-                    }
-                    else
-                    {
-                         Console.WriteLine($"[LibAvEncoder] Warning: Could not derive QSV frames: {GetErrorMessage(fRet)}. Using D3D11 frames directly.");
-                    }
+                    // FORCE INDEPENDENT MODE: Do NOT derive QSV frames here.
+                    // By leaving _qsvFramesCtx null here, the logic below will create Independent QSV frames.
+                    // AVBufferRef* qsvFramesRef = null;
+                    // int fRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, _hwFramesCtx, 0);
+                    // if (fRet >= 0) ...
+                    
+                    Console.WriteLine("[LibAvEncoder] QSV: Forcing Independent QSV Frames (Skipping derivation).");
                 }
                 else
                 {
@@ -823,7 +819,8 @@ public unsafe class LibAvEncoder : IDisposable
                 ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
             }
             
-            if (_hwFramesCtx == null)
+            // If derived (linked) QSV frames are missing, we create Independent ones.
+            if (_qsvFramesCtx == null)
             {
                 // Fallback to Independent QSV Frames (Transfer Mode)
                 Console.WriteLine("[LibAvEncoder] QSV: Using Independent QSV Frames (Transfer Mode)");
