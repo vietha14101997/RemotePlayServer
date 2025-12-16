@@ -454,9 +454,14 @@ public unsafe class LibAvEncoder : IDisposable
                     return false;
                 }
 
-                Console.WriteLine("[LibAvEncoder] Intel: QSV failed, trying generic D3D11VA");
-                if (TryInitializeD3D11VA())
-                    return true;
+                // CRITICAL FIX: The h264_qsv encoder DOES NOT SUPPORT generic AV_PIX_FMT_D3D11 frames.
+                // It requires AV_PIX_FMT_QSV frames (which wrap D3D11 surfaces).
+                // TryInitializeD3D11VA sets up generic D3D11VA (AV_PIX_FMT_D3D11), which causes pixel format mismatch errors.
+                // Therefore, if TryInitializeQSV failed completely (no QSV context), we CANNOT use h264_qsv with D3D11VA.
+                // We must accept Software Upload (System Memory) or switch encoder (not implemented here).
+                
+                Console.WriteLine("[LibAvEncoder] Intel: QSV failed completely. D3D11VA fallback is NOT supported for h264_qsv. Using Software Upload.");
+                return false; 
                 break;
                 
             default:
