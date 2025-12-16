@@ -1420,15 +1420,31 @@ public unsafe class LibAvEncoder : IDisposable
                 }
                 // Console.WriteLine("[LibAvEncoder] Got hw frame buffer.");
                 
-                // In D3D11VA mode, _hwFrame->data[0] is ID3D11Texture2D*
-                // and _hwFrame->data[1] is the array index
-                IntPtr hwTexPtr = (IntPtr)_hwFrame->data[0];
-                int arrayIndex = (int)_hwFrame->data[1];
+                AVFrame* d3d11Frame = _hwFrame;
+                AVFrame* mappedFrame = null;
+                
+                // If the frame is QSV, we must map it to D3D11 to get the texture pointer
+                if (_hwFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
+                {
+                     mappedFrame = ffmpeg.av_frame_alloc();
+                     // Map QSV frame to D3D11 for WRITING (we overwrite it)
+                     int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, AVHWFrameTransferDirection.AV_HWFRAME_MAP_WRITE | AVHWFrameTransferDirection.AV_HWFRAME_MAP_READ);
+                     if (mapRet < 0) {
+                         Console.WriteLine($"[LibAvEncoder] Map QSV to D3D11 failed: {GetErrorMessage(mapRet)}");
+                         ffmpeg.av_frame_free(&mappedFrame);
+                         return false;
+                     }
+                     d3d11Frame = mappedFrame; // Operation target is the mapped D3D11 frame
+                }
+
+                // In D3D11VA mode, data[0] is ID3D11Texture2D*
+                IntPtr hwTexPtr = (IntPtr)d3d11Frame->data[0];
+                int arrayIndex = (int)d3d11Frame->data[1];
                 
                 if (hwTexPtr == IntPtr.Zero)
                 {
-                    Console.WriteLine("[LibAvEncoder] Hardware frame texture is null");
-                    // Continue to finally to unref
+                    Console.WriteLine($"[LibAvEncoder] Hardware frame texture is null (Format: {d3d11Frame->format})");
+                    if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
                     return false;
                 }
                 
@@ -1501,7 +1517,13 @@ public unsafe class LibAvEncoder : IDisposable
                     );
                 }
                 
-                // Set PTS
+                if (mappedFrame != null)
+                {
+                    // Unref the mapped frame (commits data back to QSV surface if needed, though usually zero-copy)
+                    ffmpeg.av_frame_free(&mappedFrame);
+                }
+                
+                // Set PTS on the ORIGINAL frame
                 _hwFrame->pts = _frameCount++;
                 
                 // Send frame to encoder
