@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 028745fa-6834-48ed-9802-7d7b73a8e026, mode=multitrack
-[MultiPC Signal] Client 028745fa-6834-48ed-9802-7d7b73a8e026 connected from 192.168.1.3
+[Signal] Client connected d22af6a7-1734-46e5-a530-98cae54a8225, mode=multitrack
+[MultiPC Signal] Client d22af6a7-1734-46e5-a530-98cae54a8225 connected from 192.168.1.3
 [MultiPC Signal] Config: 1 monitors @ 1600x900, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -95,36 +95,125 @@ Server is running. Press ENTER to exit.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1E582C29EA0
-[AVHWDeviceContext @ 000001e582bb2640] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x19502C401E0
+[AVHWDeviceContext @ 0000019502dbc340] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1E582DB9660
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x19507E997C0
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
-[LibAvEncoder] Intel QSV hardware context initialized (Hybrid D3D11-NV12 Mode).
-[h264_qsv @ 000001e5870a3a80] Mismatching AVCodecContext.pix_fmt and AVHWFramesContext.format
-[LibAvEncoder] Failed to open codec: Invalid argument
-[LibAvEncoderAdapter] LibAvEncoder initialization failed
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 LibAv encoder init failed
-[MultiPC] m0 encoder init failed - no working encoder found
+[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...
+[LibAvEncoder] QSV frames derived from D3D11VA frames successfully
+[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
 [Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:3130687442 1 udp 2113937151 192.168.1.3 59125 typ host generation 0 ufrag GUos network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:1540955492 1 udp 2113937151 192.168.1.3 54545 typ host generation 0 ufrag Ef+0 network-cost 999
 [Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
 [Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
 [Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:1343285617 1 udp 2113939711 192.168.1.3 59126 typ host generation 0 ufrag GUos network-cost 999
+[Cluster Signal] Rewritten candidate: candidate:67667936 1 udp 2113939711 192.168.1.3 54546 typ host generation 0 ufrag Ef+0 network-cost 999
 [MultiPC] m0 ICE connected
+[LibAvEncoder] Creating Shared Bridge Texture...
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x40002E42)...
 [MultiPC] m0 PC connected
-[Capture FPS] Mon0: 53.9 fps (captured 162 frames in 3003ms)
-[Capture FPS] Mon0: 58.6 fps (captured 176 frames in 3004ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3009ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3011ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3009ms)
-[Capture FPS] Mon0: 58.8 fps (captured 177 frames in 3011ms)
+[MultiPC] m0 enc#1: 18708B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 18642B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 34452B key=False NALs=[6,1]
+[MultiPC] m0 enc#4: 31082B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 43323B key=False NALs=[6,1]
+[AVHWFramesContext @ 0000019500574a00] Trying to map from a surface which is not in the mapped frames context.
+[AVHWFramesContext @ 0000019500574a00] Failed to map frame into derived frame context: -22.
+[LibAvEncoder] QSV get_buffer failed: Invalid argument. Switching to Optimized SW Fallback forever.
+[LibAvEncoder] SW Fallback: Sending Frame PTS=59
+[Capture FPS] Mon0: 27.6 fps (captured 83 frames in 3011ms)
+[Encode FPS] Mon0: 28.3 fps (sent 85 in 3000ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=119
+[Capture FPS] Mon0: 24.8 fps (captured 75 frames in 3025ms)
+[Encode FPS] Mon0: 28.7 fps (sent 87 in 3030ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=179
+[Capture FPS] Mon0: 23.3 fps (captured 70 frames in 3007ms)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=239
+[Encode FPS] Mon0: 25.5 fps (sent 77 in 3018ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=299
+[Capture FPS] Mon0: 20.8 fps (captured 63 frames in 3026ms)
+[Encode FPS] Mon0: 27.3 fps (sent 83 in 3035ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=359
+[Capture FPS] Mon0: 22.2 fps (captured 67 frames in 3017ms)
+[Encode FPS] Mon0: 25.3 fps (sent 76 in 3001ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=419
+[Capture FPS] Mon0: 22.3 fps (captured 67 frames in 3007ms)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=479
+[Encode FPS] Mon0: 25.0 fps (sent 75 in 3005ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=539
+[Capture FPS] Mon0: 23.8 fps (captured 72 frames in 3019ms)
+[Encode FPS] Mon0: 27.7 fps (sent 84 in 3028ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=599
+[Capture FPS] Mon0: 21.3 fps (captured 64 frames in 3001ms)
+[Encode FPS] Mon0: 27.1 fps (sent 82 in 3030ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=659
+[Capture FPS] Mon0: 23.4 fps (captured 71 frames in 3038ms)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=719
+[Encode FPS] Mon0: 27.2 fps (sent 82 in 3011ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=779
+[Capture FPS] Mon0: 20.8 fps (captured 63 frames in 3024ms)
+[Encode FPS] Mon0: 27.9 fps (sent 85 in 3045ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=839
+[Capture FPS] Mon0: 25.1 fps (captured 76 frames in 3033ms)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=899
+[Encode FPS] Mon0: 27.3 fps (sent 82 in 3009ms, skipped=9)
+[LibAvEncoder] SW Fallback: Sending Frame PTS=959
+[Capture FPS] Mon0: 22.8 fps (captured 69 frames in 3029ms)
+[Encode FPS] Mon0: 25.6 fps (sent 77 in 3012ms, skipped=9)
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 PC closed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 0.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected d22af6a7-1734-46e5-a530-98cae54a8225
