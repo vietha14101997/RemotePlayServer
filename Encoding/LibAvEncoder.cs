@@ -219,6 +219,8 @@ public unsafe class LibAvEncoder : IDisposable
         
         // Force immediate output - no internal buffering
         _codecCtx->flags |= ffmpeg.AV_CODEC_FLAG_LOW_DELAY;
+        // Removing GLOBAL_HEADER as it might be problematic for NVENC in some configs
+        // _codecCtx->flags |= ffmpeg.AV_CODEC_FLAG_GLOBAL_HEADER;
         _codecCtx->thread_count = 1; // Single thread for lowest latency
         
         switch (_encoderName)
@@ -243,19 +245,12 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "level", "5.1", 0);
                 break;
                 
-            case "h264_nvenc":
-                // NVIDIA NVENC specific options
-                Console.WriteLine("[LibAvEncoder] Configuring NVIDIA NVENC encoder");
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc-lookahead", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "b_adapt", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "no-scenecut", "1", 0);
+                // Remove forced-idr as it might cause invalid param on some drivers
                 break;
                 
             case "h264_qsv":
@@ -455,15 +450,45 @@ public unsafe class LibAvEncoder : IDisposable
         {
             Console.WriteLine("[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...");
             
-            // Create D3D11VA hardware device context
-            AVBufferRef* hwDeviceCtx = null;
-            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
-            if (ret < 0)
+            // Try to use shared device if available (ENABLES TRUE ZERO-COPY)
+            if (_device != null && _device.NativePointer != IntPtr.Zero)
             {
-                Console.WriteLine($"[LibAvEncoder] D3D11VA device not available for NVENC: {GetErrorMessage(ret)}");
-                return false;
+                Console.WriteLine($"[LibAvEncoder] Using shared D3D11 device for NVENC: 0x{_device.NativePointer:X}");
+                
+                AVBufferRef* hwDeviceCtx = ffmpeg.av_hwdevice_ctx_alloc(AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA);
+                if (hwDeviceCtx != null)
+                {
+                    AVHWDeviceContext* deviceContext = (AVHWDeviceContext*)hwDeviceCtx->data;
+                    AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceContext->hwctx;
+                    d3d11vaDeviceCtx->device = (FFmpegD3D11Device*)_device.NativePointer;
+                    
+                    int initRet = ffmpeg.av_hwdevice_ctx_init(hwDeviceCtx);
+                    if (initRet >= 0)
+                    {
+                        _hwDeviceCtx = hwDeviceCtx;
+                        Console.WriteLine("[LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[LibAvEncoder] Shared device init failed: {GetErrorMessage(initRet)}");
+                        ffmpeg.av_buffer_unref(&hwDeviceCtx);
+                    }
+                }
             }
-            _hwDeviceCtx = hwDeviceCtx;
+            
+            // Fallback to creating new device if shared failed
+            if (_hwDeviceCtx == null)
+            {
+                Console.WriteLine("[LibAvEncoder] Accessing shared device failed or not available, creating new D3D11VA device...");
+                AVBufferRef* hwDeviceCtx = null;
+                int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] D3D11VA device not available for NVENC: {GetErrorMessage(ret)}");
+                    return false;
+                }
+                _hwDeviceCtx = hwDeviceCtx;
+            }
             
             // Create hardware frames context
             _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
@@ -490,10 +515,10 @@ public unsafe class LibAvEncoder : IDisposable
                 d3d11vaFramesCtx->MiscFlags = 0;
             }
             
-            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
-            if (ret < 0)
+            int ret2 = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret2 < 0)
             {
-                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames context for NVENC: {GetErrorMessage(ret)}");
+                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames context for NVENC: {GetErrorMessage(ret2)}");
                 CleanupHwContext();
                 return false;
             }
@@ -503,11 +528,18 @@ public unsafe class LibAvEncoder : IDisposable
             _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
             _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
             
-            // Store the D3D11 device context from FFmpeg for zero-copy
-            AVHWDeviceContext* deviceCtx = (AVHWDeviceContext*)_hwDeviceCtx->data;
-            AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceCtx->hwctx;
-            _ffmpegD3D11Device = d3d11vaDeviceCtx->device;
-            _ffmpegD3D11Context = d3d11vaDeviceCtx->device_context;
+            // Store the D3D11 device context from FFmpeg for zero-copy (if we created it)
+            // Or access the shared one
+            AVHWDeviceContext* devCtx = (AVHWDeviceContext*)_hwDeviceCtx->data;
+            AVD3D11VADeviceContext* d3d11vaDevCtx = (AVD3D11VADeviceContext*)devCtx->hwctx;
+            _ffmpegD3D11Device = d3d11vaDevCtx->device;
+            _ffmpegD3D11Context = d3d11vaDevCtx->device_context;
+            
+            // If using shared device, _ffmpegD3D11Context might be null if FFmpeg didn't create it?
+            // Actually, if we provide the device, FFmpeg doesn't create a context automatically?
+            // av_hwdevice_ctx_init docs say for D3D11VA: "The user must provide a ID3D11Device."
+            // "If the user does not provide a ID3D11DeviceContext, one will be created."
+            // So it should be fine.
             
             Console.WriteLine("[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)");
             _isD3D11VAMode = true;
@@ -852,15 +884,44 @@ public unsafe class LibAvEncoder : IDisposable
     {
         try
         {
-            // Create D3D11VA hardware device context
-            AVBufferRef* hwDeviceCtx = null;
-            int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
-            if (ret < 0)
+            // Try to use shared device first
+            if (_device != null && _device.NativePointer != IntPtr.Zero)
             {
-                Console.WriteLine($"[LibAvEncoder] D3D11VA device not available: {GetErrorMessage(ret)}");
-                return false;
+                Console.WriteLine($"[LibAvEncoder] Using shared D3D11 device for Generic D3D11VA: 0x{_device.NativePointer:X}");
+                
+                AVBufferRef* hwDeviceCtx = ffmpeg.av_hwdevice_ctx_alloc(AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA);
+                if (hwDeviceCtx != null)
+                {
+                    AVHWDeviceContext* deviceContext = (AVHWDeviceContext*)hwDeviceCtx->data;
+                    AVD3D11VADeviceContext* d3d11vaDeviceCtx = (AVD3D11VADeviceContext*)deviceContext->hwctx;
+                    d3d11vaDeviceCtx->device = (FFmpegD3D11Device*)_device.NativePointer;
+                    
+                    int initRet = ffmpeg.av_hwdevice_ctx_init(hwDeviceCtx);
+                    if (initRet >= 0)
+                    {
+                        _hwDeviceCtx = hwDeviceCtx;
+                        Console.WriteLine("[LibAvEncoder] Generic D3D11VA device context initialized with SHARED device");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[LibAvEncoder] Shared device init failed: {GetErrorMessage(initRet)}");
+                        ffmpeg.av_buffer_unref(&hwDeviceCtx);
+                    }
+                }
             }
-            _hwDeviceCtx = hwDeviceCtx;
+            
+            if (_hwDeviceCtx == null)
+            {
+                // Create D3D11VA hardware device context (New Device)
+                AVBufferRef* hwDeviceCtx = null;
+                int ret = ffmpeg.av_hwdevice_ctx_create(&hwDeviceCtx, AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA, null, null, 0);
+                if (ret < 0)
+                {
+                    Console.WriteLine($"[LibAvEncoder] D3D11VA device not available: {GetErrorMessage(ret)}");
+                    return false;
+                }
+                _hwDeviceCtx = hwDeviceCtx;
+            }
             
             // Create hardware frames context
             _hwFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
@@ -877,7 +938,7 @@ public unsafe class LibAvEncoder : IDisposable
             framesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
             framesCtx->width = _width;
             framesCtx->height = _height;
-            framesCtx->initial_pool_size = 4;
+            // framesCtx->initial_pool_size = 4; // Moved below
             
             framesCtx->initial_pool_size = 8;
             
@@ -889,10 +950,10 @@ public unsafe class LibAvEncoder : IDisposable
                 d3d11vaFramesCtx->MiscFlags = 0;
             }
 
-            ret = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
-            if (ret < 0)
+            int ret2 = ffmpeg.av_hwframe_ctx_init(_hwFramesCtx);
+            if (ret2 < 0)
             {
-                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames context: {GetErrorMessage(ret)}");
+                Console.WriteLine($"[LibAvEncoder] Failed to init D3D11VA frames context: {GetErrorMessage(ret2)}");
                 CleanupHwContext();
                 return false;
             }
@@ -902,7 +963,14 @@ public unsafe class LibAvEncoder : IDisposable
             _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
             _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
             
+            // Store the D3D11 device context
+            AVHWDeviceContext* devCtx = (AVHWDeviceContext*)_hwDeviceCtx->data;
+            AVD3D11VADeviceContext* d3d11vaDevCtx = (AVD3D11VADeviceContext*)devCtx->hwctx;
+            _ffmpegD3D11Device = d3d11vaDevCtx->device;
+            _ffmpegD3D11Context = d3d11vaDevCtx->device_context;
+            
             Console.WriteLine("[LibAvEncoder] D3D11VA hardware context initialized (zero-copy enabled)");
+            _isD3D11VAMode = true;
             return true;
         }
         catch (Exception ex)
@@ -1220,9 +1288,12 @@ public unsafe class LibAvEncoder : IDisposable
                 int ret = ffmpeg.av_hwframe_get_buffer(_hwFramesCtx, _hwFrame, 0);
                 if (ret < 0)
                 {
+                    // If get_buffer failed, we don't hold a ref, so nothing to unref from get_buffer.
+                    // But we should ensure _hwFrame is clean.
                     Console.WriteLine($"[LibAvEncoder] Failed to get hw frame buffer: {GetErrorMessage(ret)}");
                     return false;
                 }
+                // Console.WriteLine("[LibAvEncoder] Got hw frame buffer.");
                 
                 // In D3D11VA mode, _hwFrame->data[0] is ID3D11Texture2D*
                 // and _hwFrame->data[1] is the array index
@@ -1232,12 +1303,15 @@ public unsafe class LibAvEncoder : IDisposable
                 if (hwTexPtr == IntPtr.Zero)
                 {
                     Console.WriteLine("[LibAvEncoder] Hardware frame texture is null");
+                    // Continue to finally to unref
                     return false;
                 }
                 
                 // Wrap FFmpeg's D3D11 texture as Vortice texture for CopySubresourceRegion
-                // Note: We use our capture device's context since FFmpeg's D3D11VA device
-                // should be the same GPU (they share the adapter)
+                // IMPORTANT: The wrapper (D3D11Texture2D) calls Release() on Dispose.
+                // We must increment the reference count here so that Dispose doesn't destroy the texture
+                // while FFmpeg still holds a reference to it.
+                Marshal.AddRef(hwTexPtr);
                 using var hwTexture = new D3D11Texture2D(hwTexPtr);
                 
                 // Copy our NV12 texture to the hardware frame's texture
@@ -1288,6 +1362,12 @@ public unsafe class LibAvEncoder : IDisposable
             {
                 Console.WriteLine($"[LibAvEncoder] ZeroCopy encode exception: {ex.Message}");
                 return false;
+            }
+            finally
+            {
+                // CRITICAL: Always release the frame reference back to the pool
+                // Whether we succeeded, failed, or threw exception.
+                ffmpeg.av_frame_unref(_hwFrame);
             }
         }
     }
