@@ -774,26 +774,68 @@ public unsafe class LibAvEncoder : IDisposable
                 return false;
             }
             
-            // 4. QSV Frames Setup (Strategy: D3D11 Frames with NV12 Format)
-            // We abandon QSV Frames Context because mapping fails.
-            // We instead use D3D11 Frames Context directly, but set pix_fmt to NV12 to satisfy the codec's supported list.
-            // Modern FFmpeg/Intel drivers often accept D3D11 frames if the logical format matches.
+            // 4. QSV Frames Setup
+            // Strategy A (Standard): Use QSV Frames Context (AV_PIX_FMT_QSV). 
+            // - Best for Zero-Copy if drivers support Mapping/Transfer.
+            // - Required by most 'h264_qsv' implementations which reject D3D11/NV12 direct input.
+            // Strategy B (Hybrid): Use D3D11 Frames but lie about format (NV12). 
+            // - Works on some newer drivers to bypass Map/Transfer issues.
+            // Current Choice: Strategy A (with robust SW Fallback in Encode loop).
+
+            AVBufferRef* qsvFramesRef = null;
+            int framesInitRet = -1;
+
+            // Try to DERIVE QSV frames from D3D11 frames (Best case)
+            Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
+            framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
+
+            if (framesInitRet >= 0)
+            {
+                Console.WriteLine("[LibAvEncoder] QSV frames derived from D3D11VA frames successfully");
+                _qsvFramesCtx = qsvFramesRef; 
+            }
+            else
+            {
+                // Fallback: Create Independent QSV Frames
+                Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
+                
+                _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
+                var indepFramesCtx = (AVHWFramesContext*)_qsvFramesCtx->data;
+                // Important: QSV frames context needs to know the SW format match
+                indepFramesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
+                indepFramesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
+                indepFramesCtx->width = _width;
+                indepFramesCtx->height = _height;
+                indepFramesCtx->initial_pool_size = 16;
+                // indepFramesCtx->initial_pool_size = 32; // Try increasing pool?
+                
+                if (ffmpeg.av_hwframe_ctx_init(_qsvFramesCtx) < 0)
+                {
+                     Console.WriteLine("[LibAvEncoder] Independent QSV frames init failed");
+                     return false;
+                }
+                Console.WriteLine($"[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)");
+            }
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
 
-            // Use D3D11 Frames as the PRIMARY hardware frames context
+            // FIX: Use D3D11 Frames as the PRIMARY hardware frames context for the encoder class.
+            // This ensures EncodeD3D11TextureZeroCopy works with D3D11 textures.
+            // We basically "hide" QSV frames from the upper logic and only use them at the very end of encoding.
             _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
             ffmpeg.av_buffer_unref(&d3d11FramesRef);
 
-            // Set encoder to use D3D11 frames
+            // Set encoder to use QSV frames (Standard Mode)
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
-            // KEY CHANGE: Set format to NV12 (supported by h264_qsv) instead of D3D11 or QSV.
-            // The hw_frames_ctx is still set, so FFmpeg should treat input frames as hardware-backed NV12.
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
+            /* Future: Hybrid D3D11 Mode (Uncomment if driver supports D3D11->NV12 implicit handling)
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx); // D3D11 Frames
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12; 
+            */
             
-            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (Hybrid D3D11-NV12 Mode).");
+            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice}, Separation Mode)");
             _isD3D11VAMode = true;
             return true;
         }
@@ -1597,6 +1639,9 @@ public unsafe class LibAvEncoder : IDisposable
                 }
 
                 CheckSendRet:
+                
+                // Reduce CPU/GPU pressure if we are in SW Fallback mode to let Capture thread breathe
+                if (_qsvMapFailed) System.Threading.Thread.Sleep(5); 
 
                 if (ret < 0)
                 {
