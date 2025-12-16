@@ -853,19 +853,22 @@ public unsafe class LibAvEncoder : IDisposable
             // Always set hw_frames_ctx to NULL for QSV to force "System Memory / Internal Allocation" mode.
             // UNLESS we are absolutely sure we have ZERO-COPY (which we disabled for stability).
             
-            if (isLinked && false) // Force disable for now to fix the Upload Error
+            if (isLinked && false) // Force disable for now
             {
                  _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
                  Console.WriteLine("[LibAvEncoder] Using External QSV Frames Context (Zero-Copy)");
             }
             else
             {
                  _codecCtx->hw_frames_ctx = null; 
-                 Console.WriteLine("[LibAvEncoder] Using Internal QSV Frames (System Memory Fallback Mode)");
-                 _qsvFramesCtx = null; // Unref the independent one we created, we won't use it manually.
+                 // IMPORTANT: When using System Memory Fallback (Internal Frames), we must tell the encoder
+                 // that the input is NV12. If we say QSV, it expects a frames context or QSV surfaces.
+                 // Setting NV12 allows avcodec_open2 to allocate its own internal QSV pool.
+                 _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12; 
+                 Console.WriteLine("[LibAvEncoder] Using Internal QSV Frames (System Memory Fallback Mode). PixelFormat set to NV12.");
+                 _qsvFramesCtx = null; 
             }
-
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
             Console.WriteLine($"[LibAvEncoder] Intel QSV setup complete. Bridge={_usingCrossDeviceBridge}");
             _isD3D11VAMode = true;
