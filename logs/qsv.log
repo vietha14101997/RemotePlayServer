@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected b5c51810-16b7-44db-bd8d-9f7de6377d50, mode=multitrack
-[MultiPC Signal] Client b5c51810-16b7-44db-bd8d-9f7de6377d50 connected from 192.168.1.6
+[Signal] Client connected a51398df-deec-43d5-90eb-8c8bdf0df621, mode=multitrack
+[MultiPC Signal] Client a51398df-deec-43d5-90eb-8c8bdf0df621 connected from 192.168.1.6
 [MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 25000kbps/stream
 [MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -91,12 +91,12 @@ Scan complete.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
-[Display] Setting \\.\DISPLAY11 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY13 [PHYSICAL] -> 1600x900@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY11 1600x900 [PHYSICAL]
+[Display]   • \\.\DISPLAY13 1600x900 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
 [MultiPC Signal] Available monitors: 2, using: 2
@@ -104,7 +104,7 @@ Scan complete.
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY11 1600x900 - duplication ready
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY13 1600x900 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [MultiPC] Created: 2mon 60fps 25000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
@@ -122,8 +122,8 @@ Scan complete.
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
-[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
@@ -135,15 +135,17 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x22382A52500
-[AVHWDeviceContext @ 0000022386e71440] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x24F02C76CE0
+[AVHWDeviceContext @ 0000024f075c2c40] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
-[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x2238726F8D0
-[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
-[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
-[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
-[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
+[LibAvEncoder] QSV: Shared device unavailable. Trying to create separate device context...
+[AVHWDeviceContext @ 0000024f02d68780] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] Failed to derive D3D11 from QSV: Function not implemented
+[LibAvEncoder] QSV: Strategy B failed. Trying Strategy A (D3D11 -> QSV)...
+[LibAvEncoder] QSV: Created new D3D11 device and derived QSV from it (Strategy A)
+[LibAvEncoder] QSV: Allocating D3D11VA frames context for QSV...
+[LibAvEncoder] Derived QSV frames from D3D11 frames.
+[LibAvEncoder] Intel QSV setup complete. Bridge=True
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
 [LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
 [LibAvEncoderAdapter] Initialized successfully
@@ -153,9 +155,6 @@ Scan complete.
 [MultiPC Signal] Received offer for monitor 1
 [MultiPC] m1 offer: 1600x900
 [MultiPC] m1 using dedicated D3D11 device
-[MultiPC] m0 ICE connected
-[LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0xC0000082)...
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m1 Intel GPU detected, using QSV encoder
@@ -165,609 +164,25 @@ Scan complete.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x22382D4BC20
-[MultiPC] m0 PC connected
-[AVHWDeviceContext @ 000002238b115f00] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x24F02D03060
+[MultiPC] m0 ICE connected
+[AVHWDeviceContext @ 0000024f0b580200] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
-[LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x223903C6470
-[LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
-[LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
-[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
-[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
+[LibAvEncoder] QSV: Shared device unavailable. Trying to create separate device context...
+[AVHWDeviceContext @ 0000024f0b5aa600] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] Failed to derive D3D11 from QSV: Function not implemented
+[LibAvEncoder] QSV: Strategy B failed. Trying Strategy A (D3D11 -> QSV)...
+[LibAvEncoder] QSV: Created new D3D11 device and derived QSV from it (Strategy A)
+[LibAvEncoder] QSV: Allocating D3D11VA frames context for QSV...
+[LibAvEncoder] Derived QSV frames from D3D11 frames.
+[LibAvEncoder] Intel QSV setup complete. Bridge=True
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
 [LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
 [LibAvEncoderAdapter] Initialized successfully
 [MultiPC] m1 encoder ready (parallel=True)
 [MultiPC] m1 answer created
 [MultiPC Signal] Sent answer for monitor 1
-[MultiPC] m0 enc#1: 54875B key=False NALs=[6,1]
-[MultiPC] m1 ICE connected
 [LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0xC00015C2)...
-[MultiPC] m1 PC connected
-[MultiPC] m0 streaming started
-[MultiPC] m0 enc#2: 16077B key=False NALs=[6,1]
-[MultiPC] m1 enc#1: 125438B key=True NALs=[7,8,6,5]
-[MultiPC] m0 enc#3: 5171B key=False NALs=[6,1]
-[MultiPC] m1 streaming started
-[MultiPC] m0 enc#4: 13416B key=False NALs=[6,1]
-[MultiPC] m1 enc#2: 37691B key=False NALs=[6,1]
-[MultiPC] m0 enc#5: 28769B key=False NALs=[6,1]
-[MultiPC] m1 enc#3: 8273B key=False NALs=[6,1]
-[MultiPC] m1 enc#4: 23099B key=False NALs=[6,1]
-[MultiPC] m1 enc#5: 32605B key=False NALs=[6,1]
-[Capture FPS] Mon1: 27.9 fps (captured 84 frames in 3016ms)
-[Capture FPS] Mon0: 6.2 fps (captured 19 frames in 3061ms)
-[Encode FPS] Mon0: 19.6 fps (sent 59 in 3010ms, skipped=5)
-[Encode FPS] Mon1: 28.8 fps (sent 87 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 29.1 fps (captured 88 frames in 3023ms)
-[Capture FPS] Mon0: 3.3 fps (captured 10 frames in 3018ms)
-[Encode FPS] Mon0: 18.3 fps (sent 55 in 3013ms, skipped=5)
-[Encode FPS] Mon1: 29.1 fps (sent 88 in 3024ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3022ms)
-[Capture FPS] Mon0: 13.0 fps (captured 39 frames in 3005ms)
-[Encode FPS] Mon0: 27.7 fps (sent 83 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3006ms)
-[Capture FPS] Mon0: 28.2 fps (captured 85 frames in 3013ms)
-[Encode FPS] Mon0: 30.6 fps (sent 92 in 3007ms, skipped=5)
-[Encode FPS] Mon1: 30.9 fps (sent 93 in 3013ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3011ms)
-[Capture FPS] Mon0: 29.2 fps (captured 88 frames in 3018ms)
-[Encode FPS] Mon0: 28.9 fps (sent 87 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3021ms)
-[Capture FPS] Mon0: 31.1 fps (captured 94 frames in 3019ms)
-[Encode FPS] Mon0: 31.4 fps (sent 95 in 3026ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3032ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3028ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3025ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3033ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3031ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3029ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3030ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3000ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3032ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3038ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3030ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3030ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3027ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3001ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3000ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3020ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3012ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3012ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3031ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3024ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 90 in 3037ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3033ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3035ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3009ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3007ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3029ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3026ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3015ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3007ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3031ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3036ms)
-[Encode FPS] Mon0: 30.5 fps (sent 92 in 3016ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3024ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3001ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3029ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3032ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3024ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3012ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3014ms)
-[Capture FPS] Mon0: 30.6 fps (captured 92 frames in 3010ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3019ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3010ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3032ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3032ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3010ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3018ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3030ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3028ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3001ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3008ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3017ms)
-[Encode FPS] Mon0: 29.9 fps (sent 90 in 3010ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3004ms, skipped=13)
-[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3015ms)
-[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3017ms)
-[Encode FPS] Mon0: 29.8 fps (sent 90 in 3018ms, skipped=5)
-[Encode FPS] Mon1: 30.3 fps (sent 91 in 3005ms, skipped=13)
-[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3012ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3028ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3027ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3008ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3015ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3028ms)
-[Encode FPS] Mon0: 29.3 fps (sent 89 in 3034ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3008ms, skipped=13)
-[Capture FPS] Mon1: 31.9 fps (captured 96 frames in 3007ms)
-[Capture FPS] Mon0: 21.2 fps (captured 64 frames in 3014ms)
-[Encode FPS] Mon0: 27.5 fps (sent 83 in 3015ms, skipped=5)
-[Encode FPS] Mon1: 32.0 fps (sent 96 in 3000ms, skipped=13)
-[Capture FPS] Mon1: 29.3 fps (captured 88 frames in 3006ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3036ms)
-[Encode FPS] Mon0: 29.1 fps (sent 88 in 3022ms, skipped=5)
-[Encode FPS] Mon1: 30.3 fps (sent 92 in 3034ms, skipped=13)
-[Capture FPS] Mon1: 30.6 fps (captured 92 frames in 3010ms)
-[Capture FPS] Mon0: 24.6 fps (captured 74 frames in 3006ms)
-[Encode FPS] Mon0: 29.2 fps (sent 88 in 3018ms, skipped=5)
-[Encode FPS] Mon1: 29.1 fps (sent 88 in 3022ms, skipped=13)
-[Capture FPS] Mon1: 28.8 fps (captured 87 frames in 3017ms)
-[Capture FPS] Mon0: 30.5 fps (captured 92 frames in 3014ms)
-[Encode FPS] Mon0: 30.3 fps (sent 91 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3002ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3030ms)
-[Capture FPS] Mon0: 31.2 fps (captured 94 frames in 3015ms)
-[Encode FPS] Mon0: 29.0 fps (sent 88 in 3038ms, skipped=5)
-[Encode FPS] Mon1: 26.2 fps (sent 79 in 3021ms, skipped=13)
-[Capture FPS] Mon1: 25.2 fps (captured 76 frames in 3016ms)
-[Capture FPS] Mon0: 27.1 fps (captured 82 frames in 3031ms)
-[Encode FPS] Mon0: 29.3 fps (sent 88 in 3006ms, skipped=5)
-[Encode FPS] Mon1: 28.9 fps (sent 87 in 3009ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3025ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3012ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3026ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3015ms)
-[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3012ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3001ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3009ms, skipped=13)
-[Capture FPS] Mon1: 28.7 fps (captured 87 frames in 3030ms)
-[Capture FPS] Mon0: 29.5 fps (captured 89 frames in 3020ms)
-[Encode FPS] Mon0: 29.6 fps (sent 89 in 3011ms, skipped=5)
-[Encode FPS] Mon1: 28.7 fps (sent 87 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3021ms)
-[Capture FPS] Mon0: 30.5 fps (captured 92 frames in 3014ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3031ms, skipped=13)
-[Capture FPS] Mon1: 29.2 fps (captured 88 frames in 3017ms)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3003ms)
-[Encode FPS] Mon0: 29.7 fps (sent 90 in 3027ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3006ms, skipped=13)
-[Capture FPS] Mon1: 30.1 fps (captured 91 frames in 3022ms)
-[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3024ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3024ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3003ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3005ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3023ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3004ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3024ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3023ms)
-[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3006ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3032ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3019ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3015ms)
-[Encode FPS] Mon0: 30.3 fps (sent 92 in 3032ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3032ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3010ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3029ms, skipped=5)
-[Encode FPS] Mon1: 30.1 fps (sent 91 in 3021ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3022ms)
-[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3007ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3027ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3006ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3031ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3028ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3004ms, skipped=5)
-[Encode FPS] Mon1: 30.2 fps (sent 91 in 3017ms, skipped=13)
-[Capture FPS] Mon1: 30.1 fps (captured 91 frames in 3024ms)
-[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3011ms)
-[Encode FPS] Mon0: 29.9 fps (sent 90 in 3015ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3020ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3033ms)
-[Encode FPS] Mon0: 30.3 fps (sent 91 in 3002ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3022ms, skipped=13)
-[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3005ms)
-[Capture FPS] Mon0: 29.7 fps (captured 90 frames in 3028ms)
-[Encode FPS] Mon0: 29.6 fps (sent 89 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3032ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3025ms)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3000ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3022ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3023ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3004ms)
-[Capture FPS] Mon0: 29.7 fps (captured 90 frames in 3033ms)
-[Encode FPS] Mon0: 29.8 fps (sent 90 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 30.1 fps (sent 91 in 3023ms, skipped=13)
-[Capture FPS] Mon1: 30.1 fps (captured 91 frames in 3021ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3025ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 30.2 fps (sent 91 in 3010ms, skipped=13)
-[Capture FPS] Mon1: 30.3 fps (captured 92 frames in 3033ms)
-[Capture FPS] Mon0: 29.6 fps (captured 89 frames in 3008ms)
-[Encode FPS] Mon0: 29.8 fps (sent 90 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 30.2 fps (sent 91 in 3017ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3021ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3000ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3022ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3023ms, skipped=13)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3005ms)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3024ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3024ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3020ms, skipped=13)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3004ms)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3023ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3026ms, skipped=13)
-[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3018ms)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3012ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3029ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3002ms, skipped=13)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3001ms)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3023ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3004ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3015ms, skipped=13)
-[Capture FPS] Mon0: 29.7 fps (captured 90 frames in 3027ms)
-[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3005ms)
-[Encode FPS] Mon0: 29.8 fps (sent 90 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 30.2 fps (sent 91 in 3014ms, skipped=13)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3017ms)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3007ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3002ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3004ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3033ms)
-[Encode FPS] Mon0: 29.3 fps (sent 88 in 3007ms, skipped=5)
-[Encode FPS] Mon1: 28.0 fps (sent 85 in 3033ms, skipped=13)
-[Capture FPS] Mon1: 28.5 fps (captured 86 frames in 3020ms)
-[Capture FPS] Mon0: 29.0 fps (captured 88 frames in 3032ms)
-[Encode FPS] Mon0: 29.9 fps (sent 90 in 3007ms, skipped=5)
-[Encode FPS] Mon1: 30.3 fps (sent 92 in 3034ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3009ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3002ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3002ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3000ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3016ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3014ms, skipped=13)
-[Capture FPS] Mon1: 31.2 fps (captured 94 frames in 3009ms)
-[Capture FPS] Mon0: 25.8 fps (captured 78 frames in 3028ms)
-[Encode FPS] Mon0: 28.3 fps (sent 85 in 3007ms, skipped=5)
-[Encode FPS] Mon1: 31.1 fps (sent 94 in 3023ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3011ms)
-[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3010ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3020ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3008ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3024ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3009ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3003ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3023ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3013ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3021ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3004ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3032ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3002ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3033ms)
-[Encode FPS] Mon0: 29.9 fps (sent 90 in 3006ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3022ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3003ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3021ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3022ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3007ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3003ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3033ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3003ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3017ms)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3003ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3028ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3009ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3024ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3031ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3012ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3012ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3016ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3016ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3028ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3030ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3016ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3012ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3017ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3017ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3028ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3028ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3027ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3016ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3016ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 89 frames in 3001ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3032ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3020ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3006ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3003ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3025ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3011ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3024ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3029ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3003ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3011ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3012ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3025ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3030ms)
-[Encode FPS] Mon0: 29.9 fps (sent 91 in 3043ms, skipped=5)
-[Encode FPS] Mon1: 29.3 fps (sent 88 in 3001ms, skipped=13)
-[Capture FPS] Mon1: 29.3 fps (captured 89 frames in 3034ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3032ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3025ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 30.1 fps (captured 91 frames in 3027ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3034ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3038ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3010ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3030ms)
-[Capture FPS] Mon0: 30.0 fps (captured 91 frames in 3033ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3018ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3025ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3006ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3016ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3020ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 89 frames in 3000ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3027ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3017ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3004ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3028ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3023ms, skipped=5)
-[Encode FPS] Mon1: 29.3 fps (sent 88 in 3006ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3034ms)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3000ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3030ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3034ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3012ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3012ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3015ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3023ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3005ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3023ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3005ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3023ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3004ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3013ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3010ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3009ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3018ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3021ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3009ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3005ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3016ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3019ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3028ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3011ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3014ms)
-[Encode FPS] Mon0: 30.3 fps (sent 91 in 3008ms, skipped=5)
-[Encode FPS] Mon1: 29.3 fps (sent 88 in 3003ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3021ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3014ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3017ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3025ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3010ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 91 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3016ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3007ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3019ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3027ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3017ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3028ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3029ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3027ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3012ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3038ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3029ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 89 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3014ms)
-[Capture FPS] Mon0: 29.7 fps (captured 90 frames in 3027ms)
-[Encode FPS] Mon0: 29.9 fps (sent 90 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 30.0 fps (sent 90 in 3004ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3011ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3012ms)
-[Encode FPS] Mon0: 30.3 fps (sent 92 in 3033ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3008ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3021ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3016ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3013ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3028ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3002ms)
-[Encode FPS] Mon0: 30.3 fps (sent 92 in 3034ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3017ms, skipped=13)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3011ms)
-[Capture FPS] Mon0: 30.1 fps (captured 91 frames in 3026ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3028ms, skipped=5)
-[Encode FPS] Mon1: 29.5 fps (sent 90 in 3048ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3003ms)
-[Encode FPS] Mon0: 30.3 fps (sent 92 in 3034ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3026ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3031ms)
-[Capture FPS] Mon0: 30.6 fps (captured 92 frames in 3009ms)
-[Encode FPS] Mon0: 30.5 fps (sent 92 in 3012ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3004ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3021ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3029ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3030ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3022ms)
-[Encode FPS] Mon0: 30.0 fps (sent 90 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 91 in 3048ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3037ms)
-[Encode FPS] Mon0: 30.6 fps (sent 92 in 3010ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3030ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3031ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3012ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3034ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 91 in 3047ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3030ms)
-[Capture FPS] Mon0: 29.7 fps (captured 89 frames in 3001ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 89 in 3001ms, skipped=13)
-[Capture FPS] Mon1: 31.0 fps (captured 93 frames in 3003ms)
-[Capture FPS] Mon0: 21.3 fps (captured 65 frames in 3053ms)
-[Encode FPS] Mon0: 23.6 fps (sent 71 in 3012ms, skipped=5)
-[Encode FPS] Mon1: 31.7 fps (sent 96 in 3026ms, skipped=13)
-[Capture FPS] Mon1: 30.4 fps (captured 92 frames in 3026ms)
-[Capture FPS] Mon0: 23.7 fps (captured 71 frames in 3002ms)
-[Encode FPS] Mon0: 28.3 fps (sent 85 in 3008ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3017ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3015ms)
-[Capture FPS] Mon0: 24.8 fps (captured 75 frames in 3025ms)
-[Encode FPS] Mon0: 29.3 fps (sent 88 in 3000ms, skipped=5)
-[Encode FPS] Mon1: 29.4 fps (sent 89 in 3027ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 89 frames in 3001ms)
-[Capture FPS] Mon0: 29.4 fps (captured 89 frames in 3030ms)
-[Encode FPS] Mon0: 30.0 fps (sent 91 in 3029ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3004ms, skipped=13)
-[Capture FPS] Mon1: 29.4 fps (captured 89 frames in 3025ms)
-[Capture FPS] Mon0: 29.1 fps (captured 88 frames in 3021ms)
-[Encode FPS] Mon0: 29.8 fps (sent 90 in 3019ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3008ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3019ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3032ms)
-[Capture FPS] Mon0: 30.3 fps (captured 92 frames in 3032ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3026ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3017ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3017ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3013ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3012ms)
-[Capture FPS] Mon0: 30.6 fps (captured 92 frames in 3011ms)
-[Encode FPS] Mon0: 30.2 fps (sent 92 in 3043ms, skipped=5)
-[Encode FPS] Mon1: 29.6 fps (sent 89 in 3003ms, skipped=13)
-[Capture FPS] Mon1: 30.0 fps (captured 91 frames in 3030ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3014ms)
-[Encode FPS] Mon0: 30.5 fps (sent 92 in 3018ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3028ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3014ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3000ms)
-[Encode FPS] Mon0: 30.1 fps (sent 91 in 3024ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3034ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3019ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3006ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3025ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3012ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3025ms)
-[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3004ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3011ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3033ms, skipped=13)
-[Capture FPS] Mon1: 29.8 fps (captured 90 frames in 3018ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
-[Encode FPS] Mon0: 30.5 fps (sent 92 in 3014ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3028ms, skipped=13)
-[Capture FPS] Mon1: 29.5 fps (captured 89 frames in 3013ms)
-[Capture FPS] Mon0: 30.5 fps (captured 92 frames in 3019ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3013ms, skipped=5)
-[Encode FPS] Mon1: 29.7 fps (sent 90 in 3034ms, skipped=13)
-[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
-[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3010ms)
-[Encode FPS] Mon0: 30.4 fps (sent 92 in 3031ms, skipped=5)
-[Encode FPS] Mon1: 29.9 fps (sent 90 in 3015ms, skipped=13)
-[Capture FPS] Mon1: 29.7 fps (captured 90 frames in 3029ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3030ms)
-[Encode FPS] Mon0: 30.2 fps (sent 91 in 3015ms, skipped=5)
-[Encode FPS] Mon1: 29.8 fps (sent 90 in 3024ms, skipped=13)
-[MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 PC closed
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m1 PC closed
-[PerMonitorCapture] Monitor 0: Capture thread stopped
-[PerMonitorCapture] Monitor 1: Capture thread stopped
-[PerMonitorCapture] All capture threads stopped
-[PerMonitorCapture] All capture threads stopped
-[Guard] Restoring display settings after MultiPC client disconnect...
-[Guard] RestoreAndCleanupWithTimeout called...
-[Guard] SnapshotPath exists: True
-[Guard] Attempting to disable VDD...
-[Guard] ForceDisableVdd: Finding VDD instance...
-[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY11
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
-[2025-12-16 20:29:10.921] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[2025-12-16 20:29:10.939] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[Guard] ForceDisableVdd: Disabling VDD...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
-[Guard] Restoring original state before exit...
-[Guard] Step 1: Restoring Text Scale first...
-[Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Step 2: Restoring per-monitor text scale...
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[TextScale] Enhanced broadcast refresh completed.
-[Guard] ✓ Virtual monitor text scale restored to 100%
-[Guard] Per-monitor text scale restoration completed.
-[Guard] Step 3: Restoring monitor modes...
-[Guard] Monitor modes restored.
-[Guard] Step 4: Restoring taskbar flag...
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
-[Guard] Allowing system to settle after restore...
-[Guard] ✅ All settings restored and system settled.
-[Guard] Restore done.
-[Guard] Display settings restored.
-[Signal] MultiPC client disconnected b5c51810-16b7-44db-bd8d-9f7de6377d50
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x40003482)...
+[MultiPC] m0 ICE connected
+Assertion 0 failed at libavcodec/qsvenc.c:2015
