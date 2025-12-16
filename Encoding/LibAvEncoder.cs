@@ -669,7 +669,8 @@ public unsafe class LibAvEncoder : IDisposable
                         }
                         else
                         {
-                             Console.WriteLine($"[LibAvEncoder] Failed to derive QSV from shared D3D11VA: {GetErrorMessage(deriveRet)}");
+                             // -16 (EBUSY) or others are expected if the driver doesn't support sharing in this way
+                             Console.WriteLine($"[LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error {deriveRet}). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.");
                         }
                     }
                     else
@@ -814,6 +815,7 @@ public unsafe class LibAvEncoder : IDisposable
             _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
             Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice})");
+            _isD3D11VAMode = true; // IMPORTANT: Enable D3D11VA mode so EncodeD3D11TextureZeroCopy works
             return true;
         }
         catch (Exception ex)
