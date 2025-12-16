@@ -761,7 +761,7 @@ public unsafe class LibAvEncoder : IDisposable
             // Set BindFlags (Crucial for QSV/AMF/NVENC compatibility)
             AVD3D11VAFramesContext* d3d11vaFramesCtx = (AVD3D11VAFramesContext*)framesCtx->hwctx;
             d3d11vaFramesCtx->BindFlags = (uint)(Vortice.Direct3D11.BindFlags.RenderTarget | Vortice.Direct3D11.BindFlags.ShaderResource);
-            d3d11vaFramesCtx->MiscFlags = 0;
+            d3d11vaFramesCtx->MiscFlags = (uint)Vortice.Direct3D11.ResourceOptionFlags.Shared;
             
             int ctxRet = ffmpeg.av_hwframe_ctx_init(d3d11FramesRef);
             if (ctxRet < 0)
@@ -774,13 +774,24 @@ public unsafe class LibAvEncoder : IDisposable
             }
             
             // 4. QSV Frames Setup
-            // Always try to derive QSV frames from D3D11 frames first.
-            // Even if we created a new device (!usedSharedDevice), deriving frames maintains the link 
-            // allowing efficient mapping without full copy/convert.
+            // If usedSharedDevice (True Zero Copy): Try to Derive QSV frames from D3D11.
+            // If !usedSharedDevice (Fallback/CrossBridge): Create INDEPENDENT QSV frames manually.
+            // NOTE: We avoids deriving QSV frames when Cross-Bridge is used (!usedSharedDevice) 
+            // because on some drivers derived frames fail to Map (Function not implemented) 
+            // AND 'Transfer' is forbidden for derived frames. Independent frames allow Transfer.
             
             AVBufferRef* qsvFramesRef = null;
-            Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
-            int framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
+            int framesInitRet = -1;
+
+            if (usedSharedDevice)
+            {
+                 Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
+                 framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
+            }
+            else
+            {
+                 Console.WriteLine("[LibAvEncoder] Cross-Bridge Mode: Skipping QSV derivation to ensure Transfer works. Creating independent QSV frames.");
+            }
 
             if (framesInitRet >= 0)
             {
@@ -789,7 +800,8 @@ public unsafe class LibAvEncoder : IDisposable
             }
             else
             {
-                Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
+                if (usedSharedDevice)
+                     Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
                 
                 // Create Independent QSV Frames Context
                 _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
