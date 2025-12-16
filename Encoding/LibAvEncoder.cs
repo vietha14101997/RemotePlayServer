@@ -1682,6 +1682,7 @@ public unsafe class LibAvEncoder : IDisposable
 
         lock (_lock)
         {
+            // Free FFmpeg resources
             if (_packet != null)
             {
                 fixed (AVPacket** p = &_packet)
@@ -1700,6 +1701,7 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.avcodec_free_context(c);
             }
             
+            // Unref Contexts
             if (_hwFramesCtx != null)
             {
                 fixed (AVBufferRef** b = &_hwFramesCtx)
@@ -1712,17 +1714,25 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.av_buffer_unref(b);
             }
 
-            
             if (_hwDeviceCtx != null)
             {
                 fixed (AVBufferRef** b = &_hwDeviceCtx)
                     ffmpeg.av_buffer_unref(b);
             }
             
+            // Free Owned D3D11 Resources
             _stagingTexture?.Dispose();
-            _context?.Dispose();
+            
+            // Dispose Bridge Resources (Owned by Encoder)
+            _sharedBridgeTexture?.Dispose();
+            _importedBridgeTexture?.Dispose();
+            _encoderD3D11Context?.Dispose(); // Context from Internal Device
+            _encoderD3D11Device?.Dispose();  // Internal Device
+            
+            // DO NOT dispose _context or _device as they are borrowed from PerMonitorCapture
+            // _context?.Dispose(); 
         }
         
-        Console.WriteLine("[LibAvEncoder] Disposed");
+        Console.WriteLine("[LibAvEncoder] Disposed (Safe)");
     }
 }
