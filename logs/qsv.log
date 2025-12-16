@@ -3,19 +3,6 @@
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.1.92
 [Encoder] FFmpeg x264 (Software)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Text size restored.
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
-
-
-[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Snapshot captured.
@@ -51,8 +38,8 @@ Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected cc5d9ee7-821e-433d-8f24-e78e37769cbf, mode=multitrack
-[MultiPC Signal] Client cc5d9ee7-821e-433d-8f24-e78e37769cbf connected from 192.168.1.20
+[Signal] Client connected d6f70253-6637-4cb9-b0bb-7bf847e6dc1f, mode=multitrack
+[MultiPC Signal] Client d6f70253-6637-4cb9-b0bb-7bf847e6dc1f connected from 192.168.1.20
 [MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
@@ -103,11 +90,11 @@ The device is not connected.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1DE82C99420
-[AVHWDeviceContext @ 000001de86d6d440] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x23282C5A890
+[AVHWDeviceContext @ 0000023280556380] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1DE86EE5AC0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x23287062080
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] QSV frames derived from D3D11VA frames successfully
@@ -120,314 +107,103 @@ The device is not connected.
 [MultiPC Signal] Sent answer for monitor 0
 [MultiPC] m0 ICE connected
 [LibAvEncoder] Creating Shared Bridge Texture...
-[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x800019C2)...
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x40002AC2)...
+[AVHWFramesContext @ 0000023282bda3c0] A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
 [MultiPC] m0 PC connected
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[Capture FPS] Mon0: 40.4 fps (captured 122 frames in 3021ms)
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[Capture FPS] Mon0: 5.1 fps (captured 23 frames in 4525ms)
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[Capture FPS] Mon0: 31.7 fps (captured 95 frames in 3001ms)
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
-[LibAvEncoder] Map D3D11 to QSV failed: Function not implemented
-[LibAvEncoder] Disposed
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 PC closed
-[PerMonitorCapture] Monitor 0: Capture thread stopped
-[PerMonitorCapture] All capture threads stopped
-[PerMonitorCapture] All capture threads stopped
-[Guard] Restoring display settings after MultiPC client disconnect...
-[Guard] RestoreAndCleanupWithTimeout called...
-[Guard] SnapshotPath exists: True
-[Guard] Attempting to disable VDD...
-[Guard] ForceDisableVdd: Finding VDD instance...
-[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[2025-12-16 16:45:53.170] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
-[Guard] ForceDisableVdd: Disabling VDD...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
-
-
-[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
-[Guard] Restoring original state before exit...
-[Guard] Step 1: Restoring Text Scale first...
-[Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Step 2: Restoring per-monitor text scale...
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[Guard] Restore timeout.
-[Guard] Display settings restored.
-[Signal] MultiPC client disconnected cc5d9ee7-821e-433d-8f24-e78e37769cbf
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+[Capture FPS] Mon0: 37.8 fps (captured 114 frames in 3019ms)
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A device with a derived frame context cannot be used as the destination of a HW -> HW transfer.[LibAvEncoder] Transfer D3D11 to QSV failed: Function not implemented
+A
