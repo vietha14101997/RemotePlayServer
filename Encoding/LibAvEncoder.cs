@@ -1430,168 +1430,167 @@ public unsafe class LibAvEncoder : IDisposable
         {
             try
             {
-                // Get a fresh hardware frame from the pool
-                int ret = ffmpeg.av_hwframe_get_buffer(_hwFramesCtx, _hwFrame, 0);
-                if (ret < 0)
-                {
-                    // If get_buffer failed, we don't hold a ref, so nothing to unref from get_buffer.
-                    // But we should ensure _hwFrame is clean.
-                    Console.WriteLine($"[LibAvEncoder] Failed to get hw frame buffer: {GetErrorMessage(ret)}");
-                    return false;
-                }
-                // Console.WriteLine("[LibAvEncoder] Got hw frame buffer.");
+                long currentPts = _frameCount++;
                 
-                AVFrame* d3d11Frame = _hwFrame;
-                AVFrame* mappedFrame = null;
-                
-                // If the frame is QSV, we must map it to D3D11 to get the texture pointer
-                // NOTE: With our new strategy (using D3D11 frames for hw_frames_ctx), this shouldn't happen often
-                // unless we fell back to direct QSV alloc.
-                if (_hwFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
-                {
-                     mappedFrame = ffmpeg.av_frame_alloc();
-                     // Map QSV frame to D3D11 for WRITING (we overwrite it)
-                     // AV_HWFRAME_MAP_READ(1) | AV_HWFRAME_MAP_WRITE(2) = 3
-                     int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, 3);
-                     if (mapRet < 0) {
-                         Console.WriteLine($"[LibAvEncoder] Map QSV to D3D11 failed: {GetErrorMessage(mapRet)}");
-                         ffmpeg.av_frame_free(&mappedFrame);
-                         return false;
-                     }
-                     d3d11Frame = mappedFrame; // Operation target is the mapped D3D11 frame
-                }
+                int ret = 0;
 
-                // In D3D11VA mode, data[0] is ID3D11Texture2D*
-                IntPtr hwTexPtr = (IntPtr)d3d11Frame->data[0];
-                int arrayIndex = (int)d3d11Frame->data[1];
-                
-                if (hwTexPtr == IntPtr.Zero)
+                // Check if we permanently fell back (but allow first attempt)
+                if (_qsvMapFailed) goto SwFallback;
+
+                if (!_qsvMapFailed)
                 {
-                    Console.WriteLine($"[LibAvEncoder] Hardware frame texture is null (Format: {d3d11Frame->format})");
-                    if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
-                    return false;
-                }
-                
-                // Wrap FFmpeg's D3D11 texture as Vortice texture for CopySubresourceRegion
-                // IMPORTANT: The wrapper (D3D11Texture2D) calls Release() on Dispose.
-                // We must increment the reference count here so that Dispose doesn't destroy the texture
-                // while FFmpeg still holds a reference to it.
-                Marshal.AddRef(hwTexPtr);
-                using var hwTexture = new D3D11Texture2D(hwTexPtr);
-                
-                if (_usingCrossDeviceBridge && _encoderD3D11Device != null && _encoderD3D11Context != null)
-                {
-                    // --- CROSS-DEVICE BRIDGE ---
-                    // 1. Ensure Shared Bridge Texture exists on Capture Device
-                    if (_sharedBridgeTexture == null || _sharedBridgeTexture.Description.Width != _width || _sharedBridgeTexture.Description.Height != _height)
+                    // Get a fresh hardware frame from the pool
+                    ret = ffmpeg.av_hwframe_get_buffer(_hwFramesCtx, _hwFrame, 0);
+                    if (ret < 0)
                     {
-                        Console.WriteLine("[LibAvEncoder] Creating Shared Bridge Texture...");
-                        _sharedBridgeTexture?.Dispose();
-                        _sharedBridgeTexture = _device!.CreateTexture2D(new Texture2DDescription
+                        Console.WriteLine($"[LibAvEncoder] Failed to get hw frame buffer: {GetErrorMessage(ret)}");
+                        return false;
+                    }
+                    
+                    _hwFrame->pts = currentPts;
+                    
+                    AVFrame* d3d11Frame = _hwFrame;
+                    AVFrame* mappedFrame = null;
+                    bool fallbackNeeded = false;
+                    
+                    try {
+                        // If the frame is QSV, we must map it to D3D11 to get the texture pointer
+                        if (_hwFrame->format == (int)AVPixelFormat.AV_PIX_FMT_QSV)
                         {
-                            Width = (uint)_width,
-                            Height = (uint)_height,
-                            MipLevels = 1,
-                            ArraySize = 1,
-                            Format = Vortice.DXGI.Format.NV12,
-                            SampleDescription = new SampleDescription(1, 0),
-                            Usage = ResourceUsage.Default,
-                            BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
-                            CPUAccessFlags = CpuAccessFlags.None,
-                            MiscFlags = ResourceOptionFlags.Shared // KEY: Allow sharing
-                        });
-                        
-                        // Get Shared Handle
-                        using var resource = _sharedBridgeTexture.QueryInterface<IDXGIResource>();
-                        _lastSharedHandle = resource.SharedHandle;
-                        
-                        // Force re-import on next step
-                        _importedBridgeTexture?.Dispose();
-                        _importedBridgeTexture = null;
-                    }
-                    
-                    // 2. Copy Input Texture -> Shared Bridge Texture (On Capture Device)
-                    _context.CopyResource(_sharedBridgeTexture, nv12Texture);
-                    _context.Flush(); // Ensure copy is committed
-                    
-                    // 3. Ensure Imported Texture exists on Encoder Device
-                    if (_importedBridgeTexture == null)
-                    {
-                        Console.WriteLine($"[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x{_lastSharedHandle:X})...");
-                        _importedBridgeTexture = _encoderD3D11Device.OpenSharedResource<D3D11Texture2D>(_lastSharedHandle);
-                    }
-                    
-                    // 4. Copy Imported Texture -> HW Frame Texture (On Encoder Device)
-                    _encoderD3D11Context.CopyResource(hwTexture, _importedBridgeTexture);
-                    _encoderD3D11Context.Flush();
-                }
-                else
-                {
-                    // --- SAME-DEVICE COPY ---
-                    // Copy our NV12 texture to the hardware frame's texture
-                    // For texture arrays, copy to the specific array index
-                    _context.CopySubresourceRegion(
-                        hwTexture, 
-                        (uint)arrayIndex,  // DstSubresource (array index)
-                        0, 0, 0,           // DstX, DstY, DstZ
-                        nv12Texture, 
-                        0                  // SrcSubresource
-                    );
-                }
+                             mappedFrame = ffmpeg.av_frame_alloc();
+                             // Map QSV frame to D3D11 for WRITING (we overwrite it)
+                             int mapRet = ffmpeg.av_hwframe_map(mappedFrame, _hwFrame, 3);
+                             if (mapRet < 0) {
+                                 Console.WriteLine($"[LibAvEncoder] Map QSV to D3D11 failed: {GetErrorMessage(mapRet)}. Switching to SW Fallback forever.");
+                                 ffmpeg.av_frame_free(&mappedFrame);
+                                 _qsvMapFailed = true;
+                                 fallbackNeeded = true;
+                             }
+                             else d3d11Frame = mappedFrame; 
+                        }
 
-                // Set PTS on the D3D11 frame (source)
-                _hwFrame->pts = _frameCount++;
-                
-                // If we have a separate QSV Frames Context (Independent Mode), we must Transfer D3D11 -> QSV
-                // Transfer / Map / Fallback Logic
-                if (_qsvFramesCtx != null && !_qsvMapFailed)
-                {
-                    AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
-                    int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
-                    
-                    if (getBufRet < 0) 
-                    {
-                         _qsvMapFailed = true; // Permanently switch to SW Fallback
-                         Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}. Switching to Optimized SW Fallback forever.");
-                         ffmpeg.av_frame_free(&qsvFrame); // cleaning up
-                         qsvFrame = null;
-                         goto SwFallback; // Jump to SW logic
+                        if (!fallbackNeeded)
+                        {
+                            // In D3D11VA mode, data[0] is ID3D11Texture2D*
+                            IntPtr hwTexPtr = (IntPtr)d3d11Frame->data[0];
+                        int arrayIndex = (int)d3d11Frame->data[1];
+                        
+                        if (hwTexPtr == IntPtr.Zero)
+                        {
+                            Console.WriteLine($"[LibAvEncoder] Hardware frame texture is null (Format: {d3d11Frame->format})");
+                            if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
+                            return false;
+                        }
+                        
+                        // Wrap FFmpeg's D3D11 texture as Vortice texture for CopySubresourceRegion
+                        Marshal.AddRef(hwTexPtr);
+                        using var hwTexture = new D3D11Texture2D(hwTexPtr);
+                        
+                        if (_usingCrossDeviceBridge && _encoderD3D11Device != null && _encoderD3D11Context != null)
+                        {
+                            // --- CROSS-DEVICE BRIDGE ---
+                            if (_sharedBridgeTexture == null || _sharedBridgeTexture.Description.Width != _width || _sharedBridgeTexture.Description.Height != _height)
+                            {
+                                Console.WriteLine("[LibAvEncoder] Creating Shared Bridge Texture...");
+                                _sharedBridgeTexture?.Dispose();
+                                _sharedBridgeTexture = _device!.CreateTexture2D(new Texture2DDescription
+                                {
+                                    Width = (uint)_width,
+                                    Height = (uint)_height,
+                                    MipLevels = 1,
+                                    ArraySize = 1,
+                                    Format = Vortice.DXGI.Format.NV12,
+                                    SampleDescription = new SampleDescription(1, 0),
+                                    Usage = ResourceUsage.Default,
+                                    BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
+                                    CPUAccessFlags = CpuAccessFlags.None,
+                                    MiscFlags = ResourceOptionFlags.Shared 
+                                });
+                                
+                                using var resource = _sharedBridgeTexture.QueryInterface<IDXGIResource>();
+                                _lastSharedHandle = resource.SharedHandle;
+                                
+                                _importedBridgeTexture?.Dispose();
+                                _importedBridgeTexture = null;
+                            }
+                            
+                            _context.CopyResource(_sharedBridgeTexture, nv12Texture);
+                            _context.Flush(); 
+                            
+                            if (_importedBridgeTexture == null)
+                            {
+                                Console.WriteLine($"[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0x{_lastSharedHandle:X})...");
+                                _importedBridgeTexture = _encoderD3D11Device.OpenSharedResource<D3D11Texture2D>(_lastSharedHandle);
+                            }
+                            
+                            _encoderD3D11Context.CopyResource(hwTexture, _importedBridgeTexture);
+                            _encoderD3D11Context.Flush();
+                        }
+                        else
+                        {
+                            // --- SAME-DEVICE COPY ---
+                            _context.CopySubresourceRegion(
+                                hwTexture, 
+                                (uint)arrayIndex, 
+                                0, 0, 0, 
+                                nv12Texture, 
+                                0 
+                            );
+                        }
+                        }
+                    }
+                    finally {
+                         if (mappedFrame != null) {
+                             ffmpeg.av_frame_free(&mappedFrame);
+                         }
                     }
                     
-                    qsvFrame->pts = _hwFrame->pts;
+                    if (fallbackNeeded) goto SwFallback;
 
-                    // 1. Try HW Map (D3D11 -> QSV)
-                    int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0);
-                    if (mapRet >= 0)
+                    if (_qsvFramesCtx != null && !_qsvMapFailed)
                     {
-                        // Map success! Send QSV Frame
-                        ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
-                        ffmpeg.av_frame_free(&qsvFrame); 
-                        goto CheckSendRet; // Skip fallback
+                        AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
+                        int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
+                        
+                        if (getBufRet < 0) 
+                        {
+                             _qsvMapFailed = true; 
+                             Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}. Switching to Optimized SW Fallback forever.");
+                             ffmpeg.av_frame_free(&qsvFrame); 
+                             qsvFrame = null;
+                             goto SwFallback; 
+                        }
+                        
+                        qsvFrame->pts = _hwFrame->pts;
+
+                        int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0);
+                        if (mapRet >= 0)
+                        {
+                            ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
+                            ffmpeg.av_frame_free(&qsvFrame); 
+                            goto CheckSendRet; 
+                        }
+                        else
+                        {
+                            _qsvMapFailed = true; 
+                            
+                            ffmpeg.av_frame_unref(qsvFrame);
+                            ffmpeg.av_frame_free(&qsvFrame);
+                            qsvFrame = null;
+                        }
+                    }
+                    else if (_qsvFramesCtx != null && _qsvMapFailed)
+                    {
+                        goto SwFallback;
                     }
                     else
                     {
-                        // Map Failed
-                        _qsvMapFailed = true; // Permanently switch to SW Fallback
-                        // Console.WriteLine($"[LibAvEncoder] QSV Map failed: {GetErrorMessage(mapRet)}. Switching to Optimized SW Fallback forever.");
-                        
-                        ffmpeg.av_frame_unref(qsvFrame);
-                        ffmpeg.av_frame_free(&qsvFrame);
-                        qsvFrame = null;
-                        // Fall through to SwFallback
+                        ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
+                        goto CheckSendRet;
                     }
                 }
-                else if (_qsvFramesCtx != null && _qsvMapFailed)
-                {
-                    // Already failed before, just go straight to fallback
-                    goto SwFallback;
-                }
-                else
-                {
-                    // Standard Zero-Copy (AMF/NVENC/Derived)
-                    ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
-                    goto CheckSendRet;
-                }
+                
+                goto SwFallback;
 
                 SwFallback:
                 // --- SW Fallback Logic ---
@@ -1623,7 +1622,7 @@ public unsafe class LibAvEncoder : IDisposable
                     for(int y=0; y<_height/2; y++) 
                         Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
                     
-                    swFrame->pts = _hwFrame->pts;
+                    swFrame->pts = currentPts; // Uses the PTS captured at start of function
                     swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE; // Let encoder decide (force IDR if needed)
                     
                     if (_frameCount % 60 == 0) 
