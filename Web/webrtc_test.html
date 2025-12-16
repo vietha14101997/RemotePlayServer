@@ -784,7 +784,7 @@
 
     const setupMonitor = async (i, isReconnect = false) => {
       if (isDisconnecting) return;
-      if (currentWs !== ws || ws.readyState !== 1) return; // Strict session check
+      if (currentWs !== ws) return; // Strict session check
 
       // Close existing if any
       if (multiPCs[i]) {
