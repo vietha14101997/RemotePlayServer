@@ -1538,88 +1538,82 @@ public unsafe class LibAvEncoder : IDisposable
                 _hwFrame->pts = _frameCount++;
                 
                 // If we have a separate QSV Frames Context (Independent Mode), we must Transfer D3D11 -> QSV
+                // Transfer / Map / Fallback Logic
                 if (_qsvFramesCtx != null)
                 {
                     AVFrame* qsvFrame = ffmpeg.av_frame_alloc();
-                    // Set context so we get a frame from the QSV pool
                     int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
+                    
                     if (getBufRet < 0) 
                     {
-                         Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}");
-                         ffmpeg.av_frame_free(&qsvFrame);
-                         return false;
+                         ffmpeg.av_frame_free(&qsvFrame); // cleaning up
+                         qsvFrame = null;
+                         goto SwFallback; // Jump to SW logic
                     }
                     
                     qsvFrame->pts = _hwFrame->pts;
 
                     // 1. Try HW Map (D3D11 -> QSV)
-                    // Mapping source (D3D11) into destination (QSV frame wrapping) is often better supported than TransferData
                     int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0);
                     if (mapRet >= 0)
                     {
-                        // Map success! The qsvFrame now wraps the D3D11 texture.
-                        // We can send it directly.
+                        // Map success! Send QSV Frame
+                        ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
+                        ffmpeg.av_frame_free(&qsvFrame); 
+                        goto CheckSendRet; // Skip fallback
                     }
                     else
                     {
-                        // 2. Map Failed: Use SW Fallback (Readback -> Send SW Frame)
-                        // Instead of transferring to QSV Frame, we just readback and send the SW frame.
-                        // The encoder (h264_qsv) supports NV12 system memory input and will handle upload.
-                        
-                        // Console.WriteLine($"[LibAvEncoder] Map D3D11->QSV failed: {GetErrorMessage(mapRet)}. Usage SW Fallback.");
-
-                        ffmpeg.av_frame_unref(qsvFrame); // Don't need this QSV frame anymore
-                        ffmpeg.av_frame_free(&qsvFrame); // Free it to avoid leak (we will send swFrame or null)
+                        // Map Failed
+                        ffmpeg.av_frame_unref(qsvFrame);
+                        ffmpeg.av_frame_free(&qsvFrame);
                         qsvFrame = null;
-
-                        if (_stagingTexture == null) CreateStagingTexture();
-                        
-                        _context!.CopyResource(_stagingTexture!, nv12Texture);
-                        var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
-                        
-                        AVFrame* swFrame = ffmpeg.av_frame_alloc();
-                        try
-                        {
-                            swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
-                            swFrame->width = _width;
-                            swFrame->height = _height;
-                            ffmpeg.av_frame_get_buffer(swFrame, 32);
-                            
-                            byte* src = (byte*)mapped.DataPointer;
-                            int srcPitch = (int)mapped.RowPitch;
-                            
-                            for(int y=0; y<_height; y++) 
-                                Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
-                                
-                            byte* srcUV = src + srcPitch*_height;
-                            for(int y=0; y<_height/2; y++) 
-                                Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
-                            
-                            swFrame->pts = _hwFrame->pts;
-                            
-                            // Send SW Frame directly to encoder (it will upload)
-                            ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
-                        }
-                        finally 
-                        { 
-                            ffmpeg.av_frame_free(&swFrame);
-                            _context.Unmap(_stagingTexture, 0); 
-                        }
-                        
-                        // We already sent the frame, so skip the generic send at bottom
-                        goto FrameSent;
+                        // Fall through to SwFallback
                     }
-                    
-                    // Send QSV Frame
-                    ret = ffmpeg.avcodec_send_frame(_codecCtx, qsvFrame);
-                    ffmpeg.av_frame_free(&qsvFrame);
                 }
                 else
                 {
-                    // Send frame to encoder (D3D11 frame -> HW Encoder)
-                    // Zero-Copy path for NVENC/AMF or QSV-Derived
+                    // Standard Zero-Copy (AMF/NVENC/Derived)
                     ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
+                    goto CheckSendRet;
                 }
+
+                SwFallback:
+                // --- SW Fallback Logic ---
+                if (_stagingTexture == null) CreateStagingTexture();
+                
+                _context!.CopyResource(_stagingTexture!, nv12Texture);
+                var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+                
+                AVFrame* swFrame = ffmpeg.av_frame_alloc();
+                try
+                {
+                    swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                    swFrame->width = _width;
+                    swFrame->height = _height;
+                    ffmpeg.av_frame_get_buffer(swFrame, 32);
+                    
+                    byte* src = (byte*)mapped.DataPointer;
+                    int srcPitch = (int)mapped.RowPitch;
+                    
+                    for(int y=0; y<_height; y++) 
+                        Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
+                        
+                    byte* srcUV = src + srcPitch*_height;
+                    for(int y=0; y<_height/2; y++) 
+                        Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
+                    
+                    swFrame->pts = _hwFrame->pts;
+                    
+                    ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
+                }
+                finally 
+                { 
+                    ffmpeg.av_frame_free(&swFrame);
+                    _context.Unmap(_stagingTexture, 0); 
+                }
+
+                CheckSendRet:
 
                 if (ret < 0)
                 {
