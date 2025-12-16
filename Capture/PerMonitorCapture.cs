@@ -231,7 +231,10 @@ public sealed class PerMonitorCapture : IDisposable
         // Wait for threads to finish
         foreach (var mon in Monitors)
         {
-            mon.CaptureThread?.Join(1000);
+            if (mon.CaptureThread != null && mon.CaptureThread.IsAlive)
+            {
+               try { mon.CaptureThread.Join(1000); } catch {}
+            }
         }
         
         Console.WriteLine("[PerMonitorCapture] All capture threads stopped");
