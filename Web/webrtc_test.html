@@ -430,6 +430,17 @@
     }
   }
 
+  function updateFrameLatencyDisplay() {
+    const el = $('frameLatencyStats');
+    if (el) el.textContent = lastFrameLatency + ' ms';
+  }
+
+  function updatePingDisplay() {
+    const el = $('pingStats');
+    // Show WS Ping + WebRTC RTT if available
+    if (el) el.textContent = currentPing + ' ms' + (webrtcRtt ? ` (RTT ${webrtcRtt})` : '');
+  }
+
   let cursorEnabled = false;
   let currentWs = null;
   let currentPc = null;      // Single PC for cluster mode
@@ -642,6 +653,8 @@
     log('Disconnected');
     isDisconnecting = false;
   }
+
+
 
   function buildWsUrl() {
     const host = $('host').value.trim() || 'localhost';
