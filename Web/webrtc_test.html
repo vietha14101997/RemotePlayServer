@@ -382,9 +382,14 @@
 
   function processFrameTiming(timingData) {
     try {
-      // Calculate server-client time offset
+      // Calculate server-client time offset with RTT compensation (Network Delay)
       const clientTime = Date.now();
-      serverTimeOffset = timingData.serverTime - clientTime;
+      // Assume symmetric delay: One-Way-Delay approx RTT/2
+      // ServerTime = ClientTime + Offset
+      // MsgArriveTime = ServerSendTime + OWD
+      // Offset = ServerSendTime - (MsgArriveTime - OWD)
+      const owd = currentPing > 0 ? currentPing / 2 : 0;
+      serverTimeOffset = timingData.serverTime - (clientTime - owd);
 
       // Store recent frame timing data from server
       serverFrameTiming = timingData.recentFrames || [];
@@ -779,6 +784,7 @@
 
     const setupMonitor = async (i, isReconnect = false) => {
       if (isDisconnecting) return;
+      if (currentWs !== ws || ws.readyState !== 1) return; // Strict session check
 
       // Close existing if any
       if (multiPCs[i]) {
