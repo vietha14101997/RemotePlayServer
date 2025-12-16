@@ -1590,32 +1590,36 @@ public unsafe class LibAvEncoder : IDisposable
 
                 if (_codecCtx->pix_fmt == AVPixelFormat.AV_PIX_FMT_QSV && _codecCtx->hw_frames_ctx == null)
                 {
-                     // SW Fallback: D3D11 -> Staging -> CPU -> Encoder
-                     if (_stagingTexture == null) CreateStagingTexture();
+                     // SW Fallback: D3D11 -> CPU (NV12) -> Encoder
+                     // Use FFmpeg's transfer_data which handles the Readback/Staging internally.
                      
-                     _context!.CopyResource(_stagingTexture!, nv12Texture);
-                     var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                      AVFrame* swFrame = null;
-                     
                      try
                      {
                         swFrame = ffmpeg.av_frame_alloc();
                         swFrame->format = (int)FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
                         swFrame->width = _width;
                         swFrame->height = _height;
-                        ffmpeg.av_frame_get_buffer(swFrame, 32);
                         
-                        byte* src = (byte*)mapped.DataPointer;
-                        int srcPitch = (int)mapped.RowPitch;
+                        // Alloc buffer for SW frame
+                        if (ffmpeg.av_frame_get_buffer(swFrame, 32) < 0)
+                        {
+                             Console.WriteLine("[LibAvEncoder] Failed to alloc SW frame buffer");
+                             ffmpeg.av_frame_free(&swFrame);
+                             return false;
+                        }
                         
-                        // Copy Y
-                        for(int y=0; y<_height; y++) 
-                            Buffer.MemoryCopy(src + y*srcPitch, swFrame->data[0] + y*swFrame->linesize[0], (long)_width, (long)_width);
-                            
-                        // Copy UV
-                        byte* srcUV = src + srcPitch*_height;
-                        for(int y=0; y<_height/2; y++) 
-                            Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], (long)_width, (long)_width);
+                        // Transfer D3D11 -> SW (Download)
+                        // _hwFrame is D3D11. swFrame is NV12.
+                        int downloadRet = ffmpeg.av_hwframe_transfer_data(swFrame, _hwFrame, 0);
+                        if (downloadRet < 0)
+                        {
+                             // If direct transfer fails, try manual fallback (rare for D3D11->SW)
+                             Console.WriteLine($"[LibAvEncoder] D3D11->SW Download failed: {GetErrorMessage(downloadRet)}");
+                             ffmpeg.av_frame_free(&swFrame);
+                             // Could fallback to manual here, but let's trust transfer first.
+                             return false; 
+                        }
                         
                         swFrame->pts = _hwFrame->pts;
                         
@@ -1626,7 +1630,6 @@ public unsafe class LibAvEncoder : IDisposable
                      finally 
                      { 
                          if(swFrame != null) ffmpeg.av_frame_free(&swFrame);
-                         _context.Unmap(_stagingTexture!, 0); 
                      }
                 }
                 
