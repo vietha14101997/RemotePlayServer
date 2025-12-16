@@ -1,7 +1,7 @@
 === RemotePlayServer ===
 [System] Running as Administrator: YES
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-[System] Local IP: 192.168.1.92
+[System] Local IP: 192.168.1.9
 [Encoder] FFmpeg x264 (Software)
 [Guard] Detected stale session. Restoring previous snapshot before new capture...
 [Guard] Text size restored.
@@ -22,39 +22,39 @@ The device is not connected.
 === Monitors ===
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
-[HTTP] Server: 192.168.1.92:8288
+[HTTP] Server: 192.168.1.9:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+Data: {"ip":"192.168.1.9","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
 █████████████████████████████████████████████
 █████████████████████████████████████████████
-████ ▄▄▄▄▄ █  ▄▀█    ▄▀▀▀▄▄ ▄▄▄▄▄█ ▄▄▄▄▄ ████
-████ █   █ █ █▄▄█▀▄▀ ▀ █  ▀▄█  ▀▀█ █   █ ████
-████ █▄▄▄█ █▄▄▀▄ ███▄ ▄▀▀▄▀█   ▀ █ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀ ▀ ▀▄▀▄▀ █ ▀ █ █ ▀ █▄▄▄▄▄▄▄████
-█████▄█ ▀ ▄▀ ▄  ▀▄ ▄▄█  █▄▀▀▄ ▀██▄▄▀ ▄▄▄ ████
-████▄▄█▄█▀▄ ▀▄██▄█▀  ▄█▄██   ▄█▄ ▀█▄▀▄█▄ ████
-████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
-█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
-███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
-████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
-████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
-████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
-████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
-█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
-███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
-████ ▄▄▄▄▄ █▀█ █ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ ▄▄▄▄▄ █  █ ▀▄█▄ █▀▀▀██ █ ▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █ ▄▀▄▀ ▀▀ ▄ ▀  ▄██▀ ▄▄█ █   █ ████
+████ █▄▄▄█ █▄▀ █▀█   ▄█▀▄  ▀▄▀ █ █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █▄▀ ▀ ▀ ▀ █▄▀ ▀ █▄█▄█▄▄▄▄▄▄▄████
+████▀ ▀ █▄▄█ ▄ █▄███▄█ ▀▀▄▄█▄▄█▄▄▄ █▄▄▄  ████
+█████▀ ▀▄▄▄█▄█ ▀▀▄▄▄▄▄▀▀▀▄▄█▄▄ ▀ ▄▄█▀▀▄▄ ████
+█████ █▀ █▄▄ █ █▀ ▀▄ █▄█▀▄█▄ ▀▄█ ▄██▀▀███████
+█████▀▀▄█▀▄▀▀█▀█▀▄▀▀█▄▀ ▀▄▀██▄▀█▀▄▀█ ▄ ▄ ████
+████▀█▄██▀▄█▄███▄▀▄█▄█▄█▄▀██ ███▀█ ▄  ██▀████
+████▄▄███▄▄█▀█▄▄▀▄█ ▀ ▄█▀█▄█ █▄█ ▄▄▄ ▄█ ▄████
+████ ▀ █▄▀▄ ▄ █ ▄▄█ █▀▀ ▄▄▀ ▄ ▀ ▄ █ ▄▄█▀█████
+████ █▀▀▀▄▄▀█▀██▄▀▄█ ▀█ ▄▀▄  ▀▄ ▀██▀▀ █▀█████
+████▄ ▄▀ ▄▄▄   █ ▀▀▄ ▀▄▄ ▄█▄▀▀▀▄▀█ ▄▀▄ ▄ ████
+█████▀▀▄█ ▄ ▄█  ▄█ █ █▀ ▄▄ █▄█ ▄  █▀  █▄█████
+██████▄███▄█ ███▄█▀█▄███ ▀██ █▀▀ ▄▄▄ ▀▀▄█████
+████ ▄▄▄▄▄ █▀█ █ ██ ▄█ █ █▄ ▄███ █▄█  █▄▀████
 ████ █   █ █▀▀▀  ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
-████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
-████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  ▀▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄▄▄█▄▄▄████
 █████████████████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected a388e14c-8b12-40df-9d54-1afe3ba73b90, mode=multitrack
-[MultiPC Signal] Client a388e14c-8b12-40df-9d54-1afe3ba73b90 connected from 192.168.1.20
-[MultiPC Signal] Config: 1 monitors @ 1600x900, 60fps, 20000kbps/stream
-[MultiPC Signal] Applying new display config: 1 monitors @ 1600x900, 60 fps
+[Signal] Client connected d5667bc6-2f49-4d97-ac47-be9325576601, mode=multitrack
+[MultiPC Signal] Client d5667bc6-2f49-4d97-ac47-be9325576601 connected from 192.168.1.6
+[MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 25000kbps/stream
+[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
@@ -65,8 +65,37 @@ The device is not connected.
 
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 0 (target total: 1)
-[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Added resolution 1600x900@60 to C:\VirtualDisplayDriver\vdd_settings.xml
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Failed to enable device:  ROOT\DISPLAY\0000
+The device is not connected.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 1, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
@@ -81,182 +110,298 @@ The device is not connected.
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
 [PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
-[MultiPC] Created: 1mon 60fps 20000kbps (parallel device mode)
+[MultiPC] Created: 1mon 60fps 25000kbps (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
 [MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
 [PerMonitorCapture] Started 1 parallel capture threads
-[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [MultiPC Signal] Received offer for monitor 0
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [MultiPC] m0 offer: 1600x900
 [MultiPC] m0 using dedicated D3D11 device
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 Intel GPU detected, using QSV encoder
-[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 25000kbps
 [LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] Using encoder: h264_qsv
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x24802C1F600
-[AVHWDeviceContext @ 0000024806dc3780] Error setting child device handle: -16
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1D0829F6C90
+[AVHWDeviceContext @ 000001d0872a6100] Error setting child device handle: -16
 [LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x24806FBA170
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1D080459810
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] Fallback Mode: Skipping QSV derivation. Creating independent QSV frames.
 [LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)
 [LibAvEncoder] Intel QSV hardware context initialized (SharedDevice=False, Separation Mode)
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
 [LibAvEncoderAdapter] Initialized successfully
 [MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC Signal] ProcessOffer error m1: Specified argument was out of the range of valid values. (Parameter 'monitorIndex')
+[Capture FPS] Mon0: 4.9 fps (captured 54 frames in 11004ms)
 [MultiPC] m0 ICE connected
-[MultiPC] m0 ICE connected
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
+[LibAvEncoder] Creating Shared Bridge Texture...
+[LibAvEncoder] Opening Shared Resource on Encoder Device (Handle: 0xC00011C2)...
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
 [MultiPC] m0 PC connected
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[Capture FPS] Mon0: 34.9 fps (captured 105 frames in 3009ms)
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[LibAvEncoder] Map QSV to D3D11 failed: Function not implemented
-[
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[Capture FPS] Mon0: 53.3 fps (captured 160 frames in 3001ms)
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[MultiPC RX] The remote party closed the WebSocket connection without completing the close handshake.
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Transfer D3D11 to QSV failed: Invalid argument
+[LibAvEncoder] Disposed
+[LibAvEncoderAdapter] Disposed
+[MultiPC] m0 PC closed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[2025-12-16 18:49:06.757] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Failed to disable device:  ROOT\DISPLAY\0000
+The device is not connected.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 0.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected d5667bc6-2f49-4d97-ac47-be9325576601
