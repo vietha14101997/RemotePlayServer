@@ -820,6 +820,10 @@ public unsafe class LibAvEncoder : IDisposable
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
             ffmpeg.av_buffer_unref(&d3d11FramesRef); // We have refs in _hwFramesCtx or it's gone
             
+            // Fix: Assign _hwFramesCtx so Initialize() works
+            _hwFramesCtx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+
+            
             // Set encoder to use QSV frames
             _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
             _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
@@ -1124,6 +1128,12 @@ public unsafe class LibAvEncoder : IDisposable
             AVBufferRef* temp = _hwFramesCtx;
             ffmpeg.av_buffer_unref(&temp);
             _hwFramesCtx = null;
+        }
+        if (_qsvFramesCtx != null)
+        {
+            AVBufferRef* temp = _qsvFramesCtx;
+            ffmpeg.av_buffer_unref(&temp);
+            _qsvFramesCtx = null;
         }
         if (_hwDeviceCtx != null)
         {
@@ -1685,6 +1695,13 @@ public unsafe class LibAvEncoder : IDisposable
                 fixed (AVBufferRef** b = &_hwFramesCtx)
                     ffmpeg.av_buffer_unref(b);
             }
+
+            if (_qsvFramesCtx != null)
+            {
+                fixed (AVBufferRef** b = &_qsvFramesCtx)
+                    ffmpeg.av_buffer_unref(b);
+            }
+
             
             if (_hwDeviceCtx != null)
             {

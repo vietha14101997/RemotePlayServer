@@ -252,6 +252,7 @@ public sealed class PerMonitorCapture : IDisposable
 
         while (mon.Running && _running)
         {
+            long loopStart = sw.ElapsedMilliseconds;
             try
             {
                 long captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -325,6 +326,12 @@ public sealed class PerMonitorCapture : IDisposable
                         mon.Duplication.ReleaseFrame();
                     }
                 }
+                // PACING STRATEGY:
+                // If we got a frame (Success), DXGI has already waited for VSync/Update, so we don't need to sleep.
+                // We loop immediately to be ready for the next frame.
+                //
+                // If we timed out (WaitTimeout), we are sending cached frames.
+                // We MUST sleep to avoid a busy loop consuming 100% CPU.
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
                     // No new frame - use cached frame
@@ -337,21 +344,39 @@ public sealed class PerMonitorCapture : IDisposable
                         }
                     }
                 }
+
+                // PACING STRATEGY (Updated):
+                // We want to stabilize FPS at TargetFps (e.g., 60), but slightly UNDER to prevent client buffering.
+                // If we send 60.01 FPS and client runs at 60.00 FPS, buffer grows indefinitely (latency drift).
+                // Aiming for 59.9 FPS ensures the client drain rate > send rate => Zero Latency.
+                
+                var loopDuration = sw.ElapsedMilliseconds - loopStart;
+                // Add 0.5ms safety bias to ensure we never over-shoot speed
+                var timeToSleep = (frameTimeMs + 0.5) - loopDuration;
+
+                if (timeToSleep > 0)
+                {
+                    int sleepInt = (int)timeToSleep;
+                    
+                    if (sleepInt > 4)
+                    {
+                        Thread.Sleep(sleepInt - 2); 
+                    }
+                    
+                    // Spin carefully
+                    while ((sw.ElapsedMilliseconds - loopStart) < (frameTimeMs + 0.2)) // +0.2 margin
+                    {
+                        Thread.SpinWait(10);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index} error: {ex.Message}");
                 Thread.Sleep(50);
             }
-
-            // Frame pacing
-            var elapsed = sw.ElapsedMilliseconds;
-            var sleepTime = frameTimeMs - (int)(elapsed % frameTimeMs);
-            if (sleepTime > 0 && sleepTime < frameTimeMs)
-            {
-                Thread.Sleep(sleepTime);
-            }
         }
+
         
         Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread stopped");
     }
