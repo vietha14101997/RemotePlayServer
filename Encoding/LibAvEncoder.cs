@@ -1546,12 +1546,29 @@ public unsafe class LibAvEncoder : IDisposable
                     qsvFrame->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
                     qsvFrame->pts = _hwFrame->pts;
                     
-                    int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 0); // Direction usually 0 for auto
+                    int mapRet = ffmpeg.av_hwframe_map(qsvFrame, _hwFrame, 3); // Try Read/Write mapping
                     if (mapRet < 0)
                     {
-                        Console.WriteLine($"[LibAvEncoder] Map D3D11 to QSV failed: {GetErrorMessage(mapRet)}");
-                        ffmpeg.av_frame_free(&qsvFrame);
-                        return false;
+                        // Fallback: Try Transfer Data (Copy) if Map fails
+                        // Console.WriteLine($"[LibAvEncoder] Map D3D11 to QSV failed: {GetErrorMessage(mapRet)}. Trying Transfer...");
+                        
+                        // We need to allocate the real buffer for QSV frame first
+                        int getBufRet = ffmpeg.av_hwframe_get_buffer(_qsvFramesCtx, qsvFrame, 0);
+                        if (getBufRet < 0)
+                        {
+                             Console.WriteLine($"[LibAvEncoder] QSV get_buffer failed: {GetErrorMessage(getBufRet)}");
+                             ffmpeg.av_frame_free(&qsvFrame);
+                             return false;
+                        }
+                        
+                        // Transfer D3D11 -> QSV
+                        int transferRet = ffmpeg.av_hwframe_transfer_data(qsvFrame, _hwFrame, 0);
+                        if (transferRet < 0)
+                        {
+                            Console.WriteLine($"[LibAvEncoder] Transfer D3D11 to QSV failed: {GetErrorMessage(transferRet)}");
+                            ffmpeg.av_frame_free(&qsvFrame);
+                            return false;
+                        }
                     }
                     
                     // Send Mapped QSV Frame
