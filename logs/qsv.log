@@ -51,8 +51,8 @@ Data: {"ip":"192.168.1.92","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 020dbd29-15e4-432d-acba-6462b0e7ea9d, mode=multitrack
-[MultiPC Signal] Client 020dbd29-15e4-432d-acba-6462b0e7ea9d connected from 192.168.1.20
+[Signal] Client connected 1987fb84-f4eb-4de6-9c9e-69c30c8cba96, mode=multitrack
+[MultiPC Signal] Client 1987fb84-f4eb-4de6-9c9e-69c30c8cba96 connected from 192.168.1.20
 [MultiPC Signal] Config: 1 monitors @ 1920x1080, 60fps, 20000kbps/stream
 [MultiPC Signal] Applying new display config: 1 monitors @ 1920x1080, 60 fps
 [VDD] Temporarily disabling VDD to count physical monitors...
@@ -89,8 +89,8 @@ The device is not connected.
 [MultiPC Signal] Received offer for monitor 0
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [MultiPC] m0 offer: 1920x1080
-[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [MultiPC] m0 using dedicated D3D11 device
+[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
 [GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
@@ -103,11 +103,11 @@ The device is not connected.
 [LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Enhanced Zero-Copy)...
-[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x27B82BA9520
-[AVHWDeviceContext @ 0000027b8295d540] Error setting child device handle: -16
-[LibAvEncoder] Failed to derive QSV from shared D3D11VA: Unknown error occurred
+[LibAvEncoder] QSV: Attempting to use shared D3D11 device: 0x1CD02C5FD40
+[AVHWDeviceContext @ 000001cd07049dc0] Error setting child device handle: -16
+[LibAvEncoder] Shared Device Warning: Failed to derive QSV from shared D3D11VA (Error -1313558101). This is normal on some Intel drivers. Switching to Cross-Device Bridge mode.
 [LibAvEncoder] QSV: Shared device unavailable, creating new D3D11VA base device...
-[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x27B87E0FFF0
+[LibAvEncoder] QSV: Created NEW internal D3D11 Device: 0x1CD07EA38F0
 [LibAvEncoder] QSV: Enabled Cross-Device Bridge (Shared Handle)
 [LibAvEncoder] QSV: Creating D3D11VA frames context explicitely...
 [LibAvEncoder] QSV frames derived from D3D11VA frames successfully
@@ -119,26 +119,260 @@ The device is not connected.
 [MultiPC] m0 answer created
 [MultiPC Signal] Sent answer for monitor 0
 [MultiPC] m0 ICE connected
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
 [MultiPC] m0 PC connected
-[MultiPC] m0 enc#1: 3927B key=False NALs=[6,1]
-[MultiPC] m0 streaming started
-[MultiPC] m0 enc#2: 13527B key=False NALs=[6,1]
-[MultiPC] m0 enc#3: 20844B key=False NALs=[6,1]
-[MultiPC] m0 enc#4: 7207B key=False NALs=[6,1]
-[MultiPC] m0 enc#5: 39328B key=False NALs=[6,1]
-[Capture FPS] Mon0: 4.9 fps (captured 15 frames in 3049ms)
-[Encode FPS] Mon0: 12.8 fps (sent 39 in 3050ms, skipped=4)
-[Capture FPS] Mon0: 3.0 fps (captured 9 frames in 3026ms)
-[Encode FPS] Mon0: 12.1 fps (sent 37 in 3051ms, skipped=4)
-[Capture FPS] Mon0: 2.0 fps (captured 6 frames in 3067ms)
-[Encode FPS] Mon0: 12.7 fps (sent 39 in 3068ms, skipped=4)
-[Capture FPS] Mon0: 10.6 fps (captured 32 frames in 3016ms)
-[Encode FPS] Mon0: 19.2 fps (sent 58 in 3013ms, skipped=4)
-[Capture FPS] Mon0: 17.5 fps (captured 53 frames in 3031ms)
-[Encode FPS] Mon0: 17.8 fps (sent 54 in 3037ms, skipped=4)
-[Capture FPS] Mon0: 18.4 fps (captured 56 frames in 3048ms)
-[Encode FPS] Mon0: 18.5 fps (sent 56 in 3020ms, skipped=4)
-[Capture FPS] Mon0: 18.4 fps (captured 56 frames in 3046ms)
-[Encode FPS] Mon0: 18.8 fps (sent 57 in 3030ms, skipped=4)
-[Capture FPS] Mon0: 19.3 fps (captured 58 frames in 3012ms)
-[Encode FPS] Mon0: 18.5 fps (sent 56 in 3019ms, skipped=4)
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[Capture FPS] Mon0: 40.9 fps (captured 123 frames in 3009ms)
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[LibAvEncoder] Hardware frame texture is null
+[
