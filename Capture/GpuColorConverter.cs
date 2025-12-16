@@ -61,7 +61,6 @@ public sealed class GpuColorConverter : IDisposable
     private bool _useVideoProcessor;
     private bool _useComputeShader;
     private bool _needsIntermediateCopy; // New flag for NVIDIA
-    private VideoProcessorContentDescription _vpContentDesc;
     
     // Compute Shader resources
     private ID3D11ComputeShader? _computeShader;
@@ -391,9 +390,11 @@ public sealed class GpuColorConverter : IDisposable
         // Actually the error log said line 349.
         
         // Fix: Use _nv12Textures[_bufferIndex]
-        var targetTex = _nv12Textures[_bufferIndex];
-            return _nv12Buffer;
-        return null;
+        if (_nv12Textures != null)
+        {
+            var targetTex = _nv12Textures[_bufferIndex];
+        }
+        return _nv12Buffer;
     }
     
     /// <summary>
@@ -827,7 +828,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
             
             if (hr != 0 || codeBlob == IntPtr.Zero)
             {
-                string errorMsg = "Unknown compile error";
+                // string errorMsg = "Unknown compile error"; // UNUSED
                 if (errorBlob != IntPtr.Zero)
                 {
                     // ID3DBlob interface: GetBufferPointer at offset 8 (vtable?) or just access memory?

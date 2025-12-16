@@ -52,11 +52,7 @@ public sealed class PerMonitorCapture : IDisposable
     /// </summary>
     public event Action<int, ID3D11Texture2D, int, int, long>? OnMonitorFrame;
     
-    /// <summary>
-    /// Callback for each monitor's NV12 bytes frame (used for NVIDIA compatibility).
-    /// Parameters: monitorIndex, nv12Bytes, width, height, timestamp
-    /// </summary>
-    public event Action<int, byte[], int, int, long>? OnMonitorNV12Bytes;
+    // public event Action<int, byte[], int, int, long>? OnMonitorNV12Bytes; // UNUSED
 
     /// <summary>
     /// Get D3D11 device for a specific monitor (for encoder initialization)

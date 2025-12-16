@@ -245,6 +245,7 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "level", "5.1", 0);
                 break;
                 
+            case "h264_nvenc":
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
