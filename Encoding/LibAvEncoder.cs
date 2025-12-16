@@ -773,61 +773,25 @@ public unsafe class LibAvEncoder : IDisposable
                 return false;
             }
             
-            // 4. QSV Frames Setup
-            // Use Independent QSV Frames by default (Transfer Mode) to avoid "Function not implemented" on Map.
-            // Deriving QSV -> D3D11 is brittle on some drivers.
-            
-            AVBufferRef* qsvFramesRef = null;
-            int framesInitRet = -1;
-
-            if (usedSharedDevice)
-            {
-                 Console.WriteLine("[LibAvEncoder] Attempting to derive QSV frames from D3D11 frames...");
-                 framesInitRet = ffmpeg.av_hwframe_ctx_create_derived(&qsvFramesRef, AVPixelFormat.AV_PIX_FMT_QSV, _hwDeviceCtx, d3d11FramesRef, 0);
-            }
-
-            if (framesInitRet >= 0)
-            {
-                Console.WriteLine("[LibAvEncoder] QSV frames derived from D3D11VA frames successfully");
-                _qsvFramesCtx = qsvFramesRef; 
-            }
-
-            else
-            {
-                if (usedSharedDevice)
-                     Console.WriteLine($"[LibAvEncoder] Failed to derive QSV frames: {GetErrorMessage(framesInitRet)}. Fallback to independent frames.");
-                
-                // Create Independent QSV Frames Context
-                _qsvFramesCtx = ffmpeg.av_hwframe_ctx_alloc(_hwDeviceCtx);
-                var indepFramesCtx = (AVHWFramesContext*)_qsvFramesCtx->data;
-                indepFramesCtx->format = AVPixelFormat.AV_PIX_FMT_QSV;
-                indepFramesCtx->sw_format = AVPixelFormat.AV_PIX_FMT_NV12;
-                indepFramesCtx->width = _width;
-                indepFramesCtx->height = _height;
-                indepFramesCtx->initial_pool_size = 16;
-                
-                if (ffmpeg.av_hwframe_ctx_init(_qsvFramesCtx) < 0)
-                {
-                     Console.WriteLine("[LibAvEncoder] Independent QSV frames init failed");
-                     return false;
-                }
-                Console.WriteLine($"[LibAvEncoder] Initialized Independent QSV Frames (Transfer Mode)");
-            }
+            // 4. QSV Frames Setup (NEW STRATEGY: D3D11 Direct)
+            // Instead of dealing with QSV frames (which fail to map/transfer),
+            // We force the QSV encoder to accept D3D11 frames directly.
+            // Modern FFmpeg QSV supports receiving AV_PIX_FMT_D3D11.
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
 
-            // FIX: Use D3D11 Frames as the PRIMARY hardware frames context for the encoder class.
-            // This ensures EncodeD3D11TextureZeroCopy works with D3D11 textures.
-            // We basically "hide" QSV frames from the upper logic and only use them at the very end of encoding.
+            // Set D3D11 frames as the PRIMARY hardware frames context
             _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
-            ffmpeg.av_buffer_unref(&d3d11FramesRef);
-
-            // Set encoder to use QSV frames (it demands QSV frames)
-            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
-            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
-            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_QSV;
             
-            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (SharedDevice={usedSharedDevice}, Separation Mode)");
+            // Set encoder to use D3D11 frames DIRECTLY
+            // NOTE: We do NOT use _qsvFramesCtx anymore.
+            _codecCtx->hw_device_ctx = ffmpeg.av_buffer_ref(_hwDeviceCtx);
+            _codecCtx->hw_frames_ctx = ffmpeg.av_buffer_ref(_hwFramesCtx);
+            _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_D3D11;
+            
+            ffmpeg.av_buffer_unref(&d3d11FramesRef);
+            
+            Console.WriteLine($"[LibAvEncoder] Intel QSV hardware context initialized (D3D11-Input Mode). Zero-Copy Ready.");
             _isD3D11VAMode = true;
             return true;
         }
