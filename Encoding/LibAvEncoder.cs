@@ -271,8 +271,10 @@ public unsafe class LibAvEncoder : IDisposable
                 Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)");
                 // Fastest preset
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "veryfast", 0);
-                // Async depth = 1 means encoder waits for each frame (minimal buffering)
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "1", 0);
+                // Async depth > 1 allows pipeline parallelism (essential for 60fps on weaker iGPUs)
+                // Depth 1 forces strict serialization (CPU->Wait->GPU->Wait) which kills throughput.
+                // Depth 4 is a sweet spot: good FPS, minimal added latency.
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "4", 0);
                 // No look-ahead to avoid buffering future frames
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
