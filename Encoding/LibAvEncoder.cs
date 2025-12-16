@@ -1603,7 +1603,12 @@ public unsafe class LibAvEncoder : IDisposable
                 // --- SW Fallback Logic ---
                 if (_stagingTexture == null) CreateStagingTexture();
                 
-                _context!.CopyResource(_stagingTexture!, nv12Texture);
+                // CRITICAL FIX: Ensure we copy from the texture that resides on the same device as the encoder context
+                // In Cross-Device mode, 'nv12Texture' is on the Capture Device, while '_context' is the Encoder Device.
+                // We must use '_importedBridgeTexture' (which is on the Encoder Device) as the source.
+                var sourceTex = (_usingCrossDeviceBridge && _importedBridgeTexture != null) ? _importedBridgeTexture : nv12Texture;
+                
+                _context!.CopyResource(_stagingTexture!, sourceTex!);
                 var mapped = _context.Map(_stagingTexture!, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
                 
                 AVFrame* swFrame = ffmpeg.av_frame_alloc();
