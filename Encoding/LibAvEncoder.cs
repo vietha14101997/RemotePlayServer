@@ -818,10 +818,12 @@ public unsafe class LibAvEncoder : IDisposable
             }
             
             ffmpeg.av_buffer_unref(&d3d11vaDeviceRef);
-            ffmpeg.av_buffer_unref(&d3d11FramesRef); // We have refs in _hwFramesCtx or it's gone
+            // Assign _hwFramesCtx to the D3D11VA frames context
+            // This ensures av_hwframe_get_buffer() returns D3D11 frames that we can write to.
+            // (Mapping QSV -> D3D11 failed with "Function not implemented", so we must go D3D11 -> Mapped QSV)
+            _hwFramesCtx = ffmpeg.av_buffer_ref(d3d11FramesRef);
             
-            // Fix: Assign _hwFramesCtx so Initialize() works
-            _hwFramesCtx = ffmpeg.av_buffer_ref(_qsvFramesCtx);
+            ffmpeg.av_buffer_unref(&d3d11FramesRef);
 
             
             // Set encoder to use QSV frames
