@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="7.1.1" />
+    <PackageReference Include="System.Management" Version="9.0.0" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.5" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="SIPSorcery" Version="8.0.23" />

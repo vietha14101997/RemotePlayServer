@@ -278,8 +278,9 @@ public class MultiPCStreamer : IDisposable
         // CRITICAL: Ensure SDP has proper payload type info (fixes video not playing)
         var chosenPt = h264Pt ?? 96;
         answerSdp = EnsureVideoMLineHasPayload(answerSdp, chosenPt, h264Fmtp);
-        answerSdp = FilterIceCandidates(answerSdp);
-        
+        // NOTE: Keep ICE candidates in SDP for Vanilla ICE mode - do NOT filter them out
+        // answerSdp = FilterIceCandidates(answerSdp);
+
         Console.WriteLine($"[MultiPC] m{monitorIndex} answer created");
         return answerSdp;
     }

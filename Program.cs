@@ -776,6 +776,67 @@ public class SignalAndRestServer
                 ctx.Response.ContentType = "application/json"; ctx.Response.OutputStream.Write(b, 0, b.Length); ctx.Response.Close(); continue;
             }
 
+            // /api/hwinfo - Return hardware info for client before WebSocket connect
+            if (path == "/api/hwinfo" && ctx.Request.HttpMethod == "GET")
+            {
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                try
+                {
+                    var hwInfo = await RemotePlayServer.Utils.HardwareInfoGatherer.GetHardwareInfoAsync();
+                    var encoderInfo = RemotePlayServer.Utils.HardwareInfoGatherer.GetEncoderInfo();
+                    var monsNow = WgcInterop.ListMonitorsDXGI();
+                    _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+
+                    var response = new
+                    {
+                        device = new
+                        {
+                            name = hwInfo.DeviceName,
+                            processor = hwInfo.Processor.Name,
+                            gpu = hwInfo.Gpu.Name,
+                            gpuVramMB = hwInfo.Gpu.VramMB,
+                            ramMB = hwInfo.Ram.TotalMB,
+                            os = $"{hwInfo.Os.Name} {hwInfo.Os.Version}"
+                        },
+                        encoder = new
+                        {
+                            type = encoderInfo.Type,
+                            hwAccel = encoderInfo.HwAccel
+                        },
+                        monitors = _monitors.Select((m, i) => new
+                        {
+                            id = i,
+                            name = m.name,
+                            w = m.w,
+                            h = m.h,
+                            isVirtual = DisplayUtil.IsVirtualDisplay(m.name, m.hmon)
+                        }),
+                        network = new
+                        {
+                            connectionType = hwInfo.Network.ConnectionType,
+                            speedMbps = hwInfo.Network.SpeedMbps,
+                            ipAddress = hwInfo.Network.IpAddress
+                        },
+                        timestamp = hwInfo.Timestamp
+                    };
+
+                    var json = System.Text.Json.JsonSerializer.Serialize(response);
+                    var b = Encoding.UTF8.GetBytes(json);
+                    ctx.Response.ContentType = "application/json";
+                    ctx.Response.OutputStream.Write(b, 0, b.Length);
+                    Console.WriteLine("[API] /api/hwinfo -> returned hardware info");
+                }
+                catch (Exception ex)
+                {
+                    ctx.Response.StatusCode = 500;
+                    var errorJson = $"{{\"error\":\"{ex.Message}\"}}";
+                    var errorBytes = Encoding.UTF8.GetBytes(errorJson);
+                    ctx.Response.OutputStream.Write(errorBytes, 0, errorBytes.Length);
+                }
+                ctx.Response.Close();
+                continue;
+            }
+
             // /api/layout - trả về layout của combined frame cho cluster mode
             if (path == "/api/layout" && ctx.Request.HttpMethod == "GET")
             {
@@ -903,10 +964,22 @@ public class SignalAndRestServer
                 var clientId = Guid.NewGuid();
                 var remoteIp = ctx.Request.RemoteEndPoint?.Address;
                 var mode = qs.Get("mode") ?? "cluster";
-                
-                Console.WriteLine($"[Signal] Client connected {clientId}, mode={mode}");
-                
-                if (mode.Equals("multitrack", StringComparison.OrdinalIgnoreCase))
+                var protocol = qs.Get("protocol") ?? "v1";
+
+                Console.WriteLine($"[Signal] Client connected {clientId}, mode={mode}, protocol={protocol}");
+
+                // Check for v2 protocol (3-phase connection)
+                if (protocol.Equals("v2", StringComparison.OrdinalIgnoreCase))
+                {
+                    // V2 Protocol: 3-phase connection (hardware discovery, config, streaming)
+                    _ = Task.Run(async () =>
+                    {
+                        var handler = new RemotePlayServer.Protocol.PhaseProtocolHandler(
+                            clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None);
+                        await handler.HandleAsync();
+                    });
+                }
+                else if (mode.Equals("multitrack", StringComparison.OrdinalIgnoreCase))
                 {
                     // Multi-track mode: N separate streams, one per monitor
                     _ = Task.Run(() => HandleMultiTrackClient(clientId, wsCtx.WebSocket, qs, remoteIp));
@@ -923,7 +996,12 @@ public class SignalAndRestServer
         }
     }
 
-    [DllImport("combase.dll")] static extern int RoInitialize(uint initType); // 1 = RO_INIT_MULTITHREADED
+    [DllImport("combase.dll")] static extern int RoInitializeNative(uint initType); // 1 = RO_INIT_MULTITHREADED
+
+    /// <summary>
+    /// Initialize Windows Runtime for the current thread (needed for WGC).
+    /// </summary>
+    public static int RoInitialize(uint initType) => RoInitializeNative(initType);
 
     static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
 

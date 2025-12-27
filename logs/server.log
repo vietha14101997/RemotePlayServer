@@ -1,0 +1,228 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.8
+[Encoder] AMD AMF (Hardware)
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[Guard] Saved original text scale for \\.\DISPLAY2: 125%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY2: 1920x1080 [Physical]
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.8:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.8","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████████████
+█████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █ ▀ ▄▄█▄▀▀▄▀▄█ █▄▄▄▀▀█▀▀▀▄▄█▀▄█ ▄▄▄▄▄ ████
+████ █   █ █ █ ▄█▀▀█ ▀ ██ ▀▄▀█▀█▀▀ ██▄█ ▀█ █   █ ████
+████ █▄▄▄█ █▄█▀▀▄▄▀▄ █▀▄ ▄▄▄ ██▀▀███▀▀▄▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ █▄▀ █ █▄█ █▄▀ ▀▄▀ ▀ ▀ █▄▄▄▄▄▄▄████
+█████▄█▄▀▄▄▀▄██▄ ▄ █▀█▀ ▄▄ ▄▄  ▄▀▄██▄ █▀▄▄ █  ▄  ████
+█████▀▀▄ █▄    ▄ ▀  █▀▄▄▄ ▄ ▄ ▄ ▄▄█▄▀▄ ▄█▄█▄▄▀█ ▀████
+████ ▄▀▀ ▀▄▀▀ █▀▀▀ ▀▀▀▄█ █▀▀▄█▀█▀▄▀▄ ▄▄ ▀ █ ▄▀█▀█████
+████▄ ▀▀█ ▄██▀▀ ▀█ ██ ▀▀██ ██▀▄▀██ ▄▄▀▀▀▀▀▀██▀ ▀█████
+████▀███▀█▄█▄▀█▄███▄▄███▀▀▀▄▄█▀█▀▀▄▄ █ ▄ ▀█▄▄█ █▀████
+█████ █▄█▄▄▀▄▀▀█ █▄  ▀ █▄ █ ▄▀█▄▄ ▄▀▄▀█  ▄▀▄▄▀▀▄ ████
+████▀█   ▄▄▄ ▀ ▀█▀ ▀▀  ▀ ▄▄▄  ▄▀ ▀█▀▀ ▀  ▄▄▄ ▄█ ▀████
+████▀██▄ █▄█  ▄▀▄█▄█ ▀▀▀ █▄█ ▄▄▀▀▄▄▀█ █  █▄█ █▄█ ████
+████▀ ▀▄  ▄▄ █▄ █▀▄▄▄▄  ▄ ▄▄▄ ▀▄ ▀ ▄ ▀▀▄   ▄ █▄▄▄████
+████▀ ▄█▀█▄█▄█▄ ▀▀█▀▄▀▄██▀█▄▄█▀▄█▀█ ▄▀▄█▄▀█ ▄█▄██████
+████▄▀█▀ ▄▄▄█▄  ▀▀▄▄███▀▀█▄ ██▄███ ▄█ ▄███▄ ▀ ▄██████
+████▄█▄ ▄▀▄▀▄▄██ ▄█▀▄▄█▄▄▄▀▀▄▄█▄█ █▄█▄▀▀█▄█▀ ▄█ █████
+████ ▀ █▄▄▄ ▀▀  █ ▀▄▀   ▀█  ▀▄█ ██▀ ▀█▀▄▀  ▄█▄█ ▀████
+█████▀▀▀ █▄▀▄█▄▄▄█  ▀█▄▀ ▀ █▄█▄ ██▄▀██ ▀██   ▀▄█▄████
+████▄██▄▄█▄█▀▄ ██▄ █▀▄▀█ ▄▄▄ ▄▄ ▀▄█ ▄ █  ▄▄▄ █▄▄▄████
+████ ▄▄▄▄▄ █▀▀▄▀ ▀ ▀▀▀   █▄█ ▄▀ █ █ ▀▀▀▄ █▄█ ▄▀█ ████
+████ █   █ █▀▄▄▄▀█▄▄█▄▀▄ ▄▄▄ █ █ ██▄▄██▄ ▄▄▄ ▄███████
+████ █▄▄▄█ █▀▀▀ █ ▄▄█▄ ▄█▄█ ▀█▄ █▀▀▄█ ▀ ▀▄█▄▀ ▄▄▀████
+████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄█▄█▄█▄█▄▄▄█▄█▄███▄██▄█▄██████
+█████████████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 3eaca6f9-0043-43c6-b63b-c5450d8fd122, mode=multitrack, protocol=v2
+[Protocol] Client 3eaca6f9-0043-43c6-b63b-c5450d8fd122 connected from 192.168.1.8 (v2 protocol)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] GPU info via DXGI failed: Arithmetic operation resulted in an overflow.
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] Received hardware_info_ack, starting speed test
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Running speed test...
+[SpeedTest] Measuring ping...
+[SpeedTest] Testing download speed...
+[SpeedTest] Testing upload speed...
+[SpeedTest] Complete: Ping=5.5ms, Down=63.4Mbps, Up=61.4Mbps, Type=Internet
+[Protocol] Sent network info: 5.5ms ping, 63.4Mbps
+[Protocol] Sent suggested config: 3x1366x768@60fps
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":3,"resolution":{"w":1366,"h":768},"refreshRate":60,"bitrateKbps"...
+[Protocol] Received display config: 3x1366x768@60fps
+[Protocol] Applying new display config: 3 monitors @ 1366x768
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 1 (target total: 3)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 3, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1366x768@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1366x768@60
+[Display] Setting \\.\DISPLAY18 [PHYSICAL] -> 1366x768@60
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1366x768 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1366x768 [PHYSICAL]
+[Display]   • \\.\DISPLAY18 1366x768 [PHYSICAL]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[Protocol] Available monitors: 3, using: 3
+[PerMonitorCapture] Initializing 3 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1366x768 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1366x768 - duplication ready
+[PerMonitorCapture] Monitor 2: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 2: \\.\DISPLAY18 1366x768 - duplication ready
+[PerMonitorCapture] Initialized 3 monitors with SEPARATE D3D11 devices
+[MultiPC] Created: 3mon 60fps 14782kbps (parallel device mode)
+[MultiPC] m0 device registered (parallel mode)
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[MultiPC] m1 device registered (parallel mode)
+[Protocol] Monitor 1: Using dedicated D3D11 device
+[MultiPC] m2 device registered (parallel mode)
+[Protocol] Monitor 2: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1277538352 1 udp 2122129151 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"956782362 1 udp 2122262783 240...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3057967270 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 3772952079577321145 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 0
+[MultiPC] m0 offer: 1366x768
+[MultiPC] m0 using dedicated D3D11 device
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m0 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1366x768 @ 60fps, 14782kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m0 encoder ready (parallel=True)
+[MultiPC] m0 answer created
+[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 52855 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 0, len=974 bytes
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"1242269111 1 udp 2122129151 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"1059676829 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"2959791393 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":1,"sdp":"v=0\r\no=- 7283058197976686775 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 1
+[MultiPC] m1 offer: 1366x768
+[MultiPC] m1 using dedicated D3D11 device
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1366x768 @ 60fps, 14782kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m1 encoder ready (parallel=True)
+[MultiPC] m1 answer created
+[Protocol] Answer JSON for m1: {"type":"answer","monitorIndex":1,"sdp":"v=0\r\no=- 50938 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 1, len=973 bytes
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":2,"candidate":"916406859 1 udp 2122129151 192...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":2,"candidate":"1136502113 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":2,"candidate":"3439203037 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":2,"sdp":"v=0\r\no=- 4011358100267632554 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 2
+[MultiPC] m2 offer: 1366x768
+[MultiPC] m2 using dedicated D3D11 device
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m2 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m2 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1366x768 @ 60fps, 14782kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m2 encoder ready (parallel=True)
+[MultiPC] m2 answer created
+[Protocol] Answer JSON for m2: {"type":"answer","monitorIndex":2,"sdp":"v=0\r\no=- 82279 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 2, len=972 bytes
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
