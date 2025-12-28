@@ -73,6 +73,16 @@ namespace RemotePlayServer.Protocol
         // Monitor list
         private List<(IntPtr hmon, string name, int width, int height)> _monitors = new();
 
+        // Monitor rects for cursor tracking (x, y, w, h) - populated when monitors are refreshed
+        private List<(int x, int y, int w, int h)> _monitorRects = new();
+
+        // Cursor tracking
+        private CancellationTokenSource? _cursorCts;
+        private int _lastCursorMonitor = -1;
+        private float _lastCursorU = -1f;
+        private float _lastCursorV = -1f;
+        private bool _lastCursorVisible = false;
+
         public PhaseProtocolHandler(
             Guid clientId,
             WebSocket ws,
@@ -136,6 +146,7 @@ namespace RemotePlayServer.Protocol
             // Get current monitors
             _monitors = WgcInterop.ListMonitorsDXGI()
                 .Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+            RefreshMonitorRects(); // Populate monitor rects for cursor tracking
 
             // Send hardware info to client
             var hwMsg = new HardwareInfoMessage
@@ -365,6 +376,7 @@ namespace RemotePlayServer.Protocol
             // Refresh monitor list after VDD changes
             _monitors = WgcInterop.ListMonitorsDXGI()
                 .Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+            RefreshMonitorRects(); // Refresh monitor rects for cursor tracking
 
             int actualMonitors = Math.Min(_displayConfig.Monitors, _monitors.Count);
             Console.WriteLine($"[Protocol] Available monitors: {_monitors.Count}, using: {actualMonitors}");
@@ -778,6 +790,10 @@ namespace RemotePlayServer.Protocol
             // Start timing sync task
             var timingSyncTask = StartTimingSyncTask();
 
+            // Start cursor tracking
+            var cursorTrackingTask = StartCursorTrackingTask();
+            Console.WriteLine("[Protocol] Cursor tracking started");
+
             // Main loop - handle messages while streaming
             var buffer = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
@@ -820,6 +836,10 @@ namespace RemotePlayServer.Protocol
                 }
                 catch (OperationCanceledException) { break; }
             }
+
+            // Stop cursor tracking
+            StopCursorTracking();
+            Console.WriteLine("[Protocol] Cursor tracking stopped");
 
             Console.WriteLine("[Protocol] Phase 3: Stream ended");
         }
@@ -1188,6 +1208,154 @@ namespace RemotePlayServer.Protocol
 
         [DllImport("combase.dll")]
         private static extern int RoInitialize(uint initType);
+
+        // Cursor P/Invoke
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT { public int X; public int Y; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CURSORINFO
+        {
+            public int cbSize;
+            public int flags;
+            public IntPtr hCursor;
+            public POINT ptScreenPos;
+        }
+
+        private const int CURSOR_SHOWING = 0x00000001;
+
+        /// <summary>
+        /// Refresh monitor rects from DXGI for cursor position tracking.
+        /// </summary>
+        private void RefreshMonitorRects()
+        {
+            _monitorRects.Clear();
+            try
+            {
+                using var factory = Vortice.DXGI.DXGI.CreateDXGIFactory1<Vortice.DXGI.IDXGIFactory1>();
+                for (uint ai = 0; ; ai++)
+                {
+                    if (factory.EnumAdapters1(ai, out Vortice.DXGI.IDXGIAdapter1 adapter).Failure) break;
+                    using (adapter)
+                    {
+                        for (uint oi = 0; ; oi++)
+                        {
+                            if (adapter.EnumOutputs(oi, out Vortice.DXGI.IDXGIOutput output).Failure) break;
+                            using (output)
+                            {
+                                var desc = output.Description;
+                                var rect = desc.DesktopCoordinates;
+                                _monitorRects.Add((rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Failed to refresh monitor rects: {ex.Message}");
+            }
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorInfo(ref CURSORINFO pci);
+
+        #endregion
+
+        #region Cursor Tracking
+
+        /// <summary>
+        /// Start cursor tracking task that sends position updates to client.
+        /// </summary>
+        private Task StartCursorTrackingTask()
+        {
+            _cursorCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+            var ct = _cursorCts.Token;
+
+            return Task.Run(async () =>
+            {
+                const int POLL_INTERVAL_MS = 16; // ~60Hz
+                const float THRESHOLD = 0.001f; // Minimum UV change to send update
+
+                while (!ct.IsCancellationRequested && _ws.State == WebSocketState.Open)
+                {
+                    try
+                    {
+                        var (monitorIndex, u, v, visible) = GetCursorPosition();
+
+                        // Check if cursor changed significantly
+                        bool changed = monitorIndex != _lastCursorMonitor ||
+                                       visible != _lastCursorVisible ||
+                                       (visible && (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD));
+
+                        if (changed)
+                        {
+                            _lastCursorMonitor = monitorIndex;
+                            _lastCursorU = u;
+                            _lastCursorV = v;
+                            _lastCursorVisible = visible;
+
+                            var msg = new CursorPositionMessage
+                            {
+                                MonitorIndex = monitorIndex,
+                                U = u,
+                                V = v,
+                                Visible = visible
+                            };
+                            await SendMessageAsync(msg);
+                        }
+
+                        await Task.Delay(POLL_INTERVAL_MS, ct);
+                    }
+                    catch (OperationCanceledException) { break; }
+                    catch { /* Ignore cursor errors */ }
+                }
+            }, ct);
+        }
+
+        /// <summary>
+        /// Get current cursor position in UV coordinates relative to a monitor.
+        /// </summary>
+        private (int monitorIndex, float u, float v, bool visible) GetCursorPosition()
+        {
+            var ci = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
+            if (!GetCursorInfo(ref ci))
+                return (-1, 0, 0, false);
+
+            bool visible = (ci.flags & CURSOR_SHOWING) != 0 && ci.hCursor != IntPtr.Zero;
+            if (!visible)
+                return (-1, 0, 0, false);
+
+            int cursorX = ci.ptScreenPos.X;
+            int cursorY = ci.ptScreenPos.Y;
+
+            // Find which monitor the cursor is on using _monitorRects
+            if (_monitorRects.Count == 0)
+                return (-1, 0, 0, false);
+
+            for (int i = 0; i < _monitorRects.Count; i++)
+            {
+                var rect = _monitorRects[i];
+                if (cursorX >= rect.x && cursorX < rect.x + rect.w &&
+                    cursorY >= rect.y && cursorY < rect.y + rect.h)
+                {
+                    // Cursor is on this monitor - calculate UV (0-1)
+                    float u = (float)(cursorX - rect.x) / rect.w;
+                    float v = (float)(cursorY - rect.y) / rect.h;
+                    return (i, u, v, true);
+                }
+            }
+
+            return (-1, 0, 0, false);
+        }
+
+        /// <summary>
+        /// Stop cursor tracking task.
+        /// </summary>
+        private void StopCursorTracking()
+        {
+            try { _cursorCts?.Cancel(); } catch { }
+        }
 
         #endregion
     }

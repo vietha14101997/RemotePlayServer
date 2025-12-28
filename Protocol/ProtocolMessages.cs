@@ -323,6 +323,39 @@ namespace RemotePlayServer.Protocol
         public override string Type => "stop_streaming";
     }
 
+    /// <summary>
+    /// Server -> Client: Cursor position update.
+    /// Sent when cursor moves to a different position or monitor.
+    /// </summary>
+    public class CursorPositionMessage : ProtocolMessage
+    {
+        public override string Type => "cursor_position";
+
+        /// <summary>
+        /// Index of the monitor where cursor is located (-1 if not on any monitor).
+        /// </summary>
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; } = -1;
+
+        /// <summary>
+        /// Normalized X position within the monitor (0.0 to 1.0).
+        /// </summary>
+        [JsonPropertyName("u")]
+        public float U { get; set; }
+
+        /// <summary>
+        /// Normalized Y position within the monitor (0.0 to 1.0).
+        /// </summary>
+        [JsonPropertyName("v")]
+        public float V { get; set; }
+
+        /// <summary>
+        /// Whether the cursor is visible.
+        /// </summary>
+        [JsonPropertyName("visible")]
+        public bool Visible { get; set; }
+    }
+
     // ==================== Common Messages ====================
 
     /// <summary>
