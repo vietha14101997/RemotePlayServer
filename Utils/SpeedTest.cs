@@ -18,8 +18,7 @@ namespace RemotePlayServer.Utils
         public bool Success { get; set; }
         public double PingMs { get; set; }
         public double JitterMs { get; set; }
-        public double DownloadMbps { get; set; }
-        public double UploadMbps { get; set; }
+        public double BandwidthMbps { get; set; } // Download speed only (upload test removed)
         public string ConnectionType { get; set; } = "Unknown"; // LAN, WiFi, Internet
         public string? Error { get; set; }
     }
@@ -53,19 +52,15 @@ namespace RemotePlayServer.Utils
                 result.PingMs = pingResult.avgMs;
                 result.JitterMs = pingResult.jitterMs;
 
-                // Step 2: Download test (Server -> Client)
-                Console.WriteLine("[SpeedTest] Testing download speed...");
-                result.DownloadMbps = await TestDownloadAsync(ws, ct);
-
-                // Step 3: Upload test (Client -> Server)
-                Console.WriteLine("[SpeedTest] Testing upload speed...");
-                result.UploadMbps = await TestUploadAsync(ws, ct);
+                // Step 2: Bandwidth test (download only, upload removed)
+                Console.WriteLine("[SpeedTest] Testing bandwidth...");
+                result.BandwidthMbps = await TestDownloadAsync(ws, ct);
 
                 // Classify connection type based on metrics
-                result.ConnectionType = ClassifyConnection(result.PingMs, result.DownloadMbps);
+                result.ConnectionType = ClassifyConnection(result.PingMs, result.BandwidthMbps);
                 result.Success = true;
 
-                Console.WriteLine($"[SpeedTest] Complete: Ping={result.PingMs:F1}ms, Down={result.DownloadMbps:F1}Mbps, Up={result.UploadMbps:F1}Mbps, Type={result.ConnectionType}");
+                Console.WriteLine($"[SpeedTest] Complete: Ping={result.PingMs:F1}ms, Bandwidth={result.BandwidthMbps:F1}Mbps, Type={result.ConnectionType}");
             }
             catch (OperationCanceledException)
             {
@@ -326,12 +321,34 @@ namespace RemotePlayServer.Utils
                 config.ResolutionHeight = 768;
             }
 
-            // Calculate available bandwidth per monitor (70% of measured, divided by 3)
-            double availableBandwidth = network.DownloadMbps > 0 ? network.DownloadMbps : 100;
-            double bitratePerMonitor = availableBandwidth * 1000 * 0.7 / 3;
+            // Calculate recommended bitrate per monitor based on resolution and network
+            double availableBandwidth = network.BandwidthMbps > 0 ? network.BandwidthMbps : 100;
 
-            // Clamp bitrate to reasonable range
-            config.BitrateKbps = (int)Math.Clamp(bitratePerMonitor, 5000, 30000);
+            // Base bitrate recommendation based on resolution (realistic for H.264/H.265)
+            // These are "high quality" targets - not maximum possible
+            int baseBitrateKbps;
+            if (config.ResolutionWidth >= 1920)
+                baseBitrateKbps = 15000;  // 1080p: 15 Mbps is excellent quality
+            else if (config.ResolutionWidth >= 1600)
+                baseBitrateKbps = 12000;  // 900p: 12 Mbps
+            else
+                baseBitrateKbps = 10000;  // 768p: 10 Mbps
+
+            // Scale up slightly if network is very good (low ping, high bandwidth)
+            if (network.PingMs < 10 && availableBandwidth > 500)
+                baseBitrateKbps = (int)(baseBitrateKbps * 1.3);  // +30% for excellent network
+            else if (network.PingMs < 20 && availableBandwidth > 200)
+                baseBitrateKbps = (int)(baseBitrateKbps * 1.15); // +15% for good network
+
+            // Calculate max bitrate per monitor based on available bandwidth
+            // Use 60% of bandwidth divided by 3 monitors as upper limit
+            double maxBitratePerMonitor = availableBandwidth * 1000 * 0.6 / 3;
+
+            // Use the lower of recommended and max available, clamped to dropdown options
+            int rawBitrate = (int)Math.Clamp(Math.Min(baseBitrateKbps, maxBitratePerMonitor), 5000, 30000);
+
+            // Round to nearest dropdown option: 5, 10, 15, 20, 30 Mbps
+            config.BitrateKbps = RoundToNearestBitrateOption(rawBitrate);
 
             // FPS based on encoder capability and ping
             if (encoder.HwAccel && network.PingMs < 20)
@@ -367,6 +384,30 @@ namespace RemotePlayServer.Utils
             return config;
         }
 
+        /// <summary>
+        /// Round bitrate to nearest dropdown option: 5, 10, 15, 20, 30 Mbps
+        /// </summary>
+        private static int RoundToNearestBitrateOption(int bitrateKbps)
+        {
+            // Options in Kbps: 5000, 10000, 15000, 20000, 30000
+            int[] options = { 5000, 10000, 15000, 20000, 30000 };
+
+            int nearest = options[0];
+            int minDiff = Math.Abs(bitrateKbps - options[0]);
+
+            for (int i = 1; i < options.Length; i++)
+            {
+                int diff = Math.Abs(bitrateKbps - options[i]);
+                if (diff < minDiff)
+                {
+                    minDiff = diff;
+                    nearest = options[i];
+                }
+            }
+
+            return nearest;
+        }
+
         private static string BuildReasonString(
             HardwareInfo hw,
             EncoderInfo encoder,
@@ -384,7 +425,7 @@ namespace RemotePlayServer.Utils
                 reasons.Add($"768p (VRAM limited)");
 
             // Bitrate reason
-            reasons.Add($"{config.BitrateKbps / 1000}Mbps (BW: {network.DownloadMbps:F0}Mbps)");
+            reasons.Add($"{config.BitrateKbps / 1000}Mbps (BW: {network.BandwidthMbps:F0}Mbps)");
 
             // FPS reason
             reasons.Add($"{config.Fps}fps ({encoder.Type}, ping: {network.PingMs:F0}ms)");

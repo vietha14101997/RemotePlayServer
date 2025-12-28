@@ -162,29 +162,29 @@ namespace RemotePlayServer.Protocol
             await SendMessageAsync(hwMsg);
             Console.WriteLine("[Protocol] Sent hardware info to client");
 
-            // Wait for client to acknowledge hardware info before speed test
+            // Wait for client to acknowledge hardware info
             Console.WriteLine("[Protocol] Waiting for hardware_info_ack...");
             await WaitForHardwareAckAsync();
-            Console.WriteLine("[Protocol] Received hardware_info_ack, starting speed test");
+            Console.WriteLine("[Protocol] Received hardware_info_ack");
 
-            // Run speed test
+            // NEW FLOW: Wait for Client to run speed test and send results
             SetPhase(ConnectionPhase.Phase1_SpeedTest);
-            Console.WriteLine("[Protocol] Phase 1: Running speed test...");
-            _speedTestResult = await SpeedTest.RunFullTestAsync(_ws, _ct);
+            Console.WriteLine("[Protocol] Phase 1: Waiting for client speed test result...");
 
-            // Send network info
-            // Use actual adapter type from HardwareInfo (Ethernet/WiFi) instead of metrics-based classification
-            var netMsg = new NetworkInfoMessage
+            // Wait for speedtest_result from Client (Client measures bandwidth/ping)
+            try
             {
-                PingMs = _speedTestResult.PingMs,
-                JitterMs = _speedTestResult.JitterMs,
-                BandwidthMbps = Math.Max(_speedTestResult.DownloadMbps, _speedTestResult.UploadMbps),
-                ConnectionType = _hardwareInfo.Network.ConnectionType
-            };
-            await SendMessageAsync(netMsg);
-            Console.WriteLine($"[Protocol] Sent network info: {netMsg.PingMs:F1}ms ping, {netMsg.BandwidthMbps:F1}Mbps");
+                _speedTestResult = await WaitForSpeedTestResultAsync();
+                Console.WriteLine($"[Protocol] ✓ Received speedtest_result from client: {_speedTestResult.BandwidthMbps:F1}Mbps, {_speedTestResult.PingMs:F1}ms ping");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] ✗ Failed to receive speedtest_result: {ex.Message}");
+                throw;
+            }
 
-            // Calculate and send suggested config
+            // Calculate and send suggested config based on Client's speed test results
+            Console.WriteLine("[Protocol] Calculating suggested config...");
             var suggested = StreamingOptimizer.CalculateSuggestedConfig(_hardwareInfo, _encoderInfo, _speedTestResult);
             var sugMsg = new SuggestedConfigMessage
             {
@@ -195,14 +195,155 @@ namespace RemotePlayServer.Protocol
                 RefreshRate = suggested.RefreshRate,
                 Reason = suggested.Reason
             };
+
+            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps");
             await SendMessageAsync(sugMsg);
-            Console.WriteLine($"[Protocol] Sent suggested config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps");
+            Console.WriteLine("[Protocol] ✓ suggested_config sent successfully");
 
             // Wait for proceed
             SetPhase(ConnectionPhase.Phase1_WaitingProceed);
             Console.WriteLine("[Protocol] Phase 1: Waiting for client proceed...");
             await WaitForProceedAsync(2);
             Console.WriteLine("[Protocol] Phase 1 complete, proceeding to Phase 2");
+        }
+
+        /// <summary>
+        /// Wait for speed test result from Client.
+        /// Client runs the speed test and sends results to Server.
+        /// </summary>
+        private async Task<SpeedTestResult> WaitForSpeedTestResultAsync()
+        {
+            var buffer = new byte[128 * 1024];
+            var ms = new System.IO.MemoryStream();
+
+            while (_ws.State == WebSocketState.Open)
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                cts.CancelAfter(120000); // 2 min timeout for speed test
+
+                var result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
+                if (result.MessageType == WebSocketMessageType.Close)
+                    throw new OperationCanceledException("Client closed connection");
+
+                // Handle binary data (Client upload test - Client sends binary for Server to measure)
+                if (result.MessageType == WebSocketMessageType.Binary)
+                {
+                    ms.Write(buffer, 0, result.Count);
+                    continue;
+                }
+
+                // Text message
+                ms.Write(buffer, 0, result.Count);
+                if (!result.EndOfMessage) continue;
+
+                var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+                ms.SetLength(0);
+
+                // Handle ping
+                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                {
+                    await SendTextAsync("pong");
+                    continue;
+                }
+
+                var msgType = ProtocolMessageParser.GetMessageType(text);
+                Console.WriteLine($"[Protocol] WaitForSpeedTest received: type={msgType ?? "null"}, len={text.Length}");
+
+                // Debug: Log raw message content when type is null (parsing failed)
+                if (msgType == null)
+                {
+                    Console.WriteLine($"[Protocol] DEBUG raw message: \"{text}\"");
+                }
+
+                // Handle speedtest_request from Client (Client wants Server to send data for download test)
+                if (msgType == "speedtest_request")
+                {
+                    Console.WriteLine("[Protocol] Processing speedtest_request...");
+                    var req = ProtocolMessageParser.Parse<SpeedTestRequestMessage>(text);
+                    if (req != null)
+                    {
+                        await HandleSpeedTestRequestAsync(req.Direction, req.DurationMs);
+                    }
+                    Console.WriteLine("[Protocol] speedtest_request handled, continuing to wait...");
+                    continue;
+                }
+
+                // Handle speedtest_result from Client (final results)
+                if (msgType == "speedtest_result")
+                {
+                    Console.WriteLine("[Protocol] Processing speedtest_result...");
+                    var resultMsg = ProtocolMessageParser.Parse<SpeedTestResultMessage>(text);
+                    if (resultMsg != null)
+                    {
+                        Console.WriteLine($"[Protocol] speedtest_result parsed: {resultMsg.BandwidthMbps:F1}Mbps, {resultMsg.PingMs:F1}ms");
+                        return new SpeedTestResult
+                        {
+                            BandwidthMbps = resultMsg.BandwidthMbps,
+                            PingMs = resultMsg.PingMs,
+                            JitterMs = resultMsg.JitterMs
+                        };
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Protocol] ✗ Failed to parse speedtest_result!");
+                    }
+                }
+            }
+
+            throw new OperationCanceledException("Did not receive speedtest_result");
+        }
+
+        /// <summary>
+        /// Handle speed test request from Client.
+        /// For download: Server sends binary data for Client to measure.
+        /// For upload: Server prepares to receive binary data from Client.
+        /// </summary>
+        private async Task HandleSpeedTestRequestAsync(string direction, int durationMs)
+        {
+            Console.WriteLine($"[Protocol] Handling speedtest_request: direction={direction}, duration={durationMs}ms");
+
+            if (direction == "download")
+            {
+                // Server sends binary data for Client to measure download speed
+                // Use larger chunks (1MB) for higher throughput
+                var chunkSize = 1024 * 1024; // 1MB chunks
+                var chunk = new byte[chunkSize];
+                new Random().NextBytes(chunk);
+
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                long bytesSent = 0;
+
+                // Send chunks for the duration
+                // Use ValueTask for better performance
+                while (sw.ElapsedMilliseconds < durationMs && _ws.State == WebSocketState.Open)
+                {
+                    try
+                    {
+                        await _ws.SendAsync(new ArraySegment<byte>(chunk), WebSocketMessageType.Binary, true, _ct);
+                        bytesSent += chunk.Length;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Protocol] Send error during speed test: {ex.Message}");
+                        break;
+                    }
+                }
+
+                sw.Stop();
+                double mbps = bytesSent > 0 ? (bytesSent * 8.0) / (sw.ElapsedMilliseconds / 1000.0) / 1_000_000 : 0;
+
+                // Send end marker
+                var endMsg = $"{{\"type\":\"speedtest_end\",\"direction\":\"download\",\"totalBytes\":{bytesSent},\"durationMs\":{sw.ElapsedMilliseconds}}}";
+                await SendTextAsync(endMsg);
+                Console.WriteLine($"[Protocol] Download test complete: sent {bytesSent / (1024 * 1024)}MB in {sw.ElapsedMilliseconds}ms = {mbps:F1} Mbps");
+            }
+            else if (direction == "upload")
+            {
+                // Server will receive binary data from Client (measured by Client)
+                // Just acknowledge that we're ready
+                await SendTextAsync("{\"type\":\"speedtest_ready\",\"direction\":\"upload\"}");
+                Console.WriteLine("[Protocol] Ready to receive upload test data from client");
+            }
         }
 
         #endregion
@@ -361,6 +502,22 @@ namespace RemotePlayServer.Protocol
                 catch { }
             };
 
+            // ICE ready notification - sent when all PeerConnections have ICE connected
+            _streamer.OnAllConnected += async () =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open) return;
+                    Console.WriteLine($"[Protocol] All {actualMonitors} ICE connections ready, sending ice_ready");
+                    var msg = new IceReadyMessage { MonitorCount = actualMonitors };
+                    await SendMessageAsync(msg);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Protocol] Failed to send ice_ready: {ex.Message}");
+                }
+            };
+
             await SendProgressAsync("capture_init", 100, "Ready");
         }
 
@@ -497,12 +654,27 @@ namespace RemotePlayServer.Protocol
                     _displayConfig?.Resolution.Width ?? 1920,
                     _displayConfig?.Resolution.Height ?? 1080);
 
-                // Send answer (JSON format)
-                var answerMsg = new AnswerMessage { MonitorIndex = monitorIndex, Sdp = answerSdp };
+                // CRITICAL FIX: Extract embedded ICE candidates from answer SDP
+                // SIPSorcery uses Vanilla ICE (all candidates embedded in SDP).
+                // Unity WebRTC client hangs on SetRemoteDescription with embedded candidates.
+                // Solution: Send answer SDP WITHOUT candidates, then send candidates separately.
+                var (cleanSdp, embeddedCandidates) = ExtractIceCandidates(answerSdp);
+                Console.WriteLine($"[Protocol] Extracted {embeddedCandidates.Count} embedded ICE candidates from answer");
+
+                // Send answer (JSON format) - WITHOUT embedded candidates
+                var answerMsg = new AnswerMessage { MonitorIndex = monitorIndex, Sdp = cleanSdp };
                 var answerJson = ProtocolMessageParser.Serialize(answerMsg);
                 Console.WriteLine($"[Protocol] Answer JSON for m{monitorIndex}: {answerJson.Substring(0, Math.Min(150, answerJson.Length))}...");
                 await SendTextAsync(answerJson);
                 Console.WriteLine($"[Protocol] Sent answer for monitor {monitorIndex}, len={answerJson.Length} bytes");
+
+                // Send extracted ICE candidates separately (trickle ICE style)
+                foreach (var candidate in embeddedCandidates)
+                {
+                    var candMsg = new CandidateMessage { MonitorIndex = monitorIndex, Candidate = candidate };
+                    await SendMessageAsync(candMsg);
+                    Console.WriteLine($"[Protocol] Sent extracted ICE candidate for m{monitorIndex}: {candidate.Substring(0, Math.Min(60, candidate.Length))}...");
+                }
 
                 lock (_iceLock)
                 {
@@ -520,6 +692,39 @@ namespace RemotePlayServer.Protocol
             {
                 Console.WriteLine($"[Protocol] ProcessOffer error m{monitorIndex}: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Extract ICE candidates from SDP and return clean SDP + list of candidates.
+        /// </summary>
+        private (string cleanSdp, List<string> candidates) ExtractIceCandidates(string sdp)
+        {
+            var candidates = new List<string>();
+            if (string.IsNullOrEmpty(sdp))
+                return (sdp, candidates);
+
+            var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var filtered = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                if (line.StartsWith("a=candidate:", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract the candidate (without the "a=" prefix)
+                    var candidate = line.Substring(2); // Remove "a="
+                    candidates.Add(candidate);
+                    continue; // Don't include in filtered SDP
+                }
+
+                filtered.Add(line);
+            }
+
+            var cleanSdp = string.Join("\r\n", filtered);
+            if (!cleanSdp.EndsWith("\r\n")) cleanSdp += "\r\n";
+
+            return (cleanSdp, candidates);
         }
 
         private void ProcessIceCandidate(int monitorIndex, string candidate)

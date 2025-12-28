@@ -1,0 +1,34 @@
+WS → ws://192.168.1.7:8288/signal?mode=multitrack&monitors=2&resW=1920&resH=1080&kbps=15000&fps=60&zerolat=1&lan=1
+MultiPC mode: Creating 2 PeerConnections
+WebSocket connected
+→ offer[0] sent
+→ offer[1] sent
+→ ICE[0]: candidate:4033869230 1 udp 2113937151 e826a630-c10...
+→ ICE[0]: candidate:2358837701 1 udp 2113939711 67de7d09-e54...
+→ ICE[1]: candidate:3017312848 1 udp 2113937151 e826a630-c10...
+→ ICE[1]: candidate:3475930683 1 udp 2113939711 67de7d09-e54...
+← ICE[0] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[0] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[0] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[0] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+PC0 ICE: checking
+PC0 track received, bound to video
+← answer[0] set
+video event: waiting readyState= 0 paused= false ct= 0.000 size= 0x0
+PC0 state: connecting
+PC0 ICE: connected
+← ICE[1] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[1] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[1] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+← ICE[1] error: Failed to execute 'addIceCandidate' on 'RTCPeerConnection': The remote description was null
+PC1 ICE: checking
+PC1 track received, bound to video
+← answer[1] set
+PC1 ICE: connected
+PC0 state: connected
+PC1 state: connecting
+PC1 state: connected
+video event: loadedmetadata readyState= 4 paused= false ct= 0.000 size= 1920x1080
+video event: playing readyState= 4 paused= false ct= 0.000 size= 1920x1080
+Disconnecting...
+Disconnected

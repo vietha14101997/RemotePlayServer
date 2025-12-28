@@ -766,6 +766,18 @@ public class SignalAndRestServer
             HttpListenerContext ctx; try { ctx = await _listener.GetContextAsync(); } catch { break; }
             var path = ctx.Request.Url!.AbsolutePath;
 
+            // Quick validation endpoint - Client gọi để kiểm tra server có alive không
+            if (path == "/ping" && ctx.Request.HttpMethod == "GET")
+            {
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                ctx.Response.StatusCode = 200;
+                ctx.Response.ContentType = "application/json";
+                var body = Encoding.UTF8.GetBytes("{\"status\":\"ok\",\"version\":\"2.0\"}");
+                ctx.Response.OutputStream.Write(body, 0, body.Length);
+                ctx.Response.Close();
+                continue;
+            }
+
             if (path == "/api/monitors" && ctx.Request.HttpMethod == "GET")
             {
                 var monsNow = WgcInterop.ListMonitorsDXGI();

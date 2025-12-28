@@ -144,9 +144,11 @@ namespace RemotePlayServer.Utils
                         var desc = adapter.Description;
                         string name = desc.Description;
 
-                        // Skip Microsoft Basic Render Driver
+                        // Skip virtual/software adapters
                         if (name.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) ||
-                            name.Contains("Basic", StringComparison.OrdinalIgnoreCase))
+                            name.Contains("Basic", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("Virtual", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("Remote", StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
@@ -163,14 +165,17 @@ namespace RemotePlayServer.Utils
                             _ => DetectVendorFromName(name)
                         };
 
-                        // Get VRAM from DXGI - DedicatedVideoMemory is in bytes
-                        long vramBytes = (long)desc.DedicatedVideoMemory;
-                        info.VramMB = vramBytes / (1024 * 1024);
+                        // Get VRAM from DXGI - DedicatedVideoMemory is nuint (bytes)
+                        // Use unchecked to prevent overflow on large values
+                        ulong vramBytes = (ulong)desc.DedicatedVideoMemory;
+                        info.VramMB = (long)(vramBytes / (1024 * 1024));
 
-                        // If VRAM is 0 or unreasonable, try WMI fallback
+                        Console.WriteLine($"[HardwareInfo] DXGI VRAM: {vramBytes} bytes = {info.VramMB} MB");
+
+                        // If VRAM is 0 or unreasonable, try registry/WMI fallback
                         if (info.VramMB <= 0 || info.VramMB > 100_000)
                         {
-                            info.VramMB = GetVramFromWmi() ?? 0;
+                            info.VramMB = GetVramFromRegistry(name) ?? GetVramFromWmi() ?? 0;
                         }
 
                         // Get driver version from WMI
@@ -198,6 +203,61 @@ namespace RemotePlayServer.Utils
             }
 
             return info;
+        }
+
+        /// <summary>
+        /// Get VRAM from Windows Registry (more accurate for >4GB).
+        /// </summary>
+        private static long? GetVramFromRegistry(string gpuName)
+        {
+            try
+            {
+                // Try to read from Display adapter registry keys
+                using var displayKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                    @"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
+
+                if (displayKey != null)
+                {
+                    foreach (var subKeyName in displayKey.GetSubKeyNames())
+                    {
+                        if (!int.TryParse(subKeyName, out _)) continue;
+
+                        using var subKey = displayKey.OpenSubKey(subKeyName);
+                        if (subKey == null) continue;
+
+                        var driverDesc = subKey.GetValue("DriverDesc")?.ToString() ?? "";
+
+                        // Match GPU name
+                        if (string.IsNullOrEmpty(gpuName) ||
+                            driverDesc.Contains(gpuName.Split(' ')[0], StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Try HardwareInformation.qwMemorySize (QWORD, accurate for large VRAM)
+                            var qwMemSize = subKey.GetValue("HardwareInformation.qwMemorySize");
+                            if (qwMemSize != null)
+                            {
+                                long vramBytes = Convert.ToInt64(qwMemSize);
+                                Console.WriteLine($"[HardwareInfo] Registry qwMemorySize: {vramBytes} bytes");
+                                return vramBytes / (1024 * 1024);
+                            }
+
+                            // Fallback to HardwareInformation.MemorySize (DWORD, limited to 4GB)
+                            var memSize = subKey.GetValue("HardwareInformation.MemorySize");
+                            if (memSize != null)
+                            {
+                                long vramBytes = Convert.ToInt64(memSize);
+                                Console.WriteLine($"[HardwareInfo] Registry MemorySize: {vramBytes} bytes");
+                                return vramBytes / (1024 * 1024);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareInfo] Registry VRAM read failed: {ex.Message}");
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -258,7 +318,9 @@ namespace RemotePlayServer.Utils
                 {
                     string name = obj["Name"]?.ToString() ?? "";
                     if (name.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) ||
-                        name.Contains("Basic", StringComparison.OrdinalIgnoreCase))
+                        name.Contains("Basic", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Virtual", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Remote", StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     info.Name = name;
@@ -351,6 +413,14 @@ namespace RemotePlayServer.Utils
                     var buildNum = key.GetValue("CurrentBuildNumber")?.ToString() ?? "";
                     var ubr = key.GetValue("UBR")?.ToString() ?? "";
                     info.Build = string.IsNullOrEmpty(ubr) ? buildNum : $"{buildNum}.{ubr}";
+
+                    // Windows 11 detection: Build 22000+ is Windows 11
+                    // Registry ProductName may still say "Windows 10" on Windows 11
+                    if (int.TryParse(buildNum, out int build) && build >= 22000)
+                    {
+                        // Replace "Windows 10" with "Windows 11" in ProductName
+                        info.Name = info.Name.Replace("Windows 10", "Windows 11");
+                    }
                 }
             }
             catch (Exception ex)

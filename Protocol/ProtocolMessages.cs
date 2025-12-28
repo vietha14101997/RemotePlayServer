@@ -74,6 +74,37 @@ namespace RemotePlayServer.Protocol
     }
 
     /// <summary>
+    /// Client -> Server: Request speed test data (for download/upload measurement).
+    /// </summary>
+    public class SpeedTestRequestMessage : ProtocolMessage
+    {
+        public override string Type => "speedtest_request";
+
+        [JsonPropertyName("direction")]
+        public string Direction { get; set; } = "download"; // "download" or "upload"
+
+        [JsonPropertyName("durationMs")]
+        public int DurationMs { get; set; } = 2000;
+    }
+
+    /// <summary>
+    /// Client -> Server: Speed test result from client-side measurement.
+    /// </summary>
+    public class SpeedTestResultMessage : ProtocolMessage
+    {
+        public override string Type => "speedtest_result";
+
+        [JsonPropertyName("bandwidthMbps")]
+        public double BandwidthMbps { get; set; }
+
+        [JsonPropertyName("pingMs")]
+        public double PingMs { get; set; }
+
+        [JsonPropertyName("jitterMs")]
+        public double JitterMs { get; set; }
+    }
+
+    /// <summary>
     /// Server -> Client: Speed test completed, here are the results.
     /// </summary>
     public class NetworkInfoMessage : ProtocolMessage
@@ -249,6 +280,18 @@ namespace RemotePlayServer.Protocol
 
         [JsonPropertyName("monitorIndex")]
         public int MonitorIndex { get; set; }
+    }
+
+    /// <summary>
+    /// Server -> Client: All ICE connections are ready.
+    /// Sent when all PeerConnections have established ICE connectivity.
+    /// </summary>
+    public class IceReadyMessage : ProtocolMessage
+    {
+        public override string Type => "ice_ready";
+
+        [JsonPropertyName("monitorCount")]
+        public int MonitorCount { get; set; }
     }
 
     // ==================== Phase 3 Messages ====================
