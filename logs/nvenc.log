@@ -1,0 +1,984 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.20
+[Encoder] NVIDIA NVENC (Hardware)
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.20:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.20","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████
+█████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▀██▀ ▀▄▄ █▄ █ ▀▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █  █▀▀ ▄▀▄  ▀ ▄█▀▄▄█▄██ █   █ ████
+████ █▄▄▄█ █▄▄▄▄▄▀███▀█▀▀█ ██▀▄▀▀█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ █ █▄▀▄▀▄█ ▀▄█ ▀ █▄█▄▄▄▄▄▄▄████
+█████▄█ ▀ ▄▀ ▄ █▀▀▄█▀ ▄ ▄▄▀▀▀ ▄ ▄  █ ▄ ▄▄████
+████▄▄█▄█▀▄ ▀▄███▄▀▀ ▄██▄▄▀▀ ▄▄█▀ ██ ▄██ ████
+████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
+█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
+███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
+████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
+████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
+████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
+████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
+█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
+███████▄██▄█ ▀██▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
+████ ▄▄▄▄▄ █▀█▄▄ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
+████ █   █ █▀▀ ▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
+████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
+████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+█████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected 862fc27d-ddec-4d34-bfae-7060eb17ac15, mode=multitrack
+[MultiPC Signal] Client 862fc27d-ddec-4d34-bfae-7060eb17ac15 connected from 192.168.1.85
+[MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 25000kbps/stream
+[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 1
+[VDD] Virtual monitors needed: 1 (target total: 2)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY30 [PHYSICAL] -> 1600x900@60
+[Display] Setting \\.\DISPLAY1 as PRIMARY display
+[Display] ✓ \\.\DISPLAY1 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY30 1600x900 [PHYSICAL]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[MultiPC Signal] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY30 1600x900 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[MultiPC] Created: 2mon 60fps 25000kbps (parallel device mode)
+[MultiPC] m0 device registered (parallel mode)
+[MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
+[MultiPC] m1 device registered (parallel mode)
+[MultiPC Signal] Monitor 1: Using dedicated D3D11 device for parallel encoding
+[PerMonitorCapture] Started 2 parallel capture threads
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
+[MultiPC Signal] Received offer for monitor 0
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[GpuColorConverter] GPU: NVIDIA, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[GpuColorConverter] GPU: NVIDIA, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[MultiPC] m0 offer: 1600x900
+[MultiPC] m0 using dedicated D3D11 device
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m0 NVIDIA GPU detected, using NVENC encoder
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 25000kbps
+[LibAvEncoder] FFmpeg path: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
+[LibAvEncoder] Using encoder: h264_nvenc
+[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
+[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
+[LibAvEncoder] Using shared D3D11 device for NVENC: 0x1D4B54D5488
+[LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device
+[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m0 encoder ready (parallel=True)
+[MultiPC] m0 answer created
+[MultiPC Signal] Sent answer for monitor 0
+[MultiPC Signal] Received offer for monitor 1
+[MultiPC] m1 offer: 1600x900
+[MultiPC] m1 using dedicated D3D11 device
+[MultiPC] m0 ICE connected
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 NVIDIA GPU detected, using NVENC encoder
+[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 25000kbps
+[LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
+[LibAvEncoder] Using encoder: h264_nvenc
+[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
+[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
+[LibAvEncoder] Using shared D3D11 device for NVENC: 0x1D4FC799888
+[LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device
+[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
+[MultiPC] m0 PC connected
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1600x900 @ 60fps, 25000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully
+[MultiPC] m1 encoder ready (parallel=True)
+[MultiPC] m1 answer created
+[MultiPC Signal] Sent answer for monitor 1
+[MultiPC] m0 enc#1: 3711B key=False NALs=[6,1]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 80151B key=False NALs=[6,1]
+[MultiPC] m0 enc#3: 44550B key=False NALs=[6,1]
+[MultiPC] m0 enc#4: 9243B key=False NALs=[6,1]
+[MultiPC] m0 enc#5: 4499B key=False NALs=[6,1]
+[MultiPC] m1 ICE connected
+[MultiPC] m1 ICE connected
+[MultiPC] m1 PC connected
+[MultiPC] m1 enc#1: 65B key=False NALs=[6,1]
+[MultiPC] m1 streaming started
+[MultiPC] m1 enc#2: 101B key=False NALs=[6,1]
+[MultiPC] m1 ICE connected
+[MultiPC] m1 enc#3: 164B key=False NALs=[6,1]
+[MultiPC] m1 enc#4: 359B key=False NALs=[6,1]
+[MultiPC] m1 enc#5: 1843B key=False NALs=[6,1]
+[Capture FPS] Mon1: 4.0 fps (captured 12 frames in 3012ms)
+[Capture FPS] Mon0: 50.2 fps (captured 151 frames in 3008ms)
+[Encode FPS] Mon0: 55.3 fps (sent 166 in 3001ms, skipped=5)
+[Encode FPS] Mon1: 50.0 fps (sent 150 in 3001ms, skipped=16)
+[Capture FPS] Mon0: 54.4 fps (captured 164 frames in 3012ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3019ms)
+[Encode FPS] Mon0: 56.1 fps (sent 169 in 3013ms, skipped=5)
+[Encode FPS] Mon1: 48.0 fps (sent 145 in 3023ms, skipped=16)
+[Capture FPS] Mon0: 52.9 fps (captured 159 frames in 3004ms)
+[Capture FPS] Mon1: 0.3 fps (captured 1 frames in 3012ms)
+[Encode FPS] Mon0: 55.1 fps (sent 166 in 3015ms, skipped=5)
+[Encode FPS] Mon1: 48.0 fps (sent 144 in 3000ms, skipped=16)
+[Capture FPS] Mon0: 53.1 fps (captured 160 frames in 3013ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3005ms)
+[Encode FPS] Mon0: 55.4 fps (sent 167 in 3013ms, skipped=5)
+[Encode FPS] Mon1: 47.9 fps (sent 145 in 3026ms, skipped=16)
+[Capture FPS] Mon0: 52.8 fps (captured 159 frames in 3011ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3002ms)
+[Encode FPS] Mon0: 54.0 fps (sent 165 in 3055ms, skipped=5)
+[Encode FPS] Mon1: 47.1 fps (sent 142 in 3014ms, skipped=16)
+[Capture FPS] Mon0: 53.5 fps (captured 161 frames in 3010ms)
+[Capture FPS] Mon1: 0.0 fps (captured 0 frames in 3017ms)
+[Encode FPS] Mon0: 56.3 fps (sent 169 in 3001ms, skipped=5)
+[Encode FPS] Mon1: 49.0 fps (sent 147 in 3000ms, skipped=16)
+[Capture FPS] Mon0: 53.6 fps (captured 161 frames in 3003ms)
+[Capture FPS] Mon1: 1.3 fps (captured 4 frames in 3000ms)
+[Encode FPS] Mon0: 54.2 fps (sent 163 in 3006ms, skipped=5)
+[Encode FPS] Mon1: 47.2 fps (sent 143 in 3029ms, skipped=16)
+[Capture FPS] Mon0: 51.9 fps (captured 156 frames in 3005ms)
+[Capture FPS] Mon1: 0.7 fps (captured 2 frames in 3002ms)
+[Encode FPS] Mon0: 55.1 fps (sent 166 in 3011ms, skipped=5)
+[Encode FPS] Mon1: 51.2 fps (sent 154 in 3008ms, skipped=16)
+[Capture FPS] Mon0: 55.8 fps (captured 168 frames in 3011ms)
+[Capture FPS] Mon1: 41.9 fps (captured 126 frames in 3006ms)
+[Encode FPS] Mon0: 56.8 fps (sent 171 in 3011ms, skipped=5)
+[Encode FPS] Mon1: 56.4 fps (sent 170 in 3013ms, skipped=16)
+[Capture FPS] Mon0: 53.5 fps (captured 161 frames in 3008ms)
+[Capture FPS] Mon1: 52.8 fps (captured 159 frames in 3010ms)
+[Encode FPS] Mon0: 55.0 fps (sent 165 in 3001ms, skipped=5)
+[Encode FPS] Mon1: 55.0 fps (sent 165 in 3001ms, skipped=16)
+[Capture FPS] Mon0: 52.3 fps (captured 157 frames in 3002ms)
+[Capture FPS] Mon1: 50.8 fps (captured 153 frames in 3014ms)
+[Encode FPS] Mon0: 55.0 fps (sent 166 in 3020ms, skipped=5)
+[Encode FPS] Mon1: 54.9 fps (sent 165 in 3004ms, skipped=16)
+[Capture FPS] Mon0: 53.9 fps (captured 162 frames in 3004ms)
+[Capture FPS] Mon1: 52.4 fps (captured 158 frames in 3013ms)
+[Encode FPS] Mon0: 53.8 fps (sent 162 in 3011ms, skipped=5)
+[Encode FPS] Mon1: 52.2 fps (sent 157 in 3008ms, skipped=16)
+[Capture FPS] Mon0: 50.3 fps (captured 151 frames in 3003ms)
+[Capture FPS] Mon1: 51.1 fps (captured 154 frames in 3016ms)
+[Encode FPS] Mon0: 53.6 fps (sent 161 in 3002ms, skipped=5)
+[Encode FPS] Mon1: 53.9 fps (sent 162 in 3007ms, skipped=16)
+[Capture FPS] Mon0: 49.1 fps (captured 148 frames in 3015ms)
+[Capture FPS] Mon1: 49.6 fps (captured 149 frames in 3004ms)
+[Encode FPS] Mon0: 53.6 fps (sent 161 in 3003ms, skipped=5)
+[Encode FPS] Mon1: 51.1 fps (sent 154 in 3011ms, skipped=16)
+[Capture FPS] Mon0: 51.2 fps (captured 154 frames in 3005ms)
+[Capture FPS] Mon1: 49.8 fps (captured 150 frames in 3014ms)
+[Encode FPS] Mon0: 51.7 fps (sent 155 in 3000ms, skipped=5)
+[Encode FPS] Mon1: 51.6 fps (sent 155 in 3003ms, skipped=16)
+[Capture FPS] Mon0: 50.6 fps (captured 152 frames in 3002ms)
+[Capture FPS] Mon1: 51.1 fps (captured 154 frames in 3014ms)
+[Encode FPS] Mon0: 52.9 fps (sent 161 in 3044ms, skipped=5)
+[Encode FPS] Mon1: 50.8 fps (sent 153 in 3009ms, skipped=16)
+[Capture FPS] Mon0: 49.9 fps (captured 150 frames in 3009ms)
+[Capture FPS] Mon1: 48.2 fps (captured 145 frames in 3010ms)
+[Encode FPS] Mon0: 52.3 fps (sent 157 in 3004ms, skipped=5)
+[Encode FPS] Mon1: 53.1 fps (sent 160 in 3013ms, skipped=16)
+[Capture FPS] Mon0: 50.3 fps (captured 151 frames in 3001ms)
+[Capture FPS] Mon1: 48.5 fps (captured 146 frames in 3012ms)
+[Encode FPS] Mon0: 52.7 fps (sent 159 in 3015ms, skipped=5)
+[Encode FPS] Mon1: 51.8 fps (sent 156 in 3009ms, skipped=16)
+[Capture FPS] Mon0: 52.8 fps (captured 159 frames in 3010ms)
+[Capture FPS] Mon1: 52.4 fps (captured 158 frames in 3015ms)
+[Encode FPS] Mon0: 51.9 fps (sent 156 in 3005ms, skipped=5)
+[Encode FPS] Mon1: 51.5 fps (sent 155 in 3010ms, skipped=16)
+[Capture FPS] Mon0: 49.2 fps (captured 148 frames in 3009ms)
+[Capture FPS] Mon1: 48.2 fps (captured 145 frames in 3006ms)
+[Encode FPS] Mon0: 52.0 fps (sent 156 in 3001ms, skipped=5)
+[Encode FPS] Mon1: 50.6 fps (sent 156 in 3086ms, skipped=16)
+[Capture FPS] Mon0: 48.6 fps (captured 146 frames in 3004ms)
+[Capture FPS] Mon1: 48.6 fps (captured 146 frames in 3003ms)
+[Encode FPS] Mon0: 50.8 fps (sent 153 in 3009ms, skipped=5)
+[Encode FPS] Mon1: 50.8 fps (sent 153 in 3011ms, skipped=16)
+[Capture FPS] Mon0: 48.4 fps (captured 146 frames in 3016ms)
+[Capture FPS] Mon1: 48.4 fps (captured 146 frames in 3015ms)
+[Encode FPS] Mon0: 50.3 fps (sent 151 in 3002ms, skipped=5)
+[Encode FPS] Mon1: 50.5 fps (sent 152 in 3010ms, skipped=16)
+[Capture FPS] Mon0: 50.1 fps (captured 151 frames in 3015ms)
+[Capture FPS] Mon1: 48.3 fps (captured 145 frames in 3001ms)
+[Encode FPS] Mon0: 52.1 fps (sent 157 in 3014ms, skipped=5)
+[Encode FPS] Mon1: 49.4 fps (sent 152 in 3077ms, skipped=16)
+[Capture FPS] Mon0: 51.4 fps (captured 155 frames in 3015ms)
+[Capture FPS] Mon1: 50.1 fps (captured 151 frames in 3013ms)
+[Encode FPS] Mon0: 51.1 fps (sent 155 in 3035ms, skipped=5)
+[Encode FPS] Mon1: 51.2 fps (sent 154 in 3010ms, skipped=16)
+[Capture FPS] Mon0: 50.8 fps (captured 153 frames in 3014ms)
+[Capture FPS] Mon1: 49.7 fps (captured 149 frames in 3000ms)
+[Encode FPS] Mon0: 53.4 fps (sent 161 in 3016ms, skipped=5)
+[Encode FPS] Mon1: 54.7 fps (sent 164 in 3000ms, skipped=16)
+[Capture FPS] Mon0: 52.4 fps (captured 158 frames in 3016ms)
+[Capture FPS] Mon1: 51.0 fps (captured 153 frames in 3000ms)
+[Encode FPS] Mon0: 53.7 fps (sent 162 in 3014ms, skipped=5)
+[Encode FPS] Mon1: 52.8 fps (sent 159 in 3013ms, skipped=16)
+[Capture FPS] Mon0: 54.9 fps (captured 165 frames in 3005ms)
+[Capture FPS] Mon1: 53.6 fps (captured 161 frames in 3002ms)
+[Encode FPS] Mon0: 56.2 fps (sent 169 in 3009ms, skipped=5)
+[Encode FPS] Mon1: 55.0 fps (sent 166 in 3017ms, skipped=16)
+[MultiPC] m0 PC closed
+[MultiPC] m0 abnormal close detected, requesting reconnect...
+[MultiPC Signal] Requesting reconnect for monitor 0
+[Capture FPS] Mon0: 53.6 fps (captured 161 frames in 3005ms)
+[Capture FPS] Mon1: 53.0 fps (captured 160 frames in 3017ms)
+[MultiPC] m1 ICE disconnected (may recover)
+[MultiPC] m1 PC disconnected
+[MultiPC RX] An internal WebSocket error occurred. Please see the innerException, if present, for more details.
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoderAdapter] Disposed
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoderAdapter] Disposed
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[Capture FPS] Mon0: 57.8 fps (captured 174 frames in 3009ms)
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[Capture FPS] Mon1: 56.9 fps (captured 171 frames in 3006ms)
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[PerMonitorCapture] Mon 1: ConvertToTexture returned null!
+[MultiPC] m1 PC closed
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Guard] Restoring display settings after MultiPC client disconnect...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY30
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ✓ VDD disabled successfully!
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] Restore timeout.
+[Guard] Display settings restored.
+[Signal] MultiPC client disconnected 862fc27d-ddec-4d34-bfae-7060eb17ac15
+[Guard] ✅ All settings restored and system settled.

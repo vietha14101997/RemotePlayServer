@@ -225,12 +225,27 @@ public class MultiPCStreamer : IDisposable
             {
                 monitor.IceConnected = false;
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}");
-                
-                // If still running (not intentionally stopped), request reconnect
+
+                // If still running (not intentionally stopped), request reconnect with delay for WiFi tolerance
                 if (_running && !_disposed)
                 {
-                    Console.WriteLine($"[MultiPC] m{monitorIndex} ICE failed/closed, requesting reconnect...");
-                    OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                    // Add 3-second tolerance delay for WiFi jitter recovery
+                    _ = Task.Run(async () =>
+                    {
+                        Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}, waiting 3s for recovery...");
+                        await Task.Delay(3000);
+
+                        // Check if still disconnected after delay
+                        if (_running && !_disposed && !monitor.IceConnected)
+                        {
+                            Console.WriteLine($"[MultiPC] m{monitorIndex} still disconnected after 3s, requesting reconnect...");
+                            OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[MultiPC] m{monitorIndex} recovered or stopped, skip reconnect");
+                        }
+                    });
                 }
                 else
                 {

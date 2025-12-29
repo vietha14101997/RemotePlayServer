@@ -346,13 +346,14 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
                     // Level 5.1 required for width > 2048 (e.g., multi-monitor setups)
                     string level = Width > 2048 ? "5.1" : "4.1";
-                    string profile = Width > 2048 ? "main" : "baseline";
-                    
+                    string profile = "main";  // Main profile for CABAC - sharper text quality
+
                     var outPart =
                         "-an -c:v h264_nvenc " +
                         "-preset p1 -tune ll " +
                         $"-profile:v {profile} -level {level} " +
                         "-bf 0 -rc-lookahead 0 -forced-idr 1 " +
+                        "-spatial-aq 1 -temporal-aq 1 -aq-strength 8 " +  // Adaptive QP for sharper edges/text
                         "-zerolatency 1 -delay 0 " +
                         "-aud 1 " +
                         rc + " " +

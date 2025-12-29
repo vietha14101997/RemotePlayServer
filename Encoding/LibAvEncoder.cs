@@ -225,7 +225,7 @@ public unsafe class LibAvEncoder : IDisposable
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        _codecCtx->gop_size = _fps; // Keyframe every 1 second (reduced for lower latency)
+        _codecCtx->gop_size = Math.Max(1, _fps / 2); // Keyframe every 0.5 second for lower latency
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
         
