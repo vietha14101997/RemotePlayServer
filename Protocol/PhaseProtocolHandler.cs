@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using RemotePlayServer.Utils;
+using RemotePlayServer.Encoding;
 
 namespace RemotePlayServer.Protocol
 {
@@ -480,9 +481,12 @@ namespace RemotePlayServer.Protocol
                 _capture = _sharedCapture;
             }
 
-            // Create MultiPCStreamer
+            // Create MultiPCStreamer with negotiated codec
+            var codecEnum = _selectedCodec.Equals("H265", StringComparison.OrdinalIgnoreCase)
+                ? VideoCodec.H265 : VideoCodec.H264;
+            Console.WriteLine($"[Protocol] Creating MultiPCStreamer with codec={_selectedCodec} (enum={codecEnum})");
             _streamer = new RemotePlayServer.Encoding.MultiPCStreamer(
-                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device);
+                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device, codecEnum);
 
             // Wire up per-monitor devices for parallel encoding
             for (int i = 0; i < actualMonitors; i++)

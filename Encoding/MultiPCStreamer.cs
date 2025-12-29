@@ -24,6 +24,7 @@ public class MultiPCStreamer : IDisposable
     private readonly int _kbps;
     private readonly int _monitorCount;
     private ID3D11Device? _device;
+    private readonly VideoCodec _preferredCodec;
     
     // Per-monitor devices for parallel encoding
     private readonly Dictionary<int, ID3D11Device> _perMonitorDevices = new();
@@ -71,17 +72,18 @@ public class MultiPCStreamer : IDisposable
         }
     }
 
-    public MultiPCStreamer(int monitorCount, int fps, int kbps, ID3D11Device? device = null)
+    public MultiPCStreamer(int monitorCount, int fps, int kbps, ID3D11Device? device = null, VideoCodec preferredCodec = VideoCodec.H264)
     {
         _monitorCount = monitorCount;
         _fps = fps;
         _kbps = kbps;
         _device = device;
+        _preferredCodec = preferredCodec;
         _sendLocks = new object[monitorCount];
         for (int i = 0; i < monitorCount; i++)
             _sendLocks[i] = new object();
-        
-        Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps (parallel device mode)");
+
+        Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps codec={preferredCodec} (parallel device mode)");
     }
 
     public void SetDevice(ID3D11Device device) => _device = device;
@@ -411,12 +413,15 @@ public class MultiPCStreamer : IDisposable
                 if (encoder == null)
                 {
                     var libAvEncoder = new LibAvEncoderAdapter();
-                    libAvEncoder.OnEncodedData += (nalData, isKeyframe, pts) => 
+                    libAvEncoder.OnEncodedData += (nalData, isKeyframe, pts) =>
                         OnEncodedData(monitor, nalData, isKeyframe, pts);
-                    
-                    if (libAvEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, device))
+
+                    // Pass preferred codec from negotiation
+                    Console.WriteLine($"[MultiPC] m{monitor.Index} Initializing LibAvEncoder with codec={_preferredCodec}");
+                    if (libAvEncoder.Initialize(monitor.Width, monitor.Height, _fps, _kbps, device, _preferredCodec))
                     {
                         encoder = libAvEncoder;
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} LibAvEncoder initialized with codec={libAvEncoder.CurrentCodec}");
                     }
                     else
                     {
