@@ -88,6 +88,16 @@ namespace RemotePlayServer.Protocol
         private float _lastCursorV = -1f;
         private bool _lastCursorVisible = false;
 
+        // Server-side keep-alive for early disconnect detection
+        private System.Timers.Timer? _keepAliveTimer;
+        private DateTime _lastPongReceived = DateTime.UtcNow;
+        private int _missedPongs = 0;
+        private const int KEEPALIVE_INTERVAL_MS = 5000;  // Ping every 5s
+        private const int MAX_MISSED_PONGS = 3;          // 15s without pong = dead
+
+        // Wait for all monitors to connect before starting streaming
+        private TaskCompletionSource<bool>? _allConnectedTcs;
+
         public PhaseProtocolHandler(
             Guid clientId,
             WebSocket ws,
@@ -528,11 +538,17 @@ namespace RemotePlayServer.Protocol
                 catch { }
             };
 
+            // Initialize TCS for waiting on all connections
+            _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
             // ICE ready notification - sent when all PeerConnections have ICE connected
             _streamer.OnAllConnected += async () =>
             {
                 try
                 {
+                    // Signal that all monitors are connected
+                    _allConnectedTcs?.TrySetResult(true);
+
                     if (_ws.State != WebSocketState.Open) return;
                     Console.WriteLine($"[Protocol] All {actualMonitors} ICE connections ready, sending ice_ready");
                     var msg = new IceReadyMessage { MonitorCount = actualMonitors };
@@ -673,6 +689,28 @@ namespace RemotePlayServer.Protocol
             if (_streamer == null) return;
 
             Console.WriteLine($"[Protocol] Received offer for monitor {monitorIndex}");
+
+            // CRITICAL FIX: Clear ICE state for this monitor BEFORE processing new offer
+            // This prevents race condition where client candidates arrive while new PC is being created
+            // Without this, candidates go to AddIceCandidate immediately but PC isn't ready yet
+            lock (_iceLock)
+            {
+                bool wasReady = _answersReady.Remove(monitorIndex);
+                if (wasReady)
+                {
+                    Console.WriteLine($"[Protocol] Cleared _answersReady for m{monitorIndex} (reconnect case)");
+                }
+                // Also clear any pending candidates from previous connection
+                if (_pendingIce.TryGetValue(monitorIndex, out var oldPending))
+                {
+                    if (oldPending.Count > 0)
+                    {
+                        Console.WriteLine($"[Protocol] Cleared {oldPending.Count} old pending candidates for m{monitorIndex}");
+                        oldPending.Clear();
+                    }
+                }
+            }
+
             try
             {
                 var answerSdp = await _streamer.ProcessOfferAsync(
@@ -788,6 +826,34 @@ namespace RemotePlayServer.Protocol
             // Wait for start_streaming
             await WaitForStartStreamingAsync();
 
+            // CRITICAL: Wait for ALL monitors to be ICE connected before starting streaming
+            // This prevents network congestion from one monitor's stream interfering with
+            // another monitor's ICE negotiation
+            if (_allConnectedTcs != null)
+            {
+                Console.WriteLine("[Protocol] Phase 3: Waiting for all monitors to connect...");
+                try
+                {
+                    // Wait up to 15 seconds for all monitors to connect
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    var allConnectedTask = _allConnectedTcs.Task;
+                    var completedTask = await Task.WhenAny(allConnectedTask, Task.Delay(Timeout.Infinite, cts.Token));
+
+                    if (completedTask == allConnectedTask)
+                    {
+                        Console.WriteLine("[Protocol] Phase 3: All monitors connected!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Protocol] Phase 3: Timeout waiting for all monitors, proceeding anyway");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("[Protocol] Phase 3: Timeout waiting for all monitors, proceeding anyway");
+                }
+            }
+
             SetPhase(ConnectionPhase.Phase3_Streaming);
             Console.WriteLine("[Protocol] Phase 3: Starting stream...");
 
@@ -807,6 +873,9 @@ namespace RemotePlayServer.Protocol
             // Start cursor tracking
             var cursorTrackingTask = StartCursorTrackingTask();
             Console.WriteLine("[Protocol] Cursor tracking started");
+
+            // Start server-side keep-alive for early disconnect detection
+            StartKeepAlive();
 
             // Main loop - handle messages while streaming
             var buffer = new byte[128 * 1024];
@@ -832,6 +901,14 @@ namespace RemotePlayServer.Protocol
                     if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
                     {
                         await SendTextAsync("pong");
+                        continue;
+                    }
+
+                    // Track client pong responses for keep-alive
+                    if (text.Trim().Equals("pong", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastPongReceived = DateTime.UtcNow;
+                        _missedPongs = 0;
                         continue;
                     }
 
@@ -877,6 +954,9 @@ namespace RemotePlayServer.Protocol
                 }
                 catch (OperationCanceledException) { break; }
             }
+
+            // Stop keep-alive timer
+            StopKeepAlive();
 
             // Stop cursor tracking
             StopCursorTracking();
@@ -951,6 +1031,66 @@ namespace RemotePlayServer.Protocol
                     catch { }
                 }
             });
+        }
+
+        /// <summary>
+        /// Start server-side keep-alive timer for early disconnect detection.
+        /// Pings client every 5s and detects dead connections within 15s (vs 30s ICE timeout).
+        /// </summary>
+        private void StartKeepAlive()
+        {
+            _lastPongReceived = DateTime.UtcNow;
+            _missedPongs = 0;
+
+            _keepAliveTimer = new System.Timers.Timer(KEEPALIVE_INTERVAL_MS);
+            _keepAliveTimer.Elapsed += async (s, e) =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open)
+                    {
+                        _keepAliveTimer?.Stop();
+                        return;
+                    }
+
+                    // Check if client has responded to previous pings
+                    var timeSinceLastPong = (DateTime.UtcNow - _lastPongReceived).TotalMilliseconds;
+                    if (timeSinceLastPong > KEEPALIVE_INTERVAL_MS * 1.5)
+                    {
+                        _missedPongs++;
+                        if (_missedPongs >= MAX_MISSED_PONGS)
+                        {
+                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s, connection may be dead");
+                            // Don't close WebSocket - let the main loop handle timeout
+                            // This just provides early warning for logging
+                        }
+                    }
+
+                    // Send ping to client
+                    await SendTextAsync("ping");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[KeepAlive] Error: {ex.Message}");
+                }
+            };
+            _keepAliveTimer.AutoReset = true;
+            _keepAliveTimer.Start();
+            Console.WriteLine("[KeepAlive] Server-side keep-alive started (5s interval)");
+        }
+
+        /// <summary>
+        /// Stop keep-alive timer.
+        /// </summary>
+        private void StopKeepAlive()
+        {
+            try
+            {
+                _keepAliveTimer?.Stop();
+                _keepAliveTimer?.Dispose();
+                _keepAliveTimer = null;
+            }
+            catch { }
         }
 
         #endregion
@@ -1245,6 +1385,9 @@ namespace RemotePlayServer.Protocol
         private async Task CleanupAsync()
         {
             SetPhase(ConnectionPhase.Disconnecting);
+
+            // Stop keep-alive timer
+            StopKeepAlive();
 
             // Stop capture
             try { _captureCts?.Cancel(); } catch { }

@@ -1,0 +1,696 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.16
+[Encoder] AMD AMF (Hardware)
+[TextScale] Registry DPI for \\.\DISPLAY2: 120
+[Guard] Saved original text scale for \\.\DISPLAY2: 125%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Snapshot captured.
+=== Monitors ===
+  \\.\DISPLAY2: 1920x1080 [Physical]
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.16:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.16","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+█████████████████████████████████████████████████████
+█████████████████████████████████████████████████████
+████ ▄▄▄▄▄ █  ▄██▄█▄ ▀▀▄ ██▄ ▄▄▄ ▄ ▄ ▀█▀▄█ ▄▄▄▄▄ ████
+████ █   █ █ ▄▄▀▀▀█▀▀█▄▄▄▀▀▄ ▀▄▀▄█ ▀  █ ▀█ █   █ ████
+████ █▄▄▄█ █▄▀   ▄ █▀█ █ ▄▄▄ █▀█▀▄▄█▀█▄▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ ▀ █▄█ ▀ █ █▄█ ▀▄▀▄▀▄█▄█▄█ █▄▄▄▄▄▄▄████
+█████▄▀▄▀▄▄▀▄ █▀ █▄█▀▀▀  ▄▄  ▄    ▀▀██▀█▄▄▄▀   ▄ ████
+████▀▄ ▀█▀▄▀ ▄▀▄▀████▄▀  █▄ ▀█ ▄██▄█▄▀█  █ ▄ █ █▀████
+████  ▄ ▄█▄▄ ▀█ ▀ ▀▀  █▀      ▄▄▀▄▀ ▄█▀█▀▄ █ ▄▄  ████
+████ ▀▀▀█▀▄██  ▀██ ██▀█ ██ ██ ▀▀▀▀ ██▀ ▀██ ▄ ▀▀▀█████
+████▀▀ ███▄ ▄▀███▀█▄▄▀████▄▄▄█▄▄ ▀▀▄▄█ █▀▀█▄ █▀▄▀████
+█████ ▄▄▀█▄ ▄▀ █▄█▄▀ █▀█▄▀▄▄▄▀▄▀  █ ▄▀█ ▄  ▀▄██▄▄████
+████▀█▀▄ ▄▄▄   ▀▄ ▄▀▀▀ ▀ ▄▄▄ ▄▀ ▀▀  ▀ █▀ ▄▄▄  ▀▄▀████
+████▄██  █▄█ ▀ ▀▄█▀▀▄▄ █ █▄█  █ █▄█▀█▄▄█ █▄█ ▀▄ ▀████
+████▀  ▄  ▄▄▄   ▄▀ ▄▀▄▄ ▄ ▄▄▄█▀ █ ▄▄▄ ▀▄   ▄ ▀▀▄ ████
+█████▄  ▀█▄▀▄▀▄▄█▀██▄█ ▄█▀█▀▄▀▄██▀█ ▄██▄█▀▀ ▄█▄▀ ████
+████▄  █▀▄▄▄██▀█▀▀▄▄██ ▀▀▀▄▄█▄▄▀▀█▄ █▄▄██▄▀▄█▀▄▄█████
+████▄██▀▄█▄ █▄█▄▄▄▀▀▄▄██▄ ██▄▄▀ ▄▄█▀ ▄█ █▄█ ▀ ▀██████
+████▀▄ ▀▄▀▄▄▀  ▄▀█▄ ▀ ▀ █▀▀▄▀▀▀ ▀▄  ▀▄█ █▄▀ ▀▄ ▄▀████
+█████▀▀▀ █▄▀ █ ▄▀▀▄█ █▄  ▀▄▄██ ▀▄█▄▀▄█▄ ██ ▀▀▀▄▀█████
+████▄██▄▄█▄█▀▄ ▄█▄▄▄▀▄▀█ ▄▄▄ ▄▄ ▀▄█ ▄▄█  ▄▄▄ █▄▄▄████
+████ ▄▄▄▄▄ █▀▀▄ █▀ ▀▀▀ ▀ █▄█  ▀▄█ █   ▀  █▄█ ▄▀█ ████
+████ █   █ █▀▄▄▄▀▄█▄█▄█▄ ▄▄▄ █▀▄ ██▄▄█▀█ ▄▄▄ ▄██▀████
+████ █▄▄▄█ █▀ ▀ █▄▄ ▀█▀▄█ ▀▄█▄▄ ███▄▀▀ ▄▀▄█▄█ █▄▀████
+████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄█▄█▄█▄█▄▄▄██▄▄█▄█▄█▄██▄██████
+█████████████████████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected d9b9e9ab-fe95-4dd7-b70c-37beac61c940, mode=cluster, protocol=v2
+[Protocol] Client d9b9e9ab-fe95-4dd7-b70c-37beac61c940 connected from 192.168.1.13 (v2 protocol)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
+[HardwareInfo] SetDllDirectory: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] HEVC encoder 'hevc_amf': available
+[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=217, text={"type":"hardware_info_ack","clientCodecs":{"supportsHevc":true,"preferredCodec":"H264","deviceModel...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=True, preferred=H264, device=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36
+[Protocol] Codec negotiation: Both support HEVC -> selected H.265
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 67MB in 2041ms = 275.4 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=86
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 235.5Mbps, 0.0ms
+[Protocol] ✓ Received speedtest_result from client: 235.5Mbps, 0.0ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 3x1600x900@60fps, bitrate=15000kbps, codec=H265
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":3,"resolution":{"width":1920,"height":1080},"bitrateKbps":15000,...
+[Protocol] Received display config: 3x1920x1080@60fps
+[Protocol] Applying new display config: 3 monitors @ 1920x1080
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 1 (target total: 3)
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Resolution already present.
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 3, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY11 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL]
+[Display]   • \\.\DISPLAY11 1920x1080 [PHYSICAL]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[Protocol] Available monitors: 3, using: 3
+[PerMonitorCapture] Initializing 3 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 2: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 2: \\.\DISPLAY11 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 3 monitors with SEPARATE D3D11 devices
+[Protocol] Creating MultiPCStreamer with codec=H265 (enum=H265)
+[MultiPC] Created: 3mon 60fps 15000kbps codec=H265 (parallel device mode)
+[MultiPC] m0 device registered (parallel mode)
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[MultiPC] m1 device registered (parallel mode)
+[Protocol] Monitor 1: Using dedicated D3D11 device
+[MultiPC] m2 device registered (parallel mode)
+[Protocol] Monitor 2: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6594731706749835495 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 0
+[MultiPC] m0 offer: 1920x1080
+[MultiPC] m0 using dedicated D3D11 device
+[MultiPC] m0 ICE gathering timeout (2s), continuing anyway
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m0 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m0 encoder ready (parallel=True)
+[MultiPC] m0 answer created (with gathered candidates)
+[Protocol] Extracted 4 embedded ICE candidates from answer
+[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 65587 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 0, len=1239 bytes
+[Protocol] Sent extracted ICE candidate for m0: candidate:3088468610 1 udp 2113937663 192.168.1.16 51484 typ...
+[Protocol] Sent extracted ICE candidate for m0: candidate:361527362 1 udp 2113940223 2402:800:610d:cef6:dc96...
+[Protocol] Sent extracted ICE candidate for m0: candidate:2748444243 1 udp 2113940223 2402:800:610d:cef6:147...
+[Protocol] Sent extracted ICE candidate for m0: candidate:1173202931 1 udp 2113940223 2402:800:610d:cef6:25e...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":1,"sdp":"v=0\r\no=- 4874431875679176120 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 1
+[MultiPC] m1 offer: 1920x1080
+[MultiPC] m1 using dedicated D3D11 device
+[MultiPC] m0 ICE connected
+[MultiPC] m0 PC connected
+[MultiPC] m0 ICE connected
+[MultiPC] m1 ICE gathering timeout (2s), continuing anyway
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m1 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m1 encoder ready (parallel=True)
+[MultiPC] m1 answer created (with gathered candidates)
+[Protocol] Extracted 4 embedded ICE candidates from answer
+[Protocol] Answer JSON for m1: {"type":"answer","monitorIndex":1,"sdp":"v=0\r\no=- 60334 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 1, len=1239 bytes
+[Protocol] Sent extracted ICE candidate for m1: candidate:3088468610 1 udp 2113937663 192.168.1.16 54192 typ...
+[Protocol] Sent extracted ICE candidate for m1: candidate:361527362 1 udp 2113940223 2402:800:610d:cef6:dc96...
+[Protocol] Sent extracted ICE candidate for m1: candidate:2748444243 1 udp 2113940223 2402:800:610d:cef6:147...
+[Protocol] Sent extracted ICE candidate for m1: candidate:1173202931 1 udp 2113940223 2402:800:610d:cef6:25e...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2118550035 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local'
+[MultiPC] m1 ICE connected
+[MultiPC] m1 PC connected
+[MultiPC] m1 ICE connected
+[Cluster Signal] mDNS resolved '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local' -> 192.168.1.13 after 1 attempt(s)
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2253645161 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] mDNS resolve attempt 2/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS fallback: '1445c687-b9e4-450f-bcba-bced791ac177.local' -> 192.168.1.13 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:2253645161 1 udp 2113939711 192.168.1.13 33678 typ host generation 0 ufrag PJAb network-cost 999
+[Protocol] ICE RX: {"type":"offer","monitorIndex":2,"sdp":"v=0\r\no=- 919507510675929835 2 IN IP4 1...
+[Protocol] ICE message type: offer
+[Protocol] Received offer for monitor 2
+[MultiPC] m2 offer: 1920x1080
+[MultiPC] m2 using dedicated D3D11 device
+[MultiPC] m2 ICE gathering timeout (2s), continuing anyway
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[MultiPC] m2 using DEDICATED D3D11 device (parallel mode)
+[MultiPC] m2 AMD GPU detected, using AMF encoder
+[AmfNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[MultiPC] m2 encoder ready (parallel=True)
+[MultiPC] m2 answer created (with gathered candidates)
+[Protocol] Extracted 4 embedded ICE candidates from answer
+[Protocol] Answer JSON for m2: {"type":"answer","monitorIndex":2,"sdp":"v=0\r\no=- 32051 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 2, len=1238 bytes
+[Protocol] Sent extracted ICE candidate for m2: candidate:3088468610 1 udp 2113937663 192.168.1.16 56332 typ...
+[Protocol] Sent extracted ICE candidate for m2: candidate:361527362 1 udp 2113940223 2402:800:610d:cef6:dc96...
+[Protocol] Sent extracted ICE candidate for m2: candidate:2748444243 1 udp 2113940223 2402:800:610d:cef6:147...
+[Protocol] Sent extracted ICE candidate for m2: candidate:1173202931 1 udp 2113940223 2402:800:610d:cef6:25e...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"candidate:1426617966 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local'
+[Cluster Signal] mDNS resolved '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local' -> 192.168.1.13 after 1 attempt(s)
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"candidate:583099827 1 udp 2113...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[MultiPC] m2 ICE connected
+[Protocol] All 3 ICE connections ready, sending ice_ready
+[MultiPC] m2 PC connected
+[Cluster Signal] mDNS resolve attempt 2/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS fallback: '1445c687-b9e4-450f-bcba-bced791ac177.local' -> 192.168.1.13 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:583099827 1 udp 2113939711 192.168.1.13 50403 typ host generation 0 ufrag u6eh network-cost 999
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":2,"candidate":"candidate:853068967 1 udp 2113...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local'
+[Cluster Signal] mDNS resolved '3f118d3a-578f-4f0b-af81-e13017cdcb8e.local' -> 192.168.1.13 after 1 attempt(s)
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":2,"candidate":"candidate:1158799226 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] mDNS resolve attempt 2/2 failed for '1445c687-b9e4-450f-bcba-bced791ac177.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '1445c687-b9e4-450f-bcba-bced791ac177.local'
+[Cluster Signal] mDNS fallback: '1445c687-b9e4-450f-bcba-bced791ac177.local' -> 192.168.1.13 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:1158799226 1 udp 2113939711 192.168.1.13 60526 typ host generation 0 ufrag GY3T network-cost 999
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[MultiPC] m2 ICE connected
+[Protocol] All 3 ICE connections ready, sending ice_ready
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[Protocol] Cursor tracking started
+[KeepAlive] Server-side keep-alive started (5s interval)
+[PerMonitorCapture] Started 3 parallel capture threads
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
+[PerMonitorCapture] Monitor 2: Capture thread started @ 60fps
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[GpuColorConverter] GPU: AMD, using Video Processor for BGRA->NV12 conversion
+[GpuColorConverter] GPU: AMD, using Video Processor for BGRA->NV12 conversion
+[GpuColorConverter] GPU: AMD, using Video Processor for BGRA->NV12 conversion
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
+[PerMonitorCapture] Monitor 2: GpuColorConverter created
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[MultiPC] m2 enc#1: 90778B key=True NALs=[9,7,8,5]
+[MultiPC] m1 enc#1: 142070B key=True NALs=[9,7,8,5]
+[MultiPC] m0 enc#1: 296899B key=True NALs=[9,7,8,5]
+[MultiPC] m2 streaming started
+[MultiPC] m2 enc#2: 165880B key=True NALs=[9,5]
+[MultiPC] m1 streaming started
+[MultiPC] m1 enc#2: 150844B key=True NALs=[9,5]
+[MultiPC] m0 streaming started
+[MultiPC] m0 enc#2: 223760B key=True NALs=[9,5]
+[MultiPC] m1 enc#3: 95553B key=True NALs=[9,5]
+[MultiPC] m1 enc#4: 62670B key=True NALs=[9,5]
+[MultiPC] m2 enc#3: 72325B key=True NALs=[9,5]
+[MultiPC] m0 enc#3: 122191B key=True NALs=[9,5]
+[MultiPC] m2 enc#4: 36769B key=True NALs=[9,5]
+[MultiPC] m0 enc#4: 70893B key=True NALs=[9,5]
+[MultiPC] m1 enc#5: 181B key=False NALs=[9,1]
+[MultiPC] m2 enc#5: 221B key=False NALs=[9,1]
+[MultiPC] m0 enc#5: 700B key=False NALs=[9,1]
+[Capture FPS] Mon2: 0.3 fps (captured 1 frames in 3002ms)
+[Capture FPS] Mon0: 4.0 fps (captured 12 frames in 3002ms)
+[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3002ms)
+[Encode FPS] Mon1: 58.5 fps (sent 177 in 3024ms, skipped=0)
+[Encode FPS] Mon2: 57.8 fps (sent 175 in 3029ms, skipped=0)
+[Encode FPS] Mon0: 57.8 fps (sent 175 in 3027ms, skipped=0)
+[Capture FPS] Mon2: 9.0 fps (captured 27 frames in 3008ms)
+[Capture FPS] Mon1: 34.9 fps (captured 105 frames in 3008ms)
+[Capture FPS] Mon0: 33.5 fps (captured 101 frames in 3013ms)
+[Encode FPS] Mon2: 58.1 fps (sent 175 in 3013ms, skipped=0)
+[Encode FPS] Mon1: 58.7 fps (sent 177 in 3016ms, skipped=0)
+[Encode FPS] Mon0: 58.4 fps (sent 176 in 3014ms, skipped=0)
+[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3004ms)
+[Capture FPS] Mon0: 2.0 fps (captured 6 frames in 3000ms)
+[Capture FPS] Mon2: 0.0 fps (captured 0 frames in 3006ms)
+[Encode FPS] Mon0: 57.3 fps (sent 172 in 3000ms, skipped=0)
+[Encode FPS] Mon2: 57.0 fps (sent 172 in 3015ms, skipped=0)
+[Encode FPS] Mon1: 58.0 fps (sent 175 in 3015ms, skipped=0)
+[Capture FPS] Mon0: 1.7 fps (captured 5 frames in 3001ms)
+[Capture FPS] Mon2: 28.7 fps (captured 86 frames in 3001ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3011ms)
+[Encode FPS] Mon1: 58.6 fps (sent 176 in 3002ms, skipped=0)
+[Encode FPS] Mon2: 58.6 fps (sent 176 in 3003ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3007ms, skipped=0)
+[Capture FPS] Mon0: 2.0 fps (captured 6 frames in 3002ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3006ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3000ms)
+[Encode FPS] Mon2: 57.9 fps (sent 174 in 3003ms, skipped=0)
+[Encode FPS] Mon0: 57.4 fps (sent 173 in 3012ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 176 in 3020ms, skipped=0)
+[Capture FPS] Mon1: 31.3 fps (captured 94 frames in 3000ms)
+[Capture FPS] Mon0: 23.2 fps (captured 70 frames in 3016ms)
+[Capture FPS] Mon2: 31.9 fps (captured 96 frames in 3012ms)
+[Encode FPS] Mon2: 58.2 fps (sent 175 in 3005ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3004ms, skipped=0)
+[KeepAlive] Client not responding for 20.0s, connection may be dead
+[Capture FPS] Mon2: 32.7 fps (captured 98 frames in 3000ms)
+[Capture FPS] Mon1: 39.5 fps (captured 119 frames in 3015ms)
+[Capture FPS] Mon0: 16.6 fps (captured 50 frames in 3009ms)
+[Encode FPS] Mon2: 58.2 fps (sent 175 in 3007ms, skipped=0)
+[Encode FPS] Mon1: 58.7 fps (sent 176 in 3000ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 175 in 3016ms, skipped=0)
+[Capture FPS] Mon2: 36.6 fps (captured 110 frames in 3005ms)
+[Capture FPS] Mon0: 18.3 fps (captured 55 frames in 3000ms)
+[Capture FPS] Mon1: 52.4 fps (captured 158 frames in 3013ms)
+[Encode FPS] Mon2: 58.6 fps (sent 176 in 3001ms, skipped=0)
+[Encode FPS] Mon1: 58.8 fps (sent 177 in 3011ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3009ms, skipped=0)
+[KeepAlive] Client not responding for 25.0s, connection may be dead
+[Capture FPS] Mon2: 36.2 fps (captured 109 frames in 3010ms)
+[Capture FPS] Mon0: 53.1 fps (captured 160 frames in 3012ms)
+[Capture FPS] Mon1: 44.2 fps (captured 133 frames in 3010ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3002ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 176 in 3010ms, skipped=0)
+[Encode FPS] Mon0: 58.7 fps (sent 177 in 3013ms, skipped=0)
+[KeepAlive] Client not responding for 30.0s, connection may be dead
+[Capture FPS] Mon2: 35.3 fps (captured 106 frames in 3004ms)
+[Capture FPS] Mon0: 45.9 fps (captured 138 frames in 3006ms)
+[Capture FPS] Mon1: 58.5 fps (captured 176 frames in 3009ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[Encode FPS] Mon1: 58.8 fps (sent 177 in 3010ms, skipped=0)
+[Encode FPS] Mon0: 58.4 fps (sent 176 in 3016ms, skipped=0)
+[Capture FPS] Mon2: 30.6 fps (captured 92 frames in 3011ms)
+[Capture FPS] Mon0: 36.5 fps (captured 110 frames in 3016ms)
+[Capture FPS] Mon1: 54.5 fps (captured 164 frames in 3011ms)
+[Encode FPS] Mon2: 58.1 fps (sent 176 in 3029ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 177 in 3024ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 175 in 3017ms, skipped=0)
+[KeepAlive] Client not responding for 35.0s, connection may be dead
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3001ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3013ms)
+[Capture FPS] Mon1: 31.2 fps (captured 94 frames in 3013ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[Encode FPS] Mon1: 58.1 fps (sent 175 in 3014ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 176 in 3022ms, skipped=0)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3003ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3015ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
+[Encode FPS] Mon2: 58.2 fps (sent 176 in 3024ms, skipped=0)
+[Encode FPS] Mon1: 58.6 fps (sent 176 in 3005ms, skipped=0)
+[Encode FPS] Mon0: 57.9 fps (sent 175 in 3023ms, skipped=0)
+[KeepAlive] Client not responding for 40.0s, connection may be dead
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3008ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3009ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3002ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 176 in 3023ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 176 in 3018ms, skipped=0)
+[KeepAlive] Client not responding for 45.0s, connection may be dead
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3000ms)
+[Capture FPS] Mon2: 29.7 fps (captured 89 frames in 3000ms)
+[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3008ms)
+[Encode FPS] Mon2: 57.5 fps (sent 173 in 3008ms, skipped=0)
+[Encode FPS] Mon1: 58.1 fps (sent 176 in 3028ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 175 in 3015ms, skipped=0)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3004ms)
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3004ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3009ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 176 in 3010ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[KeepAlive] Client not responding for 50.0s, connection may be dead
+[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3016ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3011ms)
+[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3016ms)
+[Encode FPS] Mon2: 58.3 fps (sent 176 in 3018ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 175 in 3006ms, skipped=0)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3015ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3015ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3012ms)
+[Encode FPS] Mon2: 58.1 fps (sent 176 in 3028ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[KeepAlive] Client not responding for 55.0s, connection may be dead
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3001ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3009ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3002ms)
+[Encode FPS] Mon2: 58.9 fps (sent 177 in 3004ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3007ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 176 in 3023ms, skipped=0)
+[KeepAlive] Client not responding for 60.0s, connection may be dead
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3000ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3013ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3011ms)
+[Encode FPS] Mon2: 57.9 fps (sent 175 in 3022ms, skipped=0)
+[Encode FPS] Mon0: 58.5 fps (sent 176 in 3008ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 176 in 3009ms, skipped=0)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3014ms)
+[Capture FPS] Mon2: 30.3 fps (captured 91 frames in 3006ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3000ms)
+[Encode FPS] Mon2: 58.5 fps (sent 176 in 3011ms, skipped=0)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[KeepAlive] Client not responding for 65.0s, connection may be dead
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3014ms)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3012ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3010ms)
+[Encode FPS] Mon2: 58.2 fps (sent 175 in 3007ms, skipped=0)
+[Encode FPS] Mon0: 58.5 fps (sent 176 in 3007ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 176 in 3019ms, skipped=0)
+[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3016ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3006ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3004ms)
+[Encode FPS] Mon2: 58.2 fps (sent 176 in 3026ms, skipped=0)
+[Encode FPS] Mon0: 58.1 fps (sent 175 in 3010ms, skipped=0)
+[Encode FPS] Mon1: 58.7 fps (sent 176 in 3000ms, skipped=0)
+[KeepAlive] Client not responding for 70.0s, connection may be dead
+[Capture FPS] Mon0: 29.7 fps (captured 89 frames in 3000ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3011ms)
+[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3016ms)
+[Encode FPS] Mon0: 58.6 fps (sent 176 in 3005ms, skipped=0)
+[Encode FPS] Mon2: 58.5 fps (sent 176 in 3007ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[KeepAlive] Client not responding for 75.0s, connection may be dead
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
+[Capture FPS] Mon2: 30.3 fps (captured 91 frames in 3000ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3002ms, skipped=0)
+[Encode FPS] Mon2: 58.0 fps (sent 175 in 3019ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 176 in 3022ms, skipped=0)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3010ms)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3008ms)
+[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3006ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon0: 57.9 fps (sent 175 in 3020ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 176 in 3010ms, skipped=0)
+[KeepAlive] Client not responding for 80.0s, connection may be dead
+[Capture FPS] Mon2: 30.3 fps (captured 91 frames in 3001ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3007ms)
+[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3003ms)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[Encode FPS] Mon1: 58.1 fps (sent 175 in 3014ms, skipped=0)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3013ms)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3013ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3002ms)
+[Encode FPS] Mon2: 58.0 fps (sent 174 in 3001ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[KeepAlive] Client not responding for 85.0s, connection may be dead
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3003ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3015ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3014ms)
+[Encode FPS] Mon2: 58.2 fps (sent 175 in 3005ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3009ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 175 in 3008ms, skipped=0)
+[KeepAlive] Client not responding for 90.0s, connection may be dead
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3001ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3008ms)
+[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3012ms)
+[Encode FPS] Mon2: 58.6 fps (sent 176 in 3002ms, skipped=0)
+[Encode FPS] Mon0: 58.1 fps (sent 175 in 3012ms, skipped=0)
+[Encode FPS] Mon1: 57.5 fps (sent 174 in 3025ms, skipped=0)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3014ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3010ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3005ms)
+[Encode FPS] Mon2: 57.8 fps (sent 174 in 3008ms, skipped=0)
+[Encode FPS] Mon0: 58.5 fps (sent 177 in 3028ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 176 in 3024ms, skipped=0)
+[KeepAlive] Client not responding for 95.0s, connection may be dead
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3013ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3005ms)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3016ms)
+[Encode FPS] Mon2: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3005ms, skipped=0)
+[Encode FPS] Mon1: 58.4 fps (sent 176 in 3013ms, skipped=0)
+[Capture FPS] Mon2: 30.3 fps (captured 91 frames in 3007ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
+[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3016ms)
+[Encode FPS] Mon2: 58.5 fps (sent 176 in 3008ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[Encode FPS] Mon1: 58.4 fps (sent 176 in 3014ms, skipped=0)
+[KeepAlive] Client not responding for 100.0s, connection may be dead
+[Capture FPS] Mon2: 30.6 fps (captured 92 frames in 3008ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3006ms)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3010ms)
+[Encode FPS] Mon2: 57.5 fps (sent 174 in 3026ms, skipped=0)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3006ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3001ms, skipped=0)
+[KeepAlive] Client not responding for 105.0s, connection may be dead
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3005ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3003ms)
+[Capture FPS] Mon0: 29.6 fps (captured 89 frames in 3007ms)
+[Encode FPS] Mon2: 58.9 fps (sent 177 in 3007ms, skipped=0)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3004ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 176 in 3018ms, skipped=0)
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3004ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3000ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3011ms)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3004ms, skipped=0)
+[Encode FPS] Mon2: 57.9 fps (sent 175 in 3020ms, skipped=0)
+[Encode FPS] Mon1: 58.4 fps (sent 176 in 3013ms, skipped=0)
+[KeepAlive] Client not responding for 110.0s, connection may be dead
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3001ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3004ms)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3014ms)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3003ms, skipped=0)
+[Encode FPS] Mon2: 58.4 fps (sent 176 in 3013ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 176 in 3026ms, skipped=0)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3016ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3000ms)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3000ms)
+[Encode FPS] Mon0: 58.7 fps (sent 177 in 3014ms, skipped=0)
+[Encode FPS] Mon2: 58.4 fps (sent 176 in 3014ms, skipped=0)
+[Encode FPS] Mon1: 58.0 fps (sent 175 in 3016ms, skipped=0)
+[KeepAlive] Client not responding for 115.0s, connection may be dead
+[Capture FPS] Mon2: 37.2 fps (captured 112 frames in 3008ms)
+[Capture FPS] Mon1: 41.9 fps (captured 126 frames in 3008ms)
+[Capture FPS] Mon0: 51.8 fps (captured 156 frames in 3012ms)
+[Encode FPS] Mon0: 58.9 fps (sent 177 in 3004ms, skipped=0)
+[Encode FPS] Mon2: 58.4 fps (sent 176 in 3012ms, skipped=0)
+[Encode FPS] Mon1: 58.5 fps (sent 176 in 3011ms, skipped=0)
+[KeepAlive] Client not responding for 120.0s, connection may be dead
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3011ms)
+[Capture FPS] Mon1: 30.9 fps (captured 93 frames in 3013ms)
+[Capture FPS] Mon0: 53.3 fps (captured 160 frames in 3002ms)
+[Encode FPS] Mon0: 58.5 fps (sent 176 in 3006ms, skipped=0)
+[Encode FPS] Mon2: 58.2 fps (sent 175 in 3006ms, skipped=0)
+[Encode FPS] Mon1: 57.8 fps (sent 175 in 3026ms, skipped=0)
+[Capture FPS] Mon2: 29.9 fps (captured 90 frames in 3006ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
+[Capture FPS] Mon0: 29.8 fps (captured 90 frames in 3016ms)
+[Encode FPS] Mon0: 58.3 fps (sent 175 in 3000ms, skipped=0)
+[Encode FPS] Mon2: 58.7 fps (sent 176 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3002ms, skipped=0)
+[KeepAlive] Client not responding for 125.0s, connection may be dead
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3015ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3002ms)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3005ms)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3009ms, skipped=0)
+[Encode FPS] Mon2: 57.9 fps (sent 174 in 3007ms, skipped=0)
+[Encode FPS] Mon1: 57.9 fps (sent 174 in 3003ms, skipped=0)
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3001ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3010ms)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3004ms)
+[Encode FPS] Mon0: 58.2 fps (sent 176 in 3023ms, skipped=0)
+[Encode FPS] Mon2: 58.5 fps (sent 176 in 3009ms, skipped=0)
+[Encode FPS] Mon1: 58.1 fps (sent 175 in 3013ms, skipped=0)
+[KeepAlive] Client not responding for 130.0s, connection may be dead
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3009ms)
+[Capture FPS] Mon1: 30.0 fps (captured 90 frames in 3004ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3010ms)
+[Encode FPS] Mon0: 58.1 fps (sent 175 in 3010ms, skipped=0)
+[Encode FPS] Mon2: 58.3 fps (sent 176 in 3020ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3002ms, skipped=0)
+[KeepAlive] Client not responding for 135.0s, connection may be dead
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3009ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
+[Capture FPS] Mon0: 30.2 fps (captured 91 frames in 3009ms)
+[Encode FPS] Mon0: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon2: 58.1 fps (sent 175 in 3010ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 176 in 3021ms, skipped=0)
+[Capture FPS] Mon2: 30.3 fps (captured 91 frames in 3001ms)
+[Capture FPS] Mon1: 30.3 fps (captured 91 frames in 3006ms)
+[Capture FPS] Mon0: 29.9 fps (captured 90 frames in 3014ms)
+[Encode FPS] Mon0: 58.6 fps (sent 177 in 3023ms, skipped=0)
+[Encode FPS] Mon2: 58.3 fps (sent 175 in 3003ms, skipped=0)
+[Encode FPS] Mon1: 58.2 fps (sent 175 in 3009ms, skipped=0)
+[KeepAlive] Client not responding for 140.0s, connection may be dead
+[Capture FPS] Mon2: 30.0 fps (captured 90 frames in 3005ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3013ms)
+[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3005ms)
+[Encode FPS] Mon0: 58.2 fps (sent 175 in 3007ms, skipped=0)
+[Encode FPS] Mon2: 58.0 fps (sent 174 in 3000ms, skipped=0)
+[Encode FPS] Mon1: 58.3 fps (sent 175 in 3002ms, skipped=0)
+[Capture FPS] Mon2: 30.2 fps (captured 91 frames in 3011ms)
+[Capture FPS] Mon1: 29.9 fps (captured 90 frames in 3015ms)
+[Capture FPS] Mon0: 30.3 fps (captured 91 frames in 3004ms)
+[Encode FPS] Mon0: 58.5 fps (sent 176 in 3006ms, skipped=0)
+[Encode FPS] Mon2: 58.5 fps (sent 176 in 3010ms, skipped=0)
+[Encode FPS] Mon1: 58.0 fps (sent 174 in 3002ms, skipped=0)
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
+[Protocol] Phase changed to: Disconnecting
+[AmfNativeWrapper] Disposed
+[MultiPC] m0 PC closed
+[AmfNativeWrapper] Disposed
+[MultiPC] m1 PC closed
+[AmfNativeWrapper] Disposed
+[MultiPC] m2 PC closed
+[PerMonitorCapture] Monitor 2: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1, \\.\DISPLAY11
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client d9b9e9ab-fe95-4dd7-b70c-37beac61c940 disconnected

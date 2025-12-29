@@ -42,6 +42,18 @@ public class MultiPCStreamer : IDisposable
     public event Action<int>? OnPeerDisconnected; // monitorIndex
     public event Action<int>? OnMonitorNeedsReconnect; // monitorIndex - fired when PC closed abnormally, needs re-offer
 
+    /// <summary>
+    /// Connection state machine to prevent race conditions in recovery logic.
+    /// </summary>
+    public enum ConnectionState
+    {
+        Disconnected,       // Initial state or after failure
+        Connecting,         // ICE negotiation in progress
+        Connected,          // Fully connected and streaming
+        WaitingRecovery,    // Temporary disconnect, waiting for auto-recovery
+        Reconnecting        // Recovery failed, requesting full reconnect
+    }
+
     private class MonitorPC : IDisposable
     {
         public int Index { get; set; }
@@ -50,7 +62,18 @@ public class MultiPCStreamer : IDisposable
         public RTCPeerConnection? PC { get; set; }
         public ITextureEncoder? Encoder { get; set; }
         public ID3D11Texture2D? StagingNV12 { get; set; }
-        public bool IceConnected { get; set; }
+
+        // Thread-safe connection state (replaces bool IceConnected)
+        private volatile ConnectionState _state = ConnectionState.Disconnected;
+        public ConnectionState State
+        {
+            get => _state;
+            set => _state = value;
+        }
+
+        public int PcGeneration { get; set; } // Track PC generation to avoid race conditions in callbacks
+        public int RecoveryTaskId { get; set; } // Track which recovery task is active to prevent duplicates
+
         public long SentCount;
         public long SkipCount;
         public long EncodeCount;
@@ -62,6 +85,9 @@ public class MultiPCStreamer : IDisposable
 
         // Per-monitor D3D11 device for parallel encoding (no contention!)
         public ID3D11Device? Device { get; set; }
+
+        // Helper to check if connected (for backward compatibility)
+        public bool IsConnected => _state == ConnectionState.Connected;
 
         public void Dispose()
         {
@@ -118,8 +144,9 @@ public class MultiPCStreamer : IDisposable
             throw new ArgumentOutOfRangeException(nameof(monitorIndex));
         
         Console.WriteLine($"[MultiPC] m{monitorIndex} offer: {width}x{height}");
-        
+
         MonitorPC monitor;
+        RTCPeerConnection? oldPcToClose = null;  // Will be set if we need to close old PC
         lock (_lock)
         {
             // Find or create monitor entry
@@ -127,56 +154,124 @@ public class MultiPCStreamer : IDisposable
             if (monitor == null)
             {
                 monitor = new MonitorPC { Index = monitorIndex, Width = width, Height = height };
-                
+
                 // Apply per-monitor device if registered (for parallel encoding)
                 if (_perMonitorDevices.TryGetValue(monitorIndex, out var perMonDevice))
                 {
                     monitor.Device = perMonDevice;
                     Console.WriteLine($"[MultiPC] m{monitorIndex} using dedicated D3D11 device");
                 }
-                
+
+                // Set initial state for new monitor
+                monitor.State = ConnectionState.Connecting;
+                monitor.PcGeneration = 1;  // Start at 1 for first PC
+
                 _monitors.Add(monitor);
             }
             else
             {
                 // Check if resolution changed
                 bool resolutionChanged = monitor.Width != width || monitor.Height != height;
-                
-                // Cleanup existing PC
-                monitor.PC?.close();
-                
+
+                // CRITICAL: Increment generation FIRST to invalidate old PC callbacks immediately
+                // This prevents race conditions where old PC fires events during close()
+                monitor.PcGeneration++;
+
+                // Save old PC reference for cleanup outside lock
+                oldPcToClose = monitor.PC;
+                monitor.PC = null;  // Clear reference immediately
+
                 // If resolution changed, cleanup encoder and staging texture
                 if (resolutionChanged)
                 {
                     Console.WriteLine($"[MultiPC] m{monitorIndex} res changed: {monitor.Width}x{monitor.Height} -> {width}x{height}");
-                    
+
                     // Dispose old encoder
                     try { monitor.Encoder?.Dispose(); } catch { }
                     monitor.Encoder = null;
-                    
+
                     // Dispose old staging texture
                     try { monitor.StagingNV12?.Dispose(); } catch { }
                     monitor.StagingNV12 = null;
-                    
+
                     // Clear captured SPS/PPS for this monitor (no longer valid)
                     _capturedSPS.TryRemove(monitorIndex, out _);
                     _capturedPPS.TryRemove(monitorIndex, out _);
-                    
+
                     // Reset counters
                     Interlocked.Exchange(ref monitor.SentCount, 0);
                     Interlocked.Exchange(ref monitor.SkipCount, 0);
                     Interlocked.Exchange(ref monitor.LastPts100ns, 0);
                 }
-                
+
                 monitor.Width = width;
                 monitor.Height = height;
+
+                // Set state to Connecting and reset recovery task
+                monitor.State = ConnectionState.Connecting;
+                monitor.RecoveryTaskId++;  // Invalidate any pending recovery tasks
             }
         }
 
-        // Create PeerConnection
-        var cfg = new RTCConfiguration { iceServers = new List<RTCIceServer>() };
+        // Close old PC OUTSIDE lock to avoid blocking, then wait for resources to release
+        if (oldPcToClose != null)
+        {
+            Console.WriteLine($"[MultiPC] m{monitorIndex} closing old PC...");
+            oldPcToClose.close();
+            // Wait for network resources (UDP ports, DTLS) to fully release
+            await Task.Delay(200);
+            Console.WriteLine($"[MultiPC] m{monitorIndex} old PC closed, resources released");
+        }
+
+        // Create PeerConnection with STUN + TURN servers for robust NAT traversal
+        // TURN servers provide relay fallback when direct/STUN connections fail
+        var cfg = new RTCConfiguration
+        {
+            iceServers = new List<RTCIceServer>
+            {
+                // Google STUN servers (free, global, reliable) - for server reflexive candidates
+                new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
+                new RTCIceServer { urls = "stun:stun1.l.google.com:19302" },
+
+                // Open Relay TURN servers (free 500MB/month) - for relay candidates
+                // Get your API key at: https://www.metered.ca/tools/openrelay/
+                // These provide critical fallback when symmetric NAT blocks direct connections
+                new RTCIceServer
+                {
+                    urls = "turn:a.relay.metered.ca:80",
+                    username = "83eebabf8b4cce9d5dbcb649",
+                    credential = "2D7JvfkOQtBdYW3R"
+                },
+                new RTCIceServer
+                {
+                    urls = "turn:a.relay.metered.ca:80?transport=tcp",
+                    username = "83eebabf8b4cce9d5dbcb649",
+                    credential = "2D7JvfkOQtBdYW3R"
+                },
+                new RTCIceServer
+                {
+                    urls = "turn:a.relay.metered.ca:443",
+                    username = "83eebabf8b4cce9d5dbcb649",
+                    credential = "2D7JvfkOQtBdYW3R"
+                },
+                new RTCIceServer
+                {
+                    urls = "turns:a.relay.metered.ca:443?transport=tcp",
+                    username = "83eebabf8b4cce9d5dbcb649",
+                    credential = "2D7JvfkOQtBdYW3R"
+                },
+            }
+        };
         var pc = new RTCPeerConnection(cfg);
         monitor.PC = pc;
+
+        // Capture current generation for callback validation
+        // (generation was already incremented in lock block above)
+        int currentGeneration = monitor.PcGeneration;
+
+        // Reset SentCount for new PC so we see "streaming started" again
+        Interlocked.Exchange(ref monitor.SentCount, 0);
+        Interlocked.Exchange(ref monitor.EncodeCount, 0);
 
         // Parse H264 from offer
         var (h264Pt, h264Fmtp) = TryGetH264FromOffer(offerSdp);
@@ -200,10 +295,19 @@ public class MultiPCStreamer : IDisposable
         
         pc.addTrack(track);
 
+        // ICE gathering complete signal for Vanilla ICE mode
+        var gatheringComplete = new TaskCompletionSource<bool>();
+
         // ICE candidate forwarding
         pc.onicecandidate += (cand) =>
         {
-            if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+            if (cand == null)
+            {
+                // null candidate = ICE gathering complete
+                Console.WriteLine($"[MultiPC] m{monitorIndex} ICE gathering complete");
+                gatheringComplete.TrySetResult(true);
+            }
+            else if (!string.IsNullOrEmpty(cand.candidate))
             {
                 OnIceCandidate?.Invoke(monitorIndex, cand.candidate);
             }
@@ -211,91 +315,75 @@ public class MultiPCStreamer : IDisposable
 
         pc.oniceconnectionstatechange += (state) =>
         {
+            // Check if this callback is from the current PC (not an old one being closed)
+            if (monitor.PcGeneration != currentGeneration)
+            {
+                Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state} (ignored - old PC generation)");
+                return;
+            }
+
             if (state == RTCIceConnectionState.connected)
             {
-                monitor.IceConnected = true;
+                monitor.State = ConnectionState.Connected;
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE connected");
                 CheckAllConnected();
             }
             else if (state == RTCIceConnectionState.disconnected)
             {
                 // ICE disconnected can be temporary - don't immediately trigger reconnect
-                monitor.IceConnected = false;
+                // Only change state if currently connected (don't override WaitingRecovery)
+                if (monitor.State == ConnectionState.Connected)
+                {
+                    monitor.State = ConnectionState.Disconnected;
+                }
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE disconnected (may recover)");
             }
             else if (state == RTCIceConnectionState.failed || state == RTCIceConnectionState.closed)
             {
-                monitor.IceConnected = false;
                 Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}");
 
-                // If still running (not intentionally stopped), request reconnect with delay for WiFi tolerance
-                if (_running && !_disposed)
+                // Only set to disconnected if not already in recovery
+                if (monitor.State == ConnectionState.Connected || monitor.State == ConnectionState.Connecting)
                 {
-                    // Add 3-second tolerance delay for WiFi jitter recovery
-                    _ = Task.Run(async () =>
-                    {
-                        Console.WriteLine($"[MultiPC] m{monitorIndex} ICE {state}, waiting 3s for recovery...");
-                        await Task.Delay(3000);
+                    monitor.State = ConnectionState.Disconnected;
+                }
 
-                        // Check if still disconnected after delay
-                        if (_running && !_disposed && !monitor.IceConnected)
-                        {
-                            Console.WriteLine($"[MultiPC] m{monitorIndex} still disconnected after 3s, requesting reconnect...");
-                            OnMonitorNeedsReconnect?.Invoke(monitorIndex);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[MultiPC] m{monitorIndex} recovered or stopped, skip reconnect");
-                        }
-                    });
-                }
-                else
-                {
-                    OnPeerDisconnected?.Invoke(monitorIndex);
-                }
+                // Use unified recovery handler (prevents race conditions)
+                TryStartRecovery(monitor, currentGeneration, $"ICE {state}");
             }
         };
 
         pc.onconnectionstatechange += (state) =>
         {
+            // Check if this callback is from the current PC (not an old one being closed)
+            if (monitor.PcGeneration != currentGeneration)
+            {
+                Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state} (ignored - old PC generation)");
+                return;
+            }
+
             if (state == RTCPeerConnectionState.connected)
             {
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC connected");
-                monitor.IceConnected = true;  // Mark as connected for reconnect tolerance check
+                monitor.State = ConnectionState.Connected;  // Mark as connected
             }
             else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
             {
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
-                monitor.IceConnected = false;
 
-                // If still running (not intentionally stopped), request reconnect with delay for WiFi tolerance
-                if (_running && !_disposed)
+                // Only set to disconnected if not already in recovery
+                if (monitor.State == ConnectionState.Connected || monitor.State == ConnectionState.Connecting)
                 {
-                    // Add 3-second tolerance delay for WiFi jitter recovery
-                    _ = Task.Run(async () =>
-                    {
-                        Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}, waiting 3s for recovery...");
-                        await Task.Delay(3000);
+                    monitor.State = ConnectionState.Disconnected;
+                }
 
-                        // Check if still disconnected after delay
-                        if (_running && !_disposed && !monitor.IceConnected)
-                        {
-                            Console.WriteLine($"[MultiPC] m{monitorIndex} still disconnected after 3s, requesting reconnect...");
-                            OnMonitorNeedsReconnect?.Invoke(monitorIndex);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[MultiPC] m{monitorIndex} recovered or stopped, skip reconnect");
-                        }
-                    });
-                }
-                else
-                {
-                    OnPeerDisconnected?.Invoke(monitorIndex);
-                }
+                // Use unified recovery handler (prevents race conditions with ICE handler)
+                TryStartRecovery(monitor, currentGeneration, $"PC {state}");
             }
             else if (state != RTCPeerConnectionState.connecting && state != RTCPeerConnectionState.@new)
+            {
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
+            }
         };
 
         // Set remote offer and create answer
@@ -303,21 +391,35 @@ public class MultiPCStreamer : IDisposable
         var answer = pc.createAnswer(null);
         await pc.setLocalDescription(answer);
 
+        // Wait for ICE gathering to complete (STUN/TURN candidates gathered)
+        // This ensures all candidates are embedded in the answer SDP
+        // Use 2 second timeout - if gathering takes longer, continue anyway
+        var gatheringTask = gatheringComplete.Task;
+        var timeoutTask = Task.Delay(2000);
+        var completedTask = await Task.WhenAny(gatheringTask, timeoutTask);
+        if (completedTask == timeoutTask)
+        {
+            Console.WriteLine($"[MultiPC] m{monitorIndex} ICE gathering timeout (2s), continuing anyway");
+        }
+
         _running = true;
 
         // Initialize encoder immediately (don't wait for ICE connected)
         // This ensures both encoders are ready at the same time
         InitializeEncoder(monitor);
-        
-        var answerSdp = (answer.sdp ?? "").Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
-        
+
+        // Get the final SDP with all gathered candidates
+        // After gathering, localDescription should have updated SDP with candidates embedded
+        var finalSdp = pc.localDescription?.sdp?.ToString() ?? answer.sdp ?? "";
+        var answerSdp = finalSdp.Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+
         // CRITICAL: Ensure SDP has proper payload type info (fixes video not playing)
         var chosenPt = h264Pt ?? 96;
         answerSdp = EnsureVideoMLineHasPayload(answerSdp, chosenPt, h264Fmtp);
         // NOTE: Keep ICE candidates in SDP for Vanilla ICE mode - do NOT filter them out
         // answerSdp = FilterIceCandidates(answerSdp);
 
-        Console.WriteLine($"[MultiPC] m{monitorIndex} answer created");
+        Console.WriteLine($"[MultiPC] m{monitorIndex} answer created (with gathered candidates)");
         return answerSdp;
     }
 
@@ -447,11 +549,95 @@ public class MultiPCStreamer : IDisposable
         }
     }
 
+    /// <summary>
+    /// Unified recovery handler to prevent race conditions.
+    /// Only one recovery task can be active per monitor at a time.
+    /// </summary>
+    private void TryStartRecovery(MonitorPC monitor, int currentGeneration, string reason)
+    {
+        lock (_lock)
+        {
+            // Only start recovery if:
+            // 1. Still running and not disposed
+            // 2. Monitor is disconnected (not already recovering/reconnecting)
+            // 3. Same PC generation (not already replaced)
+            if (!_running || _disposed)
+            {
+                OnPeerDisconnected?.Invoke(monitor.Index);
+                return;
+            }
+
+            // If already waiting for recovery or reconnecting, don't start another task
+            if (monitor.State == ConnectionState.WaitingRecovery ||
+                monitor.State == ConnectionState.Reconnecting)
+            {
+                Console.WriteLine($"[MultiPC] m{monitor.Index} {reason} - recovery already in progress, skipping");
+                return;
+            }
+
+            // If PC generation changed, this is an old callback
+            if (monitor.PcGeneration != currentGeneration)
+            {
+                Console.WriteLine($"[MultiPC] m{monitor.Index} {reason} - old generation, skipping");
+                return;
+            }
+
+            // Set state to waiting recovery and increment task ID
+            monitor.State = ConnectionState.WaitingRecovery;
+            monitor.RecoveryTaskId++;
+            int taskId = monitor.RecoveryTaskId;
+
+            Console.WriteLine($"[MultiPC] m{monitor.Index} {reason}, waiting 3s for recovery...");
+
+            // Start recovery task
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(3000);
+
+                lock (_lock)
+                {
+                    // Check if this recovery task is still valid
+                    if (monitor.RecoveryTaskId != taskId)
+                    {
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} recovery task {taskId} superseded by {monitor.RecoveryTaskId}");
+                        return;
+                    }
+
+                    if (!_running || _disposed)
+                    {
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} stopped, skip reconnect");
+                        return;
+                    }
+
+                    // Check if recovered (state changed to Connected)
+                    if (monitor.State == ConnectionState.Connected)
+                    {
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} recovered, skip reconnect");
+                        return;
+                    }
+
+                    // Still in WaitingRecovery - need to reconnect
+                    if (monitor.State == ConnectionState.WaitingRecovery)
+                    {
+                        monitor.State = ConnectionState.Reconnecting;
+                        Console.WriteLine($"[MultiPC] m{monitor.Index} still disconnected after 3s, requesting reconnect...");
+                    }
+                }
+
+                // Fire reconnect event outside lock
+                if (monitor.State == ConnectionState.Reconnecting)
+                {
+                    OnMonitorNeedsReconnect?.Invoke(monitor.Index);
+                }
+            });
+        }
+    }
+
     private void CheckAllConnected()
     {
         lock (_lock)
         {
-            if (_monitors.Count >= _monitorCount && _monitors.All(m => m.IceConnected))
+            if (_monitors.Count >= _monitorCount && _monitors.All(m => m.IsConnected))
                 OnAllConnected?.Invoke();
         }
     }
@@ -473,7 +659,7 @@ public class MultiPCStreamer : IDisposable
         if (monitor == null) return;
 
         // Check if encoder is ready
-        if (monitor.Encoder == null || !monitor.IceConnected)
+        if (monitor.Encoder == null || !monitor.IsConnected)
         {
             Interlocked.Increment(ref monitor.SkipCount);
             return;
@@ -548,7 +734,7 @@ public class MultiPCStreamer : IDisposable
         if (monitor == null) return;
         
         // Check if encoder is ready
-        if (monitor.Encoder == null || !monitor.IceConnected)
+        if (monitor.Encoder == null || !monitor.IsConnected)
         {
             Interlocked.Increment(ref monitor.SkipCount);
             return;
@@ -579,7 +765,7 @@ public class MultiPCStreamer : IDisposable
     
     private void OnEncodedData(MonitorPC monitor, byte[] nalData, bool isKeyframe, long pts)
     {
-        if (!_running || monitor.PC == null || !monitor.IceConnected) return;
+        if (!_running || monitor.PC == null || !monitor.IsConnected) return;
         if (monitor.PC.connectionState != RTCPeerConnectionState.connected) return;
         
         // Debug: log first few callbacks per monitor

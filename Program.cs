@@ -992,9 +992,61 @@ public class SignalAndRestServer
                 continue;
             }
 
+            // Serve static files from Web folder (webrtc_protocolv2.html, etc.)
+            if (ctx.Request.HttpMethod == "GET" && !ctx.Request.IsWebSocketRequest)
+            {
+                var fileName = path.TrimStart('/');
+                if (string.IsNullOrEmpty(fileName)) fileName = "index.html";
+
+                // Only serve specific extensions for security
+                var ext = Path.GetExtension(fileName).ToLowerInvariant();
+                var allowedExtensions = new[] { ".html", ".htm", ".js", ".css", ".json", ".png", ".jpg", ".gif", ".svg", ".ico" };
+
+                if (allowedExtensions.Contains(ext))
+                {
+                    var webFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Web");
+                    var filePath = Path.Combine(webFolder, fileName);
+
+                    // Prevent directory traversal
+                    var fullPath = Path.GetFullPath(filePath);
+                    var fullWebFolder = Path.GetFullPath(webFolder);
+
+                    if (fullPath.StartsWith(fullWebFolder, StringComparison.OrdinalIgnoreCase) && File.Exists(fullPath))
+                    {
+                        ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                        ctx.Response.StatusCode = 200;
+                        ctx.Response.ContentType = GetContentType(ext);
+
+                        var fileBytes = await File.ReadAllBytesAsync(fullPath);
+                        ctx.Response.ContentLength64 = fileBytes.Length;
+                        await ctx.Response.OutputStream.WriteAsync(fileBytes, 0, fileBytes.Length);
+                        ctx.Response.Close();
+                        Console.WriteLine($"[HTTP] Served static file: {fileName}");
+                        continue;
+                    }
+                }
+            }
+
             ctx.Response.StatusCode = 404; ctx.Response.Close();
         }
     }
+
+    /// <summary>
+    /// Get content type from file extension.
+    /// </summary>
+    private static string GetContentType(string ext) => ext switch
+    {
+        ".html" or ".htm" => "text/html; charset=utf-8",
+        ".js" => "application/javascript; charset=utf-8",
+        ".css" => "text/css; charset=utf-8",
+        ".json" => "application/json; charset=utf-8",
+        ".png" => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".svg" => "image/svg+xml",
+        ".ico" => "image/x-icon",
+        _ => "application/octet-stream"
+    };
 
     [DllImport("combase.dll")] static extern int RoInitializeNative(uint initType); // 1 = RO_INIT_MULTITHREADED
 
