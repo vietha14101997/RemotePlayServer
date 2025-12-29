@@ -668,6 +668,10 @@ namespace RemotePlayServer.Utils
         private static bool _ffmpegInitialized = false;
         private static readonly object _ffmpegInitLock = new();
 
+        // P/Invoke for SetDllDirectory to add FFmpeg DLLs to search path
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool SetDllDirectory(string lpPathName);
+
         /// <summary>
         /// Initialize FFmpeg library if not already done.
         /// </summary>
@@ -682,11 +686,13 @@ namespace RemotePlayServer.Utils
                     // Try to find FFmpeg libraries in common locations
                     string? ffmpegPath = null;
 
-                    // Check common paths
+                    // Check common paths - IMPORTANT: "bin" subfolder is where FFmpeg DLLs are located
                     var possiblePaths = new[]
                     {
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin"), // Primary location
                         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg"),
                         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lib"),
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg-master-latest-win64-gpl-shared", "bin"),
                         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ffmpeg", "bin"),
                         @"C:\ffmpeg\bin",
                         AppDomain.CurrentDomain.BaseDirectory // Current directory
@@ -707,8 +713,28 @@ namespace RemotePlayServer.Utils
 
                     if (ffmpegPath != null)
                     {
+                        // CRITICAL: Add FFmpeg folder to Windows DLL search path
+                        // This is required because FFmpeg.AutoGen uses DllImport
+                        if (SetDllDirectory(ffmpegPath))
+                        {
+                            Console.WriteLine($"[HardwareInfo] SetDllDirectory: {ffmpegPath}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[HardwareInfo] SetDllDirectory failed, error: {Marshal.GetLastWin32Error()}");
+                        }
+
+                        // Also set FFmpeg.AutoGen RootPath
                         FFmpeg.AutoGen.ffmpeg.RootPath = ffmpegPath;
-                        Console.WriteLine($"[HardwareInfo] FFmpeg initialized from: {ffmpegPath}");
+                        Console.WriteLine($"[HardwareInfo] FFmpeg.RootPath: {ffmpegPath}");
+
+                        // Add to PATH as fallback
+                        var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+                        if (!currentPath.Contains(ffmpegPath))
+                        {
+                            Environment.SetEnvironmentVariable("PATH", ffmpegPath + ";" + currentPath);
+                            Console.WriteLine($"[HardwareInfo] Added to PATH: {ffmpegPath}");
+                        }
                     }
                     else
                     {

@@ -129,7 +129,12 @@ namespace RemotePlayServer.Protocol
             catch (Exception ex)
             {
                 Console.WriteLine($"[Protocol] Client {_clientId} error: {ex.Message}");
-                await SendErrorAsync(GetPhaseNumber(), "UNEXPECTED_ERROR", ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[Protocol] InnerException: {ex.InnerException.Message}");
+                }
+                Console.WriteLine($"[Protocol] StackTrace: {ex.StackTrace}");
+                try { await SendErrorAsync(GetPhaseNumber(), "UNEXPECTED_ERROR", ex.Message); } catch { }
             }
             finally
             {
@@ -962,6 +967,10 @@ namespace RemotePlayServer.Protocol
                 var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                 ms.SetLength(0);
 
+                // Debug: Log received message
+                var truncated = text.Length > 100 ? text.Substring(0, 100) + "..." : text;
+                Console.WriteLine($"[Protocol] WaitForHardwareAck received: len={text.Length}, text={truncated}");
+
                 // Handle ping
                 if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
                 {
@@ -971,6 +980,7 @@ namespace RemotePlayServer.Protocol
 
                 // Check for hardware_info_ack
                 var msgType = ProtocolMessageParser.GetMessageType(text);
+                Console.WriteLine($"[Protocol] WaitForHardwareAck msgType={msgType}");
                 if (msgType == "hardware_info_ack")
                 {
                     // Parse client codec capabilities

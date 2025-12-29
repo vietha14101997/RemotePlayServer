@@ -36,6 +36,18 @@ public enum VideoCodec
 /// </summary>
 public unsafe class LibAvEncoder : IDisposable
 {
+    // P/Invoke for SetDllDirectory to add FFmpeg DLLs to search path
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool SetDllDirectory(string lpPathName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr AddDllDirectory(string lpPathName);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetDefaultDllDirectories(uint directoryFlags);
+
+    private const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+    private const uint LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
     private AVCodecContext* _codecCtx;
     private AVBufferRef* _hwDeviceCtx;
     private AVBufferRef* _hwFramesCtx;
@@ -109,23 +121,49 @@ public unsafe class LibAvEncoder : IDisposable
         var ffmpegPath = System.IO.Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
             "bin");
-        
+
+        if (!System.IO.Directory.Exists(ffmpegPath))
+        {
+            // Try shared folder
+            ffmpegPath = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "ffmpeg-master-latest-win64-gpl-shared", "bin");
+        }
+
         if (System.IO.Directory.Exists(ffmpegPath))
         {
+            // CRITICAL: Add FFmpeg bin folder to Windows DLL search path
+            // This is required because FFmpeg.AutoGen uses DllImport which searches:
+            // 1. Application directory (where .exe is)
+            // 2. System directories
+            // 3. Directories in PATH
+            // But NOT subdirectories like "bin"
+
+            // Method 1: SetDllDirectory - adds to DLL search path
+            if (SetDllDirectory(ffmpegPath))
+            {
+                Console.WriteLine($"[LibAvEncoder] SetDllDirectory: {ffmpegPath}");
+            }
+            else
+            {
+                Console.WriteLine($"[LibAvEncoder] SetDllDirectory failed, error: {Marshal.GetLastWin32Error()}");
+            }
+
+            // Method 2: Also set FFmpeg.AutoGen RootPath (for its internal resolver)
             ffmpeg.RootPath = ffmpegPath;
-            Console.WriteLine($"[LibAvEncoder] FFmpeg path: {ffmpegPath}");
+            Console.WriteLine($"[LibAvEncoder] FFmpeg.RootPath: {ffmpegPath}");
+
+            // Method 3: Add to PATH environment variable as fallback
+            var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+            if (!currentPath.Contains(ffmpegPath))
+            {
+                Environment.SetEnvironmentVariable("PATH", ffmpegPath + ";" + currentPath);
+                Console.WriteLine($"[LibAvEncoder] Added to PATH: {ffmpegPath}");
+            }
         }
         else
         {
-            // Try shared folder
-            var sharedPath = System.IO.Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "ffmpeg-master-latest-win64-gpl-shared", "bin");
-            if (System.IO.Directory.Exists(sharedPath))
-            {
-                ffmpeg.RootPath = sharedPath;
-                Console.WriteLine($"[LibAvEncoder] FFmpeg path: {sharedPath}");
-            }
+            Console.WriteLine($"[LibAvEncoder] WARNING: FFmpeg bin folder not found!");
         }
     }
 
@@ -194,26 +232,36 @@ public unsafe class LibAvEncoder : IDisposable
     /// </summary>
     private AVCodec* SelectEncoder()
     {
+        Console.WriteLine($"[LibAvEncoder] SelectEncoder: preferredCodec={_preferredCodec}");
         var vendor = DetectGpuVendor();
+        Console.WriteLine($"[LibAvEncoder] SelectEncoder: vendor={vendor}");
         AVCodec* codec = null;
 
         // Try H.265 first if preferred
         if (_preferredCodec == VideoCodec.H265)
         {
+            Console.WriteLine("[LibAvEncoder] Trying H.265 encoder...");
             codec = SelectH265Encoder(vendor);
             if (codec != null)
             {
                 _currentCodec = VideoCodec.H265;
+                Console.WriteLine($"[LibAvEncoder] Selected H.265 encoder: {_encoderName}");
                 return codec;
             }
             Console.WriteLine($"[LibAvEncoder] H.265 encoder not available for {vendor}, falling back to H.264");
         }
 
         // Fallback to H.264
+        Console.WriteLine("[LibAvEncoder] Trying H.264 encoder...");
         codec = SelectH264Encoder(vendor);
         if (codec != null)
         {
             _currentCodec = VideoCodec.H264;
+            Console.WriteLine($"[LibAvEncoder] Selected H.264 encoder: {_encoderName}");
+        }
+        else
+        {
+            Console.WriteLine("[LibAvEncoder] No encoder found!");
         }
 
         return codec;
@@ -266,40 +314,58 @@ public unsafe class LibAvEncoder : IDisposable
     private AVCodec* SelectH264Encoder(GpuVendorType vendor)
     {
         AVCodec* codec = null;
+        Console.WriteLine($"[LibAvEncoder] SelectH264Encoder: vendor={vendor}");
+
+        // Helper to safely try finding encoder
+        AVCodec* TryFindEncoder(string name)
+        {
+            try
+            {
+                Console.WriteLine($"[LibAvEncoder] Trying encoder: {name}");
+                var c = ffmpeg.avcodec_find_encoder_by_name(name);
+                Console.WriteLine($"[LibAvEncoder] Encoder {name}: {(c != null ? "FOUND" : "not found")}");
+                return c;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LibAvEncoder] Error finding encoder {name}: {ex.Message}");
+                return null;
+            }
+        }
 
         switch (vendor)
         {
             case GpuVendorType.AMD:
                 // AMD: Prefer AMF encoder
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_amf");
+                codec = TryFindEncoder("h264_amf");
                 if (codec != null) { _encoderName = "h264_amf"; return codec; }
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                codec = TryFindEncoder("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
 
             case GpuVendorType.NVIDIA:
                 // NVIDIA: Prefer NVENC encoder
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                codec = TryFindEncoder("h264_nvenc");
                 if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                codec = TryFindEncoder("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
 
             case GpuVendorType.Intel:
                 // Intel: Prefer QSV encoder
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                codec = TryFindEncoder("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                codec = TryFindEncoder("h264_nvenc");
                 if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
                 break;
 
             default:
                 // Unknown: Try all in order
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
+                codec = TryFindEncoder("h264_nvenc");
                 if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_amf");
+                codec = TryFindEncoder("h264_amf");
                 if (codec != null) { _encoderName = "h264_amf"; return codec; }
-                codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
+                codec = TryFindEncoder("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
         }
