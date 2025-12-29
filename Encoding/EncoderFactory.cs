@@ -26,15 +26,16 @@ public static class EncoderFactory
     /// Create a WebRTC streamer using specified encoder mode
     /// </summary>
     public static IWebRTCStreamer CreateStreamer(
-        int fps, 
-        int kbps, 
+        int fps,
+        int kbps,
         EncoderMode mode = EncoderMode.LibAv,
         ID3D11Device? device = null,
-        int crf = 23, 
-        string preset = "p1", 
+        VideoCodec preferredCodec = VideoCodec.H265,
+        int crf = 23,
+        string preset = "p1",
         bool zerolatency = true)
     {
-        Console.WriteLine($"[EncoderFactory] Creating streamer: mode={mode}, fps={fps}, kbps={kbps}");
+        Console.WriteLine($"[EncoderFactory] Creating streamer: mode={mode}, fps={fps}, kbps={kbps}, codec={preferredCodec}");
         
         // Detect GPU vendor for optimal encoder selection
         var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
@@ -108,14 +109,14 @@ public static class EncoderFactory
         {
             return mode switch
             {
-                EncoderMode.LibAv => new WebRTCStreamerLibAvWrapper(fps, kbps, device),
+                EncoderMode.LibAv => new WebRTCStreamerLibAvWrapper(fps, kbps, device, preferredCodec),
                 _ => new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12: true)
             };
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[EncoderFactory] LibAv failed: {ex.Message}");
-            Console.WriteLine("[EncoderFactory] Last resort: FFmpeg pipe encoder");
+            Console.WriteLine("[EncoderFactory] Last resort: FFmpeg pipe encoder (H.264 only)");
             return new WebRTCStreamerFFmpegWrapper(fps, kbps, crf, preset, zerolatency, useNV12: true);
         }
     }
@@ -239,32 +240,37 @@ public interface IWebRTCStreamer : IDisposable
 {
     bool IsRunning { get; }
     bool UseNV12Input { get; }
-    
+
     /// <summary>
     /// True if streamer supports zero-copy texture encoding
     /// </summary>
     bool UseTextureInput { get; }
-    
+
+    /// <summary>
+    /// The currently active video codec (H264 or H265)
+    /// </summary>
+    VideoCodec CurrentCodec { get; }
+
     event Action? OnPeerDisconnected;
-    
+
     /// <summary>
     /// Fired when a local ICE candidate is generated. Parameter is the candidate string.
     /// </summary>
     event Action<string>? OnIceCandidate;
-    
+
     Task StartAsync();
     Task StopAsync();
     Task<string> SetRemoteOfferAndCreateAnswerAsync(string offerSdp);
     Task PushBgraBytesAsync(byte[] src, int width, int height, int stride);
     Task PushNV12BytesAsync(byte[] src, int width, int height);
-    
+
     /// <summary>
     /// TRUE ZERO-COPY: Push NV12 texture directly for encoding
     /// </summary>
     void PushTexture(ID3D11Texture2D nv12Texture, int width, int height);
-    
+
     void SetDevice(ID3D11Device device);
-    
+
     /// <summary>
     /// Add a remote ICE candidate received from the client
     /// </summary>
@@ -282,6 +288,8 @@ public class WebRTCStreamerFFmpegWrapper : IWebRTCStreamer
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => _useNV12;
     public bool UseTextureInput => false; // FFmpeg pipe doesn't support zero-copy
+    public VideoCodec CurrentCodec => VideoCodec.H264; // FFmpeg pipe only supports H.264
+
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
@@ -316,15 +324,18 @@ public class WebRTCStreamerFFmpegWrapper : IWebRTCStreamer
 
 /// <summary>
 /// Wrapper for LibAv in-process streamer (WebRTCStreamer_LibAv)
-/// Provides hardware-accelerated encoding via h264_amf (AMD), nvenc (NVIDIA), or qsv (Intel)
+/// Provides hardware-accelerated encoding via h264_amf/hevc_amf (AMD), nvenc/hevc_nvenc (NVIDIA), or qsv/hevc_qsv (Intel)
 /// </summary>
 public class WebRTCStreamerLibAvWrapper : IWebRTCStreamer
 {
     private readonly WebRTCStreamer_LibAv _streamer;
+    private readonly VideoCodec _preferredCodec;
 
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => true; // LibAv always uses NV12
     public bool UseTextureInput => false; // LibAv doesn't support zero-copy texture
+    public VideoCodec CurrentCodec => _streamer.CurrentCodec;
+
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
@@ -337,9 +348,10 @@ public class WebRTCStreamerLibAvWrapper : IWebRTCStreamer
         remove => _streamer.OnIceCandidate -= value;
     }
 
-    public WebRTCStreamerLibAvWrapper(int fps, int kbps, ID3D11Device? device = null)
+    public WebRTCStreamerLibAvWrapper(int fps, int kbps, ID3D11Device? device = null, VideoCodec preferredCodec = VideoCodec.H265)
     {
-        _streamer = new WebRTCStreamer_LibAv(fps, kbps, device);
+        _preferredCodec = preferredCodec;
+        _streamer = new WebRTCStreamer_LibAv(fps, kbps, device, preferredCodec);
     }
 
     public Task StartAsync() => _streamer.StartAsync();

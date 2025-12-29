@@ -129,6 +129,24 @@ namespace RemotePlayServer.Utils
 
         [JsonPropertyName("maxBitrateKbps")]
         public int MaxBitrateKbps { get; set; } = 100000;
+
+        /// <summary>
+        /// List of supported video codecs (e.g., ["H264", "H265"])
+        /// </summary>
+        [JsonPropertyName("supportedCodecs")]
+        public List<string> SupportedCodecs { get; set; } = new() { "H264" };
+
+        /// <summary>
+        /// Preferred codec (H264 or H265) - H265 provides ~30-50% better quality at same bitrate
+        /// </summary>
+        [JsonPropertyName("preferredCodec")]
+        public string PreferredCodec { get; set; } = "H265";
+
+        /// <summary>
+        /// True if server supports H.265/HEVC encoding
+        /// </summary>
+        [JsonPropertyName("supportsHevc")]
+        public bool SupportsHevc { get; set; } = false;
     }
 
     /// <summary>

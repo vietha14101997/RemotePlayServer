@@ -486,6 +486,7 @@ namespace RemotePlayServer.Utils
         public static EncoderInfo GetEncoderInfo()
         {
             var info = new EncoderInfo();
+            info.SupportedCodecs = new List<string> { "H264" }; // H.264 always supported
 
             var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
 
@@ -496,6 +497,12 @@ namespace RemotePlayServer.Utils
                     {
                         info.Type = "NVENC";
                         info.HwAccel = true;
+                        // NVENC GPUs from Maxwell (GTX 900+) and later support HEVC
+                        if (CheckHevcEncoderAvailable("hevc_nvenc"))
+                        {
+                            info.SupportedCodecs.Add("H265");
+                            info.SupportsHevc = true;
+                        }
                     }
                     break;
 
@@ -504,6 +511,12 @@ namespace RemotePlayServer.Utils
                     {
                         info.Type = "AMF";
                         info.HwAccel = true;
+                        // AMF supports HEVC on Polaris (RX 400+) and newer
+                        if (CheckHevcEncoderAvailable("hevc_amf"))
+                        {
+                            info.SupportedCodecs.Add("H265");
+                            info.SupportsHevc = true;
+                        }
                     }
                     break;
 
@@ -511,6 +524,12 @@ namespace RemotePlayServer.Utils
                     // Check for QSV
                     info.Type = "QSV";
                     info.HwAccel = true;
+                    // Intel QSV supports HEVC on Skylake (6th gen) and newer
+                    if (CheckHevcEncoderAvailable("hevc_qsv"))
+                    {
+                        info.SupportedCodecs.Add("H265");
+                        info.SupportsHevc = true;
+                    }
                     break;
             }
 
@@ -520,7 +539,31 @@ namespace RemotePlayServer.Utils
                 info.HwAccel = false;
             }
 
+            // Set preferred codec - H.265 if supported, otherwise H.264
+            info.PreferredCodec = info.SupportsHevc ? "H265" : "H264";
+
+            Console.WriteLine($"[HardwareInfo] Encoder: {info.Type}, HwAccel: {info.HwAccel}, HEVC: {info.SupportsHevc}, Codecs: [{string.Join(", ", info.SupportedCodecs)}]");
+
             return info;
+        }
+
+        /// <summary>
+        /// Check if a specific HEVC encoder is available via FFmpeg.
+        /// </summary>
+        private static unsafe bool CheckHevcEncoderAvailable(string encoderName)
+        {
+            try
+            {
+                var codec = FFmpeg.AutoGen.ffmpeg.avcodec_find_encoder_by_name(encoderName);
+                bool available = codec != null;
+                Console.WriteLine($"[HardwareInfo] HEVC encoder '{encoderName}': {(available ? "available" : "not found")}");
+                return available;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareInfo] Failed to check HEVC encoder '{encoderName}': {ex.Message}");
+                return false;
+            }
         }
 
         // === Native API for Memory ===

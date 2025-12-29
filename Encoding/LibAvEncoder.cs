@@ -20,9 +20,19 @@ namespace RemotePlayServer.Encoding;
 enum GpuVendorType { Unknown, NVIDIA, AMD, Intel }
 
 /// <summary>
-/// Hardware-accelerated H.264 encoder using FFmpeg libavcodec with D3D11VA.
-/// Provides zero-copy encoding from D3D11 textures to H.264 NAL units.
-/// Supports NVIDIA NVENC (via CUDA), AMD AMF (via D3D11VA), and Intel QSV.
+/// Video codec enumeration for encoder selection
+/// </summary>
+public enum VideoCodec
+{
+    H264,   // AVC - Universal compatibility
+    H265    // HEVC - Better quality at lower bitrate (30-50% more efficient)
+}
+
+/// <summary>
+/// Hardware-accelerated video encoder using FFmpeg libavcodec with D3D11VA.
+/// Supports H.264 (AVC) and H.265 (HEVC) encoding with automatic fallback.
+/// Provides zero-copy encoding from D3D11 textures to NAL units.
+/// Supports NVIDIA NVENC, AMD AMF, and Intel QSV hardware encoders.
 /// </summary>
 public unsafe class LibAvEncoder : IDisposable
 {
@@ -31,19 +41,19 @@ public unsafe class LibAvEncoder : IDisposable
     private AVBufferRef* _hwFramesCtx;
     private AVFrame* _hwFrame;
     private AVPacket* _packet;
-    
+
     private D3D11Device? _device;
     private D3D11DeviceContext? _context;
     private D3D11Texture2D? _stagingTexture;
-    
+
     // FFmpeg D3D11 device/context for zero-copy (when using D3D11VA mode)
     private FFmpegD3D11Device* _ffmpegD3D11Device;
     private FFmpeg.AutoGen.ID3D11DeviceContext* _ffmpegD3D11Context;
     private bool _isD3D11VAMode;
-    
+
     // QSV Specific: Frames context for the encoder (derived from D3D11)
     private AVBufferRef* _qsvFramesCtx;
-    
+
     // For Cross-Device Bridging (when Encoder uses a different device than Capture)
     private D3D11Device? _encoderD3D11Device;
     private D3D11DeviceContext? _encoderD3D11Context;
@@ -51,13 +61,17 @@ public unsafe class LibAvEncoder : IDisposable
     private D3D11Texture2D? _importedBridgeTexture; // On Encoder Device
     private IntPtr _lastSharedHandle = IntPtr.Zero;
     private bool _usingCrossDeviceBridge;
-    
+
     private int _width;
     private int _height;
     private int _fps;
     private int _bitrate;
     private long _frameCount;
     private bool _disposed;
+
+    // Codec selection
+    private VideoCodec _preferredCodec = VideoCodec.H265;
+    private VideoCodec _currentCodec = VideoCodec.H264;
 
     private bool _initialized;
     private bool _useHardwareFrames;
@@ -72,7 +86,12 @@ public unsafe class LibAvEncoder : IDisposable
     public bool IsInitialized => _initialized;
     public int Width => _width;
     public int Height => _height;
-    
+
+    /// <summary>
+    /// The currently active video codec (H264 or H265)
+    /// </summary>
+    public VideoCodec CurrentCodec => _currentCodec;
+
     /// <summary>
     /// True if encoder supports true zero-copy D3D11 texture encoding (D3D11VA mode)
     /// </summary>
@@ -110,7 +129,7 @@ public unsafe class LibAvEncoder : IDisposable
         }
     }
 
-    public LibAvEncoder(int width, int height, int fps, int bitrate, D3D11Device device)
+    public LibAvEncoder(int width, int height, int fps, int bitrate, D3D11Device device, VideoCodec preferredCodec = VideoCodec.H265)
     {
         _width = width;
         _height = height;
@@ -118,6 +137,7 @@ public unsafe class LibAvEncoder : IDisposable
         _bitrate = bitrate;
         _device = device;
         _context = _device.ImmediateContext;
+        _preferredCodec = preferredCodec;
     }
 
     /// <summary>
@@ -170,13 +190,83 @@ public unsafe class LibAvEncoder : IDisposable
     }
     
     /// <summary>
-    /// Select optimal encoder based on GPU vendor
+    /// Select optimal encoder based on GPU vendor and preferred codec
     /// </summary>
     private AVCodec* SelectEncoder()
     {
         var vendor = DetectGpuVendor();
         AVCodec* codec = null;
-        
+
+        // Try H.265 first if preferred
+        if (_preferredCodec == VideoCodec.H265)
+        {
+            codec = SelectH265Encoder(vendor);
+            if (codec != null)
+            {
+                _currentCodec = VideoCodec.H265;
+                return codec;
+            }
+            Console.WriteLine($"[LibAvEncoder] H.265 encoder not available for {vendor}, falling back to H.264");
+        }
+
+        // Fallback to H.264
+        codec = SelectH264Encoder(vendor);
+        if (codec != null)
+        {
+            _currentCodec = VideoCodec.H264;
+        }
+
+        return codec;
+    }
+
+    /// <summary>
+    /// Select H.265/HEVC encoder based on GPU vendor
+    /// </summary>
+    private AVCodec* SelectH265Encoder(GpuVendorType vendor)
+    {
+        AVCodec* codec = null;
+
+        switch (vendor)
+        {
+            case GpuVendorType.NVIDIA:
+                // NVIDIA: HEVC NVENC
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_nvenc");
+                if (codec != null) { _encoderName = "hevc_nvenc"; return codec; }
+                break;
+
+            case GpuVendorType.AMD:
+                // AMD: HEVC AMF
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_amf");
+                if (codec != null) { _encoderName = "hevc_amf"; return codec; }
+                break;
+
+            case GpuVendorType.Intel:
+                // Intel: HEVC QSV
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_qsv");
+                if (codec != null) { _encoderName = "hevc_qsv"; return codec; }
+                break;
+
+            default:
+                // Unknown: Try all HEVC encoders
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_nvenc");
+                if (codec != null) { _encoderName = "hevc_nvenc"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_amf");
+                if (codec != null) { _encoderName = "hevc_amf"; return codec; }
+                codec = ffmpeg.avcodec_find_encoder_by_name("hevc_qsv");
+                if (codec != null) { _encoderName = "hevc_qsv"; return codec; }
+                break;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Select H.264/AVC encoder based on GPU vendor
+    /// </summary>
+    private AVCodec* SelectH264Encoder(GpuVendorType vendor)
+    {
+        AVCodec* codec = null;
+
         switch (vendor)
         {
             case GpuVendorType.AMD:
@@ -186,7 +276,7 @@ public unsafe class LibAvEncoder : IDisposable
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
-                
+
             case GpuVendorType.NVIDIA:
                 // NVIDIA: Prefer NVENC encoder
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
@@ -194,7 +284,7 @@ public unsafe class LibAvEncoder : IDisposable
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
-                
+
             case GpuVendorType.Intel:
                 // Intel: Prefer QSV encoder
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_qsv");
@@ -202,7 +292,7 @@ public unsafe class LibAvEncoder : IDisposable
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
                 if (codec != null) { _encoderName = "h264_nvenc"; return codec; }
                 break;
-                
+
             default:
                 // Unknown: Try all in order
                 codec = ffmpeg.avcodec_find_encoder_by_name("h264_nvenc");
@@ -213,7 +303,7 @@ public unsafe class LibAvEncoder : IDisposable
                 if (codec != null) { _encoderName = "h264_qsv"; return codec; }
                 break;
         }
-        
+
         return codec;
     }
     
@@ -345,6 +435,111 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
                     _codecCtx->rc_max_rate = _bitrate;
                     _codecCtx->rc_buffer_size = _bitrate / 4;  // 250ms buffer
+                }
+                break;
+
+            // ============ H.265/HEVC ENCODERS ============
+
+            case "hevc_nvenc":
+                // NVIDIA NVENC HEVC - high quality with low latency
+                Console.WriteLine("[LibAvEncoder] Configuring NVIDIA HEVC NVENC encoder (quality + low latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p4", 0);       // Balanced preset (p1=fastest, p7=slowest)
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ll", 0);         // Low latency tuning
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
+                // Quality settings for sharper desktop content
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "aq-strength", "8", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc-lookahead", "0", 0);  // No lookahead for low latency
+                // HEVC Main Profile, Level 4.0 (supports 1080p60, 4K30)
+                _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
+                _codecCtx->level = 120;  // Level 4.0
+
+                // Rate control
+                if (_useVbrMode)
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "cq", "25", 0);  // Quality level for HEVC
+                    _codecCtx->rc_max_rate = _bitrate * 2;
+                    _codecCtx->rc_buffer_size = _bitrate;
+                    Console.WriteLine($"[LibAvEncoder] HEVC NVENC VBR: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;
+                }
+                break;
+
+            case "hevc_amf":
+                // AMD AMF HEVC - balanced quality + low latency
+                Console.WriteLine("[LibAvEncoder] Configuring AMD HEVC AMF encoder (quality + low latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "lowlatency", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "balanced", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);     // HEVC Main Profile
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "true", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "true", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "enforce_hrd", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "header_insertion_mode", "idr", 0);
+                // HEVC Profile
+                _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
+                _codecCtx->level = 120;
+
+                // Rate control
+                if (_useVbrMode)
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "22", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "24", 0);
+                    _codecCtx->rc_max_rate = _bitrate * 2;
+                    _codecCtx->rc_buffer_size = _bitrate;
+                    Console.WriteLine($"[LibAvEncoder] HEVC AMF VBR: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;
+                }
+
+                // Level for high resolution
+                if (_width > 2048)
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "level", "5.1", 0);
+                break;
+
+            case "hevc_qsv":
+                // Intel QSV HEVC - balanced quality + low latency
+                Console.WriteLine("[LibAvEncoder] Configuring Intel HEVC QSV encoder (quality + low latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "faster", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "4", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "low_power", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_i", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_b", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "b_strategy", "0", 0);
+                // HEVC Profile
+                _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
+                _codecCtx->level = 120;
+
+                // Rate control
+                if (_useVbrMode)
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "1", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "10", 0);
+                    _codecCtx->rc_max_rate = _bitrate * 2;
+                    _codecCtx->rc_buffer_size = _bitrate;
+                    Console.WriteLine($"[LibAvEncoder] HEVC QSV VBR: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;
                 }
                 break;
         }
