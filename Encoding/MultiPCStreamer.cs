@@ -257,16 +257,35 @@ public class MultiPCStreamer : IDisposable
         pc.onconnectionstatechange += (state) =>
         {
             if (state == RTCPeerConnectionState.connected)
+            {
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC connected");
+                monitor.IceConnected = true;  // Mark as connected for reconnect tolerance check
+            }
             else if (state == RTCPeerConnectionState.closed || state == RTCPeerConnectionState.failed)
             {
                 Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}");
-                
-                // If still running (not intentionally stopped), request reconnect
+                monitor.IceConnected = false;
+
+                // If still running (not intentionally stopped), request reconnect with delay for WiFi tolerance
                 if (_running && !_disposed)
                 {
-                    Console.WriteLine($"[MultiPC] m{monitorIndex} abnormal close detected, requesting reconnect...");
-                    OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                    // Add 3-second tolerance delay for WiFi jitter recovery
+                    _ = Task.Run(async () =>
+                    {
+                        Console.WriteLine($"[MultiPC] m{monitorIndex} PC {state}, waiting 3s for recovery...");
+                        await Task.Delay(3000);
+
+                        // Check if still disconnected after delay
+                        if (_running && !_disposed && !monitor.IceConnected)
+                        {
+                            Console.WriteLine($"[MultiPC] m{monitorIndex} still disconnected after 3s, requesting reconnect...");
+                            OnMonitorNeedsReconnect?.Invoke(monitorIndex);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[MultiPC] m{monitorIndex} recovered or stopped, skip reconnect");
+                        }
+                    });
                 }
                 else
                 {
