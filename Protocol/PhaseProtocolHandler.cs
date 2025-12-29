@@ -48,6 +48,10 @@ namespace RemotePlayServer.Protocol
         private SpeedTestResult? _speedTestResult;
         private DisplayConfigMessage? _displayConfig;
 
+        // Client codec capabilities (received in hardware_info_ack)
+        private ClientCodecCapability? _clientCodecCapability;
+        private string _selectedCodec = "H264";
+
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
         private RemotePlayServer.Encoding.MultiPCStreamer? _streamer;
@@ -204,10 +208,11 @@ namespace RemotePlayServer.Protocol
                 BitrateKbps = suggested.BitrateKbps,
                 Fps = suggested.Fps,
                 RefreshRate = suggested.RefreshRate,
-                Reason = suggested.Reason
+                Reason = suggested.Reason,
+                SelectedCodec = _selectedCodec
             };
 
-            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps");
+            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps, codec={_selectedCodec}");
             await SendMessageAsync(sugMsg);
             Console.WriteLine("[Protocol] ✓ suggested_config sent successfully");
 
@@ -904,7 +909,7 @@ namespace RemotePlayServer.Protocol
                                 await SendTextAsync(json);
                             }
                         }
-                        await Task.Delay(500, _captureCts.Token);
+                        await Task.Delay(500, _captureCts?.Token ?? _ct);
                     }
                     catch (OperationCanceledException) { break; }
                     catch { }
@@ -964,8 +969,48 @@ namespace RemotePlayServer.Protocol
                 var msgType = ProtocolMessageParser.GetMessageType(text);
                 if (msgType == "hardware_info_ack")
                 {
+                    // Parse client codec capabilities
+                    var ackMsg = ProtocolMessageParser.Parse<HardwareInfoAckMessage>(text);
+                    if (ackMsg?.ClientCodecs != null)
+                    {
+                        _clientCodecCapability = ackMsg.ClientCodecs;
+                        Console.WriteLine($"[Protocol] Client codec capabilities: HEVC={_clientCodecCapability.SupportsHevc}, " +
+                                          $"preferred={_clientCodecCapability.PreferredCodec}, device={_clientCodecCapability.DeviceModel}");
+
+                        // Negotiate codec: Use H.265 if both server and client support it
+                        NegotiateCodec();
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Protocol] No client codec capabilities in hardware_info_ack, using H.264");
+                        _selectedCodec = "H264";
+                    }
                     return;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Negotiate codec based on server and client capabilities.
+        /// </summary>
+        private void NegotiateCodec()
+        {
+            // Check if both server and client support HEVC
+            bool serverSupportsHevc = _encoderInfo?.SupportsHevc ?? false;
+            bool clientSupportsHevc = _clientCodecCapability?.SupportsHevc ?? false;
+
+            if (serverSupportsHevc && clientSupportsHevc)
+            {
+                _selectedCodec = "H265";
+                Console.WriteLine("[Protocol] Codec negotiation: Both support HEVC -> selected H.265");
+            }
+            else
+            {
+                _selectedCodec = "H264";
+                if (!serverSupportsHevc)
+                    Console.WriteLine("[Protocol] Codec negotiation: Server doesn't support HEVC -> selected H.264");
+                else if (!clientSupportsHevc)
+                    Console.WriteLine("[Protocol] Codec negotiation: Client doesn't support HEVC -> selected H.264");
             }
         }
 

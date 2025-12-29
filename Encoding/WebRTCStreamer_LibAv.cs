@@ -200,7 +200,7 @@ public class WebRTCStreamer_LibAv : IDisposable
 
         _pc.OnVideoFormatsNegotiated += fmts =>
         {
-            var hasH265 = fmts?.Any(f => f.Name()?.ToUpper() == "H265") == true;
+            var hasH265 = fmts?.Any(f => f.ToString()?.ToUpper().Contains("H265") == true) == true;
             var hasH264 = fmts?.Any(f => f.Codec == VideoCodecsEnum.H264) == true;
             Console.WriteLine($"[RTC-LibAv] Video formats negotiated - H265: {hasH265}, H264: {hasH264}");
         };

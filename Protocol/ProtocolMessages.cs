@@ -57,6 +57,38 @@ namespace RemotePlayServer.Protocol
     }
 
     /// <summary>
+    /// Client -> Server: Hardware info acknowledgment with client codec capabilities.
+    /// </summary>
+    public class HardwareInfoAckMessage : ProtocolMessage
+    {
+        public override string Type => "hardware_info_ack";
+
+        [JsonPropertyName("clientCodecs")]
+        public ClientCodecCapability? ClientCodecs { get; set; }
+    }
+
+    /// <summary>
+    /// Client codec capabilities for codec negotiation.
+    /// </summary>
+    public class ClientCodecCapability
+    {
+        [JsonPropertyName("supportedCodecs")]
+        public string[]? SupportedCodecs { get; set; }
+
+        [JsonPropertyName("preferredCodec")]
+        public string PreferredCodec { get; set; } = "H264";
+
+        [JsonPropertyName("supportsHevc")]
+        public bool SupportsHevc { get; set; }
+
+        [JsonPropertyName("deviceModel")]
+        public string DeviceModel { get; set; } = "";
+
+        [JsonPropertyName("apiLevel")]
+        public int ApiLevel { get; set; }
+    }
+
+    /// <summary>
     /// Server -> Client: Notify client that speed test is starting.
     /// </summary>
     public class SpeedTestStartMessage : ProtocolMessage
@@ -148,6 +180,12 @@ namespace RemotePlayServer.Protocol
 
         [JsonPropertyName("reason")]
         public string Reason { get; set; } = "";
+
+        /// <summary>
+        /// Selected video codec (H264 or H265) based on negotiation.
+        /// </summary>
+        [JsonPropertyName("selectedCodec")]
+        public string SelectedCodec { get; set; } = "H264";
     }
 
     public class ResolutionDto

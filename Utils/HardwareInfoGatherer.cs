@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
@@ -489,6 +491,7 @@ namespace RemotePlayServer.Utils
             info.SupportedCodecs = new List<string> { "H264" }; // H.264 always supported
 
             var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
+            var gpuInfo = GetGpuInfo();
 
             switch (gpuVendor)
             {
@@ -497,8 +500,17 @@ namespace RemotePlayServer.Utils
                     {
                         info.Type = "NVENC";
                         info.HwAccel = true;
-                        // NVENC GPUs from Maxwell (GTX 900+) and later support HEVC
-                        if (CheckHevcEncoderAvailable("hevc_nvenc"))
+
+                        // Try FFmpeg detection first, fallback to GPU-based detection
+                        bool hevcSupported = CheckHevcEncoderAvailable("hevc_nvenc");
+
+                        // Fallback: NVIDIA GTX 900+ (Maxwell), GTX 1000+ (Pascal), RTX series support HEVC
+                        if (!hevcSupported)
+                        {
+                            hevcSupported = CheckNvidiaHevcSupport(gpuInfo.Name);
+                        }
+
+                        if (hevcSupported)
                         {
                             info.SupportedCodecs.Add("H265");
                             info.SupportsHevc = true;
@@ -511,8 +523,16 @@ namespace RemotePlayServer.Utils
                     {
                         info.Type = "AMF";
                         info.HwAccel = true;
-                        // AMF supports HEVC on Polaris (RX 400+) and newer
-                        if (CheckHevcEncoderAvailable("hevc_amf"))
+
+                        bool hevcSupported = CheckHevcEncoderAvailable("hevc_amf");
+
+                        // Fallback: AMD RX 400+ (Polaris), RX 5000+ (Navi) support HEVC
+                        if (!hevcSupported)
+                        {
+                            hevcSupported = CheckAmdHevcSupport(gpuInfo.Name);
+                        }
+
+                        if (hevcSupported)
                         {
                             info.SupportedCodecs.Add("H265");
                             info.SupportsHevc = true;
@@ -521,11 +541,18 @@ namespace RemotePlayServer.Utils
                     break;
 
                 case GpuVendorDetector.GpuVendor.Intel:
-                    // Check for QSV
                     info.Type = "QSV";
                     info.HwAccel = true;
-                    // Intel QSV supports HEVC on Skylake (6th gen) and newer
-                    if (CheckHevcEncoderAvailable("hevc_qsv"))
+
+                    bool intelHevcSupported = CheckHevcEncoderAvailable("hevc_qsv");
+
+                    // Fallback: Intel 6th gen (Skylake) and newer support HEVC
+                    if (!intelHevcSupported)
+                    {
+                        intelHevcSupported = CheckIntelHevcSupport(gpuInfo.Name);
+                    }
+
+                    if (intelHevcSupported)
                     {
                         info.SupportedCodecs.Add("H265");
                         info.SupportsHevc = true;
@@ -548,16 +575,176 @@ namespace RemotePlayServer.Utils
         }
 
         /// <summary>
+        /// Check NVIDIA GPU HEVC support based on GPU name.
+        /// Maxwell (GTX 900), Pascal (GTX 1000), Turing (GTX 1600, RTX 2000), Ampere (RTX 3000), Ada (RTX 4000) support HEVC.
+        /// </summary>
+        private static bool CheckNvidiaHevcSupport(string gpuName)
+        {
+            if (string.IsNullOrEmpty(gpuName)) return false;
+
+            var upper = gpuName.ToUpperInvariant();
+
+            // RTX series (all support HEVC)
+            if (upper.Contains("RTX")) return true;
+
+            // GTX 1600 series (Turing, supports HEVC)
+            if (upper.Contains("GTX 16")) return true;
+
+            // GTX 1000 series (Pascal, supports HEVC)
+            if (upper.Contains("GTX 10")) return true;
+
+            // GTX 900 series (Maxwell, supports HEVC except 900M mobile might be limited)
+            if (upper.Contains("GTX 9") && !upper.Contains("900M")) return true;
+
+            // Quadro Pascal/Turing/Ampere
+            if (upper.Contains("QUADRO") && (upper.Contains("P") || upper.Contains("RTX"))) return true;
+
+            // Tesla P/V/A series
+            if (upper.Contains("TESLA") && (upper.Contains(" P") || upper.Contains(" V") || upper.Contains(" A"))) return true;
+
+            Console.WriteLine($"[HardwareInfo] GPU '{gpuName}' - HEVC support unknown, assuming no");
+            return false;
+        }
+
+        /// <summary>
+        /// Check AMD GPU HEVC support based on GPU name.
+        /// Polaris (RX 400/500), Vega, Navi (RX 5000/6000/7000) support HEVC.
+        /// </summary>
+        private static bool CheckAmdHevcSupport(string gpuName)
+        {
+            if (string.IsNullOrEmpty(gpuName)) return false;
+
+            var upper = gpuName.ToUpperInvariant();
+
+            // RX 7000 series (RDNA 3)
+            if (upper.Contains("RX 7")) return true;
+
+            // RX 6000 series (RDNA 2)
+            if (upper.Contains("RX 6")) return true;
+
+            // RX 5000 series (RDNA 1)
+            if (upper.Contains("RX 5")) return true;
+
+            // RX Vega
+            if (upper.Contains("VEGA")) return true;
+
+            // RX 400/500 series (Polaris)
+            if (upper.Contains("RX 4") || upper.Contains("RX 5")) return true;
+
+            Console.WriteLine($"[HardwareInfo] GPU '{gpuName}' - HEVC support unknown, assuming no");
+            return false;
+        }
+
+        /// <summary>
+        /// Check Intel GPU HEVC support based on GPU name.
+        /// Skylake (6th gen) and newer support HEVC.
+        /// </summary>
+        private static bool CheckIntelHevcSupport(string gpuName)
+        {
+            if (string.IsNullOrEmpty(gpuName)) return false;
+
+            var upper = gpuName.ToUpperInvariant();
+
+            // Arc series (all support HEVC)
+            if (upper.Contains("ARC")) return true;
+
+            // Iris Xe (11th gen+)
+            if (upper.Contains("IRIS XE") || upper.Contains("IRIS(R) XE")) return true;
+
+            // Iris Plus (10th gen)
+            if (upper.Contains("IRIS PLUS")) return true;
+
+            // UHD Graphics 6xx (8th-10th gen, support HEVC)
+            if (upper.Contains("UHD") && (upper.Contains("6") || upper.Contains("7"))) return true;
+
+            // HD Graphics 5xx/6xx (6th-7th gen Skylake/Kaby Lake, support HEVC)
+            if (upper.Contains("HD GRAPHICS 5") || upper.Contains("HD GRAPHICS 6")) return true;
+
+            Console.WriteLine($"[HardwareInfo] GPU '{gpuName}' - HEVC support unknown, assuming no");
+            return false;
+        }
+
+        // FFmpeg initialization flag
+        private static bool _ffmpegInitialized = false;
+        private static readonly object _ffmpegInitLock = new();
+
+        /// <summary>
+        /// Initialize FFmpeg library if not already done.
+        /// </summary>
+        private static void EnsureFfmpegInitialized()
+        {
+            lock (_ffmpegInitLock)
+            {
+                if (_ffmpegInitialized) return;
+
+                try
+                {
+                    // Try to find FFmpeg libraries in common locations
+                    string? ffmpegPath = null;
+
+                    // Check common paths
+                    var possiblePaths = new[]
+                    {
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg"),
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lib"),
+                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ffmpeg", "bin"),
+                        @"C:\ffmpeg\bin",
+                        AppDomain.CurrentDomain.BaseDirectory // Current directory
+                    };
+
+                    foreach (var path in possiblePaths)
+                    {
+                        if (Directory.Exists(path) &&
+                            (File.Exists(Path.Combine(path, "avcodec-61.dll")) ||
+                             File.Exists(Path.Combine(path, "avcodec-60.dll")) ||
+                             File.Exists(Path.Combine(path, "avcodec-59.dll")) ||
+                             File.Exists(Path.Combine(path, "avcodec.dll"))))
+                        {
+                            ffmpegPath = path;
+                            break;
+                        }
+                    }
+
+                    if (ffmpegPath != null)
+                    {
+                        FFmpeg.AutoGen.ffmpeg.RootPath = ffmpegPath;
+                        Console.WriteLine($"[HardwareInfo] FFmpeg initialized from: {ffmpegPath}");
+                    }
+                    else
+                    {
+                        // Try without setting RootPath (use system PATH)
+                        Console.WriteLine("[HardwareInfo] FFmpeg path not found, trying system PATH");
+                    }
+
+                    _ffmpegInitialized = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[HardwareInfo] FFmpeg initialization warning: {ex.Message}");
+                    _ffmpegInitialized = true; // Mark as initialized to avoid repeated attempts
+                }
+            }
+        }
+
+        /// <summary>
         /// Check if a specific HEVC encoder is available via FFmpeg.
         /// </summary>
         private static unsafe bool CheckHevcEncoderAvailable(string encoderName)
         {
             try
             {
+                // Ensure FFmpeg is initialized
+                EnsureFfmpegInitialized();
+
                 var codec = FFmpeg.AutoGen.ffmpeg.avcodec_find_encoder_by_name(encoderName);
                 bool available = codec != null;
                 Console.WriteLine($"[HardwareInfo] HEVC encoder '{encoderName}': {(available ? "available" : "not found")}");
                 return available;
+            }
+            catch (DllNotFoundException ex)
+            {
+                Console.WriteLine($"[HardwareInfo] FFmpeg DLL not found for '{encoderName}': {ex.Message}");
+                return false;
             }
             catch (Exception ex)
             {
