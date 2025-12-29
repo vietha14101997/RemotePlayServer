@@ -843,9 +843,36 @@ namespace RemotePlayServer.Protocol
                     }
 
                     // Handle late ICE candidates
-                    if (msgType == "candidate" || text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                    if (msgType == "candidate")
+                    {
+                        await HandleJsonMessageAsync(text, msgType);
+                        continue;
+                    }
+                    if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
                     {
                         await HandleLegacyMessageAsync(text);
+                        continue;
+                    }
+
+                    // Handle reconnect offers from client (client-side auto-heal)
+                    if (msgType == "offer")
+                    {
+                        Console.WriteLine("[Protocol] Received reconnect offer during streaming (JSON format)");
+                        await HandleJsonMessageAsync(text, msgType);
+                        continue;
+                    }
+                    if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("[Protocol] Received reconnect offer during streaming (legacy format)");
+                        await HandleLegacyMessageAsync(text);
+                        continue;
+                    }
+
+                    // Handle end_of_candidates from client
+                    if (msgType == "end_of_candidates")
+                    {
+                        Console.WriteLine("[Protocol] Received end_of_candidates during streaming");
+                        continue;
                     }
                 }
                 catch (OperationCanceledException) { break; }
