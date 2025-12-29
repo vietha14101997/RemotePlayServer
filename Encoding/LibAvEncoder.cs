@@ -63,6 +63,9 @@ public unsafe class LibAvEncoder : IDisposable
     private bool _useHardwareFrames;
     private GpuVendorType _gpuVendor = GpuVendorType.Unknown;
     private string _encoderName = "unknown";
+
+    // VBR mode for WiFi streaming - better quality with fluctuating bandwidth
+    private bool _useVbrMode = true; // Enable by default for WiFi optimization
     
     private readonly object _lock = new();
 
@@ -238,20 +241,38 @@ public unsafe class LibAvEncoder : IDisposable
         switch (_encoderName)
         {
             case "h264_amf":
-                // AMD AMF specific options for ultra low latency
-                Console.WriteLine("[LibAvEncoder] Configuring AMD AMF encoder for zero-copy");
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "ultralowlatency", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "speed", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "false", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "false", 0);
+                // AMD AMF - balanced latency + quality for desktop/text streaming
+                Console.WriteLine("[LibAvEncoder] Configuring AMD AMF encoder (quality + low latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "lowlatency", 0);  // lowlatency instead of ultralowlatency for quality
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "balanced", 0);  // balanced instead of speed
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);      // Main profile for CABAC
+                // Quality settings for sharper text/desktop content
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "true", 0);  // Enable for better quality
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "true", 0);         // Variance Based AQ - similar to spatial-aq
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "enforce_hrd", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "header_insertion_mode", "idr", 0);
-                // Set maxrate and bufsize for CBR to work properly
-                _codecCtx->rc_max_rate = _bitrate;
-                _codecCtx->rc_buffer_size = _bitrate / 10; // 100ms buffer for low latency
+
+                // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
+                if (_useVbrMode)
+                {
+                    // VBR mode - better for WiFi with fluctuating bandwidth
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);  // VBR with latency optimization
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "20", 0);  // Quality target for I-frames
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "22", 0);  // Quality target for P-frames
+                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
+                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
+                    Console.WriteLine($"[LibAvEncoder] AMF VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    // CBR mode - consistent bitrate for LAN
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;  // 250ms buffer
+                }
+
                 // AMF level for width > 2048
                 if (_width > 2048)
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "level", "5.1", 0);
@@ -260,38 +281,71 @@ public unsafe class LibAvEncoder : IDisposable
             case "h264_nvenc":
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "p1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
-                // Remove forced-idr as it might cause invalid param on some drivers
+                // Quality settings for sharper text/desktop content
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "aq-strength", "8", 0);  // Strong AQ for text edges
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);   // Main for CABAC
+
+                // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
+                if (_useVbrMode)
+                {
+                    // VBR mode - better for WiFi with fluctuating bandwidth
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "cq", "20", 0);  // Quality target (lower = higher quality)
+                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
+                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
+                    Console.WriteLine($"[LibAvEncoder] NVENC VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    // CBR mode - consistent bitrate for LAN
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "cbr", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;  // 250ms buffer
+                }
                 break;
                 
             case "h264_qsv":
-                // Intel QSV specific options for ULTRA LOW LATENCY
-                Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)");
-                // Fastest preset
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "veryfast", 0);
+                // Intel QSV - balanced latency + quality for desktop/text streaming
+                Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)");
+                // Balanced preset for quality (faster still available but "balanced" is better for text)
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preset", "faster", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);      // Main profile for CABAC
                 // Async depth > 1 allows pipeline parallelism (essential for 60fps on weaker iGPUs)
-                // Depth 1 forces strict serialization (CPU->Wait->GPU->Wait) which kills throughput.
-                // Depth 4 is a sweet spot: good FPS, minimal added latency.
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "async_depth", "4", 0);
-                // No look-ahead to avoid buffering future frames
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
                 // Low power mode for fixed-function encoder (lower latency)
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "low_power", "1", 0);
                 // Force single NAL per frame for lower decoding latency
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "single_sei_nal_unit", "1", 0);
-                // Rate control: VCM (Video Conferencing Mode) optimized for low latency
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "rdo", "0", 0);
-                // Reduce RC buffer for faster bitrate response
-                // Reduce RC buffer for faster bitrate response
-                _codecCtx->rc_buffer_size = _bitrate / 10; // 100ms buffer (matched with AMF/NVENC logic)
-                _codecCtx->rc_max_rate = (long)(_bitrate * 1.5); // Allow some headroom
-                
+                // Quality settings - enable adaptive quantization for text edges
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_i", "1", 0);      // Adaptive I-frame insertion
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_b", "0", 0);      // No B-frames
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "b_strategy", "0", 0);
                 // Extra QSV options for stability
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", "0", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "pic_timing_sei", "0", 0);
+
+                // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
+                if (_useVbrMode)
+                {
+                    // VBR mode - use look-ahead for better quality prediction
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "1", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "10", 0);  // Small look-ahead for latency
+                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
+                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
+                    Console.WriteLine($"[LibAvEncoder] QSV VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                }
+                else
+                {
+                    // CBR mode - no look-ahead for lowest latency
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "0", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "0", 0);
+                    _codecCtx->rc_max_rate = _bitrate;
+                    _codecCtx->rc_buffer_size = _bitrate / 4;  // 250ms buffer
+                }
                 break;
         }
     }

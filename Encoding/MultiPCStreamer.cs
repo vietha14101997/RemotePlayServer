@@ -54,14 +54,14 @@ public class MultiPCStreamer : IDisposable
         public long SkipCount;
         public long EncodeCount;
         public long LastPts100ns;
-        
+
         // FPS tracking for diagnostics
         public long LastFpsLogTime;
         public long LastFpsLogSentCount;
-        
+
         // Per-monitor D3D11 device for parallel encoding (no contention!)
         public ID3D11Device? Device { get; set; }
-        
+
         public void Dispose()
         {
             try { Encoder?.Dispose(); } catch { }
@@ -302,7 +302,7 @@ public class MultiPCStreamer : IDisposable
         await pc.setLocalDescription(answer);
 
         _running = true;
-        
+
         // Initialize encoder immediately (don't wait for ICE connected)
         // This ensures both encoders are ready at the same time
         InitializeEncoder(monitor);
@@ -452,27 +452,28 @@ public class MultiPCStreamer : IDisposable
     }
 
     /// <summary>
-    /// Push NV12 texture for a specific monitor - ZERO COPY
+    /// Push NV12 texture for a specific monitor - SYNCHRONOUS encoding
+    /// Note: Async queue was causing crashes due to texture reuse issues
     /// </summary>
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
     {
         if (!_running || _disposed) return;
-        
+
         MonitorPC? monitor;
         lock (_lock)
         {
             monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
         }
-        
+
         if (monitor == null) return;
-        
+
         // Check if encoder is ready
         if (monitor.Encoder == null || !monitor.IceConnected)
         {
             Interlocked.Increment(ref monitor.SkipCount);
             return;
         }
-        
+
         // Use per-monitor device for parallel encoding, fallback to shared device
         var device = monitor.Device ?? _device;
         if (device == null)
@@ -480,13 +481,13 @@ public class MultiPCStreamer : IDisposable
             Interlocked.Increment(ref monitor.SkipCount);
             return;
         }
-        
+
         try
         {
             // Use encoder dimensions (from client request), not capture dimensions
             int encWidth = monitor.Width;
             int encHeight = monitor.Height;
-            
+
             // Create staging texture if needed (use encoder dimensions)
             if (monitor.StagingNV12 == null)
             {
@@ -503,20 +504,23 @@ public class MultiPCStreamer : IDisposable
                     CPUAccessFlags = CpuAccessFlags.None
                 });
             }
-            
+
             if (monitor.StagingNV12 != null)
             {
+                // Copy texture to staging (this is fast GPU copy)
                 device.ImmediateContext.CopyResource(monitor.StagingNV12, nv12Texture);
+
+                // Encode directly (synchronous)
                 long sent = Interlocked.Read(ref monitor.SentCount);
                 long skipped = Interlocked.Read(ref monitor.SkipCount);
-                
+
                 // Force IDR for:
                 // - First 3 frames to ensure SPS/PPS capture
                 // - Every 90 frames (3 seconds at 30fps) - reduced from 30 to fix stuttering
                 // - When too many frames skipped waiting for SPS/PPS
-                bool forceIdr = sent < 3 || (sent % 90 == 0) || 
+                bool forceIdr = sent < 3 || (sent % 90 == 0) ||
                                (skipped > 0 && skipped <= 10); // Force keyframe when waiting for SPS/PPS
-                
+
                 monitor.Encoder.EncodeTexture(monitor.StagingNV12, forceKeyframe: forceIdr);
             }
         }
@@ -820,6 +824,7 @@ public class MultiPCStreamer : IDisposable
     public void Stop()
     {
         _running = false;
+
         lock (_lock)
         {
             foreach (var m in _monitors) m.Dispose();

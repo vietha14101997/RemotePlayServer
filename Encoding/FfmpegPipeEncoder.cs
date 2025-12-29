@@ -406,12 +406,14 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
                     // Level 5.1 required for width > 2048
                     string qsvLevel = Width > 2048 ? "5.1" : "4.1";
-                    
+
                     var outPart =
                         "-an -c:v h264_qsv " +
-                        $"-profile:v main -level {qsvLevel} " +
+                        $"-profile:v main -level {qsvLevel} " +  // Main profile for CABAC
+                        "-preset faster " +                       // Balanced preset for quality
                         $"-bf 0 -g {g} -sc_threshold 0 " +
-                        "-async_depth 1 -low_power 1 " +
+                        "-async_depth 4 -low_power 1 " +          // Async 4 for throughput
+                        "-adaptive_i 1 -adaptive_b 0 " +          // Adaptive I-frame for quality
                         rc + " " +
                         "-bsf:v h264_metadata=aud=insert " +
                         "-f h264 -";
@@ -468,13 +470,13 @@ internal sealed class FfmpegPipeEncoder : IDisposable
 
                     // Level 5.1 required for width > 2048
                     string amfLevel = Width > 2048 ? "5.1" : "4.1";
-                    
+
                     var outPart =
                         "-an -c:v h264_amf " +
-                        "-usage ultralowlatency " +
-                        "-quality speed " +
-                        $"-profile:v main -level {amfLevel} " +
-                        "-preanalysis false -vbaq false " +
+                        "-usage lowlatency " +                    // lowlatency instead of ultralowlatency for quality
+                        "-quality balanced " +                    // balanced instead of speed
+                        $"-profile:v main -level {amfLevel} " +   // Main profile for CABAC
+                        "-preanalysis true -vbaq true " +         // Enable VBAQ for text edges (like spatial-aq)
                         "-enforce_hrd false -filler_data false " +
                         "-frame_skipping false " +
                         "-bf:v 0 -log_to_dbg 0 " +

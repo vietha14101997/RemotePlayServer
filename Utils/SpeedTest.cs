@@ -341,11 +341,21 @@ namespace RemotePlayServer.Utils
                 baseBitrateKbps = (int)(baseBitrateKbps * 1.15); // +15% for good network
 
             // Calculate max bitrate per monitor based on available bandwidth
-            // Use 60% of bandwidth divided by 3 monitors as upper limit
-            double maxBitratePerMonitor = availableBandwidth * 1000 * 0.6 / 3;
+            // Use 70% of bandwidth divided by 3 monitors as upper limit
+            double maxBitratePerMonitor = availableBandwidth * 1000 * 0.7 / 3;
 
-            // Use the lower of recommended and max available, clamped to dropdown options
-            int rawBitrate = (int)Math.Clamp(Math.Min(baseBitrateKbps, maxBitratePerMonitor), 5000, 30000);
+            // For desktop/text streaming, we need higher minimum bitrate to avoid artifacts
+            // Text is harder to compress than video - use 15Mbps minimum for readability
+            int minBitrateForText = 15000;
+
+            // Use the lower of recommended and max available, clamped for text quality
+            int rawBitrate = (int)Math.Clamp(Math.Min(baseBitrateKbps, maxBitratePerMonitor), minBitrateForText, 40000);
+
+            // LAN quality override: maximize bitrate for local connections
+            if (network.PingMs < 5 && availableBandwidth > 500)
+            {
+                rawBitrate = 40000;  // Max quality for LAN
+            }
 
             // Round to nearest dropdown option: 5, 10, 15, 20, 30 Mbps
             config.BitrateKbps = RoundToNearestBitrateOption(rawBitrate);
@@ -385,12 +395,13 @@ namespace RemotePlayServer.Utils
         }
 
         /// <summary>
-        /// Round bitrate to nearest dropdown option: 5, 10, 15, 20, 30 Mbps
+        /// Round bitrate to nearest dropdown option: 15, 20, 25, 30, 40 Mbps
+        /// Higher minimum for text/desktop streaming quality
         /// </summary>
         private static int RoundToNearestBitrateOption(int bitrateKbps)
         {
-            // Options in Kbps: 5000, 10000, 15000, 20000, 30000
-            int[] options = { 5000, 10000, 15000, 20000, 30000 };
+            // Options in Kbps - minimum 15Mbps for text clarity
+            int[] options = { 15000, 20000, 25000, 30000, 40000 };
 
             int nearest = options[0];
             int minDiff = Math.Abs(bitrateKbps - options[0]);
