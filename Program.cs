@@ -41,19 +41,8 @@ partial class Program
 
     static string GetLocalIPAddress()
     {
-        try
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-        }
-        catch { }
-        return "127.0.0.1";
+        // Use the improved NetUtil that filters VPN adapters and prioritizes LAN
+        return NetUtil.GetPreferredLocalIP();
     }
 
     internal static bool IsPrivateV4(IPAddress ip)
@@ -284,11 +273,10 @@ partial class Program
         InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
 
         await server.StartAsync();
-        
-        // Hiện IP server và tạo QRCode - ưu tiên 192.168.1.*
-        var serverIPs = NetUtil.GetLocalIPv4Addresses().ToList();
-        var preferredIP = serverIPs.FirstOrDefault(ip => ip.StartsWith("192.168.1.")) ?? serverIPs.FirstOrDefault() ?? "127.0.0.1";
-        
+
+        // Hiện IP server và tạo QRCode - ưu tiên LAN thực (192.168.x.x), filter VPN
+        var preferredIP = NetUtil.GetPreferredLocalIP();
+
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
         
         // Tạo QRCode với IP ưu tiên và danh sách monitors

@@ -7,6 +7,14 @@ using System.Linq;
 
 public static class NetUtil
 {
+    // VPN/virtual adapter keywords to filter out
+    private static readonly string[] VpnKeywords = new[]
+    {
+        "virtual", "vmware", "hyper-v", "loopback", "vpn", "zerotier",
+        "hamachi", "tap-", "tun", "tunnel", "vethernet", "docker",
+        "wsl", "vbox", "virtualbox", "parallels", "utun"
+    };
+
     public static IEnumerable<string> GetLocalIPv4Addresses(bool includeVirtual = false)
     {
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
@@ -15,7 +23,7 @@ public static class NetUtil
             if (!includeVirtual)
             {
                 var name = (ni.Name + " " + ni.Description).ToLowerInvariant();
-                if (name.Contains("virtual") || name.Contains("vmware") || name.Contains("hyper-v") || name.Contains("loopback"))
+                if (VpnKeywords.Any(kw => name.Contains(kw)))
                     continue;
             }
 
@@ -30,5 +38,35 @@ public static class NetUtil
                 yield return s;
             }
         }
+    }
+
+    /// <summary>
+    /// Get the best local IP for LAN streaming.
+    /// Prioritizes: 192.168.x.x > 172.16-31.x.x > 10.x.x.x
+    /// </summary>
+    public static string GetPreferredLocalIP()
+    {
+        var ips = GetLocalIPv4Addresses().ToList();
+
+        // Priority 1: 192.168.x.x (most common home/office LAN)
+        var preferred = ips.FirstOrDefault(ip => ip.StartsWith("192.168."));
+        if (preferred != null) return preferred;
+
+        // Priority 2: 172.16-31.x.x (private class B)
+        preferred = ips.FirstOrDefault(ip =>
+        {
+            if (!ip.StartsWith("172.")) return false;
+            var parts = ip.Split('.');
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int second)) return false;
+            return second >= 16 && second <= 31;
+        });
+        if (preferred != null) return preferred;
+
+        // Priority 3: 10.x.x.x (often VPN but could be corporate LAN)
+        preferred = ips.FirstOrDefault(ip => ip.StartsWith("10."));
+        if (preferred != null) return preferred;
+
+        // Fallback to any IP or localhost
+        return ips.FirstOrDefault() ?? "127.0.0.1";
     }
 }
