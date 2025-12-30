@@ -9,6 +9,7 @@ namespace RemotePlayServer.Encoding;
 /// Adapter for LibAvEncoder to implement ITextureEncoder interface
 /// Used for NVIDIA (NVENC) and Intel (QSV) GPUs
 /// Handles texture to NV12 bytes conversion for LibAvEncoder
+/// Supports both H.264 and H.265 codecs with automatic fallback
 /// </summary>
 public class LibAvEncoderAdapter : ITextureEncoder
 {
@@ -23,17 +24,34 @@ public class LibAvEncoderAdapter : ITextureEncoder
     private byte[]? _nv12Buffer;
     private bool _disposed;
     private long _frameCount;
+    private VideoCodec _preferredCodec = VideoCodec.H265;
 
     public event Action<byte[], bool, long>? OnEncodedData;
-    
+
     public bool IsInitialized => _encoder?.IsInitialized ?? false;
     public int Width => _width;
     public int Height => _height;
 
+    /// <summary>
+    /// The currently active video codec (H264 or H265)
+    /// </summary>
+    public VideoCodec CurrentCodec => _encoder?.CurrentCodec ?? _preferredCodec;
+
+    /// <summary>
+    /// Initialize encoder with default codec (H.265)
+    /// </summary>
     public bool Initialize(int width, int height, int fps, int bitrate, ID3D11Device device)
     {
+        return Initialize(width, height, fps, bitrate, device, VideoCodec.H265);
+    }
+
+    /// <summary>
+    /// Initialize encoder with specific codec preference
+    /// </summary>
+    public bool Initialize(int width, int height, int fps, int bitrate, ID3D11Device device, VideoCodec preferredCodec)
+    {
         if (_encoder != null) return true;
-        
+
         try
         {
             _width = width;
@@ -42,9 +60,10 @@ public class LibAvEncoderAdapter : ITextureEncoder
             _bitrate = bitrate;
             _device = device;
             _context = device.ImmediateContext;
-            
-            Console.WriteLine($"[LibAvEncoderAdapter] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps");
-            
+            _preferredCodec = preferredCodec;
+
+            Console.WriteLine($"[LibAvEncoderAdapter] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps, codec={preferredCodec}");
+
             // Create staging texture for CPU read
             _stagingTexture = _device.CreateTexture2D(new Texture2DDescription
             {
@@ -58,21 +77,21 @@ public class LibAvEncoderAdapter : ITextureEncoder
                 BindFlags = BindFlags.None,
                 CPUAccessFlags = CpuAccessFlags.Read
             });
-            
+
             // Allocate NV12 buffer (Y plane + UV plane)
             _nv12Buffer = new byte[width * height * 3 / 2];
-            
-            _encoder = new LibAvEncoder(width, height, fps, bitrate * 1000, device);
+
+            _encoder = new LibAvEncoder(width, height, fps, bitrate * 1000, device, preferredCodec);
             _encoder.OnEncodedData += OnEncoderData;
-            
+
             if (!_encoder.Initialize())
             {
                 Console.WriteLine("[LibAvEncoderAdapter] LibAvEncoder initialization failed");
                 Cleanup();
                 return false;
             }
-            
-            Console.WriteLine("[LibAvEncoderAdapter] Initialized successfully");
+
+            Console.WriteLine($"[LibAvEncoderAdapter] Initialized successfully with codec: {_encoder.CurrentCodec}");
             return true;
         }
         catch (Exception ex)
@@ -100,7 +119,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
             // Use TRUE ZERO-COPY path if available (D3D11VA mode)
             if (_encoder.SupportsZeroCopyTexture)
             {
-                return _encoder.EncodeD3D11TextureZeroCopy(texture);
+                return _encoder.EncodeD3D11TextureZeroCopy(texture, forceKeyframe);
             }
             
             // Fallback: CPU copy path (for CUDA mode or when zero-copy not available)
@@ -146,7 +165,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
             }
             
             // Encode NV12 bytes
-            return _encoder.EncodeNV12(_nv12Buffer, _width, _height);
+            return _encoder.EncodeNV12(_nv12Buffer, _width, _height, forceKeyframe);
         }
         catch (Exception ex)
         {
@@ -166,7 +185,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
         try
         {
             _frameCount++;
-            return _encoder.EncodeNV12(nv12Bytes, width, height);
+            return _encoder.EncodeNV12(nv12Bytes, width, height, forceKeyframe);
         }
         catch (Exception ex)
         {

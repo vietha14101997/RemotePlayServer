@@ -1,0 +1,88 @@
+[StateMachine] FORCE: Streaming -> Error: The remote party closed the WebSocket connection without completing the close handshake.
+UnityEngine.Debug:Log (object)
+VRWorkspace.Streaming.ConnectionStateMachine:ForceTransition (VRWorkspace.Streaming.ConnectionPhase,string) (at Assets/VR-Workspace/Scripts/Streaming/ConnectionStateMachine.cs:137)
+VRWorkspace.Streaming.PhaseProtocolClient/<ReceiveLoopAsync>d__68:MoveNext () (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:276)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[ClusterAutoBinder] State: Streaming -> Error
+UnityEngine.Debug:Log (object)
+ClusterAutoBinder:SetState (ClusterAutoBinder/ConnectionState) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:354)
+ClusterAutoBinder:HandleError (string) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:398)
+MultiPCStreamClient:<StartV2ProtocolAsync>b__70_7 (string) (at Assets/VR-Workspace/Scripts/Streaming/MultiPCStreamClient.cs:445)
+VRWorkspace.Streaming.PhaseProtocolClient/<ReceiveLoopAsync>d__68:MoveNext () (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:277)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[RTTRemoteMenu] HandleConnectionStateChanged: Streaming -> Error
+UnityEngine.Debug:Log (object)
+RTTRemoteMenu:HandleConnectionStateChanged (ClusterAutoBinder/ConnectionState) (at Assets/VR-Workspace/Scripts/UI/RTT/Components/RTTRemoteMenu.cs:517)
+ClusterAutoBinder:SetState (ClusterAutoBinder/ConnectionState) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:355)
+ClusterAutoBinder:HandleError (string) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:398)
+MultiPCStreamClient:<StartV2ProtocolAsync>b__70_7 (string) (at Assets/VR-Workspace/Scripts/Streaming/MultiPCStreamClient.cs:445)
+VRWorkspace.Streaming.PhaseProtocolClient/<ReceiveLoopAsync>d__68:MoveNext () (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:277)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[RTTRemoteMenu] Side panels hidden
+UnityEngine.Debug:Log (object)
+RTTRemoteMenu:HideSidePanels () (at Assets/VR-Workspace/Scripts/UI/RTT/Components/RTTRemoteMenu.cs:1172)
+RTTRemoteMenu:HandleConnectionStateChanged (ClusterAutoBinder/ConnectionState) (at Assets/VR-Workspace/Scripts/UI/RTT/Components/RTTRemoteMenu.cs:562)
+ClusterAutoBinder:SetState (ClusterAutoBinder/ConnectionState) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:355)
+ClusterAutoBinder:HandleError (string) (at Assets/VR-Workspace/Scripts/Cluster/ClusterAutoBinder.cs:398)
+MultiPCStreamClient:<StartV2ProtocolAsync>b__70_7 (string) (at Assets/VR-Workspace/Scripts/Streaming/MultiPCStreamClient.cs:445)
+VRWorkspace.Streaming.PhaseProtocolClient/<ReceiveLoopAsync>d__68:MoveNext () (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:277)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PhaseProtocol] PC0 ICE: Disconnected
+UnityEngine.Debug:Log (object)
+VRWorkspace.Streaming.PhaseProtocolClient/<>c__DisplayClass88_0:<CreatePeerConnectionsAsync>b__0 (Unity.WebRTC.RTCIceConnectionState) (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:946)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass50_0:<PCOnIceConnectionChange>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:443)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PhaseProtocol] PC0 State: Disconnected
+UnityEngine.Debug:Log (object)
+VRWorkspace.Streaming.PhaseProtocolClient/<>c__DisplayClass88_0:<CreatePeerConnectionsAsync>b__1 (Unity.WebRTC.RTCPeerConnectionState) (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:954)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass51_0:<PCOnConnectionStateChange>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:455)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PhaseProtocol] PC0 connection lost
+UnityEngine.Debug:LogWarning (object)
+VRWorkspace.Streaming.PhaseProtocolClient/<>c__DisplayClass88_0:<CreatePeerConnectionsAsync>b__1 (Unity.WebRTC.RTCPeerConnectionState) (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:961)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass51_0:<PCOnConnectionStateChange>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:455)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PhaseProtocol] PC0 ICE: Failed
+UnityEngine.Debug:Log (object)
+VRWorkspace.Streaming.PhaseProtocolClient/<>c__DisplayClass88_0:<CreatePeerConnectionsAsync>b__0 (Unity.WebRTC.RTCIceConnectionState) (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:946)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass50_0:<PCOnIceConnectionChange>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:443)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+[PhaseProtocol] PC0 State: Failed
+UnityEngine.Debug:Log (object)
+VRWorkspace.Streaming.PhaseProtocolClient/<>c__DisplayClass88_0:<CreatePeerConnectionsAsync>b__1 (Unity.WebRTC.RTCPeerConnectionState) (at Assets/VR-Workspace/Scripts/Streaming/PhaseProtocolClient.cs:954)
+Unity.WebRTC.RTCPeerConnection/<>c__DisplayClass51_0:<PCOnConnectionStateChange>b__0 () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/RTCPeerConnection.cs:455)
+Unity.WebRTC.WebRTC:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/WebRTC.cs:1169)
+Unity.WebRTC.ExecutableUnitySynchronizationContext/WorkRequest:Invoke () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:224)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:Execute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:171)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:ExecuteAndAppendNextExecute () (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:189)
+Unity.WebRTC.ExecutableUnitySynchronizationContext:SendOrPostCallback (object) (at ./Library/PackageCache/com.unity.webrtc@3.0.0-pre.8/Runtime/Scripts/Internal/ExecutableUnitySynchronizationContext.cs:57)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+

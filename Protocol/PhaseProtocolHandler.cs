@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using RemotePlayServer.Utils;
+using RemotePlayServer.Encoding;
 
 namespace RemotePlayServer.Protocol
 {
@@ -48,6 +49,10 @@ namespace RemotePlayServer.Protocol
         private SpeedTestResult? _speedTestResult;
         private DisplayConfigMessage? _displayConfig;
 
+        // Client codec capabilities (received in hardware_info_ack)
+        private ClientCodecCapability? _clientCodecCapability;
+        private string _selectedCodec = "H264";
+
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
         private RemotePlayServer.Encoding.MultiPCStreamer? _streamer;
@@ -82,6 +87,16 @@ namespace RemotePlayServer.Protocol
         private float _lastCursorU = -1f;
         private float _lastCursorV = -1f;
         private bool _lastCursorVisible = false;
+
+        // Server-side keep-alive for early disconnect detection
+        private System.Timers.Timer? _keepAliveTimer;
+        private DateTime _lastPongReceived = DateTime.UtcNow;
+        private int _missedPongs = 0;
+        private const int KEEPALIVE_INTERVAL_MS = 5000;  // Ping every 5s
+        private const int MAX_MISSED_PONGS = 3;          // 15s without pong = dead
+
+        // Wait for all monitors to connect before starting streaming
+        private TaskCompletionSource<bool>? _allConnectedTcs;
 
         public PhaseProtocolHandler(
             Guid clientId,
@@ -124,7 +139,12 @@ namespace RemotePlayServer.Protocol
             catch (Exception ex)
             {
                 Console.WriteLine($"[Protocol] Client {_clientId} error: {ex.Message}");
-                await SendErrorAsync(GetPhaseNumber(), "UNEXPECTED_ERROR", ex.Message);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[Protocol] InnerException: {ex.InnerException.Message}");
+                }
+                Console.WriteLine($"[Protocol] StackTrace: {ex.StackTrace}");
+                try { await SendErrorAsync(GetPhaseNumber(), "UNEXPECTED_ERROR", ex.Message); } catch { }
             }
             finally
             {
@@ -204,10 +224,11 @@ namespace RemotePlayServer.Protocol
                 BitrateKbps = suggested.BitrateKbps,
                 Fps = suggested.Fps,
                 RefreshRate = suggested.RefreshRate,
-                Reason = suggested.Reason
+                Reason = suggested.Reason,
+                SelectedCodec = _selectedCodec
             };
 
-            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps");
+            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps, codec={_selectedCodec}");
             await SendMessageAsync(sugMsg);
             Console.WriteLine("[Protocol] ✓ suggested_config sent successfully");
 
@@ -475,9 +496,12 @@ namespace RemotePlayServer.Protocol
                 _capture = _sharedCapture;
             }
 
-            // Create MultiPCStreamer
+            // Create MultiPCStreamer with negotiated codec
+            var codecEnum = _selectedCodec.Equals("H265", StringComparison.OrdinalIgnoreCase)
+                ? VideoCodec.H265 : VideoCodec.H264;
+            Console.WriteLine($"[Protocol] Creating MultiPCStreamer with codec={_selectedCodec} (enum={codecEnum})");
             _streamer = new RemotePlayServer.Encoding.MultiPCStreamer(
-                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device);
+                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device, codecEnum);
 
             // Wire up per-monitor devices for parallel encoding
             for (int i = 0; i < actualMonitors; i++)
@@ -514,11 +538,17 @@ namespace RemotePlayServer.Protocol
                 catch { }
             };
 
+            // Initialize TCS for waiting on all connections
+            _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
             // ICE ready notification - sent when all PeerConnections have ICE connected
             _streamer.OnAllConnected += async () =>
             {
                 try
                 {
+                    // Signal that all monitors are connected
+                    _allConnectedTcs?.TrySetResult(true);
+
                     if (_ws.State != WebSocketState.Open) return;
                     Console.WriteLine($"[Protocol] All {actualMonitors} ICE connections ready, sending ice_ready");
                     var msg = new IceReadyMessage { MonitorCount = actualMonitors };
@@ -659,6 +689,28 @@ namespace RemotePlayServer.Protocol
             if (_streamer == null) return;
 
             Console.WriteLine($"[Protocol] Received offer for monitor {monitorIndex}");
+
+            // CRITICAL FIX: Clear ICE state for this monitor BEFORE processing new offer
+            // This prevents race condition where client candidates arrive while new PC is being created
+            // Without this, candidates go to AddIceCandidate immediately but PC isn't ready yet
+            lock (_iceLock)
+            {
+                bool wasReady = _answersReady.Remove(monitorIndex);
+                if (wasReady)
+                {
+                    Console.WriteLine($"[Protocol] Cleared _answersReady for m{monitorIndex} (reconnect case)");
+                }
+                // Also clear any pending candidates from previous connection
+                if (_pendingIce.TryGetValue(monitorIndex, out var oldPending))
+                {
+                    if (oldPending.Count > 0)
+                    {
+                        Console.WriteLine($"[Protocol] Cleared {oldPending.Count} old pending candidates for m{monitorIndex}");
+                        oldPending.Clear();
+                    }
+                }
+            }
+
             try
             {
                 var answerSdp = await _streamer.ProcessOfferAsync(
@@ -774,6 +826,34 @@ namespace RemotePlayServer.Protocol
             // Wait for start_streaming
             await WaitForStartStreamingAsync();
 
+            // CRITICAL: Wait for ALL monitors to be ICE connected before starting streaming
+            // This prevents network congestion from one monitor's stream interfering with
+            // another monitor's ICE negotiation
+            if (_allConnectedTcs != null)
+            {
+                Console.WriteLine("[Protocol] Phase 3: Waiting for all monitors to connect...");
+                try
+                {
+                    // Wait up to 15 seconds for all monitors to connect
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    var allConnectedTask = _allConnectedTcs.Task;
+                    var completedTask = await Task.WhenAny(allConnectedTask, Task.Delay(Timeout.Infinite, cts.Token));
+
+                    if (completedTask == allConnectedTask)
+                    {
+                        Console.WriteLine("[Protocol] Phase 3: All monitors connected!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Protocol] Phase 3: Timeout waiting for all monitors, proceeding anyway");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("[Protocol] Phase 3: Timeout waiting for all monitors, proceeding anyway");
+                }
+            }
+
             SetPhase(ConnectionPhase.Phase3_Streaming);
             Console.WriteLine("[Protocol] Phase 3: Starting stream...");
 
@@ -793,6 +873,9 @@ namespace RemotePlayServer.Protocol
             // Start cursor tracking
             var cursorTrackingTask = StartCursorTrackingTask();
             Console.WriteLine("[Protocol] Cursor tracking started");
+
+            // Start server-side keep-alive for early disconnect detection
+            StartKeepAlive();
 
             // Main loop - handle messages while streaming
             var buffer = new byte[128 * 1024];
@@ -821,6 +904,14 @@ namespace RemotePlayServer.Protocol
                         continue;
                     }
 
+                    // Track client pong responses for keep-alive
+                    if (text.Trim().Equals("pong", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastPongReceived = DateTime.UtcNow;
+                        _missedPongs = 0;
+                        continue;
+                    }
+
                     var msgType = ProtocolMessageParser.GetMessageType(text);
                     if (msgType == "stop_streaming" || text.Equals("stop_streaming", StringComparison.OrdinalIgnoreCase))
                     {
@@ -829,13 +920,59 @@ namespace RemotePlayServer.Protocol
                     }
 
                     // Handle late ICE candidates
-                    if (msgType == "candidate" || text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                    if (msgType == "candidate")
+                    {
+                        await HandleJsonMessageAsync(text, msgType);
+                        continue;
+                    }
+                    if (text.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
                     {
                         await HandleLegacyMessageAsync(text);
+                        continue;
+                    }
+
+                    // Handle reconnect offers from client (client-side auto-heal)
+                    if (msgType == "offer")
+                    {
+                        Console.WriteLine("[Protocol] Received reconnect offer during streaming (JSON format)");
+                        await HandleJsonMessageAsync(text, msgType);
+                        continue;
+                    }
+                    if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("[Protocol] Received reconnect offer during streaming (legacy format)");
+                        await HandleLegacyMessageAsync(text);
+                        continue;
+                    }
+
+                    // Handle end_of_candidates from client
+                    if (msgType == "end_of_candidates")
+                    {
+                        Console.WriteLine("[Protocol] Received end_of_candidates during streaming");
+                        continue;
+                    }
+
+                    // Handle keyframe request from client (for immediate visual update on interaction)
+                    if (msgType == "request_keyframe")
+                    {
+                        int monitorIndex = -1; // -1 means all monitors
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                                monitorIndex = mi.GetInt32();
+                        }
+                        catch { }
+
+                        _streamer?.RequestKeyframe(monitorIndex);
+                        continue;
                     }
                 }
                 catch (OperationCanceledException) { break; }
             }
+
+            // Stop keep-alive timer
+            StopKeepAlive();
 
             // Stop cursor tracking
             StopCursorTracking();
@@ -904,12 +1041,72 @@ namespace RemotePlayServer.Protocol
                                 await SendTextAsync(json);
                             }
                         }
-                        await Task.Delay(500, _captureCts.Token);
+                        await Task.Delay(500, _captureCts?.Token ?? _ct);
                     }
                     catch (OperationCanceledException) { break; }
                     catch { }
                 }
             });
+        }
+
+        /// <summary>
+        /// Start server-side keep-alive timer for early disconnect detection.
+        /// Pings client every 5s and detects dead connections within 15s (vs 30s ICE timeout).
+        /// </summary>
+        private void StartKeepAlive()
+        {
+            _lastPongReceived = DateTime.UtcNow;
+            _missedPongs = 0;
+
+            _keepAliveTimer = new System.Timers.Timer(KEEPALIVE_INTERVAL_MS);
+            _keepAliveTimer.Elapsed += async (s, e) =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open)
+                    {
+                        _keepAliveTimer?.Stop();
+                        return;
+                    }
+
+                    // Check if client has responded to previous pings
+                    var timeSinceLastPong = (DateTime.UtcNow - _lastPongReceived).TotalMilliseconds;
+                    if (timeSinceLastPong > KEEPALIVE_INTERVAL_MS * 1.5)
+                    {
+                        _missedPongs++;
+                        if (_missedPongs >= MAX_MISSED_PONGS)
+                        {
+                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s, connection may be dead");
+                            // Don't close WebSocket - let the main loop handle timeout
+                            // This just provides early warning for logging
+                        }
+                    }
+
+                    // Send ping to client
+                    await SendTextAsync("ping");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[KeepAlive] Error: {ex.Message}");
+                }
+            };
+            _keepAliveTimer.AutoReset = true;
+            _keepAliveTimer.Start();
+            Console.WriteLine("[KeepAlive] Server-side keep-alive started (5s interval)");
+        }
+
+        /// <summary>
+        /// Stop keep-alive timer.
+        /// </summary>
+        private void StopKeepAlive()
+        {
+            try
+            {
+                _keepAliveTimer?.Stop();
+                _keepAliveTimer?.Dispose();
+                _keepAliveTimer = null;
+            }
+            catch { }
         }
 
         #endregion
@@ -953,6 +1150,10 @@ namespace RemotePlayServer.Protocol
                 var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                 ms.SetLength(0);
 
+                // Debug: Log received message
+                var truncated = text.Length > 100 ? text.Substring(0, 100) + "..." : text;
+                Console.WriteLine($"[Protocol] WaitForHardwareAck received: len={text.Length}, text={truncated}");
+
                 // Handle ping
                 if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
                 {
@@ -962,10 +1163,51 @@ namespace RemotePlayServer.Protocol
 
                 // Check for hardware_info_ack
                 var msgType = ProtocolMessageParser.GetMessageType(text);
+                Console.WriteLine($"[Protocol] WaitForHardwareAck msgType={msgType}");
                 if (msgType == "hardware_info_ack")
                 {
+                    // Parse client codec capabilities
+                    var ackMsg = ProtocolMessageParser.Parse<HardwareInfoAckMessage>(text);
+                    if (ackMsg?.ClientCodecs != null)
+                    {
+                        _clientCodecCapability = ackMsg.ClientCodecs;
+                        Console.WriteLine($"[Protocol] Client codec capabilities: HEVC={_clientCodecCapability.SupportsHevc}, " +
+                                          $"preferred={_clientCodecCapability.PreferredCodec}, device={_clientCodecCapability.DeviceModel}");
+
+                        // Negotiate codec: Use H.265 if both server and client support it
+                        NegotiateCodec();
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Protocol] No client codec capabilities in hardware_info_ack, using H.264");
+                        _selectedCodec = "H264";
+                    }
                     return;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Negotiate codec based on server and client capabilities.
+        /// </summary>
+        private void NegotiateCodec()
+        {
+            // Check if both server and client support HEVC
+            bool serverSupportsHevc = _encoderInfo?.SupportsHevc ?? false;
+            bool clientSupportsHevc = _clientCodecCapability?.SupportsHevc ?? false;
+
+            if (serverSupportsHevc && clientSupportsHevc)
+            {
+                _selectedCodec = "H265";
+                Console.WriteLine("[Protocol] Codec negotiation: Both support HEVC -> selected H.265");
+            }
+            else
+            {
+                _selectedCodec = "H264";
+                if (!serverSupportsHevc)
+                    Console.WriteLine("[Protocol] Codec negotiation: Server doesn't support HEVC -> selected H.264");
+                else if (!clientSupportsHevc)
+                    Console.WriteLine("[Protocol] Codec negotiation: Client doesn't support HEVC -> selected H.264");
             }
         }
 
@@ -1159,6 +1401,9 @@ namespace RemotePlayServer.Protocol
         private async Task CleanupAsync()
         {
             SetPhase(ConnectionPhase.Disconnecting);
+
+            // Stop keep-alive timer
+            StopKeepAlive();
 
             // Stop capture
             try { _captureCts?.Cancel(); } catch { }

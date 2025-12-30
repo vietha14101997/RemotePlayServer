@@ -13,8 +13,9 @@ using Vortice.Direct3D11;
 using RemotePlayServer.Encoding;
 
 /// <summary>
-/// WebRTC H.264 streamer using LibAvEncoder (FFmpeg in-process).
+/// WebRTC H.264/H.265 streamer using LibAvEncoder (FFmpeg in-process).
 /// Provides lower latency than pipe-based encoding by eliminating process boundary.
+/// Supports both H.264 (AVC) and H.265 (HEVC) codecs with automatic fallback.
 /// </summary>
 public class WebRTCStreamer_LibAv : IDisposable
 {
@@ -31,6 +32,12 @@ public class WebRTCStreamer_LibAv : IDisposable
     private readonly int _minIntervalMs;
     private readonly int _targetKbps;
     private ID3D11Device? _device;
+    private readonly VideoCodec _preferredCodec;
+
+    /// <summary>
+    /// The currently active video codec (determined after encoder initialization)
+    /// </summary>
+    public VideoCodec CurrentCodec => _enc?.CurrentCodec ?? _preferredCodec;
 
     // NV12 input channel - Small capacity to force dropping old frames
     // Reduced from 16 to 2 for Ultra Low Latency
@@ -62,14 +69,16 @@ public class WebRTCStreamer_LibAv : IDisposable
     public WebRTCStreamer_LibAv(
         int fps = 30,
         int targetKbps = 4000,
-        ID3D11Device? device = null)
+        ID3D11Device? device = null,
+        VideoCodec preferredCodec = VideoCodec.H265)
     {
         _fps = Math.Max(5, fps);
         _minIntervalMs = Math.Max(1, 1000 / _fps);
         _targetKbps = Math.Max(1000, targetKbps);
         _device = device;
-        
-        Console.WriteLine($"[RTC-LibAv] Created: {_fps}fps, {_targetKbps}kbps");
+        _preferredCodec = preferredCodec;
+
+        Console.WriteLine($"[RTC-LibAv] Created: {_fps}fps, {_targetKbps}kbps, preferred codec: {_preferredCodec}");
     }
 
     public void SetDevice(ID3D11Device device)
@@ -155,26 +164,45 @@ public class WebRTCStreamer_LibAv : IDisposable
             }
         };
 
+        // Create video capabilities based on preferred codec
+        var capabilities = new List<SDPAudioVideoMediaFormat>();
+
+        // H.265/HEVC format (preferred if encoder supports it)
+        if (_preferredCodec == VideoCodec.H265)
+        {
+            var h265 = new SDPAudioVideoMediaFormat(
+                SDPMediaTypesEnum.video,
+                id: 96,
+                name: "H265",
+                clockRate: 90000,
+                channels: 0,
+                fmtp: "profile-id=1;level-id=120");  // Main Profile, Level 4.0
+            capabilities.Add(h265);
+            Console.WriteLine("[RTC-LibAv] Advertising H.265/HEVC codec");
+        }
+
+        // H.264/AVC format (always include as fallback)
         var h264 = new SDPAudioVideoMediaFormat(
             SDPMediaTypesEnum.video,
-            id: 0,
+            id: 97,
             name: "H264",
             clockRate: 90000,
             channels: 0,
             fmtp: "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e033");
-        
+        capabilities.Add(h264);
+
         var track = new MediaStreamTrack(
             SDPMediaTypesEnum.video,
             isRemote: false,
-            capabilities: new List<SDPAudioVideoMediaFormat> { h264 },
+            capabilities: capabilities,
             streamStatus: MediaStreamStatusEnum.SendOnly);
         _pc.addTrack(track);
 
         _pc.OnVideoFormatsNegotiated += fmts =>
         {
-            var ok = fmts?.Any(f => f.Codec == VideoCodecsEnum.H264) == true;
-            // Don't set _canSend here, wait for ICE connected
-            Console.WriteLine($"[RTC-LibAv] Video formats negotiated (H264 supported: {ok})");
+            var hasH265 = fmts?.Any(f => f.ToString()?.ToUpper().Contains("H265") == true) == true;
+            var hasH264 = fmts?.Any(f => f.Codec == VideoCodecsEnum.H264) == true;
+            Console.WriteLine($"[RTC-LibAv] Video formats negotiated - H265: {hasH265}, H264: {hasH264}");
         };
 
         _statsTask = Task.Run(async () =>
@@ -241,7 +269,7 @@ public class WebRTCStreamer_LibAv : IDisposable
         {
             _encW = w;
             _encH = h;
-            _enc = new LibAvEncoder(_encW, _encH, _fps, _targetKbps * 1000, _device);
+            _enc = new LibAvEncoder(_encW, _encH, _fps, _targetKbps * 1000, _device, _preferredCodec);
             
             _enc.OnEncodedData += (nalData, isKeyFrame, pts) =>
             {
@@ -369,9 +397,9 @@ public class WebRTCStreamer_LibAv : IDisposable
         catch (OperationCanceledException) { }
     }
 
-    private static void LogKeyFrame(byte[] au)
+    private void LogKeyFrame(byte[] au)
     {
-        // Check for IDR NAL (type 5)
+        // Check for IDR NAL units in both H.264 and H.265
         for (int i = 0; i + 4 < au.Length; i++)
         {
             if ((au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ||
@@ -380,11 +408,28 @@ public class WebRTCStreamer_LibAv : IDisposable
                 int offset = (au[i + 2] == 1) ? 3 : 4;
                 if (i + offset < au.Length)
                 {
-                    int nalType = au[i + offset] & 0x1F;
-                    if (nalType == 5)
+                    byte nalByte = au[i + offset];
+
+                    if (CurrentCodec == VideoCodec.H265)
                     {
-                        Console.WriteLine("[RTC-LibAv] IDR frame");
-                        return;
+                        // HEVC: NAL type is in bits 1-6 (shifted right by 1)
+                        int hevcNalType = (nalByte >> 1) & 0x3F;
+                        // IDR_W_RADL=19, IDR_N_LP=20, CRA_NUT=21
+                        if (hevcNalType == 19 || hevcNalType == 20 || hevcNalType == 21)
+                        {
+                            Console.WriteLine($"[RTC-LibAv] HEVC IDR frame (NAL type {hevcNalType})");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // H.264: NAL type is in bits 0-4
+                        int h264NalType = nalByte & 0x1F;
+                        if (h264NalType == 5)
+                        {
+                            Console.WriteLine("[RTC-LibAv] H.264 IDR frame");
+                            return;
+                        }
                     }
                 }
             }

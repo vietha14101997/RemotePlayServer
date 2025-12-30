@@ -3,11 +3,6 @@
 [System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.0.102
 [Encoder] NVIDIA NVENC (Hardware)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Text size restored.
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 1.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Snapshot captured.
@@ -43,31 +38,47 @@ Data: {"ip":"192.168.0.102","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPL
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 03e444a7-6c55-4ad0-a296-9b0ead5efb8c, mode=multitrack, protocol=v2
-[Protocol] Client 03e444a7-6c55-4ad0-a296-9b0ead5efb8c connected from 192.168.0.102 (v2 protocol)
+[Signal] Client connected 33a43f48-de00-46e8-a2ed-6d05d324484b, mode=cluster, protocol=v2
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b connected from 192.168.0.100 (v2 protocol)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
+[HardwareInfo] SetDllDirectory: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] HEVC encoder 'hevc_nvenc': available
+[HardwareInfo] Encoder: NVENC, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=166, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H265","H264"],"preferredCodec":"H265...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=True, preferred=H265, device=vivo V2352GA
+[Protocol] Codec negotiation: Both support HEVC -> selected H.265
 [Protocol] Received hardware_info_ack
 [Protocol] Phase changed to: Phase1_SpeedTest
 [Protocol] Phase 1: Waiting for client speed test result...
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
-[Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 135MB in 2000ms = 566.2 Mbps
+[Protocol] Handling speedtest_request: direction=download, duration=4000ms
+[Protocol] Download test complete: sent 8MB in 5825ms = 11.5 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
-[Protocol] WaitForSpeedTest received: type=speedtest_result, len=80
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 550.0Mbps, 4.8ms
-[Protocol] ✓ Received speedtest_result from client: 550.0Mbps, 4.8ms ping
+[Protocol] speedtest_result parsed: 10.4Mbps, 57.1ms
+[Protocol] ✓ Received speedtest_result from client: 10.4Mbps, 57.1ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 3x1600x900@60fps, bitrate=40000kbps
+[Protocol] Sending suggested_config: 1x1600x900@30fps, bitrate=15000kbps, codec=H265
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
@@ -76,65 +87,31 @@ Server is running. Press ENTER to exit.
 [Protocol] Phase 1 complete, proceeding to Phase 2
 [Protocol] Phase changed to: Phase2_ApplyConfig
 [Protocol] Phase 2: Waiting for display config...
-[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1920,"h":1080},"refreshRate":60,"bitrateKbps...
-[Protocol] Received display config: 2x1920x1080@60fps
-[Protocol] Applying new display config: 2 monitors @ 1920x1080
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":1920,"h":1080},"refreshRate":60,"bitrateKbps...
+[Protocol] Received display config: 1x1920x1080@60fps
+[Protocol] Applying new display config: 1 monitors @ 1920x1080
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 1 (target total: 2)
-[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
-[VDD] Resolution already present.
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /enable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Enabling device:          ROOT\DISPLAY\0000
-Device enabled successfully.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
+[VDD] Virtual monitors needed: 0 (target total: 1)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Display] Setting up 3-monitor system...
-[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Physical monitors: 1, Virtual monitors: 0
 [Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
-[Display] Setting \\.\DISPLAY9 [PHYSICAL] -> 1920x1080@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY9 1920x1080 [PHYSICAL]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
-[Protocol] Available monitors: 2, using: 2
-[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[Protocol] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
-[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY9 1920x1080 - duplication ready
-[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
-[MultiPC] Created: 2mon 60fps 40000kbps (parallel device mode)
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
+[Protocol] Creating MultiPCStreamer with codec=H265 (enum=H265)
+[MultiPC] Created: 1mon 60fps 15000kbps codec=H265 (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
 [Protocol] Monitor 0: Using dedicated D3D11 device
-[MultiPC] m1 device registered (parallel mode)
-[Protocol] Monitor 1: Using dedicated D3D11 device
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
@@ -144,106 +121,129 @@ Scan complete.
 [Protocol] ICE legacy format message
 [Protocol] ICE RX: ping...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3312174935 1 udp 2122260223 10...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2727914356 1 udp 2122194687 19...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 7525722169504668348 2 IN IP4 ...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8215612526798136160 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received offer for monitor 0
 [MultiPC] m0 offer: 1920x1080
 [MultiPC] m0 using dedicated D3D11 device
+[MultiPC] m0 ICE gathering timeout (2s), continuing anyway
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 NVIDIA GPU detected, using NVENC encoder
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 40000kbps
-[LibAvEncoder] FFmpeg path: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[MultiPC] m0 Initializing LibAvEncoder with codec=H265
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 15000kbps, codec=H265
+[LibAvEncoder] SetDllDirectory: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] FFmpeg.RootPath: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] SelectEncoder: preferredCodec=H265
 [LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
-[LibAvEncoder] Using encoder: h264_nvenc
-[LibAvEncoder] NVENC VBR mode: target 40000kbps, max 80000kbps
+[LibAvEncoder] SelectEncoder: vendor=NVIDIA
+[LibAvEncoder] Trying H.265 encoder...
+[LibAvEncoder] Selected H.265 encoder: hevc_nvenc
+[LibAvEncoder] Using encoder: hevc_nvenc
+[LibAvEncoder] Configuring NVIDIA HEVC NVENC encoder (quality + low latency)
+[LibAvEncoder] HEVC NVENC VBR: target 15000kbps, max 30000kbps
 [LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
 [LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
-[LibAvEncoder] Using shared D3D11 device for NVENC: 0x1EEA26BAE28
+[LibAvEncoder] Using shared D3D11 device for NVENC: 0x2532D162A98
 [LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device
 [LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1920x1080 @ 60fps, 40000kbps (D3D11 zero-copy)
-[LibAvEncoderAdapter] Initialized successfully
+[LibAvEncoder] Initialized 1920x1080 @ 60fps, 15000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully with codec: H265
+[MultiPC] m0 LibAvEncoder initialized with codec=H265
 [MultiPC] m0 encoder ready (parallel=True)
-[MultiPC] m0 answer created
+[MultiPC] m0 answer created (with gathered candidates)
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 15753 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent answer for monitor 0, len=1253 bytes
-[Protocol] Sent extracted ICE candidate for m0: candidate:2704996635 1 udp 2113937663 192.168.0.102 64268 ty...
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"1971880359 1 udp 2122260223 10...
+[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 68131 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 0, len=741 bytes
+[Protocol] Sent extracted ICE candidate for m0: candidate:2704996635 1 udp 2113937663 192.168.0.102 51188 ty...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4238880572 1 udp 2122260223 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":1,"candidate":"310111620 1 udp 2122194687 192...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1513793206 1 udp 2122194687 13...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":1,"sdp":"v=0\r\no=- 1872110181718856410 2 IN IP4 ...
-[Protocol] ICE message type: offer
-[Protocol] Received offer for monitor 1
-[MultiPC] m1 offer: 1920x1080
-[MultiPC] m1 using dedicated D3D11 device
 [MultiPC] m0 ICE connected
-[MultiPC] m0 PC connected
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
-[MultiPC] m1 NVIDIA GPU detected, using NVENC encoder
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 40000kbps
-[LibAvEncoder] Detected GPU: NVIDIA (NVIDIA GeForce GTX 1660 Ti)
-[LibAvEncoder] Using encoder: h264_nvenc
-[LibAvEncoder] NVENC VBR mode: target 40000kbps, max 80000kbps
-[LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
-[LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
-[LibAvEncoder] Using shared D3D11 device for NVENC: 0x22F3BF118D8
-[LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device
-[LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1920x1080 @ 60fps, 40000kbps (D3D11 zero-copy)
-[LibAvEncoderAdapter] Initialized successfully
-[MultiPC] m1 encoder ready (parallel=True)
-[MultiPC] m1 answer created
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON for m1: {"type":"answer","monitorIndex":1,"sdp":"v=0\r\no=- 23468 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent answer for monitor 1, len=1253 bytes
-[Protocol] Sent extracted ICE candidate for m1: candidate:2704996635 1 udp 2113937663 192.168.0.102 64270 ty...
-[Protocol] ICE RX: ping...
-[Protocol] ICE legacy format message
-[MultiPC] m1 ICE connected
+[Protocol] All 1 ICE connections ready, sending ice_ready
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
-[Protocol] All 2 ICE connections ready, sending ice_ready
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
-[MultiPC] m1 PC connected
+[MultiPC] m0 PC connected
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
 [Protocol] Phase 3: Starting stream...
 [Protocol] Cursor tracking started
-[PerMonitorCapture] Started 2 parallel capture threads
+[KeepAlive] Server-side keep-alive started (5s interval)
+[PerMonitorCapture] Started 1 parallel capture threads
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
-[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
 [GpuColorConverter] GPU: NVIDIA, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
-[GpuColorConverter] GPU: NVIDIA, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
 [GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
-[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
-[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
 [GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
 [GpuColorConverter] Compute Shader compiled and created successfully
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
-[GpuColorConverter] Compute Shader compiled and created successfully
-[PerMonitorCapture] Monitor 1: GpuColorConverter created
-[MultiPC] m0 enc#1: 122544B key=True NALs=[7,8,6,6,5]
-[MultiPC] m1 enc#1: 363025B key=True NALs=[7,8,6,6,5]
+[MultiPC] m0 enc#1: 275865B key=True NALs=[0,2,4,14,6]
 [MultiPC] m0 streaming started
-[MultiPC] m0 enc#2: 36943B key=False NALs=[6,1]
-[MultiPC] m0 enc#3: 8528B key=False NALs=[6,1]
-[MultiPC] m1 streaming started
-[MultiPC] m0 enc#4: 7171B key=False NALs=[6,1]
-[MultiPC] m1 enc#2: 592B key=False NALs=[6,1]
-[MultiPC] m0 enc#5: 1846B key=False NALs=[6,1]
-[MultiPC] m1 enc#3: 83B key=False NALs=[6,1]
-[MultiPC] m1 enc#4: 80B key=False NALs=[6,1]
-[MultiPC] m1 enc#5: 517B key=False NALs=[6,1]
+[MultiPC] m0 enc#2: 186009B key=False NALs=[14,2]
+[MultiPC] m0 enc#3: 130373B key=False NALs=[14,2]
+[MultiPC] m0 enc#4: 247B key=False NALs=[14,2]
+[MultiPC] m0 enc#5: 111B key=False NALs=[14,2]
+[Capture FPS] Mon0: 19.3 fps (captured 58 frames in 3003ms)
+[Encode FPS] Mon0: 40.0 fps (sent 121 in 3022ms, skipped=0)
+[Capture FPS] Mon0: 31.7 fps (captured 95 frames in 3000ms)
+[Encode FPS] Mon0: 44.6 fps (sent 134 in 3003ms, skipped=0)
+[Capture FPS] Mon0: 15.2 fps (captured 46 frames in 3029ms)
+[Encode FPS] Mon0: 38.6 fps (sent 117 in 3028ms, skipped=0)
+[Capture FPS] Mon0: 34.5 fps (captured 104 frames in 3016ms)
+[Encode FPS] Mon0: 46.8 fps (sent 141 in 3013ms, skipped=0)
+[Capture FPS] Mon0: 29.3 fps (captured 88 frames in 3002ms)
+[Encode FPS] Mon0: 44.8 fps (sent 135 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 16.6 fps (captured 50 frames in 3017ms)
+[Encode FPS] Mon0: 36.6 fps (sent 110 in 3007ms, skipped=0)
+[Capture FPS] Mon0: 24.3 fps (captured 73 frames in 3000ms)
+[Encode FPS] Mon0: 41.9 fps (sent 126 in 3006ms, skipped=0)
+[Capture FPS] Mon0: 25.4 fps (captured 77 frames in 3029ms)
+[Encode FPS] Mon0: 43.2 fps (sent 130 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 8.0 fps (captured 24 frames in 3010ms)
+[Encode FPS] Mon0: 34.9 fps (sent 105 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 14.3 fps (captured 43 frames in 3012ms)
+[Encode FPS] Mon0: 37.0 fps (sent 111 in 3000ms, skipped=0)
+[Capture FPS] Mon0: 9.6 fps (captured 29 frames in 3028ms)
+[Encode FPS] Mon0: 34.9 fps (sent 105 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 5.0 fps (captured 15 frames in 3003ms)
+[Encode FPS] Mon0: 34.0 fps (sent 102 in 3003ms, skipped=0)
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b disconnected prematurely
+[Protocol] Phase changed to: Disconnecting
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoderAdapter] Disposed
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
+[MultiPC] m0 PC closed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently DISABLED
+[Guard] ForceDisableVdd: Already disabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[Guard] Restore timeout.
+[Protocol] Display settings restored.
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b disconnected
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.

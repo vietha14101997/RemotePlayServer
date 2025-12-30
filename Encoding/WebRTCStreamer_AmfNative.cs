@@ -766,7 +766,8 @@ public class WebRTCStreamerAmfNativeWrapper : IWebRTCStreamer
     public bool IsRunning => _streamer.IsRunning;
     public bool UseNV12Input => _streamer.UseNV12Input;
     public bool UseTextureInput => true; // Native AMF supports TRUE zero-copy!
-    
+    public VideoCodec CurrentCodec => VideoCodec.H264; // Native AMF wrapper only supports H.264 currently
+
     public event Action? OnPeerDisconnected
     {
         add => _streamer.OnPeerDisconnected += value;
