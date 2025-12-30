@@ -119,7 +119,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
             // Use TRUE ZERO-COPY path if available (D3D11VA mode)
             if (_encoder.SupportsZeroCopyTexture)
             {
-                return _encoder.EncodeD3D11TextureZeroCopy(texture);
+                return _encoder.EncodeD3D11TextureZeroCopy(texture, forceKeyframe);
             }
             
             // Fallback: CPU copy path (for CUDA mode or when zero-copy not available)
@@ -165,7 +165,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
             }
             
             // Encode NV12 bytes
-            return _encoder.EncodeNV12(_nv12Buffer, _width, _height);
+            return _encoder.EncodeNV12(_nv12Buffer, _width, _height, forceKeyframe);
         }
         catch (Exception ex)
         {
@@ -185,7 +185,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
         try
         {
             _frameCount++;
-            return _encoder.EncodeNV12(nv12Bytes, width, height);
+            return _encoder.EncodeNV12(nv12Bytes, width, height, forceKeyframe);
         }
         catch (Exception ex)
         {

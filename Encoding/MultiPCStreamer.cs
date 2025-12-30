@@ -78,6 +78,7 @@ public class MultiPCStreamer : IDisposable
         public long SkipCount;
         public long EncodeCount;
         public long LastPts100ns;
+        public volatile bool ForceNextKeyframe; // Set by RequestKeyframe, consumed by encoder
 
         // FPS tracking for diagnostics
         public long LastFpsLogTime;
@@ -705,12 +706,18 @@ public class MultiPCStreamer : IDisposable
                 long sent = Interlocked.Read(ref monitor.SentCount);
                 long skipped = Interlocked.Read(ref monitor.SkipCount);
 
+                // Check if client requested keyframe (consume the flag)
+                bool clientRequested = monitor.ForceNextKeyframe;
+                if (clientRequested)
+                    monitor.ForceNextKeyframe = false;
+
                 // Force IDR for:
                 // - First 3 frames to ensure SPS/PPS capture
-                // - Every 90 frames (3 seconds at 30fps) - reduced from 30 to fix stuttering
+                // - Every 30 frames (1 second at 30fps, 0.5s at 60fps) for responsive visual updates
                 // - When too many frames skipped waiting for SPS/PPS
-                bool forceIdr = sent < 3 || (sent % 90 == 0) ||
-                               (skipped > 0 && skipped <= 10); // Force keyframe when waiting for SPS/PPS
+                // - When client explicitly requests (mouse interaction, etc.)
+                bool forceIdr = sent < 3 || (sent % 30 == 0) ||
+                               (skipped > 0 && skipped <= 10) || clientRequested;
 
                 monitor.Encoder.EncodeTexture(monitor.StagingNV12, forceKeyframe: forceIdr);
             }
@@ -746,7 +753,13 @@ public class MultiPCStreamer : IDisposable
             if (monitor.Encoder is LibAvEncoderAdapter libAvEncoder)
             {
                 long sent = Interlocked.Read(ref monitor.SentCount);
-                bool forceIdr = sent < 3 || (sent % 90 == 0);
+
+                // Check if client requested keyframe (consume the flag)
+                bool clientRequested = monitor.ForceNextKeyframe;
+                if (clientRequested)
+                    monitor.ForceNextKeyframe = false;
+
+                bool forceIdr = sent < 3 || (sent % 30 == 0) || clientRequested;
                 libAvEncoder.EncodeNV12Bytes(nv12Bytes, width, height, forceIdr);
             }
         }
@@ -1010,6 +1023,25 @@ public class MultiPCStreamer : IDisposable
 
         Interlocked.Exchange(ref monitor.LastPts100ns, pts100ns);
         return (uint)Math.Max(1, 90000L * delta / 10_000_000L);
+    }
+
+    /// <summary>
+    /// Request next frame to be encoded as keyframe (IDR).
+    /// Called when client needs immediate visual update (e.g., after mouse interaction).
+    /// </summary>
+    /// <param name="monitorIndex">Monitor index, or -1 for all monitors</param>
+    public void RequestKeyframe(int monitorIndex = -1)
+    {
+        lock (_lock)
+        {
+            foreach (var monitor in _monitors)
+            {
+                if (monitorIndex == -1 || monitor.Index == monitorIndex)
+                {
+                    monitor.ForceNextKeyframe = true;
+                }
+            }
+        }
     }
 
     public void Stop()

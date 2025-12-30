@@ -951,6 +951,22 @@ namespace RemotePlayServer.Protocol
                         Console.WriteLine("[Protocol] Received end_of_candidates during streaming");
                         continue;
                     }
+
+                    // Handle keyframe request from client (for immediate visual update on interaction)
+                    if (msgType == "request_keyframe")
+                    {
+                        int monitorIndex = -1; // -1 means all monitors
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                                monitorIndex = mi.GetInt32();
+                        }
+                        catch { }
+
+                        _streamer?.RequestKeyframe(monitorIndex);
+                        continue;
+                    }
                 }
                 catch (OperationCanceledException) { break; }
             }

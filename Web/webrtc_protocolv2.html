@@ -570,7 +570,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Host</label>
-              <input type="text" id="host" value="192.168.1.20" placeholder="IP or hostname" />
+              <input type="text" id="host" value="192.168.0.102" placeholder="IP or hostname" />
             </div>
             <div class="form-group" style="flex: 0.4;">
               <label>Port</label>
@@ -757,7 +757,16 @@
       webrtcRtt: 0,
       lastPingTime: 0,
       serverTimeOffset: 0,
-      lastFrameLatency: 0
+      lastFrameLatency: 0,
+
+      // Ping & Jitter tracking (RFC 3550 style)
+      pingSamples: [],           // Rolling window of ping samples
+      maxPingSamples: 20,        // Keep last 20 samples
+      lastPingValue: 0,          // Previous ping for jitter calculation
+      jitter: 0,                 // RFC 3550 smoothed jitter
+      avgPing: 0,                // Average ping from samples
+      minPing: Infinity,         // Minimum ping observed
+      maxPing: 0                 // Maximum ping observed
     };
 
     // ============================================
@@ -826,7 +835,27 @@
     // ============================================
     // HEVC/H.265 Support Detection
     // ============================================
+
+    // IMPORTANT: HEVC over WebRTC is still experimental and unreliable
+    // Even when RTCRtpReceiver.getCapabilities reports H.265 support,
+    // actual decoding often fails (black screen) due to:
+    // - Profile/level incompatibility between encoder and decoder
+    // - NAL unit format issues (Annex-B vs AVCC)
+    // - Browser's HEVC WebRTC implementation being incomplete
+    //
+    // For maximum compatibility, we FORCE H.264 for WebRTC streaming.
+    // H.264 is universally supported and thoroughly tested.
+    //
+    // Set this to true to attempt HEVC (experimental, may cause black screen)
+    const ALLOW_HEVC_WEBRTC = false;
+
     async function detectHevcSupport() {
+      // Force H.264 for stability - HEVC over WebRTC is unreliable
+      if (!ALLOW_HEVC_WEBRTC) {
+        log('HEVC disabled for WebRTC stability - using H.264', 'info');
+        return false;
+      }
+
       try {
         // Method 1: Check RTCRtpReceiver capabilities (most reliable for WebRTC)
         if (typeof RTCRtpReceiver !== 'undefined' && RTCRtpReceiver.getCapabilities) {
@@ -840,6 +869,9 @@
 
             if (hevcCodecs.length > 0) {
               log(`HEVC WebRTC support detected: ${hevcCodecs.map(c => c.mimeType).join(', ')}`, 'info');
+              // WARNING: Even with this detection, HEVC may not work properly
+              // Chrome reports H.265 support but actual decode often fails
+              log('WARNING: HEVC WebRTC support is experimental and may cause issues', 'warn');
               return true;
             }
           }
@@ -955,11 +987,43 @@
         return;
       }
 
-      // Pong
+      // Pong - Calculate ping and jitter accurately
       if (data === 'pong') {
         if (state.lastPingTime > 0) {
-          state.currentPing = Math.round(performance.now() - state.lastPingTime);
+          const rtt = performance.now() - state.lastPingTime;
           state.lastPingTime = 0;
+
+          // Add to rolling window
+          state.pingSamples.push(rtt);
+          if (state.pingSamples.length > state.maxPingSamples) {
+            state.pingSamples.shift();
+          }
+
+          // Calculate average ping (with outlier filtering)
+          if (state.pingSamples.length > 0) {
+            const sorted = [...state.pingSamples].sort((a, b) => a - b);
+            // Remove top and bottom 10% outliers if enough samples
+            const trimCount = state.pingSamples.length >= 10 ? Math.floor(state.pingSamples.length * 0.1) : 0;
+            const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+            const sum = trimmed.reduce((a, b) => a + b, 0);
+            state.avgPing = sum / trimmed.length;
+          }
+
+          // Update min/max
+          state.minPing = Math.min(state.minPing, rtt);
+          state.maxPing = Math.max(state.maxPing, rtt);
+
+          // Calculate jitter using RFC 3550 algorithm
+          // J(i) = J(i-1) + (|D(i-1,i)| - J(i-1)) / 16
+          // where D is the difference in ping times
+          if (state.lastPingValue > 0) {
+            const diff = Math.abs(rtt - state.lastPingValue);
+            state.jitter = state.jitter + (diff - state.jitter) / 16;
+          }
+          state.lastPingValue = rtt;
+
+          // Store current ping (latest sample) and rounded average
+          state.currentPing = Math.round(state.avgPing);
         }
         return;
       }
@@ -1120,25 +1184,32 @@
       const elapsed = performance.now() - speedTestStart;
       const bandwidth = (speedTestBytes * 8) / (elapsed / 1000) / 1_000_000;
 
+      // Use calculated jitter (rounded to 1 decimal), fallback to 0 if not enough samples
+      const jitterMs = state.jitter > 0 ? Math.round(state.jitter * 10) / 10 : 0;
+
       state.speedTestResult = {
         bandwidthMbps: bandwidth,
         pingMs: state.currentPing,
-        jitterMs: 2
+        jitterMs: jitterMs,
+        minPingMs: state.minPing !== Infinity ? Math.round(state.minPing) : state.currentPing,
+        maxPingMs: state.maxPing > 0 ? Math.round(state.maxPing) : state.currentPing
       };
 
       $('stBandwidth').textContent = bandwidth.toFixed(1);
       $('stPing').textContent = state.currentPing;
-      $('stJitter').textContent = '2';
+      $('stJitter').textContent = jitterMs.toFixed(1);
       showSection('stProgress', false);
 
-      log(`Speed test: ${bandwidth.toFixed(1)} Mbps, ${state.currentPing}ms ping`, 'info');
+      log(`Speed test: ${bandwidth.toFixed(1)} Mbps, ping ${state.currentPing}ms (min: ${state.speedTestResult.minPingMs}, max: ${state.speedTestResult.maxPingMs}), jitter ${jitterMs.toFixed(1)}ms`, 'info');
 
       // Send result to server
       sendJson({
         type: 'speedtest_result',
         bandwidthMbps: state.speedTestResult.bandwidthMbps,
         pingMs: state.speedTestResult.pingMs,
-        jitterMs: state.speedTestResult.jitterMs
+        jitterMs: state.speedTestResult.jitterMs,
+        minPingMs: state.speedTestResult.minPingMs,
+        maxPingMs: state.speedTestResult.maxPingMs
       });
 
       setStatus('Awaiting config...', 'connecting');
@@ -1543,6 +1614,14 @@
       state.currentPing = 0;
       state.webrtcRtt = 0;
       state.lastFrameLatency = 0;
+
+      // Reset ping/jitter tracking
+      state.pingSamples = [];
+      state.lastPingValue = 0;
+      state.jitter = 0;
+      state.avgPing = 0;
+      state.minPing = Infinity;
+      state.maxPing = 0;
 
       // Reset UI
       setPhase(0);

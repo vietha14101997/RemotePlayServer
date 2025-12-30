@@ -1422,7 +1422,7 @@ public unsafe class LibAvEncoder : IDisposable
     /// <summary>
     /// Encode a frame from NV12 byte array (from GpuColorConverter).
     /// </summary>
-    public bool EncodeNV12(byte[] nv12Data, int width, int height)
+    public bool EncodeNV12(byte[] nv12Data, int width, int height, bool forceKeyframe = false)
     {
         if (!_initialized || _disposed) return false;
         
@@ -1541,6 +1541,16 @@ public unsafe class LibAvEncoder : IDisposable
                     }
                     
                     _hwFrame->pts = _frameCount++;
+                }
+
+                // Force keyframe if requested (for reconnect scenarios)
+                if (forceKeyframe)
+                {
+                    _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                }
+                else
+                {
+                    _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
                 }
 
                 // Send frame to encoder
@@ -1680,7 +1690,7 @@ public unsafe class LibAvEncoder : IDisposable
     /// Only works when SupportsZeroCopyTexture is true (D3D11VA mode).
     /// Uses the capture device's D3D11 context to copy texture to FFmpeg's hardware frame.
     /// </summary>
-    public bool EncodeD3D11TextureZeroCopy(D3D11Texture2D nv12Texture)
+    public bool EncodeD3D11TextureZeroCopy(D3D11Texture2D nv12Texture, bool forceKeyframe = false)
     {
         if (!_initialized || _disposed || !_isD3D11VAMode || !_useHardwareFrames || _context == null) 
             return false;
@@ -1771,7 +1781,17 @@ public unsafe class LibAvEncoder : IDisposable
                         if (mappedFrame != null) ffmpeg.av_frame_free(&mappedFrame);
                     }
 
-                    // 3. Send Frame to Encoder
+                    // 3. Force keyframe if requested (for reconnect scenarios)
+                    if (forceKeyframe)
+                    {
+                        _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                    }
+                    else
+                    {
+                        _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
+                    }
+
+                    // 4. Send Frame to Encoder
                     // Since we used create_derived, _hwFrame from get_buffer(_hwFramesCtx) IS the QSV frame.
                     ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
                 }
@@ -1806,8 +1826,17 @@ public unsafe class LibAvEncoder : IDisposable
                              Buffer.MemoryCopy(srcUV + y*srcPitch, swFrame->data[1] + y*swFrame->linesize[1], _width, _width);
                         
                         swFrame->pts = currentPts;
-                        swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE; 
-                        
+
+                        // Force keyframe if requested (for reconnect scenarios)
+                        if (forceKeyframe)
+                        {
+                            swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                        }
+                        else
+                        {
+                            swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
+                        }
+
                         ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
                     }
                     finally 

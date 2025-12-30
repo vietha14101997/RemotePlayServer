@@ -38,8 +38,8 @@ Data: {"ip":"192.168.0.102","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPL
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 3f039108-a21d-4cda-998b-62e840cc0ba8, mode=cluster, protocol=v2
-[Protocol] Client 3f039108-a21d-4cda-998b-62e840cc0ba8 connected from 192.168.0.102 (v2 protocol)
+[Signal] Client connected 33a43f48-de00-46e8-a2ed-6d05d324484b, mode=cluster, protocol=v2
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b connected from 192.168.0.100 (v2 protocol)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
@@ -52,27 +52,34 @@ Server is running. Press ENTER to exit.
 [HardwareInfo] Encoder: NVENC, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
-[Protocol] WaitForHardwareAck received: len=217, text={"type":"hardware_info_ack","clientCodecs":{"supportsHevc":true,"preferredCodec":"H264","deviceModel...
+[Protocol] WaitForHardwareAck received: len=166, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H265","H264"],"preferredCodec":"H265...
 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
-[Protocol] Client codec capabilities: HEVC=True, preferred=H264, device=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+[Protocol] Client codec capabilities: HEVC=True, preferred=H265, device=vivo V2352GA
 [Protocol] Codec negotiation: Both support HEVC -> selected H.265
 [Protocol] Received hardware_info_ack
 [Protocol] Phase changed to: Phase1_SpeedTest
 [Protocol] Phase 1: Waiting for client speed test result...
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
-[Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 560MB in 2000ms = 2348.8 Mbps
+[Protocol] Handling speedtest_request: direction=download, duration=4000ms
+[Protocol] Download test complete: sent 8MB in 5825ms = 11.5 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
-[Protocol] WaitForSpeedTest received: type=speedtest_result, len=86
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 2336.4Mbps, 0.0ms
-[Protocol] ✓ Received speedtest_result from client: 2336.4Mbps, 0.0ms ping
+[Protocol] speedtest_result parsed: 10.4Mbps, 57.1ms
+[Protocol] ✓ Received speedtest_result from client: 10.4Mbps, 57.1ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 3x1600x900@60fps, bitrate=40000kbps, codec=H265
+[Protocol] Sending suggested_config: 1x1600x900@30fps, bitrate=15000kbps, codec=H265
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
@@ -80,7 +87,7 @@ Server is running. Press ENTER to exit.
 [Protocol] Phase 1 complete, proceeding to Phase 2
 [Protocol] Phase changed to: Phase2_ApplyConfig
 [Protocol] Phase 2: Waiting for display config...
-[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"width":0},"bitrateKbps":20000,"fps":60,"refresh...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":1920,"h":1080},"refreshRate":60,"bitrateKbps...
 [Protocol] Received display config: 1x1920x1080@60fps
 [Protocol] Applying new display config: 1 monitors @ 1920x1080
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
@@ -102,7 +109,7 @@ Server is running. Press ENTER to exit.
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
 [PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
 [Protocol] Creating MultiPCStreamer with codec=H265 (enum=H265)
-[MultiPC] Created: 1mon 60fps 20000kbps codec=H265 (parallel device mode)
+[MultiPC] Created: 1mon 60fps 15000kbps codec=H265 (parallel device mode)
 [MultiPC] m0 device registered (parallel mode)
 [Protocol] Monitor 0: Using dedicated D3D11 device
 [Protocol] Sent config_complete, ready for ICE exchange
@@ -114,7 +121,9 @@ Server is running. Press ENTER to exit.
 [Protocol] ICE legacy format message
 [Protocol] ICE RX: ping...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6246759197925739145 2 IN IP4 ...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8215612526798136160 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received offer for monitor 0
 [MultiPC] m0 offer: 1920x1080
@@ -124,7 +133,7 @@ Server is running. Press ENTER to exit.
 [MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
 [MultiPC] m0 NVIDIA GPU detected, using NVENC encoder
 [MultiPC] m0 Initializing LibAvEncoder with codec=H265
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 20000kbps, codec=H265
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 15000kbps, codec=H265
 [LibAvEncoder] SetDllDirectory: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] FFmpeg.RootPath: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] SelectEncoder: preferredCodec=H265
@@ -134,49 +143,41 @@ Server is running. Press ENTER to exit.
 [LibAvEncoder] Selected H.265 encoder: hevc_nvenc
 [LibAvEncoder] Using encoder: hevc_nvenc
 [LibAvEncoder] Configuring NVIDIA HEVC NVENC encoder (quality + low latency)
-[LibAvEncoder] HEVC NVENC VBR: target 20000kbps, max 40000kbps
+[LibAvEncoder] HEVC NVENC VBR: target 15000kbps, max 30000kbps
 [LibAvEncoder] NVIDIA GPU: Trying D3D11VA for zero-copy texture encoding
 [LibAvEncoder] Initializing NVENC with D3D11VA for zero-copy...
-[LibAvEncoder] Using shared D3D11 device for NVENC: 0x207606951F8
+[LibAvEncoder] Using shared D3D11 device for NVENC: 0x2532D162A98
 [LibAvEncoder] NVENC D3D11VA device context initialized with SHARED device
 [LibAvEncoder] NVENC D3D11VA initialized (TRUE ZERO-COPY enabled)
 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1920x1080 @ 60fps, 20000kbps (D3D11 zero-copy)
+[LibAvEncoder] Initialized 1920x1080 @ 60fps, 15000kbps (D3D11 zero-copy)
 [LibAvEncoderAdapter] Initialized successfully with codec: H265
 [MultiPC] m0 LibAvEncoder initialized with codec=H265
 [MultiPC] m0 encoder ready (parallel=True)
 [MultiPC] m0 answer created (with gathered candidates)
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 76909 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent answer for monitor 0, len=1409 bytes
-[Protocol] Sent extracted ICE candidate for m0: candidate:2704996635 1 udp 2113937663 192.168.0.102 60448 ty...
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2459682046 1 udp 211...
+[Protocol] Answer JSON for m0: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 68131 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent answer for monitor 0, len=741 bytes
+[Protocol] Sent extracted ICE candidate for m0: candidate:2704996635 1 udp 2113937663 192.168.0.102 51188 ty...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4238880572 1 udp 2122260223 19...
 [Protocol] ICE message type: candidate
-[Cluster Signal] Attempting to resolve mDNS: '92daabaa-17db-4b98-b35c-579256a006a7.local'
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1513793206 1 udp 2122194687 13...
+[Protocol] ICE message type: candidate
 [MultiPC] m0 ICE connected
 [Protocol] All 1 ICE connections ready, sending ice_ready
-[MultiPC] m0 PC connected
-[Cluster Signal] mDNS resolve timed out for '92daabaa-17db-4b98-b35c-579256a006a7.local' (attempt 1/2, timeout=2000ms)
-[Cluster Signal] mDNS fallback: '92daabaa-17db-4b98-b35c-579256a006a7.local' -> 192.168.0.102 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:2459682046 1 udp 2113937151 192.168.0.102 60445 typ host generation 0 ufrag F5m5 network-cost 999
-[Protocol] ICE RX: ping...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: ping...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: ping...
-[Protocol] ICE legacy format message
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
+[MultiPC] m0 PC connected
 [Protocol] Phase 3: Waiting for all monitors to connect...
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
 [Protocol] Phase 3: Starting stream...
 [Protocol] Cursor tracking started
-[PerMonitorCapture] Started 1 parallel capture threads
 [KeepAlive] Server-side keep-alive started (5s interval)
+[PerMonitorCapture] Started 1 parallel capture threads
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
 [GpuColorConverter] GPU: NVIDIA, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
@@ -184,74 +185,42 @@ Server is running. Press ENTER to exit.
 [GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
 [GpuColorConverter] Compute Shader compiled and created successfully
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
-[MultiPC] m0 enc#1: 63195B key=True NALs=[0,2,4,14,6]
+[MultiPC] m0 enc#1: 275865B key=True NALs=[0,2,4,14,6]
 [MultiPC] m0 streaming started
-[MultiPC] m0 enc#2: 21957B key=False NALs=[14,2]
-[MultiPC] m0 enc#3: 7581B key=False NALs=[14,2]
-[MultiPC] m0 enc#4: 2135B key=False NALs=[14,2]
-[MultiPC] m0 enc#5: 1259B key=False NALs=[14,2]
-[Capture FPS] Mon0: 11.0 fps (captured 33 frames in 3009ms)
-[Encode FPS] Mon0: 37.1 fps (sent 112 in 3015ms, skipped=0)
-[Capture FPS] Mon0: 18.6 fps (captured 56 frames in 3009ms)
-[Encode FPS] Mon0: 40.6 fps (sent 122 in 3005ms, skipped=0)
-[Capture FPS] Mon0: 34.7 fps (captured 104 frames in 3000ms)
-[Encode FPS] Mon0: 47.7 fps (sent 143 in 3000ms, skipped=0)
-[Capture FPS] Mon0: 39.3 fps (captured 118 frames in 3000ms)
-[Encode FPS] Mon0: 49.7 fps (sent 149 in 3000ms, skipped=0)
-[Capture FPS] Mon0: 46.6 fps (captured 140 frames in 3002ms)
-[Encode FPS] Mon0: 55.1 fps (sent 166 in 3011ms, skipped=0)
-[Capture FPS] Mon0: 27.9 fps (captured 84 frames in 3014ms)
-[Encode FPS] Mon0: 45.9 fps (sent 139 in 3026ms, skipped=0)
-[KeepAlive] Client not responding for 20.0s, connection may be dead
-[Capture FPS] Mon0: 43.2 fps (captured 130 frames in 3007ms)
-[Encode FPS] Mon0: 54.8 fps (sent 165 in 3013ms, skipped=0)
-[Capture FPS] Mon0: 54.5 fps (captured 164 frames in 3011ms)
-[Encode FPS] Mon0: 57.6 fps (sent 173 in 3003ms, skipped=0)
-[KeepAlive] Client not responding for 25.0s, connection may be dead
-[Capture FPS] Mon0: 47.2 fps (captured 142 frames in 3010ms)
-[Encode FPS] Mon0: 51.3 fps (sent 154 in 3003ms, skipped=0)
-[KeepAlive] Client not responding for 30.0s, connection may be dead
-[Capture FPS] Mon0: 40.3 fps (captured 121 frames in 3004ms)
-[Encode FPS] Mon0: 48.6 fps (sent 146 in 3005ms, skipped=0)
-[Capture FPS] Mon0: 51.9 fps (captured 156 frames in 3003ms)
-[Encode FPS] Mon0: 54.6 fps (sent 164 in 3004ms, skipped=0)
-[KeepAlive] Client not responding for 35.0s, connection may be dead
-[Capture FPS] Mon0: 54.0 fps (captured 162 frames in 3002ms)
-[Encode FPS] Mon0: 55.7 fps (sent 168 in 3014ms, skipped=0)
-[Capture FPS] Mon0: 46.3 fps (captured 139 frames in 3000ms)
-[Encode FPS] Mon0: 50.3 fps (sent 151 in 3002ms, skipped=0)
-[KeepAlive] Client not responding for 40.0s, connection may be dead
-[Capture FPS] Mon0: 51.1 fps (captured 154 frames in 3013ms)
-[Encode FPS] Mon0: 53.6 fps (sent 161 in 3002ms, skipped=0)
-[KeepAlive] Client not responding for 45.0s, connection may be dead
-[Capture FPS] Mon0: 48.7 fps (captured 147 frames in 3021ms)
-[Encode FPS] Mon0: 50.0 fps (sent 151 in 3019ms, skipped=0)
-[Capture FPS] Mon0: 52.3 fps (captured 157 frames in 3000ms)
-[Encode FPS] Mon0: 56.4 fps (sent 170 in 3012ms, skipped=0)
-[KeepAlive] Client not responding for 50.0s, connection may be dead
-[Capture FPS] Mon0: 51.8 fps (captured 156 frames in 3011ms)
-[Encode FPS] Mon0: 53.9 fps (sent 162 in 3003ms, skipped=0)
-[Capture FPS] Mon0: 52.3 fps (captured 157 frames in 3003ms)
-[Encode FPS] Mon0: 54.9 fps (sent 165 in 3006ms, skipped=0)
-[KeepAlive] Client not responding for 55.0s, connection may be dead
-[Capture FPS] Mon0: 56.7 fps (captured 171 frames in 3015ms)
-[Encode FPS] Mon0: 57.8 fps (sent 174 in 3008ms, skipped=0)
-[KeepAlive] Client not responding for 60.0s, connection may be dead
-[Capture FPS] Mon0: 54.0 fps (captured 162 frames in 3001ms)
-[Encode FPS] Mon0: 55.3 fps (sent 166 in 3000ms, skipped=0)
-[Capture FPS] Mon0: 44.4 fps (captured 134 frames in 3016ms)
-[Encode FPS] Mon0: 49.3 fps (sent 148 in 3000ms, skipped=0)
-[KeepAlive] Client not responding for 65.0s, connection may be dead
-[Capture FPS] Mon0: 46.1 fps (captured 139 frames in 3015ms)
-[Encode FPS] Mon0: 51.1 fps (sent 154 in 3016ms, skipped=0)
-[Capture FPS] Mon0: 35.2 fps (captured 106 frames in 3014ms)
-[Encode FPS] Mon0: 45.2 fps (sent 136 in 3008ms, skipped=0)
-[KeepAlive] Client not responding for 70.0s, connection may be dead
-[Protocol] Cursor tracking stopped
-[Protocol] Phase 3: Stream ended
+[MultiPC] m0 enc#2: 186009B key=False NALs=[14,2]
+[MultiPC] m0 enc#3: 130373B key=False NALs=[14,2]
+[MultiPC] m0 enc#4: 247B key=False NALs=[14,2]
+[MultiPC] m0 enc#5: 111B key=False NALs=[14,2]
+[Capture FPS] Mon0: 19.3 fps (captured 58 frames in 3003ms)
+[Encode FPS] Mon0: 40.0 fps (sent 121 in 3022ms, skipped=0)
+[Capture FPS] Mon0: 31.7 fps (captured 95 frames in 3000ms)
+[Encode FPS] Mon0: 44.6 fps (sent 134 in 3003ms, skipped=0)
+[Capture FPS] Mon0: 15.2 fps (captured 46 frames in 3029ms)
+[Encode FPS] Mon0: 38.6 fps (sent 117 in 3028ms, skipped=0)
+[Capture FPS] Mon0: 34.5 fps (captured 104 frames in 3016ms)
+[Encode FPS] Mon0: 46.8 fps (sent 141 in 3013ms, skipped=0)
+[Capture FPS] Mon0: 29.3 fps (captured 88 frames in 3002ms)
+[Encode FPS] Mon0: 44.8 fps (sent 135 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 16.6 fps (captured 50 frames in 3017ms)
+[Encode FPS] Mon0: 36.6 fps (sent 110 in 3007ms, skipped=0)
+[Capture FPS] Mon0: 24.3 fps (captured 73 frames in 3000ms)
+[Encode FPS] Mon0: 41.9 fps (sent 126 in 3006ms, skipped=0)
+[Capture FPS] Mon0: 25.4 fps (captured 77 frames in 3029ms)
+[Encode FPS] Mon0: 43.2 fps (sent 130 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 8.0 fps (captured 24 frames in 3010ms)
+[Encode FPS] Mon0: 34.9 fps (sent 105 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 14.3 fps (captured 43 frames in 3012ms)
+[Encode FPS] Mon0: 37.0 fps (sent 111 in 3000ms, skipped=0)
+[Capture FPS] Mon0: 9.6 fps (captured 29 frames in 3028ms)
+[Encode FPS] Mon0: 34.9 fps (sent 105 in 3011ms, skipped=0)
+[Capture FPS] Mon0: 5.0 fps (captured 15 frames in 3003ms)
+[Encode FPS] Mon0: 34.0 fps (sent 102 in 3003ms, skipped=0)
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b disconnected prematurely
 [Protocol] Phase changed to: Disconnecting
 [LibAvEncoder] Disposed (Safe)
 [LibAvEncoderAdapter] Disposed
+[GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Mon 0: ConvertToTexture returned null!
 [MultiPC] m0 PC closed
 [PerMonitorCapture] Monitor 0: Capture thread stopped
 [PerMonitorCapture] All capture threads stopped
@@ -272,16 +241,9 @@ Server is running. Press ENTER to exit.
 [Guard] Restoring per-monitor text scale...
 [Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
 [TextScale] Removed custom DPI for \\.\DISPLAY1
+[Guard] Restore timeout.
+[Protocol] Display settings restored.
+[Protocol] Client 33a43f48-de00-46e8-a2ed-6d05d324484b disconnected
 [TextScale] Enhanced broadcast refresh completed.
 [Guard] ✓ Virtual monitor text scale restored to 100%
 [Guard] Per-monitor text scale restoration completed.
-[Guard] Step 3: Restoring monitor modes...
-[Guard] Monitor modes restored.
-[Guard] Step 4: Restoring taskbar flag...
-[Guard] Taskbar multi-monitor flag restored to 1.
-[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
-[Guard] Allowing system to settle after restore...
-[Guard] ✅ All settings restored and system settled.
-[Guard] Restore done.
-[Protocol] Display settings restored.
-[Protocol] Client 3f039108-a21d-4cda-998b-62e840cc0ba8 disconnected
