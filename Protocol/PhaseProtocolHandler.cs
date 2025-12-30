@@ -967,6 +967,29 @@ namespace RemotePlayServer.Protocol
                         _streamer?.RequestKeyframe(monitorIndex);
                         continue;
                     }
+
+                    // Handle skip_to_live request from client (for latency recovery)
+                    // Client sends this when it detects accumulated delay > threshold
+                    if (msgType == "skip_to_live")
+                    {
+                        Console.WriteLine("[Protocol] skip_to_live received - forcing keyframes for latency recovery");
+
+                        // Force keyframe on all monitors to allow immediate recovery
+                        _streamer?.RequestKeyframe(-1);
+
+                        // Send acknowledgment with server timestamp
+                        try
+                        {
+                            var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
+                            await _ws.SendAsync(
+                                new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(ackJson)),
+                                System.Net.WebSockets.WebSocketMessageType.Text,
+                                true,
+                                _ct);
+                        }
+                        catch { }
+                        continue;
+                    }
                 }
                 catch (OperationCanceledException) { break; }
             }
