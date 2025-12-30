@@ -824,6 +824,90 @@
     }
 
     // ============================================
+    // HEVC/H.265 Support Detection
+    // ============================================
+    async function detectHevcSupport() {
+      try {
+        // Method 1: Check RTCRtpReceiver capabilities (most reliable for WebRTC)
+        if (typeof RTCRtpReceiver !== 'undefined' && RTCRtpReceiver.getCapabilities) {
+          const caps = RTCRtpReceiver.getCapabilities('video');
+          if (caps && caps.codecs) {
+            const hevcCodecs = caps.codecs.filter(c =>
+              c.mimeType.toLowerCase().includes('hevc') ||
+              c.mimeType.toLowerCase().includes('h265') ||
+              c.mimeType.toLowerCase() === 'video/h265'
+            );
+
+            if (hevcCodecs.length > 0) {
+              log(`HEVC WebRTC support detected: ${hevcCodecs.map(c => c.mimeType).join(', ')}`, 'info');
+              return true;
+            }
+          }
+        }
+
+        // Method 2: Check MediaCapabilities API for decode support
+        if ('mediaCapabilities' in navigator) {
+          const hevcConfig = {
+            type: 'file',
+            video: {
+              contentType: 'video/mp4; codecs="hev1.1.6.L93.B0"',
+              width: 1920,
+              height: 1080,
+              bitrate: 10000000,
+              framerate: 30
+            }
+          };
+
+          try {
+            const result = await navigator.mediaCapabilities.decodingInfo(hevcConfig);
+            if (result.supported) {
+              log('HEVC decode support detected via MediaCapabilities', 'info');
+              // But for WebRTC, we still need to verify RTCRtpReceiver support
+              // MediaCapabilities alone is not enough for WebRTC streaming
+            }
+          } catch (e) {
+            // MediaCapabilities check failed, continue
+          }
+        }
+
+        // Method 3: Check video element canPlayType
+        const video = document.createElement('video');
+        const hevcTypes = [
+          'video/mp4; codecs="hev1.1.6.L93.B0"',
+          'video/mp4; codecs="hvc1.1.6.L93.B0"',
+          'video/mp4; codecs="hevc"'
+        ];
+
+        for (const type of hevcTypes) {
+          if (video.canPlayType(type) === 'probably' || video.canPlayType(type) === 'maybe') {
+            log(`HEVC playback support detected: ${type}`, 'info');
+            // Note: This doesn't guarantee WebRTC support
+            break;
+          }
+        }
+
+        // Final decision: Only return true if RTCRtpReceiver explicitly supports HEVC
+        // Most browsers (Chrome, Firefox, Edge) don't support HEVC in WebRTC yet
+        log('HEVC not supported in WebRTC - will use H.264', 'warn');
+        return false;
+
+      } catch (e) {
+        log(`HEVC detection error: ${e.message}`, 'warn');
+        return false;
+      }
+    }
+
+    // Cache HEVC support result
+    let cachedHevcSupport = null;
+
+    async function getHevcSupport() {
+      if (cachedHevcSupport === null) {
+        cachedHevcSupport = await detectHevcSupport();
+      }
+      return cachedHevcSupport;
+    }
+
+    // ============================================
     // Phase 1: Hardware Discovery & Speed Test
     // ============================================
     async function startPhase1() {
@@ -963,7 +1047,7 @@
     // ============================================
     // Phase 1 Handlers
     // ============================================
-    function handleHardwareInfo(msg) {
+    async function handleHardwareInfo(msg) {
       state.hardwareInfo = msg;
 
       // Update UI
@@ -977,12 +1061,25 @@
       log(`Server: ${msg.device?.name}, GPU: ${msg.device?.gpu}`, 'info');
       log(`Encoder: ${msg.encoder?.preferredEncoder}, HEVC: ${msg.encoder?.supportsHevc}`, 'info');
 
-      // Send ack
+      // Detect actual HEVC support in this browser/WebRTC
+      log('Detecting client HEVC/H.265 WebRTC support...', 'info');
+      const clientSupportsHevc = await getHevcSupport();
+
+      // Determine preferred codec based on actual support
+      // If both server and client support HEVC, prefer it (better quality at lower bitrate)
+      // Otherwise fall back to H.264 (universal compatibility)
+      const serverSupportsHevc = msg.encoder?.supportsHevc || false;
+      const useHevc = serverSupportsHevc && clientSupportsHevc;
+      const preferredCodec = useHevc ? 'H265' : 'H264';
+
+      log(`Client HEVC support: ${clientSupportsHevc}, Server HEVC: ${serverSupportsHevc} → Using ${preferredCodec}`, 'info');
+
+      // Send ack with accurate codec capabilities
       sendJson({
         type: 'hardware_info_ack',
         clientCodecs: {
-          supportsHevc: true,  // Browser typically supports H.265 decoding
-          preferredCodec: 'H264',
+          supportsHevc: clientSupportsHevc,  // Actual detected support
+          preferredCodec: preferredCodec,
           deviceModel: navigator.userAgent
         }
       });
