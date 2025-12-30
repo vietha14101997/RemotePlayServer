@@ -384,7 +384,7 @@ public unsafe class LibAvEncoder : IDisposable
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        _codecCtx->gop_size = Math.Max(1, _fps / 2); // Keyframe every 0.5 second for lower latency
+        _codecCtx->gop_size = Math.Max(1, _fps / 20); // Keyframe every ~50ms for ultra-fast scene change recovery
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
         
@@ -417,9 +417,9 @@ public unsafe class LibAvEncoder : IDisposable
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);  // VBR with latency optimization
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "20", 0);  // Quality target for I-frames
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "22", 0);  // Quality target for P-frames
-                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
-                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
-                    Console.WriteLine($"[LibAvEncoder] AMF VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                    _codecCtx->rc_max_rate = _bitrate * 3;  // Allow 3x peak for scene change
+                    _codecCtx->rc_buffer_size = _bitrate / 2;   // 500ms buffer for faster response
+                    Console.WriteLine($"[LibAvEncoder] AMF VBR mode: target {_bitrate/1000}kbps, max {_bitrate*3/1000}kbps");
                 }
                 else
                 {
@@ -439,6 +439,7 @@ public unsafe class LibAvEncoder : IDisposable
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "tune", "ull", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "no_scenecut", "0", 0);  // Enable scene change detection
                 // Quality settings for sharper text/desktop content
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "1", 0);
@@ -451,9 +452,9 @@ public unsafe class LibAvEncoder : IDisposable
                     // VBR mode - better for WiFi with fluctuating bandwidth
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr", 0);
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "cq", "20", 0);  // Quality target (lower = higher quality)
-                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
-                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
-                    Console.WriteLine($"[LibAvEncoder] NVENC VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                    _codecCtx->rc_max_rate = _bitrate * 3;  // Allow 3x peak for scene change
+                    _codecCtx->rc_buffer_size = _bitrate / 2;   // 500ms buffer for faster response
+                    Console.WriteLine($"[LibAvEncoder] NVENC VBR mode: target {_bitrate/1000}kbps, max {_bitrate*3/1000}kbps");
                 }
                 else
                 {
@@ -463,7 +464,7 @@ public unsafe class LibAvEncoder : IDisposable
                     _codecCtx->rc_buffer_size = _bitrate / 4;  // 250ms buffer
                 }
                 break;
-                
+
             case "h264_qsv":
                 // Intel QSV - balanced latency + quality for desktop/text streaming
                 Console.WriteLine("[LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)");
@@ -490,9 +491,9 @@ public unsafe class LibAvEncoder : IDisposable
                     // VBR mode - use look-ahead for better quality prediction
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead", "1", 0);
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "look_ahead_depth", "10", 0);  // Small look-ahead for latency
-                    _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x peak for complex content
-                    _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
-                    Console.WriteLine($"[LibAvEncoder] QSV VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                    _codecCtx->rc_max_rate = _bitrate * 3;  // Allow 3x peak for scene change
+                    _codecCtx->rc_buffer_size = _bitrate / 2;   // 500ms buffer for faster response
+                    Console.WriteLine($"[LibAvEncoder] QSV VBR mode: target {_bitrate/1000}kbps, max {_bitrate*3/1000}kbps");
                 }
                 else
                 {

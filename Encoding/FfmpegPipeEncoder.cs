@@ -296,7 +296,10 @@ internal sealed class FfmpegPipeEncoder : IDisposable
     {
         EnsureChosenEncoder();
         Console.WriteLine("[FFMPEG] chosen encoder = " + _chosenGpu);
-        int g = Math.Max(FPS, 2);
+        // GOP = FPS/20 (~50ms) for ultra-fast scene change recovery
+        // At 30fps: GOP=2, at 60fps: GOP=3
+        int g = Math.Max(FPS / 20, 1);
+        int minKeyint = 1;  // Allow immediate keyframe on scene change
 
         switch (_chosenGpu)
         {
@@ -352,12 +355,14 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         "-an -c:v h264_nvenc " +
                         "-preset p1 -tune ll " +
                         $"-profile:v {profile} -level {level} " +
-                        "-bf 0 -rc-lookahead 0 -forced-idr 1 " +
+                        "-bf 0 -rc-lookahead 0 " +
+                        "-no-scenecut 0 " +                               // Enable scene change detection
+                        "-forced-idr 1 " +
                         "-spatial-aq 1 -temporal-aq 1 -aq-strength 8 " +  // Adaptive QP for sharper edges/text
                         "-zerolatency 1 -delay 0 " +
                         "-aud 1 " +
                         rc + " " +
-                        $"-g {g} " +
+                        $"-g {g} -keyint_min {minKeyint} " +
                         "-f h264 -";
 
                     return (inPart + vfPart + outPart)
@@ -411,7 +416,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         "-an -c:v h264_qsv " +
                         $"-profile:v main -level {qsvLevel} " +  // Main profile for CABAC
                         "-preset faster " +                       // Balanced preset for quality
-                        $"-bf 0 -g {g} -sc_threshold 0 " +
+                        $"-bf 0 -g {g} -keyint_min {minKeyint} -sc_threshold 40 " +  // Enable scene detection
                         "-async_depth 4 -low_power 1 " +          // Async 4 for throughput
                         "-adaptive_i 1 -adaptive_b 0 " +          // Adaptive I-frame for quality
                         rc + " " +
@@ -480,7 +485,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                         "-enforce_hrd false -filler_data false " +
                         "-frame_skipping false " +
                         "-bf:v 0 -log_to_dbg 0 " +
-                        $"-g {g} -keyint_min {g} " +
+                        $"-g {g} -keyint_min {minKeyint} " +      // Allow earlier keyframes on scene change
                         rc + " " +
                         "-bsf:v h264_metadata=aud=insert " +
                         "-f h264 -";
@@ -495,7 +500,7 @@ internal sealed class FfmpegPipeEncoder : IDisposable
                     // Ultra low latency libx264 settings
                     var x264Params =
                         "profile=constrained_baseline:level=3.1" +
-                        $":keyint={g}:min-keyint={g}:scenecut=0" +
+                        $":keyint={g}:min-keyint={minKeyint}:scenecut=40" +  // Enable scene detection
                         ":bframes=0:ref=1:cabac=0" +
                         ":aud=1:repeat-headers=1" +
                         ":sliced-threads=0:slices=1" +
