@@ -28,12 +28,12 @@ namespace RemotePlayServer.Utils
     /// </summary>
     public static class SpeedTest
     {
-        // Test configuration
-        private const int ChunkSizeBytes = 64 * 1024;  // 64KB per chunk
-        private const int DefaultChunks = 16;          // 1MB total by default
-        private const int MaxChunks = 128;             // 8MB max
-        private const int PingSamples = 5;             // Number of ping samples
-        private const int TestDurationMs = 2000;       // 2 seconds per direction
+        // Test configuration - matching web client
+        private const int ChunkSizeBytes = 4 * 1024 * 1024;  // 4MB per chunk
+        private const int DefaultChunks = 16;
+        private const int MaxChunks = 128;
+        private const int PingSamples = 3;
+        private const int TestDurationMs = 2000;         // 2 seconds (same as web client)
 
         /// <summary>
         /// Run complete speed test (ping + download + upload).
@@ -112,9 +112,9 @@ namespace RemotePlayServer.Utils
                     // Timeout, skip this sample
                 }
 
-                // Small delay between samples
+                // Small delay between samples (reduced from 100ms for faster test)
                 if (i < PingSamples - 1)
-                    await Task.Delay(100, ct);
+                    await Task.Delay(20, ct);
             }
 
             if (times.Count == 0)
@@ -144,14 +144,15 @@ namespace RemotePlayServer.Utils
             });
             await SendTextAsync(ws, startMsg, ct);
 
-            // Generate random chunk data
+            // Generate random chunk data (4MB chunks for maximum throughput)
             var chunk = new byte[ChunkSizeBytes];
             new Random().NextBytes(chunk);
 
             var sw = Stopwatch.StartNew();
             long bytesSent = 0;
 
-            // Send chunks for TestDurationMs
+            // Sequential sends - await each one for accurate bandwidth measurement
+            // Note: Parallel sends don't work with WebSocket (SendAsync completes on buffer, not delivery)
             while (sw.ElapsedMilliseconds < TestDurationMs)
             {
                 await ws.SendAsync(

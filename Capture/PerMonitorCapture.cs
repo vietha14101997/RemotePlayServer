@@ -42,6 +42,10 @@ public sealed class PerMonitorCapture : IDisposable
         public long CaptureFrameCount;
         public long LastFpsLogTime;
         public long LastFpsLogFrameCount;
+
+        // Rate limiting - prevent queue buildup during high activity (e.g., dragging windows)
+        public long LastSentTime;
+        public long RateLimitedFrames;
     }
     
     private volatile bool _running;
@@ -260,44 +264,39 @@ public sealed class PerMonitorCapture : IDisposable
             try
             {
                 long captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                
+
                 // FPS logging every 3 seconds
                 long timeSinceLastLog = captureTimestamp - mon.LastFpsLogTime;
                 if (timeSinceLastLog >= 3000)
                 {
                     long framesSinceLastLog = mon.CaptureFrameCount - mon.LastFpsLogFrameCount;
                     double fps = framesSinceLastLog * 1000.0 / timeSinceLastLog;
-                    Console.WriteLine($"[Capture FPS] Mon{mon.Index}: {fps:F1} fps (captured {framesSinceLastLog} frames in {timeSinceLastLog}ms)");
+                    long rateLimited = Interlocked.Exchange(ref mon.RateLimitedFrames, 0); // Read and reset
+                    Console.WriteLine($"[Capture FPS] Mon{mon.Index}: {fps:F1} fps (captured {framesSinceLastLog} in {timeSinceLastLog}ms, rate-limited={rateLimited})");
                     mon.LastFpsLogTime = captureTimestamp;
                     mon.LastFpsLogFrameCount = mon.CaptureFrameCount;
                 }
 
-                if (mon.Duplication == null) continue;
+                if (mon.Duplication == null) goto Pacing;
 
-                // Use a short timeout (5ms) to just check for new frames.
-                // If we wait the full frame time (16ms) AND do processing (copy/encode), we exceed the 16ms budget,
-                // causing FPS to drop (e.g. 16ms wait + 6ms work = 22ms loop = ~45fps).
-                // Our Pacing loop at the bottom handles the rest of the wait to exact 60fps.
-                int timeoutMs = 5;
+                // RATE LIMITING CHECK (BEFORE acquiring frame)
+                // This is the key fix: don't even try to acquire frames too frequently
+                long timeSinceLastSent = loopStart - mon.LastSentTime;
+                bool canSendFrame = mon.LastSentTime == 0 || timeSinceLastSent >= frameTimeMs;
+
+                // Use short timeout - we just want to check for new frames and release DXGI's internal queue
+                int timeoutMs = canSendFrame ? 5 : 1; // Even shorter timeout when rate limited
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
-                
+
                 if (result.Success && desktopResource != null)
                 {
                     mon.CaptureFrameCount++;
-                    
+
                     try
                     {
                         using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
-                        
-                        // GPU Video Processor conversion (Unified path for all vendors)
-                        if (mon.ColorConverter == null && mon.Device != null)
-                        {
-                            mon.ColorConverter = new GpuColorConverter(mon.Device, mon.Width, mon.Height);
-                            Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created");
-                        }
-                        
-                        // Keep a copy for static screen (no new frames) and for safe conversion (avoids Desktop Duplication issues)
-                        // This serves as a "safety firewall" between Desktop Duplication and the encoder/video processor
+
+                        // Always cache the latest frame content (fast GPU copy)
                         if (mon.LastFrame == null && mon.Device != null)
                         {
                             mon.LastFrame = mon.Device.CreateTexture2D(new Texture2DDescription
@@ -313,24 +312,32 @@ public sealed class PerMonitorCapture : IDisposable
                                 CPUAccessFlags = CpuAccessFlags.None
                             });
                         }
-                        
+
                         mon.Context?.CopyResource(mon.LastFrame!, texture);
-                        
-                        // Convert AND Cache the result
-                        var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
-                        
-                        // Store reference to the latest valid NV12 frame
-                        // Note: GpuColorConverter usually returns a persistent texture or one from a small pool.
-                        // We hold a reference to it.
-                        mon.LastNV12Frame = nv12Texture;
-                        
-                        if (nv12Texture != null)
+
+                        // Only convert and send if rate limiting allows
+                        if (canSendFrame)
                         {
-                            OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                            // GPU Video Processor conversion
+                            if (mon.ColorConverter == null && mon.Device != null)
+                            {
+                                mon.ColorConverter = new GpuColorConverter(mon.Device, mon.Width, mon.Height);
+                                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created");
+                            }
+
+                            var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
+                            mon.LastNV12Frame = nv12Texture;
+
+                            if (nv12Texture != null)
+                            {
+                                mon.LastSentTime = loopStart;
+                                OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                            }
                         }
                         else
                         {
-                            Console.WriteLine($"[PerMonitorCapture] Mon {mon.Index}: ConvertToTexture returned null!");
+                            // Rate limited - frame cached but not sent
+                            mon.RateLimitedFrames++;
                         }
                     }
                     finally
@@ -339,54 +346,22 @@ public sealed class PerMonitorCapture : IDisposable
                         mon.Duplication.ReleaseFrame();
                     }
                 }
-                // PACING STRATEGY:
-                // If we got a frame (Success), DXGI has already waited for VSync/Update, so we don't need to sleep.
-                // We loop immediately to be ready for the next frame.
-                //
-                // If we timed out (WaitTimeout), we are sending cached frames.
-                // We MUST sleep to avoid a busy loop consuming 100% CPU.
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
-                    // No new frame - use cached NV12 frame if available (Avoid Re-Conversion!)
-                    if (mon.LastNV12Frame != null)
+                    // No new frame from DXGI - send cached frame if rate limiting allows
+                    if (canSendFrame && mon.LastNV12Frame != null)
                     {
-                        // Direct REUSE of the last converted frame. 
-                        // This saves significant GPU bandwidth/VideoProcessor usage on static screens.
+                        mon.LastSentTime = loopStart;
                         OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
-                    }
-                    else if (mon.LastFrame != null && mon.ColorConverter != null)
-                    {
-                         // Fallback: If no NV12 cache yet, convert (First frame timeout?)
-                         var nv12Texture = mon.ColorConverter.ConvertToTexture(mon.LastFrame);
-                         if (nv12Texture != null)
-                         {
-                             mon.LastNV12Frame = nv12Texture;
-                             OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
-                         }
                     }
                 }
 
-                // PACING STRATEGY (Updated):
-                // We want to stabilize FPS at TargetFps (e.g., 60), but slightly UNDER to prevent client buffering.
-                // If we send 60.01 FPS and client runs at 60.00 FPS, buffer grows indefinitely (latency drift).
-                // Aiming for 59.9 FPS ensures the client drain rate > send rate => Zero Latency.
-                
-                var loopDuration = sw.ElapsedMilliseconds - loopStart;
-                // Add 0.5ms safety bias to ensure we never over-shoot speed
-                var timeToSleep = (frameTimeMs + 0.5) - loopDuration;
-
-                if (timeToSleep > 0)
+                Pacing:
+                // STRICT PACING: Always wait until frame time has passed
+                // This ensures we never exceed TargetFps, preventing queue buildup
+                while ((sw.ElapsedMilliseconds - loopStart) < frameTimeMs)
                 {
-                    // HIGH PRECISION PACING:
-                    // Standard Thread.Sleep() has ~15ms resolution on Windows, which causes massive jitter
-                    // and FPS drops (e.g. asking for 5ms sleep -> getting 15ms -> 40fps).
-                    // We use pure SpinWait for the remaining time to guarantee rock-solid 60fps.
-                    // This uses slightly more CPU but is required for low-latency streaming.
-                    
-                    while ((sw.ElapsedMilliseconds - loopStart) < (frameTimeMs + 0.1)) // +0.1 margin
-                    {
-                        Thread.SpinWait(10); // Lightweight spin
-                    }
+                    Thread.SpinWait(10);
                 }
             }
             catch (Exception ex)

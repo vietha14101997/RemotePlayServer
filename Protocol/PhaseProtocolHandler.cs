@@ -337,16 +337,15 @@ namespace RemotePlayServer.Protocol
             if (direction == "download")
             {
                 // Server sends binary data for Client to measure download speed
-                // Use larger chunks (1MB) for higher throughput
-                var chunkSize = 1024 * 1024; // 1MB chunks
+                // Use 4MB chunks for maximum throughput with sequential sends
+                var chunkSize = 4 * 1024 * 1024; // 4MB chunks
                 var chunk = new byte[chunkSize];
                 new Random().NextBytes(chunk);
 
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 long bytesSent = 0;
 
-                // Send chunks for the duration
-                // Use ValueTask for better performance
+                // Sequential sends - await each one for accurate bandwidth measurement
                 while (sw.ElapsedMilliseconds < durationMs && _ws.State == WebSocketState.Open)
                 {
                     try

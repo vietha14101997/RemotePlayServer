@@ -537,7 +537,7 @@ public sealed class WgcCapture : IDisposable
         _pool.FrameArrived += OnFrameArrived;
         Console.WriteLine("[WGC] Creating capture session...");
         _session = _pool.CreateCaptureSession(item);
-        _session.IsCursorCaptureEnabled = true;
+        _session.IsCursorCaptureEnabled = false;
         Console.WriteLine("[WGC] Capture session created");
 
         item.Closed += (s, e) =>
