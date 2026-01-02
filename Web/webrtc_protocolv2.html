@@ -748,7 +748,6 @@
       // Phase 3
       statsInterval: null,
       pingInterval: null,
-      speedTestPingInterval: null,  // Rapid ping interval during speed test
       videoElements: [],
       videoStreams: [],
       perMonitorStats: [],
@@ -767,11 +766,7 @@
       jitter: 0,                 // RFC 3550 smoothed jitter
       avgPing: 0,                // Average ping from samples
       minPing: Infinity,         // Minimum ping observed
-      maxPing: 0,                // Maximum ping observed
-
-      // Ping sequence tracking (to handle multiple outstanding pings)
-      pingSeq: 0,                // Current ping sequence number
-      pendingPings: new Map()    // Map<seq, timestamp> for outstanding pings
+      maxPing: 0                 // Maximum ping observed
     };
 
     // ============================================
@@ -968,12 +963,11 @@
         $('btnConnect').style.display = 'none';
         setInputsEnabled(false);
 
-        // Start ping keepalive with sequence numbers
+        // Start ping keepalive
         state.pingInterval = setInterval(() => {
           if (state.ws?.readyState === 1) {
-            const seq = state.pingSeq++;
-            state.pendingPings.set(seq, performance.now());
-            sendText(`ping:${seq}`);
+            state.lastPingTime = performance.now();
+            sendText('ping');
           }
         }, 3000);
       };
@@ -994,43 +988,11 @@
       }
 
       // Pong - Calculate ping and jitter accurately
-      // Support both "pong" and "pong:N" formats
-      if (data === 'pong' || data.startsWith('pong:')) {
-        let rtt = 0;
+      if (data === 'pong') {
+        if (state.lastPingTime > 0) {
+          const rtt = performance.now() - state.lastPingTime;
+          state.lastPingTime = 0;
 
-        if (data.startsWith('pong:')) {
-          // Sequenced pong - extract sequence number and find matching ping
-          const seq = parseInt(data.substring(5));
-          const sentTime = state.pendingPings.get(seq);
-          if (sentTime) {
-            rtt = performance.now() - sentTime;
-            state.pendingPings.delete(seq);
-          }
-        } else {
-          // Legacy pong without sequence - match with oldest pending ping
-          // This handles servers that don't support sequenced ping
-          if (state.pendingPings.size > 0) {
-            // Find the oldest pending ping (lowest sequence number)
-            let oldestSeq = Infinity;
-            let oldestTime = 0;
-            for (const [seq, time] of state.pendingPings) {
-              if (seq < oldestSeq) {
-                oldestSeq = seq;
-                oldestTime = time;
-              }
-            }
-            if (oldestTime > 0) {
-              rtt = performance.now() - oldestTime;
-              state.pendingPings.delete(oldestSeq);
-            }
-          } else if (state.lastPingTime > 0) {
-            // Fallback to lastPingTime if no pending pings
-            rtt = performance.now() - state.lastPingTime;
-            state.lastPingTime = 0;
-          }
-        }
-
-        if (rtt > 0) {
           // Add to rolling window
           state.pingSamples.push(rtt);
           if (state.pingSamples.length > state.maxPingSamples) {
@@ -1201,31 +1163,6 @@
       speedTestBytes = 0;
       speedTestStart = performance.now();
 
-      // Reset ping samples for accurate measurement during speed test
-      state.pingSamples = [];
-      state.lastPingValue = 0;
-      state.jitter = 0;
-      state.minPing = Infinity;
-      state.maxPing = 0;
-      state.pendingPings.clear();
-
-      // Send rapid pings during speed test (every 100ms) for accurate jitter calculation
-      // This gives us ~20 samples during the 2-second test
-      // Use sequence numbers to track multiple outstanding pings
-      state.speedTestPingInterval = setInterval(() => {
-        if (state.ws?.readyState === 1) {
-          const seq = state.pingSeq++;
-          state.pendingPings.set(seq, performance.now());
-          sendText(`ping:${seq}`);
-
-          // Cleanup old pending pings (older than 5 seconds)
-          const now = performance.now();
-          for (const [s, t] of state.pendingPings) {
-            if (now - t > 5000) state.pendingPings.delete(s);
-          }
-        }
-      }, 100);
-
       // Request server to send data for 2 seconds
       sendJson({
         type: 'speedtest_request',
@@ -1244,46 +1181,26 @@
     }
 
     function handleSpeedTestEnd(msg) {
-      // Stop the rapid ping interval used during speed test
-      if (state.speedTestPingInterval) {
-        clearInterval(state.speedTestPingInterval);
-        state.speedTestPingInterval = null;
-      }
-
       const elapsed = performance.now() - speedTestStart;
       const bandwidth = (speedTestBytes * 8) / (elapsed / 1000) / 1_000_000;
 
-      // Calculate ping from samples - use median for more accuracy
-      let pingMs = 0;
-      if (state.pingSamples.length > 0) {
-        const sorted = [...state.pingSamples].sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        pingMs = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-        pingMs = Math.round(pingMs);
-      }
-
-      // Use calculated jitter (rounded to 1 decimal)
-      // Jitter needs at least 2 samples, which we should have now
+      // Use calculated jitter (rounded to 1 decimal), fallback to 0 if not enough samples
       const jitterMs = state.jitter > 0 ? Math.round(state.jitter * 10) / 10 : 0;
 
       state.speedTestResult = {
         bandwidthMbps: bandwidth,
-        pingMs: pingMs,
+        pingMs: state.currentPing,
         jitterMs: jitterMs,
-        minPingMs: state.minPing !== Infinity ? Math.round(state.minPing) : pingMs,
-        maxPingMs: state.maxPing > 0 ? Math.round(state.maxPing) : pingMs
+        minPingMs: state.minPing !== Infinity ? Math.round(state.minPing) : state.currentPing,
+        maxPingMs: state.maxPing > 0 ? Math.round(state.maxPing) : state.currentPing
       };
 
-      // Update currentPing for use elsewhere
-      state.currentPing = pingMs;
-
       $('stBandwidth').textContent = bandwidth.toFixed(1);
-      $('stPing').textContent = pingMs;
+      $('stPing').textContent = state.currentPing;
       $('stJitter').textContent = jitterMs.toFixed(1);
       showSection('stProgress', false);
 
-      log(`Speed test complete: ${state.pingSamples.length} ping samples collected`, 'info');
-      log(`Speed test: ${bandwidth.toFixed(1)} Mbps, ping ${pingMs}ms (min: ${state.speedTestResult.minPingMs}, max: ${state.speedTestResult.maxPingMs}), jitter ${jitterMs.toFixed(1)}ms`, 'info');
+      log(`Speed test: ${bandwidth.toFixed(1)} Mbps, ping ${state.currentPing}ms (min: ${state.speedTestResult.minPingMs}, max: ${state.speedTestResult.maxPingMs}), jitter ${jitterMs.toFixed(1)}ms`, 'info');
 
       // Send result to server
       sendJson({
@@ -1661,10 +1578,8 @@
       // Clear intervals
       if (state.statsInterval) clearInterval(state.statsInterval);
       if (state.pingInterval) clearInterval(state.pingInterval);
-      if (state.speedTestPingInterval) clearInterval(state.speedTestPingInterval);
       state.statsInterval = null;
       state.pingInterval = null;
-      state.speedTestPingInterval = null;
 
       // Close WebSocket
       if (state.ws) {
@@ -1707,8 +1622,6 @@
       state.avgPing = 0;
       state.minPing = Infinity;
       state.maxPing = 0;
-      state.pingSeq = 0;
-      state.pendingPings.clear();
 
       // Reset UI
       setPhase(0);
