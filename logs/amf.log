@@ -1,21 +1,8 @@
 === RemotePlayServer ===
 [System] Running as Administrator: YES
 [System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-[System] Local IP: 192.168.1.8
+[System] Local IP: 192.168.1.13
 [Encoder] AMD AMF (Hardware)
-[Guard] Detected stale session. Restoring previous snapshot before new capture...
-[Guard] Text size restored.
-[Guard] Monitor modes restored.
-[Guard] Taskbar multi-monitor flag restored to 1.
-[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[Guard] Virtual Display Driver disabled safely.
 [TextScale] Registry DPI for \\.\DISPLAY2: 120
 [Guard] Saved original text scale for \\.\DISPLAY2: 125%
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
@@ -25,41 +12,41 @@ Device disabled successfully.
   \\.\DISPLAY2: 1920x1080 [Physical]
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
-[HTTP] Server: 192.168.1.8:8288
+[HTTP] Server: 192.168.1.13:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.8","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
 █████████████████████████████████████████████████████
 █████████████████████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀ ▄▄█▄▀▀▄▀▄█ █▄▄▄▀▀█▀▀▀▄▄█▀▄█ ▄▄▄▄▄ ████
-████ █   █ █ █ ▄█▀▀█ ▀ ██ ▀▄▀█▀█▀▀ ██▄█ ▀█ █   █ ████
-████ █▄▄▄█ █▄█▀▀▄▄▀▄ █▀▄ ▄▄▄ ██▀▀███▀▀▄▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ █▄▀ █ █▄█ █▄▀ ▀▄▀ ▀ ▀ █▄▄▄▄▄▄▄████
-█████▄█▄▀▄▄▀▄██▄ ▄ █▀█▀ ▄▄ ▄▄  ▄▀▄██▄ █▀▄▄ █  ▄  ████
-█████▀▀▄ █▄    ▄ ▀  █▀▄▄▄ ▄ ▄ ▄ ▄▄█▄▀▄ ▄█▄█▄▄▀█ ▀████
-████ ▄▀▀ ▀▄▀▀ █▀▀▀ ▀▀▀▄█ █▀▀▄█▀█▀▄▀▄ ▄▄ ▀ █ ▄▀█▀█████
-████▄ ▀▀█ ▄██▀▀ ▀█ ██ ▀▀██ ██▀▄▀██ ▄▄▀▀▀▀▀▀██▀ ▀█████
-████▀███▀█▄█▄▀█▄███▄▄███▀▀▀▄▄█▀█▀▀▄▄ █ ▄ ▀█▄▄█ █▀████
-█████ █▄█▄▄▀▄▀▀█ █▄  ▀ █▄ █ ▄▀█▄▄ ▄▀▄▀█  ▄▀▄▄▀▀▄ ████
-████▀█   ▄▄▄ ▀ ▀█▀ ▀▀  ▀ ▄▄▄  ▄▀ ▀█▀▀ ▀  ▄▄▄ ▄█ ▀████
-████▀██▄ █▄█  ▄▀▄█▄█ ▀▀▀ █▄█ ▄▄▀▀▄▄▀█ █  █▄█ █▄█ ████
-████▀ ▀▄  ▄▄ █▄ █▀▄▄▄▄  ▄ ▄▄▄ ▀▄ ▀ ▄ ▀▀▄   ▄ █▄▄▄████
-████▀ ▄█▀█▄█▄█▄ ▀▀█▀▄▀▄██▀█▄▄█▀▄█▀█ ▄▀▄█▄▀█ ▄█▄██████
-████▄▀█▀ ▄▄▄█▄  ▀▀▄▄███▀▀█▄ ██▄███ ▄█ ▄███▄ ▀ ▄██████
-████▄█▄ ▄▀▄▀▄▄██ ▄█▀▄▄█▄▄▄▀▀▄▄█▄█ █▄█▄▀▀█▄█▀ ▄█ █████
-████ ▀ █▄▄▄ ▀▀  █ ▀▄▀   ▀█  ▀▄█ ██▀ ▀█▀▄▀  ▄█▄█ ▀████
-█████▀▀▀ █▄▀▄█▄▄▄█  ▀█▄▀ ▀ █▄█▄ ██▄▀██ ▀██   ▀▄█▄████
-████▄██▄▄█▄█▀▄ ██▄ █▀▄▀█ ▄▄▄ ▄▄ ▀▄█ ▄ █  ▄▄▄ █▄▄▄████
-████ ▄▄▄▄▄ █▀▀▄▀ ▀ ▀▀▀   █▄█ ▄▀ █ █ ▀▀▀▄ █▄█ ▄▀█ ████
-████ █   █ █▀▄▄▄▀█▄▄█▄▀▄ ▄▄▄ █ █ ██▄▄██▄ ▄▄▄ ▄███████
-████ █▄▄▄█ █▀▀▀ █ ▄▄█▄ ▄█▄█ ▀█▄ █▀▀▄█ ▀ ▀▄█▄▀ ▄▄▀████
-████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄█▄█▄█▄█▄▄▄█▄█▄███▄██▄█▄██████
+████ ▄▄▄▄▄ █  ▀▀▄▀█▄ ▀  ███▄ ▄█▀█▀ ▄ ▀█▀▄█ ▄▄▄▄▄ ████
+████ █   █ █ ▄▄▀▀▀▀▀▀█▄▄▄ █▀ ▀▄▀▄ █▀  █ ▀█ █   █ ████
+████ █▄▄▄█ █▄ ▀  ▄ █▄▀ █ ▄▄▄ █▀█  ▄▀▀█▄▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ ▀ █▄█ ▀▄█ █▄█ ▀▄▀ ▀ █▄█▄█▄█▄▄▄▄▄▄▄████
+█████▄▀▄█▄▄▀▄ █▀ █▄▄  ▄ ▄▄▄  ▄   ▀▀ ██▀██▄▄▀     ████
+████▀▄▀█ ▀▄█ ▄ ▄▀ █▀█▄  █▀▄ ▀█▀█▄▄▄█▄▀█▀▀█ ▄ █ ▄ ████
+████  ▄▀▄█▄▄ ▀█  ▀▀   █▀ ▀▀   ▄▄▀▄▀ ▄█▀█▀▄ █ ▄▄  ████
+████ ▀▀▀█▀▄██  ▀██ ██▀█ ██ ██ ▀▀▀▀ ██▀ ▀██ ▄ ▀▀▀█████
+████▀▀ ███▄ ▄▀███▀█▄▄▀████▄▄▄█▄▄ ▀▀▄▄█ █▀▀█▄ █▀▄▀████
+█████ ▄▄▀█▄ ▄▀ █▄█▄▀ █▀█▄▀▄▄▄▀▄▀  █ ▄▀█ ▄  ▀▄██▄▄████
+████▀█▀▄ ▄▄▄   ▀▄ ▄▀▀▀ ▀ ▄▄▄ ▄▀ ▀▀  ▀ █▀ ▄▄▄  ▀▄▀████
+████▄██  █▄█ ▀ ▀▄█▀▀▄▄ █ █▄█  █ █▄█▀█▄▄█ █▄█ ▀▄ ▀████
+████▀  ▄  ▄▄▄   ▄▀ ▄▀▄▄ ▄ ▄▄▄█▀ █ ▄▄▄ ▀▄   ▄ ▀▀▄ ████
+█████▄  ▀█▄▀▄▀▄▄█▀██▄█ ▄█▀█▀▄▀▄██▀█ ▄██▄█▀▀ ▄█▄▀ ████
+████▄  █▀▄▄▄██▀█▀▀▄▄██ ▀▀▀▄▄█▄▄▀▀█▄ █▄▄██▄▀▄█▀▄▄█████
+████▄██▀▄█▄ █▄█▄▄▄▀▀▄▄██▄ ██▄▄▀ ▄▄█▀ ▄█ █▄█ ▀ ▀██████
+████▀▄ ▀▄▀▄ █  ▄▀█▄ ▀ ▀ █▀▀▄▀▀▀ ▀▄  ▀▄█ █▄▀ ▀▄ ▄▀████
+█████▀▀▀ █▄▀ █ ▄▀▀▄█ █▄  ▀▄▄██ ▀▄█▄▀▄█▄ ██ ▀▀▀▄▀█████
+████▄██▄▄█▄█▀▄ ▄█▄▄▄▀▄▀█ ▄▄▄ ▄▄ ▀▄█ ▄▄█  ▄▄▄ █▄▄▄████
+████ ▄▄▄▄▄ █▀▀▄ █▀ ▀▀▀ ▀ █▄█  ▀▄█ █   ▀  █▄█ ▄▀█ ████
+████ █   █ █▀▄▄▄▀▄█▄█▄█▄ ▄▄▄ █▀▄ ██▄▄█▀█ ▄▄▄ ▄██▀████
+████ █▄▄▄█ █▀ ▀ █▄▄ ▀█▀▄█ ▀▄█▄▄ ███▄▀▀ ▄▀▄█▄█ █▄▀████
+████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄█▄█▄█▄█▄▄▄██▄▄█▄█▄█▄██▄██████
 █████████████████████████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 1b68f2c3-f180-4279-9537-27a131ac3175, mode=cluster, protocol=v2
-[Protocol] Client 1b68f2c3-f180-4279-9537-27a131ac3175 connected from 192.168.1.8 (v2 protocol)
+[Signal] Client connected 4ad1061e-069b-4d70-9317-3404e9a551f3, mode=cluster, protocol=v2
+[Protocol] Client 4ad1061e-069b-4d70-9317-3404e9a551f3 connected from 192.168.1.13 (v2 protocol)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
@@ -72,49 +59,268 @@ Server is running. Press ENTER to exit.
 [HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
-[Protocol] WaitForHardwareAck received: len=206, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264"],"preferredCodec":"H264","supp...
+[Protocol] WaitForHardwareAck received: len=218, text={"type":"hardware_info_ack","clientCodecs":{"supportsHevc":false,"preferredCodec":"H264","deviceMode...
 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
-[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=B760M GAMING PLUS WIFI DDR4 (Gigabyte Technology Co., Ltd.)
-[Protocol] Codec negotiation: Client doesn't support HEVC -> selected H.264
+[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264]
+[Protocol] Codec negotiation: selected H264
 [Protocol] Received hardware_info_ack
 [Protocol] Phase changed to: Phase1_SpeedTest
 [Protocol] Phase 1: Waiting for client speed test result...
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 32MB in 2061ms = 130.2 Mbps
+[Protocol] Download test complete: sent 852MB in 2016ms = 3545.2 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
-[Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=114
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 142.7Mbps, 14.4ms
-[Protocol] ✓ Received speedtest_result from client: 142.7Mbps, 14.4ms ping
+[Protocol] speedtest_result parsed: 3533.4Mbps, 0.0ms
+[Protocol] ✓ Received speedtest_result from client: 3533.4Mbps, 0.0ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 3x1600x900@60fps, bitrate=15000kbps, codec=H264
+[Protocol] Sending suggested_config: 3x1600x900@60fps, bitrate=40000kbps, codec=H264
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
-[Protocol] WaitForProceed received: {"type":"stop_streaming"}...
-[Protocol] Client 1b68f2c3-f180-4279-9537-27a131ac3175 cancelled
-[Protocol] Phase changed to: Disconnecting
-[Protocol] Client 1b68f2c3-f180-4279-9537-27a131ac3175 disconnected
-[Signal] Client connected ffc8c939-2e8d-41df-acf9-d89aa433e08d, mode=cluster, protocol=v2
-[Protocol] Client ffc8c939-2e8d-41df-acf9-d89aa433e08d connected from 192.168.1.8 (v2 protocol)
-[Protocol] Phase changed to: Phase1_HardwareDetect
-[Protocol] Phase 1: Gathering hardware info...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"width":1920,"height":1080},"bitrateKbps":20000,...
+[Protocol] Received display config: 2x1920x1080@60fps
+[Protocol] Applying new display config: 2 monitors @ 1920x1080
+[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
+[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 0 (target total: 2)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL]
+[Display] Setting Windows Text Scale to 125%...
+[Display] ✓ Text Scale set to 125%
+[Protocol] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer
+[SIPSorcery] Created: 2 monitors, 60fps, 20000kbps
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[SIPSorcery] Stored pending device for monitor 1
+[Protocol] Monitor 1: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8946926111691551157 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared all ICE state for new offer
+[Protocol] Parsed H264 PT from offer: 109
+[SIPSorcery] Processing offer for 2 monitors
+[SIPSorcery] Offer H264 pt=103, fmtp=level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[SIPSorcery] PeerConnection created
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] Added track 1: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Local ICE: 1173202931 1 udp 2113940223 2402:800:610d:cef6:25e...
+[SIPSorcery] Local ICE: 1943552521 1 udp 2113940223 2402:800:610d:cef6:4c7...
+[SIPSorcery] Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 54294 typ...
+[SIPSorcery] Answer ready, 2315 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 109
+[Protocol] SDP kept: a=rtpmap:109 H264/90000
+[Protocol] SDP kept: a=fmtp:109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 109
+[Protocol] SDP kept: a=rtpmap:109 H264/90000
+[Protocol] SDP kept: a=fmtp:109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 2315 to 1203 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 35908 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1234 bytes
+[Protocol] Sent extracted ICE candidate: candidate:3928909093 1 udp 2113937663 192.168.1.13 54294 typ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2504267269 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '16e90f45-20d3-452a-917d-a5e45cf82cb4.local'
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - initializing encoders
+[AmfNativeWrapper] Initializing 1920x1080 @ 60fps, 20000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[SIPSorcery] Track 0: AMF encoder initialized
+[AmfNativeWrapper] Initializing 1920x1080 @ 60fps, 20000kbps
+[AmfNativeWrapper] Initialized successfully (zero-copy enabled)
+[SIPSorcery] Track 1: AMF encoder initialized
+[Protocol] All 2 tracks ready, sending ice_ready
+[Protocol] Starting early capture to prevent browser track timeout...
+[SIPSorcery] Peer state: connecting
+[PerMonitorCapture] Created frame sync barrier for 2 monitors
+[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps (barrier sync enabled: True)
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps (barrier sync enabled: True)
 [GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
-[HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
-[HardwareInfo] HEVC encoder 'hevc_amf': available
-[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
-[Protocol] Sent hardware info to client
-[Protocol] Waiting for hardware_info_ack...
-[Protocol] Client ffc8c939-2e8d-41df-acf9-d89aa433e08d error: An internal WebSocket error occurred. Please see the innerException, if present, for more details.
-[Protocol] InnerException: An operation was attempted on a nonexistent network connection.
-[Protocol] StackTrace:    at System.Net.WebSockets.WebSocketBase.ThrowIfConvertibleException(String methodName, Exception exception, CancellationToken cancellationToken, Boolean aborted)
-   at System.Net.WebSockets.WebSocketBase.ReceiveAsyncCore(ArraySegment`1 buffer, CancellationToken cancellationToken)
-   at RemotePlayServer.Protocol.PhaseProtocolHandler.WaitForHardwareAckAsync() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Protocol\PhaseProtocolHandler.cs:line 1165
-   at RemotePlayServer.Protocol.PhaseProtocolHandler.RunPhase1Async() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Protocol\PhaseProtocolHandler.cs:line 198
-   at RemotePlayServer.Protocol.PhaseProtocolHandler.HandleAsync() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Protocol\PhaseProtocolHandler.cs:line 123
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[GpuColorConverter] GPU: AMD, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[GpuColorConverter] GPU: AMD, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
+[SIPSorcery] Peer state: connected
+[SIPSorcery] Track 1 frame #0: 66081B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #1: 60270B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #0: 121131B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #1: 81666B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #2: 59899B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #3: 15778B, NAL types=[1], key=False
+[SIPSorcery] Track 0 frame #2: 64338B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #3: 541B, NAL types=[1], key=False
+[SIPSorcery] Track 1 frame #4: 37756B, NAL types=[1], key=False
+[SIPSorcery] Track 0 frame #4: 6095B, NAL types=[1], key=False
+[Cluster Signal] mDNS resolved '16e90f45-20d3-452a-917d-a5e45cf82cb4.local' -> 192.168.1.13 after 1 attempt(s)
+[SIPSorcery] Added remote ICE: candidate:2504267269 1 udp 2113937151 192.168.1.13...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:3629865384 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local'
+[Cluster Signal] mDNS resolved '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
+[Cluster Signal] mDNS fallback: '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local' -> 192.168.1.13 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:3629865384 1 udp 2113939711 192.168.1.13 54290 typ host generation 0 ufrag cXDr network-cost 999
+[SIPSorcery] Added remote ICE: candidate:3629865384 1 udp 2113939711 192.168.1.13...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2504267269 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '16e90f45-20d3-452a-917d-a5e45cf82cb4.local'
+[Cluster Signal] mDNS resolved '16e90f45-20d3-452a-917d-a5e45cf82cb4.local' -> 192.168.1.13 after 1 attempt(s)
+[SIPSorcery] Added remote ICE: candidate:2504267269 1 udp 2113937151 192.168.1.13...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:3629865384 1 udp 211...
+[Protocol] ICE message type: candidate
+[Cluster Signal] Attempting to resolve mDNS: '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local'
+[Cluster Signal] mDNS resolved '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
+[Cluster Signal] mDNS fallback: '2937b17a-8ab8-4e4e-b7d2-f86af1399fce.local' -> 192.168.1.13 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:3629865384 1 udp 2113939711 192.168.1.13 54292 typ host generation 0 ufrag cXDr network-cost 999
+[SIPSorcery] Added remote ICE: candidate:3629865384 1 udp 2113939711 192.168.1.13...
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[SIPSorcery] Stats: m0:177, m1:177
+[Capture FPS] Mon0: 6.3 fps (captured 19 in 3015ms, rate-limited=0)
+[Capture FPS] Mon1: 60.0 fps (captured 181 in 3015ms, rate-limited=0)
+[Protocol] ICE RX: ping...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Cursor tracking started
+[KeepAlive] Server-side keep-alive started (5s interval)
+[SIPSorcery] Stats: m0:363, m1:363
+[Capture FPS] Mon0: 4.3 fps (captured 13 in 3014ms, rate-limited=0)
+[Capture FPS] Mon1: 60.7 fps (captured 183 in 3014ms, rate-limited=0)
+[SIPSorcery] Stats: m0:548, m1:548
+[Capture FPS] Mon1: 61.3 fps (captured 184 in 3002ms, rate-limited=0)
+[Capture FPS] Mon0: 3.0 fps (captured 9 in 3002ms, rate-limited=0)
+[SIPSorcery] Stats: m0:735, m1:735
+[Capture FPS] Mon1: 60.6 fps (captured 182 in 3003ms, rate-limited=0)
+[Capture FPS] Mon0: 17.0 fps (captured 51 in 3003ms, rate-limited=0)
+[SIPSorcery] Stats: m0:923, m1:923
+[Capture FPS] Mon1: 60.9 fps (captured 183 in 3005ms, rate-limited=0)
+[Capture FPS] Mon0: 38.9 fps (captured 117 in 3005ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1109, m1:1109
+[Capture FPS] Mon0: 54.6 fps (captured 164 in 3005ms, rate-limited=0)
+[Capture FPS] Mon1: 59.9 fps (captured 180 in 3005ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1296, m1:1296
+[Capture FPS] Mon0: 33.2 fps (captured 100 in 3013ms, rate-limited=0)
+[Capture FPS] Mon1: 59.4 fps (captured 179 in 3013ms, rate-limited=0)
+[KeepAlive] Client not responding for 20.0s, connection may be dead
+[SIPSorcery] Stats: m0:1484, m1:1484
+[Capture FPS] Mon1: 59.8 fps (captured 180 in 3009ms, rate-limited=0)
+[Capture FPS] Mon0: 59.2 fps (captured 178 in 3009ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1671, m1:1671
+[Capture FPS] Mon0: 46.5 fps (captured 140 in 3008ms, rate-limited=0)
+[Capture FPS] Mon1: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
+[KeepAlive] Client not responding for 25.0s, connection may be dead
+[SIPSorcery] Stats: m0:1858, m1:1858
+[Capture FPS] Mon0: 30.8 fps (captured 93 in 3015ms, rate-limited=0)
+[Capture FPS] Mon1: 58.7 fps (captured 177 in 3015ms, rate-limited=0)
+[SIPSorcery] Stats: m0:2044, m1:2044
+[Capture FPS] Mon1: 60.1 fps (captured 181 in 3012ms, rate-limited=0)
+[Capture FPS] Mon0: 32.2 fps (captured 97 in 3012ms, rate-limited=0)
+[KeepAlive] Client not responding for 30.0s, connection may be dead
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
-[Protocol] Client ffc8c939-2e8d-41df-acf9-d89aa433e08d disconnected
+[SIPSorcery] Stopping...
+[AmfNativeWrapper] Disposed
+[AmfNativeWrapper] Disposed
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Text Scale first...
+[Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
+[TextScale] Enhanced broadcast refresh completed.
+[Guard] ✓ Virtual monitor text scale restored to 100%
+[Guard] Per-monitor text scale restoration completed.
+[Guard] Step 3: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 4: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client 4ad1061e-069b-4d70-9317-3404e9a551f3 disconnected

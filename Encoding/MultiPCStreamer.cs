@@ -430,7 +430,8 @@ public class MultiPCStreamer : IDisposable
         // Get the final SDP with all gathered candidates
         // After gathering, localDescription should have updated SDP with candidates embedded
         var finalSdp = pc.localDescription?.sdp?.ToString() ?? answer.sdp ?? "";
-        var answerSdp = finalSdp.Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+        // Fix: Only add F if not already SAVPF (avoid SAVPF -> SAVPFF bug)
+        var answerSdp = finalSdp.Contains("SAVPF") ? finalSdp : finalSdp.Replace("SAVP", "SAVPF");
 
         // CRITICAL: Ensure SDP has proper payload type info (fixes video not playing)
         var chosenPt = h264Pt ?? 96;

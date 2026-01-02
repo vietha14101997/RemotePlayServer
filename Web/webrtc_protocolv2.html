@@ -692,8 +692,7 @@
         <!-- Actions -->
         <div class="sidebar-section">
           <button class="btn btn-primary" id="btnConnect">Connect</button>
-          <button class="btn btn-secondary" id="btnProceed" style="display: none; margin-top: 8px;">Proceed to Phase
-            2</button>
+          <button class="btn btn-secondary" id="btnProceed" style="display: none; margin-top: 8px;">Start</button>
           <button class="btn btn-danger" id="btnDisconnect" style="display: none; margin-top: 8px;">Disconnect</button>
         </div>
       </aside>
@@ -741,7 +740,13 @@
       suggestedConfig: null,
       speedTestResult: null,
 
-      // Phase 2
+      // Phase 2 - Single-PC Multi-Track Architecture
+      singlePC: null,          // Single PeerConnection
+      transceivers: [],        // One transceiver per monitor
+      monitorCount: 0,         // Number of monitors
+      answerReceived: false,   // Track if answer was received
+
+      // Legacy (kept for compatibility)
       multiPCs: [],
       pendingAnswers: new Map(),
 
@@ -1073,9 +1078,6 @@
         case 'frameTiming':
           handleFrameTiming(msg);
           break;
-        case 'cursor_position':
-          // Handle cursor position if needed
-          break;
         case 'error':
           log(`Error [Phase ${msg.phase}]: ${msg.code} - ${msg.message}`, 'error');
           break;
@@ -1235,9 +1237,9 @@
       setStatus('Ready to proceed', 'connecting');
       setInputsEnabled(true);
 
-      // Show proceed button
+      // Show start button
       $('btnProceed').style.display = '';
-      $('btnProceed').textContent = 'Proceed to Phase 2';
+      $('btnProceed').textContent = 'Start';
       $('btnProceed').onclick = () => startPhase2();
     }
 
@@ -1344,84 +1346,135 @@
       }));
     }
 
+    /**
+     * Create a SINGLE PeerConnection with N video transceivers (Single-PC Multi-Track).
+     * Benefits: 1 ICE negotiation, 1 DTLS handshake, better bandwidth sharing.
+     */
     async function createPeerConnections(count) {
-      state.multiPCs = [];
+      log(`Creating Single-PC with ${count} video transceivers (Multi-Track mode)`, 'info');
 
+      state.monitorCount = count;
+      state.transceivers = [];
+      state.answerReceived = false;
+
+      // Create single PeerConnection
+      const pc = new RTCPeerConnection({
+        iceServers: [],
+        iceCandidatePoolSize: 0
+      });
+      state.singlePC = pc;
+
+      // Add N video transceivers (one per monitor)
       for (let i = 0; i < count; i++) {
-        const pc = new RTCPeerConnection({
-          iceServers: [],
-          iceCandidatePoolSize: 0
-        });
-
-        // Add video transceiver with H264 preference
         try {
           const trans = pc.addTransceiver('video', { direction: 'recvonly' });
           if (trans.receiver && 'playoutDelayHint' in trans.receiver) {
             trans.receiver.playoutDelayHint = 0.04;
           }
 
+          // Set codec preferences (H264 first)
           const caps = RTCRtpReceiver.getCapabilities('video');
           const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
           const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType));
           if (trans.setCodecPreferences) {
             trans.setCodecPreferences([...h264, ...others]);
           }
+
+          state.transceivers.push(trans);
+          log(`Added transceiver ${i} for monitor ${i}`, 'info');
         } catch (e) {
-          log(`PC${i} codec setup: ${e.message}`, 'warn');
+          log(`Transceiver ${i} setup error: ${e.message}`, 'warn');
         }
-
-        // Events
-        pc.oniceconnectionstatechange = () => {
-          log(`PC${i} ICE: ${pc.iceConnectionState}`, 'info');
-        };
-
-        pc.onconnectionstatechange = () => {
-          log(`PC${i} State: ${pc.connectionState}`, 'info');
-        };
-
-        pc.onicecandidate = (ev) => {
-          if (ev.candidate && state.ws?.readyState === 1) {
-            const cand = ev.candidate.candidate;
-            if (cand.toLowerCase().includes(' tcp ')) return; // Skip TCP
-
-            sendJson({
-              type: 'candidate',
-              monitorIndex: i,
-              candidate: cand
-            });
-          }
-        };
-
-        pc.ontrack = (ev) => {
-          if (ev.track?.kind === 'video') {
-            log(`PC${i} Track received`, 'info');
-            const video = state.videoElements[i] || $('video0');
-            const stream = new MediaStream([ev.track]);
-            state.videoStreams[i] = stream;
-            video.srcObject = stream;
-            video.play().catch(() => { });
-          }
-        };
-
-        state.multiPCs.push(pc);
-
-        // Create and send offer
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-
-        sendJson({
-          type: 'offer',
-          monitorIndex: i,
-          sdp: offer.sdp
-        });
-
-        log(`-> Offer[${i}] sent`);
       }
+
+      // ICE connection state
+      pc.oniceconnectionstatechange = () => {
+        log(`Single-PC ICE: ${pc.iceConnectionState}`, 'info');
+      };
+
+      // Connection state
+      pc.onconnectionstatechange = () => {
+        log(`Single-PC State: ${pc.connectionState}`, 'info');
+      };
+
+      // ICE candidates - single connection, no monitorIndex needed
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate && state.ws?.readyState === 1) {
+          const cand = ev.candidate.candidate;
+          if (cand.toLowerCase().includes(' tcp ')) return; // Skip TCP
+
+          sendJson({
+            type: 'candidate',
+            monitorIndex: 0,  // Single PC mode
+            candidate: cand
+          });
+        }
+      };
+
+      // Track received - map to monitor via transceiver index
+      pc.ontrack = (ev) => {
+        log(`*** ontrack fired: kind=${ev.track?.kind}, readyState=${ev.track?.readyState}, muted=${ev.track?.muted}`, 'info');
+
+        if (ev.track?.kind === 'video') {
+          // Find which transceiver this track belongs to
+          let trackIndex = state.transceivers.findIndex(t => t === ev.transceiver);
+          if (trackIndex < 0) {
+            // Fallback: use mid to find index
+            trackIndex = parseInt(ev.transceiver?.mid || '0');
+          }
+
+          log(`Track ${trackIndex} received (mid=${ev.transceiver?.mid}, direction=${ev.transceiver?.direction})`, 'info');
+
+          const video = state.videoElements[trackIndex] || $('video0');
+          const stream = new MediaStream([ev.track]);
+          state.videoStreams[trackIndex] = stream;
+          video.srcObject = stream;
+
+          // Add debug for video state
+          video.onloadedmetadata = () => log(`Video ${trackIndex}: metadata loaded ${video.videoWidth}x${video.videoHeight}`, 'info');
+          video.onplay = () => log(`Video ${trackIndex}: playing`, 'info');
+          video.onerror = (e) => log(`Video ${trackIndex} error: ${video.error?.message || e}`, 'error');
+
+          // Check video dimensions after 2 seconds (debugging)
+          setTimeout(() => {
+            const w = video.videoWidth, h = video.videoHeight;
+            const ready = video.readyState;
+            log(`Video ${trackIndex} check: ${w}x${h}, readyState=${ready}, paused=${video.paused}, srcObject=${!!video.srcObject}`, w > 0 ? 'info' : 'error');
+          }, 2000);
+
+          // Track unmute event (fires when first frame arrives)
+          ev.track.onunmute = () => log(`Track ${trackIndex}: unmuted (receiving data)`, 'info');
+          ev.track.onmute = () => log(`Track ${trackIndex}: muted`, 'warn');
+
+          video.play().catch(e => log(`Video ${trackIndex} play error: ${e.message}`, 'error'));
+        }
+      };
+
+      // Create single offer with N m= sections
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      // Count m= sections for verification
+      const mSections = (offer.sdp.match(/^m=video/gm) || []).length;
+      log(`Single-PC offer created with ${mSections} m=video sections`, 'info');
+
+      // Send single offer (monitorIndex: 0 for backward compatibility)
+      sendJson({
+        type: 'offer',
+        monitorIndex: 0,
+        sdp: offer.sdp
+      });
+
+      log(`-> Single offer sent with ${count} tracks`);
     }
 
     async function handleAnswer(msg) {
-      const pc = state.multiPCs[msg.monitorIndex];
-      if (!pc) return;
+      // Single-PC mode: use state.singlePC
+      const pc = state.singlePC;
+      if (!pc) {
+        log('No PeerConnection available for answer', 'error');
+        return;
+      }
 
       // Fix SDP format
       let sdp = msg.sdp;
@@ -1434,14 +1487,16 @@
 
       try {
         await pc.setRemoteDescription({ type: 'answer', sdp });
-        log(`<- Answer[${msg.monitorIndex}] set`, 'info');
+        state.answerReceived = true;
+        log(`<- Single-PC Answer set (${state.monitorCount} tracks)`, 'info');
       } catch (e) {
-        log(`Answer[${msg.monitorIndex}] error: ${e.message}`, 'error');
+        log(`Answer error: ${e.message}`, 'error');
       }
     }
 
     async function handleCandidate(msg) {
-      const pc = state.multiPCs[msg.monitorIndex];
+      // Single-PC mode: use state.singlePC
+      const pc = state.singlePC;
       if (!pc) return;
 
       let cand = msg.candidate;
@@ -1449,21 +1504,20 @@
       if (cand.toLowerCase().includes(' tcp ')) return; // Skip TCP
 
       try {
+        // For single-PC, add candidate to the shared connection
         await pc.addIceCandidate({ candidate: cand, sdpMLineIndex: 0, sdpMid: '0' });
-        log(`<- ICE[${msg.monitorIndex}] added`);
+        log(`<- ICE candidate added`);
       } catch (e) {
-        log(`ICE[${msg.monitorIndex}] error: ${e.message}`, 'warn');
+        log(`ICE error: ${e.message}`, 'warn');
       }
     }
 
     function handleIceReady(msg) {
       log(`ICE Ready: ${msg.monitorCount} monitors connected`, 'info');
-      setStatus('ICE connected, proceeding...', 'connecting');
+      setStatus('ICE connected, starting stream...', 'connecting');
 
-      // Proceed to phase 3
-      $('btnProceed').style.display = '';
-      $('btnProceed').textContent = 'Start Streaming';
-      $('btnProceed').onclick = () => startPhase3();
+      // Auto-start Phase 3 (streaming already started on server side)
+      startPhase3();
     }
 
     // ============================================
@@ -1516,51 +1570,76 @@
         const elapsed = (now - lastTime) / 1000;
         lastTime = now;
 
-        let totalBitrate = 0, totalFps = 0, connectedCount = 0;
+        const pc = state.singlePC;
+        if (!pc || pc.connectionState !== 'connected') return;
 
-        for (let i = 0; i < state.multiPCs.length; i++) {
-          const pc = state.multiPCs[i];
-          if (pc?.connectionState !== 'connected') continue;
-          connectedCount++;
+        let totalBitrate = 0, totalFps = 0;
+        const perTrackStats = new Map(); // Track stats by SSRC or track index
 
-          try {
-            const stats = await pc.getStats();
-            let fps = 0, bitrate = 0, rtt = 0;
+        try {
+          const stats = await pc.getStats();
 
-            stats.forEach(r => {
-              if (r.type === 'inbound-rtp' && r.kind === 'video') {
-                const bytes = r.bytesReceived || 0;
-                const frames = r.framesDecoded || 0;
+          // Collect all inbound-rtp stats (one per track)
+          let trackIdx = 0;
+          stats.forEach(r => {
+            if (r.type === 'inbound-rtp' && r.kind === 'video') {
+              const bytes = r.bytesReceived || 0;
+              const frames = r.framesDecoded || 0;
+              const framesRcvd = r.framesReceived || 0;
+              const keyFrames = r.keyFramesDecoded || 0;
+              const framesDropped = r.framesDropped || 0;
+              const decoder = r.decoderImplementation || 'unknown';
 
-                bitrate = Math.round((bytes - state.perMonitorStats[i].lastBytes) * 8 / elapsed / 1000);
-                fps = Math.round((frames - state.perMonitorStats[i].lastFrames) / elapsed);
-
-                state.perMonitorStats[i].lastBytes = bytes;
-                state.perMonitorStats[i].lastFrames = frames;
-
-                totalBitrate += bitrate;
-                totalFps += fps;
+              // Initialize stats for this track if needed
+              if (!state.perMonitorStats[trackIdx]) {
+                state.perMonitorStats[trackIdx] = { lastBytes: 0, lastFrames: 0, logged: false };
               }
 
-              if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime) {
-                rtt = Math.round(r.currentRoundTripTime * 1000);
-                state.webrtcRtt = rtt;
+              // Log detailed decoder stats once per track (for debugging)
+              if (!state.perMonitorStats[trackIdx].logged && bytes > 0) {
+                state.perMonitorStats[trackIdx].logged = true;
+                log(`Track ${trackIdx} decoder: ${decoder}, recv=${framesRcvd}, decoded=${frames}, keys=${keyFrames}, dropped=${framesDropped}`, 'info');
               }
-            });
+              // Log warning if receiving but not decoding
+              if (framesRcvd > 0 && frames === 0 && !state.perMonitorStats[trackIdx].warnedNoDecode) {
+                state.perMonitorStats[trackIdx].warnedNoDecode = true;
+                log(`Track ${trackIdx} WARNING: Receiving frames (${framesRcvd}) but NOT decoding! decoder=${decoder}`, 'error');
+              }
 
-            // Update per-monitor overlay
-            const fpsEl = $(`fps${i}`);
-            const bitrateEl = $(`bitrate${i}`);
-            const rttEl = $(`rtt${i}`);
-            if (fpsEl) fpsEl.textContent = `${fps} fps`;
-            if (bitrateEl) bitrateEl.textContent = `${bitrate} kbps`;
-            if (rttEl) rttEl.textContent = `${rtt} ms`;
+              const bitrate = Math.round((bytes - state.perMonitorStats[trackIdx].lastBytes) * 8 / elapsed / 1000);
+              const fps = Math.round((frames - state.perMonitorStats[trackIdx].lastFrames) / elapsed);
 
-          } catch { }
-        }
+              state.perMonitorStats[trackIdx].lastBytes = bytes;
+              state.perMonitorStats[trackIdx].lastFrames = frames;
+
+              totalBitrate += bitrate;
+              totalFps += fps;
+
+              // Update per-monitor overlay
+              const fpsEl = $(`fps${trackIdx}`);
+              const bitrateEl = $(`bitrate${trackIdx}`);
+              if (fpsEl) fpsEl.textContent = `${fps} fps`;
+              if (bitrateEl) bitrateEl.textContent = `${bitrate} kbps`;
+
+              trackIdx++;
+            }
+
+            if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime) {
+              const rtt = Math.round(r.currentRoundTripTime * 1000);
+              state.webrtcRtt = rtt;
+
+              // Update RTT for all monitors (single connection)
+              for (let i = 0; i < state.monitorCount; i++) {
+                const rttEl = $(`rtt${i}`);
+                if (rttEl) rttEl.textContent = `${rtt} ms`;
+              }
+            }
+          });
+
+        } catch { }
 
         // Update global stats
-        const avgFps = connectedCount > 0 ? Math.round(totalFps / connectedCount) : 0;
+        const avgFps = state.monitorCount > 0 ? Math.round(totalFps / state.monitorCount) : 0;
         $('statBitrate').textContent = `${totalBitrate} kbps`;
         $('statFps').textContent = `${avgFps}`;
         $('statRtt').textContent = `${state.webrtcRtt || state.currentPing} ms`;
@@ -1587,7 +1666,16 @@
         state.ws = null;
       }
 
-      // Close PeerConnections
+      // Close Single-PC (Multi-Track mode)
+      if (state.singlePC) {
+        try { state.singlePC.close(); } catch { }
+        state.singlePC = null;
+      }
+      state.transceivers = [];
+      state.monitorCount = 0;
+      state.answerReceived = false;
+
+      // Legacy cleanup (for backward compatibility)
       state.multiPCs.forEach(pc => {
         try { pc.close(); } catch { }
       });

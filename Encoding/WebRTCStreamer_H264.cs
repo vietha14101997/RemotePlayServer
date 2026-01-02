@@ -223,7 +223,8 @@ public class WebRTCStreamer_H264 : IDisposable
         await _pc.setLocalDescription(answer);
 
         // Bắt buộc dùng SAVPF cho Unity
-        var sdp = answer.sdp.Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+        // Fix: Only add F if not already SAVPF (avoid SAVPF -> SAVPFF bug)
+        var sdp = (answer.sdp ?? "").Contains("SAVPF") ? answer.sdp : answer.sdp.Replace("SAVP", "SAVPF");
 
         // gửi lại sdp này ra WebSocket
         return sdp;

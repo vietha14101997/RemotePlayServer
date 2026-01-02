@@ -223,7 +223,9 @@ public class WebRTCStreamer_LibAv : IDisposable
         var answer = _pc.createAnswer(null);
         await _pc.setLocalDescription(answer);
 
-        return answer.sdp.Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+        // Fix: Only add F if not already SAVPF (avoid SAVPF -> SAVPFF bug)
+        var sdp = answer.sdp ?? "";
+        return sdp.Contains("SAVPF") ? sdp : sdp.Replace("SAVP", "SAVPF");
     }
 
     public Task PushNV12BytesAsync(byte[] src, int width, int height)

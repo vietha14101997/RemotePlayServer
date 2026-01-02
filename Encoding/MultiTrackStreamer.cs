@@ -250,7 +250,10 @@ public class MultiTrackStreamer : IDisposable
             }
         });
 
-        var answerSdp = (answer.sdp ?? "").Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+        // Fix: Only add F if not already SAVPF (avoid SAVPF -> SAVPFF bug)
+        var answerSdp = answer.sdp ?? "";
+        if (!answerSdp.Contains("SAVPF"))
+            answerSdp = answerSdp.Replace("SAVP", "SAVPF");
         answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
         
         // Log m= lines for debugging

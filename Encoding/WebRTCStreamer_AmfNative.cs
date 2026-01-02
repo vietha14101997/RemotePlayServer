@@ -527,7 +527,10 @@ public class WebRTCStreamer_AmfNative : IDisposable
         });
 
         // Unity (and our web test) expect SAVPF. Some SIPSorcery answers default to SAVP.
-        var answerSdp = (answer.sdp ?? "").Replace("UDP/TLS/RTP/SAVP", "UDP/TLS/RTP/SAVPF");
+        // Fix: Only add F if not already SAVPF (avoid SAVPF -> SAVPFF bug)
+        var answerSdp = answer.sdp ?? "";
+        if (!answerSdp.Contains("SAVPF"))
+            answerSdp = answerSdp.Replace("SAVP", "SAVPF");
 
         // If SIPSorcery generated an invalid m=video line with no payload types, fix it.
         // This case breaks Unity's SetRemoteDescription (it can hang).
