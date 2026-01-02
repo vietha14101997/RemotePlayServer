@@ -84,6 +84,14 @@ public class MultiPCStreamer : IDisposable
         public long LastFpsLogTime;
         public long LastFpsLogSentCount;
 
+        // Adaptive FPS control (based on client feedback)
+        public int OriginalFps;           // Original FPS from config
+        public int CurrentTargetFps;      // Current encoding target (adjusted based on feedback)
+        public int SkipCounter;           // Frame skip counter for encoding throttling
+        public int SkipThreshold;         // Skip every N frames (0 = no skip)
+        public float LastClientFps;       // Last reported client FPS
+        public DateTime LastFpsChange;    // For cooldown between changes
+
         // Per-monitor D3D11 device for parallel encoding (no contention!)
         public ID3D11Device? Device { get; set; }
 
@@ -104,6 +112,7 @@ public class MultiPCStreamer : IDisposable
         _monitorCount = monitorCount;
         _fps = fps;
         _kbps = kbps;
+        _originalFps = fps; // Store original FPS for adaptive recovery
         _device = device;
         _preferredCodec = preferredCodec;
         _sendLocks = new object[monitorCount];
@@ -112,6 +121,8 @@ public class MultiPCStreamer : IDisposable
 
         Console.WriteLine($"[MultiPC] Created: {monitorCount}mon {fps}fps {kbps}kbps codec={preferredCodec} (parallel device mode)");
     }
+
+    private readonly int _originalFps; // Original FPS for adaptive recovery
 
     public void SetDevice(ID3D11Device device) => _device = device;
     
@@ -154,7 +165,14 @@ public class MultiPCStreamer : IDisposable
             monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex)!;
             if (monitor == null)
             {
-                monitor = new MonitorPC { Index = monitorIndex, Width = width, Height = height };
+                monitor = new MonitorPC
+                {
+                    Index = monitorIndex,
+                    Width = width,
+                    Height = height,
+                    OriginalFps = _originalFps,       // For adaptive FPS recovery
+                    CurrentTargetFps = _originalFps   // Start at full speed
+                };
 
                 // Apply per-monitor device if registered (for parallel encoding)
                 if (_perMonitorDevices.TryGetValue(monitorIndex, out var perMonDevice))
@@ -666,6 +684,10 @@ public class MultiPCStreamer : IDisposable
             return;
         }
 
+        // ADAPTIVE FPS: Check if we should encode this frame based on client feedback
+        if (!ShouldEncodeFrame(monitorIndex))
+            return;
+
         // Use per-monitor device for parallel encoding, fallback to shared device
         var device = monitor.Device ?? _device;
         if (device == null)
@@ -1043,6 +1065,123 @@ public class MultiPCStreamer : IDisposable
             }
         }
     }
+
+    #region Adaptive FPS
+
+    /// <summary>
+    /// Process FPS feedback from client and adjust encoding rate.
+    /// Uses smooth ramping to avoid jarring changes.
+    /// </summary>
+    public void ProcessFpsFeedback(int monitorIndex, float clientFps, int droppedFrames)
+    {
+        MonitorPC? monitor;
+        lock (_lock)
+        {
+            monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
+        }
+        if (monitor == null) return;
+
+        monitor.LastClientFps = clientFps;
+        int newTargetFps = CalculateTargetFps(monitor, clientFps, droppedFrames);
+
+        if (newTargetFps != monitor.CurrentTargetFps)
+            ApplyFpsChange(monitor, newTargetFps);
+    }
+
+    /// <summary>
+    /// Algorithm for calculating new target FPS based on client feedback.
+    /// </summary>
+    private int CalculateTargetFps(MonitorPC monitor, float clientFps, int droppedFrames)
+    {
+        int current = monitor.CurrentTargetFps > 0 ? monitor.CurrentTargetFps : _originalFps;
+        float headroom = clientFps - current;
+        float dropRatio = droppedFrames / (float)Math.Max(1, droppedFrames + (int)clientFps);
+
+        const float DROP_THRESHOLD = 0.1f;      // 10% drop rate triggers reduction
+        const float RECOVER_HEADROOM = 5.0f;    // 5 FPS headroom to start recovery
+        const int MIN_FPS = 15;                 // Never go below 15 FPS
+        const int RAMP_STEP = 5;                // Adjust by 5 FPS at a time
+
+        // Cooldown 2s between changes (prevent oscillation)
+        if ((DateTime.UtcNow - monitor.LastFpsChange).TotalSeconds < 2.0)
+            return current;
+
+        // Client is struggling - reduce target
+        if (dropRatio > DROP_THRESHOLD || clientFps < current * 0.8f)
+        {
+            int newFps = Math.Max(MIN_FPS, current - RAMP_STEP);
+            Console.WriteLine($"[AdaptiveFPS] m{monitor.Index}: Reducing {current}->{newFps} (clientFps={clientFps:F1}, drops={dropRatio:P0})");
+            return newFps;
+        }
+
+        // Client has headroom - try to recover toward original
+        if (current < _originalFps && headroom > RECOVER_HEADROOM && dropRatio < 0.02f)
+        {
+            int newFps = Math.Min(_originalFps, current + RAMP_STEP);
+            Console.WriteLine($"[AdaptiveFPS] m{monitor.Index}: Recovering {current}->{newFps} (headroom={headroom:F1})");
+            return newFps;
+        }
+
+        return current; // No change
+    }
+
+    /// <summary>
+    /// Apply FPS change with smooth ramping.
+    /// </summary>
+    private void ApplyFpsChange(MonitorPC monitor, int newTargetFps)
+    {
+        int oldFps = monitor.CurrentTargetFps > 0 ? monitor.CurrentTargetFps : _originalFps;
+        monitor.CurrentTargetFps = newTargetFps;
+        monitor.LastFpsChange = DateTime.UtcNow;
+
+        // Calculate skip pattern for encoding throttling
+        // E.g., 60fps original, 30fps target = skip every 2nd frame (threshold=1)
+        if (newTargetFps < _originalFps && newTargetFps > 0)
+            monitor.SkipThreshold = (_originalFps / newTargetFps) - 1;
+        else
+            monitor.SkipThreshold = 0; // No skipping at full speed
+
+        monitor.SkipCounter = 0;
+        Console.WriteLine($"[AdaptiveFPS] m{monitor.Index}: {oldFps}->{newTargetFps} fps (skipThreshold={monitor.SkipThreshold})");
+    }
+
+    /// <summary>
+    /// Check if frame should be encoded based on adaptive FPS.
+    /// Returns true if frame should be encoded, false if skipped.
+    /// </summary>
+    public bool ShouldEncodeFrame(int monitorIndex)
+    {
+        MonitorPC? monitor;
+        lock (_lock)
+        {
+            monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
+        }
+        if (monitor == null || monitor.SkipThreshold <= 0) return true;
+
+        // Apply skip pattern
+        monitor.SkipCounter++;
+        if (monitor.SkipCounter > monitor.SkipThreshold)
+        {
+            monitor.SkipCounter = 0;
+            return true; // Encode this frame
+        }
+
+        return false; // Skip this frame
+    }
+
+    /// <summary>
+    /// Get current target FPS for a monitor (for diagnostics/acknowledgment).
+    /// </summary>
+    public int GetCurrentTargetFps(int monitorIndex)
+    {
+        lock (_lock)
+        {
+            var monitor = _monitors.FirstOrDefault(m => m.Index == monitorIndex);
+            return monitor?.CurrentTargetFps > 0 ? monitor.CurrentTargetFps : _originalFps;
+        }
+    }
+
+    #endregion
 
     public void Stop()
     {

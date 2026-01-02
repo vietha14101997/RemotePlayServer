@@ -394,6 +394,43 @@ namespace RemotePlayServer.Protocol
         public bool Visible { get; set; }
     }
 
+    // ==================== Adaptive FPS Messages ====================
+
+    /// <summary>
+    /// Client -> Server: FPS feedback for adaptive encoding.
+    /// Client reports effective rendering FPS so server can adjust encoding rate.
+    /// </summary>
+    public class FpsFeedbackMessage : ProtocolMessage
+    {
+        public override string Type => "fps_feedback";
+
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+
+        [JsonPropertyName("effectiveFps")]
+        public float EffectiveFps { get; set; }
+
+        [JsonPropertyName("renderedFrames")]
+        public int RenderedFrames { get; set; }
+
+        [JsonPropertyName("droppedFrames")]
+        public int DroppedFrames { get; set; }
+    }
+
+    /// <summary>
+    /// Server -> Client: Acknowledgment of FPS adjustment.
+    /// </summary>
+    public class FpsAdjustedMessage : ProtocolMessage
+    {
+        public override string Type => "fps_adjusted";
+
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+
+        [JsonPropertyName("targetFps")]
+        public int TargetFps { get; set; }
+    }
+
     // ==================== Common Messages ====================
 
     /// <summary>

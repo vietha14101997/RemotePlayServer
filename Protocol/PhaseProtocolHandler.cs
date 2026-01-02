@@ -996,6 +996,35 @@ namespace RemotePlayServer.Protocol
                         catch { }
                         continue;
                     }
+
+                    // Handle fps_feedback from client for adaptive encoding
+                    if (msgType == "fps_feedback")
+                    {
+                        try
+                        {
+                            var feedback = ProtocolMessageParser.Parse<FpsFeedbackMessage>(text);
+                            if (feedback != null && _streamer != null)
+                            {
+                                _streamer.ProcessFpsFeedback(
+                                    feedback.MonitorIndex,
+                                    feedback.EffectiveFps,
+                                    feedback.DroppedFrames);
+
+                                // Send acknowledgment with current target FPS
+                                var ack = new FpsAdjustedMessage
+                                {
+                                    MonitorIndex = feedback.MonitorIndex,
+                                    TargetFps = _streamer.GetCurrentTargetFps(feedback.MonitorIndex)
+                                };
+                                await SendMessageAsync(ack);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Protocol] fps_feedback error: {ex.Message}");
+                        }
+                        continue;
+                    }
                 }
                 catch (OperationCanceledException) { break; }
             }
