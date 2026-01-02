@@ -271,10 +271,9 @@ namespace RemotePlayServer.Protocol
                 var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                 ms.SetLength(0);
 
-                // Handle ping
-                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // Handle ping (with sequence support for accurate RTT)
+                if (await TryHandlePingAsync(text))
                 {
-                    await SendTextAsync("pong");
                     continue;
                 }
 
@@ -642,10 +641,9 @@ namespace RemotePlayServer.Protocol
 
         private async Task HandleLegacyMessageAsync(string text)
         {
-            // Ping/pong
-            if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+            // Ping/pong (with sequence support)
+            if (await TryHandlePingAsync(text))
             {
-                await SendTextAsync("pong");
                 return;
             }
 
@@ -896,10 +894,9 @@ namespace RemotePlayServer.Protocol
                     var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                     ms.SetLength(0);
 
-                    // Handle ping/pong and stop_streaming
-                    if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    // Handle ping/pong (with sequence support) and stop_streaming
+                    if (await TryHandlePingAsync(text))
                     {
-                        await SendTextAsync("pong");
                         continue;
                     }
 
@@ -969,17 +966,27 @@ namespace RemotePlayServer.Protocol
 
                     // Handle skip_to_live request from client (for latency recovery)
                     // Client sends this when it detects accumulated delay > threshold
+                    // Supports optional "monitor" field for per-monitor sync
                     if (msgType == "skip_to_live")
                     {
-                        Console.WriteLine("[Protocol] skip_to_live received - forcing keyframes for latency recovery");
+                        int monitorIndex = -1; // -1 means all monitors
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitor", out var mi))
+                                monitorIndex = mi.GetInt32();
+                        }
+                        catch { }
 
-                        // Force keyframe on all monitors to allow immediate recovery
-                        _streamer?.RequestKeyframe(-1);
+                        Console.WriteLine($"[Protocol] skip_to_live received (monitor={monitorIndex}) - forcing keyframe for latency recovery");
+
+                        // Force keyframe on specified monitor (or all if -1)
+                        _streamer?.RequestKeyframe(monitorIndex);
 
                         // Send acknowledgment with server timestamp
                         try
                         {
-                            var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
+                            var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"monitor\":{monitorIndex},\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
                             await _ws.SendAsync(
                                 new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(ackJson)),
                                 System.Net.WebSockets.WebSocketMessageType.Text,
@@ -1176,10 +1183,9 @@ namespace RemotePlayServer.Protocol
                 var truncated = text.Length > 100 ? text.Substring(0, 100) + "..." : text;
                 Console.WriteLine($"[Protocol] WaitForHardwareAck received: len={text.Length}, text={truncated}");
 
-                // Handle ping
-                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // Handle ping (with sequence support)
+                if (await TryHandlePingAsync(text))
                 {
-                    await SendTextAsync("pong");
                     continue;
                 }
 
@@ -1258,10 +1264,9 @@ namespace RemotePlayServer.Protocol
 
                 Console.WriteLine($"[Protocol] WaitForProceed received: {text.Substring(0, Math.Min(100, text.Length))}...");
 
-                // Handle ping
-                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // Handle ping (with sequence support)
+                if (await TryHandlePingAsync(text))
                 {
-                    await SendTextAsync("pong");
                     continue;
                 }
 
@@ -1318,10 +1323,9 @@ namespace RemotePlayServer.Protocol
 
                 Console.WriteLine($"[Protocol] WaitForDisplayConfig received: {text.Substring(0, Math.Min(100, text.Length))}...");
 
-                // Handle ping
-                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // Handle ping (with sequence support)
+                if (await TryHandlePingAsync(text))
                 {
-                    await SendTextAsync("pong");
                     continue;
                 }
 
@@ -1357,10 +1361,9 @@ namespace RemotePlayServer.Protocol
                 var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                 ms.SetLength(0);
 
-                // Handle ping
-                if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                // Handle ping (with sequence support)
+                if (await TryHandlePingAsync(text))
                 {
-                    await SendTextAsync("pong");
                     continue;
                 }
 
@@ -1392,6 +1395,34 @@ namespace RemotePlayServer.Protocol
             {
                 _sendLock.Release();
             }
+        }
+
+        /// <summary>
+        /// Handles ping messages with sequence support for accurate RTT measurement.
+        /// Supports both "ping" and "ping:N" formats.
+        /// Returns true if the message was a ping, false otherwise.
+        /// </summary>
+        private async Task<bool> TryHandlePingAsync(string text)
+        {
+            var trimmed = text.Trim();
+
+            // Handle sequenced ping: "ping:N" -> "pong:N"
+            if (trimmed.StartsWith("ping:", StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract sequence number and echo it back
+                var seq = trimmed.Substring(5);
+                await SendTextAsync($"pong:{seq}");
+                return true;
+            }
+
+            // Handle legacy ping: "ping" -> "pong"
+            if (trimmed.Equals("ping", StringComparison.OrdinalIgnoreCase))
+            {
+                await SendTextAsync("pong");
+                return true;
+            }
+
+            return false;
         }
 
         private async Task SendProgressAsync(string step, int progress, string message)

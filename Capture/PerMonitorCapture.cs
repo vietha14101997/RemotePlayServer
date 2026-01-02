@@ -51,6 +51,10 @@ public sealed class PerMonitorCapture : IDisposable
     private volatile bool _running;
     private string? _preferredGpu;
 
+    // Frame synchronization across monitors
+    private Barrier? _captureBarrier;
+    private long _syncedTimestamp; // Shared timestamp for all monitors in a frame (use Interlocked for access)
+
     /// <summary>
     /// Callback for each monitor's NV12 texture frame.
     /// Parameters: monitorIndex, nv12Texture, width, height, timestamp
@@ -206,11 +210,32 @@ public sealed class PerMonitorCapture : IDisposable
         if (_running) return;
         _running = true;
 
+        // Count active monitors (have device and duplication)
+        int activeMonitors = 0;
+        foreach (var mon in Monitors)
+        {
+            if (mon.Device != null && mon.Duplication != null)
+                activeMonitors++;
+        }
+
+        // Create barrier for frame synchronization across all active monitors
+        // The post-phase action sets the shared timestamp for the frame
+        if (activeMonitors > 1)
+        {
+            _captureBarrier = new Barrier(activeMonitors, (b) =>
+            {
+                // This runs once after all threads reach the barrier
+                // Set shared timestamp so all monitors use the same frame timestamp
+                Interlocked.Exchange(ref _syncedTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            });
+            Console.WriteLine($"[PerMonitorCapture] Created frame sync barrier for {activeMonitors} monitors");
+        }
+
         // Start SEPARATE capture thread for EACH monitor (true parallelism!)
         foreach (var mon in Monitors)
         {
             if (mon.Device == null || mon.Duplication == null) continue;
-            
+
             mon.Running = true;
             mon.CaptureThread = new Thread(() => CaptureLoopForMonitor(mon))
             {
@@ -219,20 +244,24 @@ public sealed class PerMonitorCapture : IDisposable
             };
             mon.CaptureThread.Start();
         }
-        
-        Console.WriteLine($"[PerMonitorCapture] Started {Monitors.Count} parallel capture threads");
+
+        Console.WriteLine($"[PerMonitorCapture] Started {activeMonitors} parallel capture threads (synchronized)");
     }
 
     public void Stop()
     {
         _running = false;
-        
+
         // Stop all monitor threads
         foreach (var mon in Monitors)
         {
             mon.Running = false;
         }
-        
+
+        // Dispose barrier to unblock any waiting threads
+        try { _captureBarrier?.Dispose(); } catch { }
+        _captureBarrier = null;
+
         // Wait for threads to finish
         foreach (var mon in Monitors)
         {
@@ -241,18 +270,18 @@ public sealed class PerMonitorCapture : IDisposable
                try { mon.CaptureThread.Join(1000); } catch {}
             }
         }
-        
+
         Console.WriteLine("[PerMonitorCapture] All capture threads stopped");
     }
 
     /// <summary>
     /// Capture loop for a single monitor - runs in its own thread with its own D3D11 device
-    /// No context contention with other monitors!
+    /// Uses barrier synchronization to ensure all monitors capture at the same moment.
     /// </summary>
     private void CaptureLoopForMonitor(MonitorInfo mon)
     {
         int frameTimeMs = 1000 / TargetFps;
-        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread started @ {TargetFps}fps");
+        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread started @ {TargetFps}fps (barrier sync enabled: {_captureBarrier != null})");
         var sw = System.Diagnostics.Stopwatch.StartNew();
         mon.LastFpsLogTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         mon.LastFpsLogFrameCount = 0;
@@ -263,7 +292,29 @@ public sealed class PerMonitorCapture : IDisposable
             long loopStart = sw.ElapsedMilliseconds;
             try
             {
-                long captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                // FRAME SYNC: Wait for all monitors to be ready before capturing
+                // This ensures all monitors capture within microseconds of each other
+                long captureTimestamp;
+                if (_captureBarrier != null)
+                {
+                    try
+                    {
+                        _captureBarrier.SignalAndWait(); // Wait for all monitors
+                        captureTimestamp = Interlocked.Read(ref _syncedTimestamp); // Use shared timestamp
+                    }
+                    catch (BarrierPostPhaseException)
+                    {
+                        captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        break; // Barrier disposed, exit loop
+                    }
+                }
+                else
+                {
+                    captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                }
 
                 // FPS logging every 3 seconds
                 long timeSinceLastLog = captureTimestamp - mon.LastFpsLogTime;

@@ -437,7 +437,36 @@ static class StartupSteps
             if (!string.IsNullOrWhiteSpace(adapterId))
             {
                 RunPnputil("/scan-devices"); Thread.Sleep(500);
-                RunPnputil($"/enable-device \"{adapterId}\"");
+
+                // Try pnputil first
+                var result = RunPnputil($"/enable-device \"{adapterId}\"");
+
+                // If pnputil fails (common for IddCx drivers), try alternative methods
+                if (result.Contains("Failed") || result.Contains("not connected"))
+                {
+                    Console.WriteLine("[VDD] pnputil failed, trying devcon...");
+
+                    // Try devcon if available
+                    if (TryEnableWithDevcon(adapterId))
+                    {
+                        Console.WriteLine("[VDD] Device enabled via devcon");
+                    }
+                    else
+                    {
+                        // Try SetupAPI as last resort
+                        Console.WriteLine("[VDD] Trying SetupAPI EnableDevice...");
+                        if (TryEnableWithSetupAPI(adapterId))
+                        {
+                            Console.WriteLine("[VDD] Device enabled via SetupAPI");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[VDD] ⚠ Could not enable VDD automatically.");
+                            Console.WriteLine("[VDD] Please enable manually: Device Manager -> Display adapters -> Virtual Display Driver -> Enable device");
+                        }
+                    }
+                }
+
                 RunPnputil("/scan-devices");
                 Thread.Sleep(2000); // Chờ driver load và tạo màn hình ảo
             }
@@ -549,6 +578,95 @@ static class StartupSteps
             || around.IndexOf("Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
+    /// <summary>
+    /// Try to enable device using devcon.exe (Windows Driver Kit tool)
+    /// </summary>
+    static bool TryEnableWithDevcon(string instanceId)
+    {
+        try
+        {
+            // Check common devcon paths
+            string[] devconPaths = {
+                "devcon.exe",
+                @"C:\Program Files (x86)\Windows Kits\10\Tools\x64\devcon.exe",
+                @"C:\Program Files\Windows Kits\10\Tools\x64\devcon.exe",
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "devcon.exe")
+            };
+
+            string? devconPath = devconPaths.FirstOrDefault(File.Exists);
+            if (devconPath == null)
+            {
+                // Try to find in PATH
+                var pathResult = RunAndRead("where", "devcon.exe");
+                if (!string.IsNullOrWhiteSpace(pathResult) && !pathResult.Contains("Could not find"))
+                    devconPath = pathResult.Trim().Split('\n').FirstOrDefault()?.Trim();
+            }
+
+            if (devconPath == null)
+            {
+                Console.WriteLine("[VDD] devcon.exe not found");
+                return false;
+            }
+
+            Console.WriteLine($"[VDD] Using devcon: {devconPath}");
+            var result = RunAndRead(devconPath, $"enable \"@{instanceId}\"");
+            Console.WriteLine($"[devcon] {result}");
+
+            return result.Contains("enabled") || result.Contains("1 device");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD] devcon failed: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Try to enable device using SetupAPI (same method Device Manager uses)
+    /// </summary>
+    static bool TryEnableWithSetupAPI(string instanceId)
+    {
+        try
+        {
+            // Use PowerShell's Enable-PnpDevice which wraps SetupAPI
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-Command \"Enable-PnpDevice -InstanceId '{instanceId}' -Confirm:$false -ErrorAction Stop\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                Verb = "runas"
+            };
+
+            using var p = Process.Start(psi);
+            if (p == null) return false;
+
+            var output = p.StandardOutput.ReadToEnd();
+            var error = p.StandardError.ReadToEnd();
+            p.WaitForExit(10000);
+
+            if (!string.IsNullOrWhiteSpace(error) && error.Contains("Generic failure"))
+            {
+                Console.WriteLine("[VDD] SetupAPI: Generic failure (driver may need restart)");
+                return false;
+            }
+
+            // Check if device is now enabled
+            Thread.Sleep(1000);
+            var checkResult = RunAndRead("powershell.exe",
+                $"-Command \"(Get-PnpDevice -InstanceId '{instanceId}').Status\"");
+
+            return checkResult.Contains("OK") || checkResult.Contains("Started");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD] SetupAPI failed: {ex.Message}");
+            return false;
+        }
+    }
+
     static string RunAndRead(string exe, string args)
     {
         var psi = new ProcessStartInfo(exe, args)
@@ -564,7 +682,7 @@ static class StartupSteps
         return s;
     }
 
-    static void RunPnputil(string args)
+    static string RunPnputil(string args)
     {
         Console.WriteLine("[pnputil] " + args);
         var psi = new ProcessStartInfo("pnputil", args)
@@ -576,10 +694,12 @@ static class StartupSteps
             Verb = "runas"
         };
         using var p = Process.Start(psi)!;
-        Console.WriteLine(p.StandardOutput.ReadToEnd());
+        var output = p.StandardOutput.ReadToEnd();
         var err = p.StandardError.ReadToEnd();
+        Console.WriteLine(output);
         if (!string.IsNullOrWhiteSpace(err)) Console.WriteLine(err);
         p.WaitForExit();
+        return output + "\n" + err;
     }
 
     static void TryExtendDesktop()
@@ -1185,13 +1305,27 @@ public class SignalAndRestServer
                     if (!res.EndOfMessage) continue;
                     var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
 
-                    // Keepalive and ping measurement. Client may send "ping" periodically to keep NAT bindings and measure RTT.
-                    if (text.Length <= 16 && text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    // Keepalive and ping measurement. Client may send "ping" or "ping:N" for RTT measurement.
+                    // Support sequenced pings for accurate jitter calculation
+                    var trimmedText = text.Trim();
+                    if (trimmedText.StartsWith("ping:", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Reply with pong for ping measurement
+                        // Sequenced ping: echo back with same sequence number
+                        var seq = trimmedText.Substring(5);
                         try
                         {
-                            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")), 
+                            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes($"pong:{seq}")),
+                                             System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        }
+                        catch { }
+                        continue;
+                    }
+                    if (text.Length <= 16 && trimmedText.Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Legacy ping: reply with pong
+                        try
+                        {
+                            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")),
                                              System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
                         }
                         catch { }
@@ -1884,8 +2018,17 @@ public class SignalAndRestServer
                     if (!res.EndOfMessage) continue;
                     var text = Encoding.UTF8.GetString(ms.ToArray()); ms.SetLength(0);
 
-                    // Ping/pong
-                    if (text.Trim().Equals("ping", StringComparison.OrdinalIgnoreCase))
+                    // Ping/pong with sequence support for accurate RTT measurement
+                    var trimmedPing = text.Trim();
+                    if (trimmedPing.StartsWith("ping:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Sequenced ping: echo back with same sequence number
+                        var seq = trimmedPing.Substring(5);
+                        await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes($"pong:{seq}")),
+                            System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
+                        continue;
+                    }
+                    if (trimmedPing.Equals("ping", StringComparison.OrdinalIgnoreCase))
                     {
                         await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong")),
                             System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None);
