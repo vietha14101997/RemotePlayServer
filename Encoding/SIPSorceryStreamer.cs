@@ -42,8 +42,8 @@ public class SIPSorceryStreamer : IDisposable
         public int Width { get; set; }
         public int Height { get; set; }
 
-        // Encoder per track
-        public AmfNativeWrapper? Encoder { get; set; }
+        // Encoder per track (supports AMF, NVENC, QSV)
+        public ITextureEncoder? Encoder { get; set; }
         public ID3D11Texture2D? StagingNV12 { get; set; }
         public ID3D11Device? Device { get; set; }
 
@@ -263,6 +263,10 @@ public class SIPSorceryStreamer : IDisposable
 
     private void InitializeEncoders()
     {
+        // Detect GPU vendor once for all tracks
+        var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
+        Console.WriteLine($"[SIPSorcery] Detected GPU vendor: {gpuVendor}");
+
         lock (_lock)
         {
             foreach (var track in _tracks)
@@ -278,14 +282,21 @@ public class SIPSorceryStreamer : IDisposable
 
                 try
                 {
-                    var encoder = new AmfNativeWrapper();
+                    ITextureEncoder? encoder = CreateEncoderForGpu(gpuVendor);
+                    if (encoder == null)
+                    {
+                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: No suitable encoder found for {gpuVendor}");
+                        continue;
+                    }
+
                     encoder.OnEncodedData += (nal, keyframe, pts) =>
                         OnEncodedData(track, nal, keyframe, pts);
 
                     if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
                     {
                         track.Encoder = encoder;
-                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: AMF encoder initialized");
+                        string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "");
+                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized");
                     }
                     else
                     {
@@ -299,6 +310,62 @@ public class SIPSorceryStreamer : IDisposable
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Create the appropriate hardware encoder based on GPU vendor
+    /// </summary>
+    private static ITextureEncoder? CreateEncoderForGpu(GpuVendorDetector.GpuVendor gpuVendor)
+    {
+        switch (gpuVendor)
+        {
+            case GpuVendorDetector.GpuVendor.AMD:
+                // AMD: Use AMF encoder
+                if (AmfNativeWrapper.IsAvailable())
+                {
+                    Console.WriteLine("[SIPSorcery] Creating AMF encoder for AMD GPU");
+                    return new AmfNativeWrapper();
+                }
+                break;
+
+            case GpuVendorDetector.GpuVendor.NVIDIA:
+                // NVIDIA: Use NVENC encoder
+                if (NvencNativeWrapper.IsAvailable())
+                {
+                    Console.WriteLine("[SIPSorcery] Creating NVENC encoder for NVIDIA GPU");
+                    return new NvencNativeWrapper();
+                }
+                // Fallback to AMF if available (some systems have both)
+                if (AmfNativeWrapper.IsAvailable())
+                {
+                    Console.WriteLine("[SIPSorcery] NVENC not available, falling back to AMF");
+                    return new AmfNativeWrapper();
+                }
+                break;
+
+            case GpuVendorDetector.GpuVendor.Intel:
+                // Intel: Use QSV encoder
+                if (QsvNativeWrapper.IsAvailable())
+                {
+                    Console.WriteLine("[SIPSorcery] Creating QSV encoder for Intel GPU");
+                    return new QsvNativeWrapper();
+                }
+                break;
+
+            default:
+                // Try each encoder in order of preference
+                Console.WriteLine("[SIPSorcery] Unknown GPU, trying available encoders...");
+                if (NvencNativeWrapper.IsAvailable())
+                    return new NvencNativeWrapper();
+                if (AmfNativeWrapper.IsAvailable())
+                    return new AmfNativeWrapper();
+                if (QsvNativeWrapper.IsAvailable())
+                    return new QsvNativeWrapper();
+                break;
+        }
+
+        Console.WriteLine("[SIPSorcery] No hardware encoder available!");
+        return null;
     }
 
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
