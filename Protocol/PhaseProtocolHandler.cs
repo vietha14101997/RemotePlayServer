@@ -55,7 +55,7 @@ namespace RemotePlayServer.Protocol
 
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
-        private RemotePlayServer.Encoding.MultiPCStreamer? _streamer;
+        private RemotePlayServer.Encoding.SIPSorceryStreamer? _streamer;
         private CancellationTokenSource? _captureCts;
         private Thread? _captureThread;
 
@@ -494,14 +494,15 @@ namespace RemotePlayServer.Protocol
                 _capture = _sharedCapture;
             }
 
-            // Create MultiPCStreamer with negotiated codec
-            var codecEnum = _selectedCodec.Equals("H265", StringComparison.OrdinalIgnoreCase)
-                ? VideoCodec.H265 : VideoCodec.H264;
-            Console.WriteLine($"[Protocol] Creating MultiPCStreamer with codec={_selectedCodec} (enum={codecEnum})");
-            _streamer = new RemotePlayServer.Encoding.MultiPCStreamer(
-                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device, codecEnum);
+            // Initialize TCS for waiting on all connections
+            _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            // Wire up per-monitor devices for parallel encoding
+            // Create SIPSorcery streamer
+            Console.WriteLine($"[Protocol] Creating SIPSorceryStreamer");
+            _streamer = new RemotePlayServer.Encoding.SIPSorceryStreamer(
+                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device);
+
+            // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)
             {
                 var perMonDevice = _capture.GetDeviceForMonitor(i);
@@ -513,49 +514,46 @@ namespace RemotePlayServer.Protocol
             }
 
             // ICE candidate forwarding
-            _streamer.OnIceCandidate += async (monitorIndex, candidate) =>
+            _streamer.OnIceCandidate += async (candidate) =>
             {
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
-                    var msg = new CandidateMessage { MonitorIndex = monitorIndex, Candidate = candidate };
+                    var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(msg);
                 }
                 catch { }
             };
 
-            // Auto-recovery: Request reconnect when PC closed abnormally
-            _streamer.OnMonitorNeedsReconnect += async (monitorIndex) =>
+            // ICE ready notification
+            _streamer.OnAllTracksReady += async () =>
             {
                 try
                 {
-                    if (_ws.State != WebSocketState.Open) return;
-                    Console.WriteLine($"[Protocol] Requesting reconnect for monitor {monitorIndex}");
-                    await SendTextAsync($"reconnect:{monitorIndex}");
-                }
-                catch { }
-            };
-
-            // Initialize TCS for waiting on all connections
-            _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            // ICE ready notification - sent when all PeerConnections have ICE connected
-            _streamer.OnAllConnected += async () =>
-            {
-                try
-                {
-                    // Signal that all monitors are connected
                     _allConnectedTcs?.TrySetResult(true);
-
                     if (_ws.State != WebSocketState.Open) return;
-                    Console.WriteLine($"[Protocol] All {actualMonitors} ICE connections ready, sending ice_ready");
+                    Console.WriteLine($"[Protocol] All {actualMonitors} tracks ready, sending ice_ready");
                     var msg = new IceReadyMessage { MonitorCount = actualMonitors };
                     await SendMessageAsync(msg);
+                    Console.WriteLine("[Protocol] Starting early capture to prevent browser track timeout...");
+                    StartCaptureThread();
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[Protocol] Failed to send ice_ready: {ex.Message}");
                 }
+            };
+
+            // Connection failed
+            _streamer.OnConnectionFailed += async () =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open) return;
+                    Console.WriteLine("[Protocol] Connection failed, requesting full reconnect");
+                    await SendTextAsync("{\"type\":\"reconnect_required\"}");
+                }
+                catch { }
             };
 
             await SendProgressAsync("capture_init", 100, "Ready");
@@ -635,6 +633,17 @@ namespace RemotePlayServer.Protocol
                 case "ping":
                     await SendMessageAsync(new PongMessage());
                     break;
+
+                case "restart_phase2":
+                    // Client is requesting full Phase 2 restart (ICE renegotiation)
+                    Console.WriteLine("[Protocol] Client requested Phase 2 restart");
+                    await HandleRestartPhase2Async();
+                    break;
+
+                case "reconnect_ack":
+                    // Client acknowledged successful reconnect for a monitor
+                    HandleReconnectAck(json);
+                    break;
             }
             return false;
         }
@@ -681,78 +690,275 @@ namespace RemotePlayServer.Protocol
             }
         }
 
-        private async Task ProcessOfferAsync(int monitorIndex, string offerSdp)
+        /// <summary>
+        /// Process a single SDP offer containing N m= sections (one per monitor).
+        /// This is the new Single-PC Multi-Track flow.
+        /// </summary>
+        private async Task ProcessSingleOfferAsync(string offerSdp)
         {
             if (_streamer == null) return;
 
-            Console.WriteLine($"[Protocol] Received offer for monitor {monitorIndex}");
+            Console.WriteLine("[Protocol] Received single offer for all monitors");
 
-            // CRITICAL FIX: Clear ICE state for this monitor BEFORE processing new offer
-            // This prevents race condition where client candidates arrive while new PC is being created
-            // Without this, candidates go to AddIceCandidate immediately but PC isn't ready yet
+            // Clear answer ready state for new offer, but KEEP pending ICE candidates
+            // ICE candidates may arrive BEFORE the offer due to trickle ICE timing
             lock (_iceLock)
             {
-                bool wasReady = _answersReady.Remove(monitorIndex);
-                if (wasReady)
-                {
-                    Console.WriteLine($"[Protocol] Cleared _answersReady for m{monitorIndex} (reconnect case)");
-                }
-                // Also clear any pending candidates from previous connection
-                if (_pendingIce.TryGetValue(monitorIndex, out var oldPending))
-                {
-                    if (oldPending.Count > 0)
-                    {
-                        Console.WriteLine($"[Protocol] Cleared {oldPending.Count} old pending candidates for m{monitorIndex}");
-                        oldPending.Clear();
-                    }
-                }
+                _answersReady.Clear();
+                // NOTE: Do NOT clear _pendingIce - candidates received before offer should be preserved
+                var pendingCount = _pendingIce.TryGetValue(0, out var pending) ? pending.Count : 0;
+                Console.WriteLine($"[Protocol] Cleared answer state, preserved {pendingCount} pending ICE candidates");
             }
 
             try
             {
-                var answerSdp = await _streamer.ProcessOfferAsync(
-                    monitorIndex, offerSdp,
-                    _displayConfig?.Resolution.Width ?? 1920,
-                    _displayConfig?.Resolution.Height ?? 1080);
+                // Build dimensions list from display config
+                var monitorCount = _displayConfig?.Monitors ?? 1;
+                var dimensions = new List<(int w, int h)>();
+                for (int i = 0; i < monitorCount; i++)
+                {
+                    dimensions.Add((
+                        _displayConfig?.Resolution.Width ?? 1920,
+                        _displayConfig?.Resolution.Height ?? 1080
+                    ));
+                }
 
-                // CRITICAL FIX: Extract embedded ICE candidates from answer SDP
-                // SIPSorcery uses Vanilla ICE (all candidates embedded in SDP).
-                // Unity WebRTC client hangs on SetRemoteDescription with embedded candidates.
-                // Solution: Send answer SDP WITHOUT candidates, then send candidates separately.
-                var (cleanSdp, embeddedCandidates) = ExtractIceCandidates(answerSdp);
+                // Parse offer to find H264 PT (must match what the streamer uses)
+                var h264PayloadType = ParseH264PayloadType(offerSdp);
+                Console.WriteLine($"[Protocol] Parsed H264 PT from offer: {h264PayloadType}");
+
+                // Process offer with all dimensions at once
+                var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
+
+                // CRITICAL: Filter SDP answer to only include selected codec
+                // libdatachannel includes ALL codecs from offer, but browser picks FIRST in m= line
+                var filteredSdp = FilterSdpForCodec(answerSdp, h264PayloadType);
+                Console.WriteLine($"[Protocol] Filtered SDP from {answerSdp.Length} to {filteredSdp.Length} bytes");
+
+                // Extract embedded ICE candidates from filtered SDP
+                var (cleanSdp, embeddedCandidates) = ExtractIceCandidates(filteredSdp);
                 Console.WriteLine($"[Protocol] Extracted {embeddedCandidates.Count} embedded ICE candidates from answer");
 
-                // Send answer (JSON format) - WITHOUT embedded candidates
-                var answerMsg = new AnswerMessage { MonitorIndex = monitorIndex, Sdp = cleanSdp };
+                // Send answer (JSON format) - single answer for all monitors
+                var answerMsg = new AnswerMessage { MonitorIndex = 0, Sdp = cleanSdp };
                 var answerJson = ProtocolMessageParser.Serialize(answerMsg);
-                Console.WriteLine($"[Protocol] Answer JSON for m{monitorIndex}: {answerJson.Substring(0, Math.Min(150, answerJson.Length))}...");
+                Console.WriteLine($"[Protocol] Answer JSON: {answerJson.Substring(0, Math.Min(150, answerJson.Length))}...");
                 await SendTextAsync(answerJson);
-                Console.WriteLine($"[Protocol] Sent answer for monitor {monitorIndex}, len={answerJson.Length} bytes");
+                Console.WriteLine($"[Protocol] Sent single answer, len={answerJson.Length} bytes");
 
                 // Send extracted ICE candidates separately (trickle ICE style)
                 foreach (var candidate in embeddedCandidates)
                 {
-                    var candMsg = new CandidateMessage { MonitorIndex = monitorIndex, Candidate = candidate };
+                    var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(candMsg);
-                    Console.WriteLine($"[Protocol] Sent extracted ICE candidate for m{monitorIndex}: {candidate.Substring(0, Math.Min(60, candidate.Length))}...");
+                    Console.WriteLine($"[Protocol] Sent extracted ICE candidate: {candidate.Substring(0, Math.Min(60, candidate.Length))}...");
                 }
 
                 lock (_iceLock)
                 {
-                    _answersReady.Add(monitorIndex);
-                    // Process pending ICE
-                    if (_pendingIce.TryGetValue(monitorIndex, out var pending))
+                    _answersReady.Add(0); // Mark single connection as ready
+                    // Process pending ICE candidates that arrived before/during offer processing
+                    if (_pendingIce.TryGetValue(0, out var pending) && pending.Count > 0)
                     {
+                        Console.WriteLine($"[Protocol] Applying {pending.Count} pending ICE candidates");
                         foreach (var cand in pending)
-                            _streamer.AddIceCandidate(monitorIndex, cand);
+                        {
+                            _streamer.AddIceCandidate(cand, null);
+                            Console.WriteLine($"[Protocol] Applied pending ICE: {cand.Substring(0, Math.Min(50, cand.Length))}...");
+                        }
                         pending.Clear();
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Protocol] ProcessOffer error m{monitorIndex}: {ex.Message}");
+                Console.WriteLine($"[Protocol] ProcessSingleOffer error: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Legacy: Process offer for a specific monitor (backward compatibility).
+        /// Redirects to single-offer flow.
+        /// </summary>
+        private async Task ProcessOfferAsync(int monitorIndex, string offerSdp)
+        {
+            // For backward compatibility, treat monitor 0 offer as a single offer
+            // This allows gradual migration of clients
+            if (monitorIndex == 0)
+            {
+                await ProcessSingleOfferAsync(offerSdp);
+            }
+            else
+            {
+                Console.WriteLine($"[Protocol] Warning: Received per-monitor offer for m{monitorIndex}, but Single-PC mode is active");
+            }
+        }
+
+        /// <summary>
+        /// Filter SDP to only include the specified payload type.
+        /// This is critical for WebRTC - browser uses FIRST codec in m= line.
+        /// </summary>
+        private string FilterSdpForCodec(string sdp, int payloadType)
+        {
+            if (string.IsNullOrEmpty(sdp))
+                return sdp;
+
+            var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var filtered = new List<string>();
+            var ptStr = payloadType.ToString();
+
+            foreach (var line in lines)
+            {
+                // Replace m=video line to only include our PT
+                // Original: m=video 9 UDP/TLS/RTP/SAVP 39 41 43 96 103 107 109 ...
+                // Fixed:    m=video 9 UDP/TLS/RTP/SAVPF 109
+                if (line.StartsWith("m=video"))
+                {
+                    var parts = line.Split(' ');
+                    if (parts.Length >= 3)
+                    {
+                        // Keep port and protocol, replace with single PT
+                        // Fix: Only add F if ending with exactly "SAVP" (not already "SAVPF")
+                        var protocol = parts[2].EndsWith("/SAVP") ? parts[2] + "F" : parts[2];
+                        var newLine = $"m=video {parts[1]} {protocol} {ptStr}";
+                        filtered.Add(newLine);
+                        Console.WriteLine($"[Protocol] SDP filtered m=video: {newLine}");
+                        continue;
+                    }
+                }
+
+                // Keep only rtpmap and fmtp for our PT (and rtx if paired)
+                if (line.StartsWith("a=rtpmap:"))
+                {
+                    var pt = ExtractPayloadTypeFromLine(line);
+                    if (pt == payloadType || pt == payloadType + 1) // Keep main PT and possibly RTX
+                    {
+                        filtered.Add(line);
+                        Console.WriteLine($"[Protocol] SDP kept: {line}");
+                    }
+                    continue;
+                }
+
+                if (line.StartsWith("a=fmtp:"))
+                {
+                    var pt = ExtractPayloadTypeFromLine(line);
+                    if (pt == payloadType || pt == payloadType + 1)
+                    {
+                        // CRITICAL: Update profile-level-id to match AMF encoder output
+                        // AMF outputs: SPS header 67 42 04 28 = profile_idc=0x42, constraint=0x04, level=0x28 (4.0)
+                        // Browser offered 42e01f (level 3.1) but encoder outputs 420428 (level 4.0)
+                        var fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
+                                            .Replace("profile-level-id=42001f", "profile-level-id=420428");
+                        filtered.Add(fixedLine);
+                        Console.WriteLine($"[Protocol] SDP kept: {fixedLine}");
+                    }
+                    continue;
+                }
+
+                // Skip rtcp-fb lines for other codecs
+                if (line.StartsWith("a=rtcp-fb:"))
+                {
+                    var pt = ExtractPayloadTypeFromLine(line);
+                    if (pt == payloadType || pt == payloadType + 1)
+                    {
+                        filtered.Add(line);
+                    }
+                    continue;
+                }
+
+                // Keep all other lines (session-level, ICE, DTLS, etc.)
+                filtered.Add(line);
+            }
+
+            var result = string.Join("\r\n", filtered);
+            if (!result.EndsWith("\r\n")) result += "\r\n";
+            return result;
+        }
+
+        private int ExtractPayloadTypeFromLine(string line)
+        {
+            // Extract PT from lines like "a=rtpmap:109 H264/90000" or "a=fmtp:109 ..."
+            var colonIdx = line.IndexOf(':');
+            if (colonIdx < 0) return -1;
+
+            var rest = line.Substring(colonIdx + 1);
+            var spaceIdx = rest.IndexOf(' ');
+            var ptStr = spaceIdx > 0 ? rest.Substring(0, spaceIdx) : rest;
+
+            return int.TryParse(ptStr, out var pt) ? pt : -1;
+        }
+
+        /// <summary>
+        /// Parse the H264 payload type from the offer SDP.
+        /// Browser offers multiple H264 profiles - we prefer Constrained Baseline (42e01f) with packetization-mode=1.
+        /// Same logic as LibDataChannelStreamer.ParseH264PayloadType().
+        /// </summary>
+        private int ParseH264PayloadType(string sdp)
+        {
+            if (string.IsNullOrEmpty(sdp)) return 96; // Fallback
+
+            var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            // First pass: find H264 payload types
+            var h264PayloadTypes = new Dictionary<int, string>(); // PT -> fmtp line
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("a=rtpmap:") && line.Contains("H264/90000"))
+                {
+                    var parts = line.Substring(9).Split(' ');
+                    if (parts.Length >= 1 && int.TryParse(parts[0], out int pt))
+                    {
+                        h264PayloadTypes[pt] = "";
+                    }
+                }
+            }
+
+            // Second pass: get fmtp for each H264 PT
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("a=fmtp:"))
+                {
+                    var spaceIdx = line.IndexOf(' ', 7);
+                    if (spaceIdx > 7)
+                    {
+                        var ptStr = line.Substring(7, spaceIdx - 7);
+                        if (int.TryParse(ptStr, out int pt) && h264PayloadTypes.ContainsKey(pt))
+                        {
+                            h264PayloadTypes[pt] = line.Substring(spaceIdx + 1);
+                        }
+                    }
+                }
+            }
+
+            // Find best match
+            // Priority 1: Constrained Baseline (42e01f) with packetization-mode=1
+            foreach (var kv in h264PayloadTypes)
+            {
+                if (kv.Value.Contains("profile-level-id=42e01f") && kv.Value.Contains("packetization-mode=1"))
+                    return kv.Key;
+            }
+
+            // Priority 2: Baseline (42001f) with packetization-mode=1
+            foreach (var kv in h264PayloadTypes)
+            {
+                if (kv.Value.Contains("profile-level-id=42001f") && kv.Value.Contains("packetization-mode=1"))
+                    return kv.Key;
+            }
+
+            // Priority 3: Any H264 with packetization-mode=1
+            foreach (var kv in h264PayloadTypes)
+            {
+                if (kv.Value.Contains("packetization-mode=1"))
+                    return kv.Key;
+            }
+
+            // Priority 4: First H264 found
+            foreach (var kv in h264PayloadTypes)
+            {
+                return kv.Key;
+            }
+
+            return 96;
         }
 
         /// <summary>
@@ -798,15 +1004,16 @@ namespace RemotePlayServer.Protocol
 
             lock (_iceLock)
             {
-                if (_answersReady.Contains(monitorIndex))
+                // Single-PC mode: all candidates go to the same connection
+                if (_answersReady.Contains(0))
                 {
-                    _streamer.AddIceCandidate(monitorIndex, candidate);
+                    _streamer.AddIceCandidate(candidate, null);
                 }
                 else
                 {
-                    if (!_pendingIce.ContainsKey(monitorIndex))
-                        _pendingIce[monitorIndex] = new List<string>();
-                    _pendingIce[monitorIndex].Add(candidate);
+                    if (!_pendingIce.ContainsKey(0))
+                        _pendingIce[0] = new List<string>();
+                    _pendingIce[0].Add(candidate);
                 }
             }
         }
@@ -909,6 +1116,10 @@ namespace RemotePlayServer.Protocol
                     }
 
                     var msgType = ProtocolMessageParser.GetMessageType(text);
+
+                    // DEBUG: Log ALL Phase 3 messages for troubleshooting
+                    Console.WriteLine($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}, preview={text.Substring(0, Math.Min(100, text.Length))}");
+
                     if (msgType == "stop_streaming" || text.Equals("stop_streaming", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("[Protocol] Received stop_streaming");
@@ -960,6 +1171,7 @@ namespace RemotePlayServer.Protocol
                         }
                         catch { }
 
+                        Console.WriteLine($"[Protocol] request_keyframe received (monitor={monitorIndex}) - forcing IDR frame");
                         _streamer?.RequestKeyframe(monitorIndex);
                         continue;
                     }
@@ -1043,6 +1255,13 @@ namespace RemotePlayServer.Protocol
         {
             if (_capture == null || _streamer == null) return;
 
+            // Prevent duplicate start
+            if (_captureThread != null && _captureThread.IsAlive)
+            {
+                Console.WriteLine("[Protocol] Capture thread already running, skipping start");
+                return;
+            }
+
             _captureCts = new CancellationTokenSource();
             _captureThread = new Thread(() =>
             {
@@ -1052,6 +1271,7 @@ namespace RemotePlayServer.Protocol
                     _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
                     {
                         _streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
+
                         if (monitorIndex == 0)
                         {
                             var fn = Interlocked.Increment(ref _frameCount);
@@ -1132,11 +1352,26 @@ namespace RemotePlayServer.Protocol
                     if (timeSinceLastPong > KEEPALIVE_INTERVAL_MS * 1.5)
                     {
                         _missedPongs++;
+                        Console.WriteLine($"[KeepAlive] Missed pong #{_missedPongs}, {timeSinceLastPong / 1000:F1}s since last response");
+
                         if (_missedPongs >= MAX_MISSED_PONGS)
                         {
-                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s, connection may be dead");
-                            // Don't close WebSocket - let the main loop handle timeout
-                            // This just provides early warning for logging
+                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s - closing connection");
+                            _keepAliveTimer?.Stop();
+
+                            // Actually close the connection instead of just warning
+                            try
+                            {
+                                await _ws.CloseAsync(
+                                    WebSocketCloseStatus.EndpointUnavailable,
+                                    "Client not responding to keepalive",
+                                    CancellationToken.None);
+                            }
+                            catch (Exception closeEx)
+                            {
+                                Console.WriteLine($"[KeepAlive] Error closing WebSocket: {closeEx.Message}");
+                            }
+                            return;
                         }
                     }
 
@@ -1246,25 +1481,70 @@ namespace RemotePlayServer.Protocol
 
         /// <summary>
         /// Negotiate codec based on server and client capabilities.
+        /// Priority order: H264 (hardware) > H265 > VP9 > VP8
         /// </summary>
         private void NegotiateCodec()
         {
-            // Check if both server and client support HEVC
-            bool serverSupportsHevc = _encoderInfo?.SupportsHevc ?? false;
-            bool clientSupportsHevc = _clientCodecCapability?.SupportsHevc ?? false;
+            // Build server supported codecs list
+            var serverCodecs = new List<string>();
 
-            if (serverSupportsHevc && clientSupportsHevc)
+            // H264 is always available (hardware or fallback)
+            serverCodecs.Add("H264");
+
+            // Check H265 hardware support
+            if (_encoderInfo?.SupportsHevc == true)
+                serverCodecs.Add("H265");
+
+            // Check VP9/VP8 support (libvpx via FFmpeg)
+            if (CheckVpxEncoderAvailable("libvpx-vp9"))
+                serverCodecs.Add("VP9");
+            if (CheckVpxEncoderAvailable("libvpx"))
+                serverCodecs.Add("VP8");
+
+            Console.WriteLine($"[Protocol] Server supported codecs: [{string.Join(", ", serverCodecs)}]");
+
+            // Get client supported codecs
+            var clientCodecs = _clientCodecCapability?.SupportedCodecs ?? new[] { "H264" };
+            Console.WriteLine($"[Protocol] Client supported codecs: [{string.Join(", ", clientCodecs)}]");
+
+            // Find best mutual codec (priority: H264 first for hardware acceleration)
+            string[] priority = { "H264", "H265", "VP9", "VP8" };
+
+            foreach (var codec in priority)
             {
-                _selectedCodec = "H265";
-                Console.WriteLine("[Protocol] Codec negotiation: Both support HEVC -> selected H.265");
+                if (serverCodecs.Contains(codec, StringComparer.OrdinalIgnoreCase) &&
+                    clientCodecs.Contains(codec, StringComparer.OrdinalIgnoreCase))
+                {
+                    _selectedCodec = codec.ToUpperInvariant();
+                    Console.WriteLine($"[Protocol] Codec negotiation: selected {_selectedCodec}");
+                    return;
+                }
             }
-            else
+
+            // Default fallback to H264
+            _selectedCodec = "H264";
+            Console.WriteLine("[Protocol] Codec negotiation: no match found, defaulting to H264");
+        }
+
+        /// <summary>
+        /// Check if a VPx encoder is available in FFmpeg.
+        /// </summary>
+        private bool CheckVpxEncoderAvailable(string encoderName)
+        {
+            try
             {
-                _selectedCodec = "H264";
-                if (!serverSupportsHevc)
-                    Console.WriteLine("[Protocol] Codec negotiation: Server doesn't support HEVC -> selected H.264");
-                else if (!clientSupportsHevc)
-                    Console.WriteLine("[Protocol] Codec negotiation: Client doesn't support HEVC -> selected H.264");
+                unsafe
+                {
+                    var codec = FFmpeg.AutoGen.ffmpeg.avcodec_find_encoder_by_name(encoderName);
+                    bool available = codec != null;
+                    Console.WriteLine($"[Protocol] Encoder {encoderName}: {(available ? "available" : "not found")}");
+                    return available;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Error checking encoder {encoderName}: {ex.Message}");
+                return false;
             }
         }
 
@@ -1438,6 +1718,10 @@ namespace RemotePlayServer.Protocol
             // Handle sequenced ping: "ping:N" -> "pong:N"
             if (trimmed.StartsWith("ping:", StringComparison.OrdinalIgnoreCase))
             {
+                // Track client activity for keepalive
+                _lastPongReceived = DateTime.UtcNow;
+                _missedPongs = 0;
+
                 // Extract sequence number and echo it back
                 var seq = trimmed.Substring(5);
                 await SendTextAsync($"pong:{seq}");
@@ -1447,11 +1731,101 @@ namespace RemotePlayServer.Protocol
             // Handle legacy ping: "ping" -> "pong"
             if (trimmed.Equals("ping", StringComparison.OrdinalIgnoreCase))
             {
+                // Track client activity for keepalive
+                _lastPongReceived = DateTime.UtcNow;
+                _missedPongs = 0;
+
                 await SendTextAsync("pong");
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Handle Phase 2 restart request from client.
+        /// Stops current streaming, closes all peer connections, and restarts ICE negotiation.
+        /// </summary>
+        private async Task HandleRestartPhase2Async()
+        {
+            Console.WriteLine("[Protocol] Handling restart_phase2 request...");
+
+            try
+            {
+                // 1. Stop current streaming if active
+                if (_streamer != null)
+                {
+                    Console.WriteLine("[Protocol] Stopping current stream for restart...");
+                    _streamer.Dispose();
+                    _streamer = null;
+                }
+
+                // 2. Stop capture if active
+                if (_sharedCapture != null)
+                {
+                    Console.WriteLine("[Protocol] Stopping capture for restart...");
+                    _sharedCapture.Stop();
+                    _sharedCapture.Dispose();
+                    _sharedCapture = null;
+                }
+
+                // 3. Get current monitor count from display config
+                int actualMonitors = _displayConfig?.Monitors ?? _monitors.Count;
+                actualMonitors = Math.Min(actualMonitors, _monitors.Count);
+
+                // 4. Send config_complete to client to trigger new ICE negotiation
+                Console.WriteLine("[Protocol] Sending config_complete for Phase 2 restart");
+                var completeMsg = new ConfigCompleteMessage
+                {
+                    Monitors = _monitors.Take(actualMonitors).Select((m, i) => new MonitorInfoDto
+                    {
+                        Id = i,
+                        Name = m.name,
+                        Width = m.width,
+                        Height = m.height
+                    }).ToList(),
+                    CaptureReady = false // Will be ready after new ICE negotiation
+                };
+                await SendMessageAsync(completeMsg);
+
+                Console.WriteLine("[Protocol] Phase 2 restart config_complete sent, waiting for ICE negotiation...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Error handling restart_phase2: {ex.Message}");
+                await SendMessageAsync(new ErrorMessage
+                {
+                    Phase = 2,
+                    Code = "RESTART_FAILED",
+                    Message = $"Failed to restart Phase 2: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Handle reconnect acknowledgment from client.
+        /// Called when client successfully reconnected a monitor.
+        /// </summary>
+        private void HandleReconnectAck(string json)
+        {
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("monitorIndex", out var monIdxElem))
+                {
+                    int monitorIndex = monIdxElem.GetInt32();
+                    Console.WriteLine($"[Protocol] Client acknowledged reconnect for monitor {monitorIndex}");
+
+                    // Could track reconnect state here if needed
+                    // _pendingReconnects.TryRemove(monitorIndex, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Error parsing reconnect_ack: {ex.Message}");
+            }
         }
 
         private async Task SendProgressAsync(string step, int progress, string message)

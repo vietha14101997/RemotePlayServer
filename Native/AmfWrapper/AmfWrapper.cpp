@@ -7,6 +7,28 @@
 #include <string>
 #include <mutex>
 #include <atomic>
+#include <fstream>
+
+// Debug logging to file
+static std::ofstream g_logFile;
+static std::mutex g_logMutex;
+static int64_t g_frameCount = 0;
+
+static void LogDebug(const char* format, ...) {
+    std::lock_guard<std::mutex> lock(g_logMutex);
+    if (!g_logFile.is_open()) {
+        g_logFile.open("logs/amf_debug.log", std::ios::out | std::ios::trunc);
+    }
+    if (g_logFile.is_open()) {
+        char buffer[1024];
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buffer, sizeof(buffer), format, args);
+        va_end(args);
+        g_logFile << buffer << std::endl;
+        g_logFile.flush();
+    }
+}
 
 // AMF SDK headers
 #include "amf/public/include/core/Factory.h"
@@ -116,8 +138,10 @@ AMFWRAPPER_API int AmfCreateEncoder(
     // Configure encoder for low-latency streaming with better quality
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_HIGH);  // HIGH profile: CABAC + 8x8 transform = much better quality
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 42);  // Level 4.2 for 1080p60
+    // BASELINE profile for WebRTC browser compatibility (Chrome only reliably supports Baseline/Constrained Baseline)
+    // HIGH profile (CABAC/8x8) produces better quality but browsers may fail to decode
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_BASELINE);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 40);  // Level 4.0 for Baseline 1080p60
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1200);  // Tighter peak for more consistent quality
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
@@ -128,7 +152,7 @@ AMFWRAPPER_API int AmfCreateEncoder(
     
     // Quality improvements for desktop/text streaming
     ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);  // Reduce blocking artifacts
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_CABAC_ENABLE, AMF_VIDEO_ENCODER_CABAC);  // Force CABAC entropy coding for better compression
+    // Note: CABAC not available in Baseline profile - uses CAVLC instead (less efficient but WebRTC compatible)
     
     // CRITICAL: Insert SPS/PPS with EVERY IDR frame for WebRTC compatibility
     // Without this, decoder will fail after first IDR because it lacks parameter sets
@@ -268,22 +292,24 @@ AMFWRAPPER_API int AmfEncodeNV12Bytes(
     // Set PTS
     surface->SetPts(ctx->pts);
     ctx->pts += 10000000 / ctx->fps;  // 100ns units
-    
-    // Force keyframe if requested
+
+    // Force keyframe if requested - must also insert SPS/PPS for decoder
     if (forceKeyframe) {
         surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
     }
-    
+
     // Submit to encoder
     res = ctx->encoder->SubmitInput(surface);
     if (res != AMF_OK && res != AMF_INPUT_FULL) {
         g_lastError = "SubmitInput failed: " + std::to_string(res);
         return AMF_WRAPPER_FAIL;
     }
-    
+
     // Release surface reference early to free memory
     surface = nullptr;
-    
+
     // Query ALL pending outputs (drain buffer to prevent memory buildup)
     amf::AMFDataPtr outputData;
     while (ctx->encoder->QueryOutput(&outputData) == AMF_OK && outputData) {
@@ -357,8 +383,11 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
+    int64_t inputFrame = g_frameCount++;
+    LogDebug("[AmfEncodeTexture] Input frame #%lld, forceKeyframe=%d", inputFrame, forceKeyframe);
+
     AMF_RESULT res;
-    
+
     // Create AMF surface from D3D11 texture directly (TRUE ZERO-COPY!)
     amf::AMFSurfacePtr surface;
     res = ctx->context->CreateSurfaceFromDX11Native(nv12Texture, &surface, nullptr);
@@ -370,10 +399,25 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
     // Set PTS
     surface->SetPts(ctx->pts);
     ctx->pts += 10000000 / ctx->fps;  // 100ns units
-    
-    // Force keyframe if requested
+
+    // Force keyframe if requested - must also insert SPS/PPS for decoder
+    // NOTE: Per-frame properties on surface may be ignored by some AMF versions
+    // Try setting on BOTH encoder and surface to ensure it works
     if (forceKeyframe) {
+        LogDebug("[AmfEncodeTexture] Setting IDR properties for frame #%lld", inputFrame);
+
+        // Method 1: Set on encoder (applies to next submitted frame)
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        LogDebug("[AmfEncodeTexture] Encoder FORCE_PICTURE_TYPE result: %d", res);
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+        LogDebug("[AmfEncodeTexture] Encoder INSERT_SPS result: %d", res);
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+        LogDebug("[AmfEncodeTexture] Encoder INSERT_PPS result: %d", res);
+
+        // Method 2: Also set on surface (for AMF versions that read from surface)
         surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
     }
 
     // Submit to encoder
@@ -382,31 +426,43 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
         g_lastError = "SubmitInput failed: " + std::to_string(res);
         return AMF_WRAPPER_FAIL;
     }
-    
+    LogDebug("[AmfEncodeTexture] SubmitInput result: %d", res);
+
+    // Reset force picture type to let encoder decide for subsequent frames
+    if (forceKeyframe) {
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_NONE);
+    }
+
     // Release surface reference early
     surface = nullptr;
 
     // Query ALL pending outputs (drain buffer)
     amf::AMFDataPtr outputData;
+    int outputCount = 0;
     while (ctx->encoder->QueryOutput(&outputData) == AMF_OK && outputData) {
         amf::AMFBufferPtr buffer(outputData);
         if (buffer) {
             uint8_t* data = static_cast<uint8_t*>(buffer->GetNative());
             size_t size = buffer->GetSize();
             int64_t pts = buffer->GetPts();
-            
-            // Check for keyframe (SPS NAL type 7 or IDR NAL type 5)
+
+            // Scan ALL NAL types for debugging
+            std::string nalTypes;
             int isKeyFrame = 0;
             for (size_t i = 0; i + 4 < size; i++) {
                 if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
                     int nalType = data[i+4] & 0x1F;
-                    if (nalType == 7 || nalType == 5) {
+                    if (!nalTypes.empty()) nalTypes += ",";
+                    nalTypes += std::to_string(nalType);
+                    if (nalType == 7 || nalType == 5) {  // SPS or IDR slice
                         isKeyFrame = 1;
-                        break;
                     }
                 }
             }
-            
+
+            LogDebug("[AmfEncodeTexture] Output #%d: size=%zu, pts=%lld, NALs=[%s], isKey=%d",
+                     outputCount++, size, pts, nalTypes.c_str(), isKeyFrame);
+
             // Fire callback
             if (ctx->callback) {
                 ctx->callback(data, static_cast<uint32_t>(size), pts, isKeyFrame, ctx->userData);

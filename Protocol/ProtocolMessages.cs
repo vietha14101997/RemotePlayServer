@@ -81,6 +81,12 @@ namespace RemotePlayServer.Protocol
         [JsonPropertyName("supportsHevc")]
         public bool SupportsHevc { get; set; }
 
+        [JsonPropertyName("supportsVP9")]
+        public bool SupportsVP9 { get; set; }
+
+        [JsonPropertyName("supportsVP8")]
+        public bool SupportsVP8 { get; set; }
+
         [JsonPropertyName("deviceModel")]
         public string DeviceModel { get; set; } = "";
 
@@ -182,7 +188,7 @@ namespace RemotePlayServer.Protocol
         public string Reason { get; set; } = "";
 
         /// <summary>
-        /// Selected video codec (H264 or H265) based on negotiation.
+        /// Selected video codec (H264, H265, VP9, or VP8) based on negotiation.
         /// </summary>
         [JsonPropertyName("selectedCodec")]
         public string SelectedCodec { get; set; } = "H264";

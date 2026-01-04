@@ -46,6 +46,11 @@ public sealed class PerMonitorCapture : IDisposable
         // Rate limiting - prevent queue buildup during high activity (e.g., dragging windows)
         public long LastSentTime;
         public long RateLimitedFrames;
+
+        // Desktop Duplication recovery state
+        public DateTime LastAccessLostTime;
+        public int AccessLostCount;
+        public bool RecreatingDuplication;
     }
     
     private volatile bool _running;
@@ -77,6 +82,63 @@ public sealed class PerMonitorCapture : IDisposable
     /// Expose first monitor's device for backward compatibility
     /// </summary>
     public ID3D11Device Device => Monitors.Count > 0 ? Monitors[0].Device! : throw new InvalidOperationException("No monitors");
+
+    /// <summary>
+    /// Recreate Desktop Duplication for a monitor after ACCESS_LOST error.
+    /// This happens when desktop mode changes (resize, resolution change, etc.)
+    /// </summary>
+    private bool RecreateDuplication(MonitorInfo mon)
+    {
+        if (mon.Device == null) return false;
+
+        try
+        {
+            mon.RecreatingDuplication = true;
+
+            // Dispose old duplication
+            try { mon.Duplication?.Dispose(); } catch { }
+            mon.Duplication = null;
+
+            // Find adapter and output for this monitor by HMON
+            using var factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+
+            for (uint ai = 0; ; ai++)
+            {
+                if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
+
+                for (uint oi = 0; ; oi++)
+                {
+                    if (adapter.EnumOutputs(oi, out var output).Failure) break;
+
+                    if (output.Description.Monitor == mon.HMon)
+                    {
+                        // Found the output for this monitor
+                        using var output1 = output.QueryInterface<IDXGIOutput1>();
+                        output.Dispose();
+
+                        mon.Duplication = output1.DuplicateOutput(mon.Device);
+                        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Duplication recreated successfully");
+
+                        adapter.Dispose();
+                        mon.RecreatingDuplication = false;
+                        return true;
+                    }
+                    output.Dispose();
+                }
+                adapter.Dispose();
+            }
+
+            Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Failed to find output for HMON");
+            mon.RecreatingDuplication = false;
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: RecreateDuplication failed: {ex.Message}");
+            mon.RecreatingDuplication = false;
+            return false;
+        }
+    }
 
     public PerMonitorCapture(List<(IntPtr hmon, string name, int w, int h)> monitors, int targetFps = 30, string? preferredGpu = null)
     {
@@ -400,6 +462,42 @@ public sealed class PerMonitorCapture : IDisposable
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
                     // No new frame from DXGI - send cached frame if rate limiting allows
+                    if (canSendFrame && mon.LastNV12Frame != null)
+                    {
+                        mon.LastSentTime = loopStart;
+                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                    }
+                }
+                else if (result == Vortice.DXGI.ResultCode.AccessLost)
+                {
+                    // Desktop mode changed (resize, resolution change, etc.)
+                    // This is common when windows are resized or moved rapidly
+                    mon.AccessLostCount++;
+                    mon.LastAccessLostTime = DateTime.UtcNow;
+
+                    Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: ACCESS_LOST (count={mon.AccessLostCount}) - recreating duplication...");
+
+                    // Send cached frame to keep stream alive
+                    if (canSendFrame && mon.LastNV12Frame != null)
+                    {
+                        mon.LastSentTime = loopStart;
+                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                    }
+
+                    // Wait a bit for Windows to stabilize, then recreate duplication
+                    Thread.Sleep(100);
+                    if (!RecreateDuplication(mon))
+                    {
+                        // Retry once more after longer delay
+                        Thread.Sleep(200);
+                        RecreateDuplication(mon);
+                    }
+                }
+                else if (!result.Success)
+                {
+                    // Other error - log and send cached frame
+                    Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: DXGI error 0x{result.Code:X8}");
+
                     if (canSendFrame && mon.LastNV12Frame != null)
                     {
                         mon.LastSentTime = loopStart;

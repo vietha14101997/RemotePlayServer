@@ -6,6 +6,7 @@ using SharpGen.Runtime;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using RemotePlayServer.Utils;
 
 // Add P/Invoke for D3DCompiler
 internal static class D3DCompiler
@@ -102,21 +103,14 @@ public sealed class GpuColorConverter : IDisposable
         // Now enabling Video Processor for all GPUs - NVIDIA D3D11VA handles the conversion better.
         var vendor = GpuVendorDetector.DetectPrimaryGpuVendor();
         
-        // NVIDIA: Use Compute Shader with Intermediate Texture (Video Processor is unstable)
-        if (vendor == GpuVendorDetector.GpuVendor.NVIDIA)
-        {
-            _useVideoProcessor = false;
-            _useComputeShader = true; 
-            _needsIntermediateCopy = true; // Use safe copy to avoid any potential Desktop Dup + UAV layout issues
-            Console.WriteLine($"[GpuColorConverter] GPU: {vendor}, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12");
-        }
-        else
-        {
-            _useVideoProcessor = true; // AMD/Intel use Video Processor
-            _useComputeShader = false;
-            _needsIntermediateCopy = false; // AMD/Intel usually fine with direct access
-            Console.WriteLine($"[GpuColorConverter] GPU: {vendor}, using Video Processor for BGRA->NV12 conversion");
-        }
+        // Use Compute Shader for ALL GPUs now - Video Processor is unstable with Desktop Duplication
+        // AMD: Video Processor causes E_INVALIDARG and driver timeout when running multiple instances
+        // NVIDIA: Video Processor incompatible with Desktop Duplication textures
+        // Intel: Untested, safer to use Compute Shader
+        _useVideoProcessor = false;
+        _useComputeShader = true;
+        _needsIntermediateCopy = true; // Use safe copy to avoid Desktop Dup + UAV layout issues
+        Console.WriteLine($"[GpuColorConverter] GPU: {vendor}, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12");
         
         // Query video device interface
         _videoDevice = device.QueryInterface<ID3D11VideoDevice>();

@@ -24,15 +24,17 @@ enum GpuVendorType { Unknown, NVIDIA, AMD, Intel }
 /// </summary>
 public enum VideoCodec
 {
-    H264,   // AVC - Universal compatibility
-    H265    // HEVC - Better quality at lower bitrate (30-50% more efficient)
+    H264,   // AVC - Hardware accelerated (NVENC/AMF/QSV)
+    H265,   // HEVC - Better compression (30-50% more efficient)
+    VP9,    // libvpx-vp9 software encoder (fallback)
+    VP8     // libvpx software encoder (final fallback)
 }
 
 /// <summary>
 /// Hardware-accelerated video encoder using FFmpeg libavcodec with D3D11VA.
-/// Supports H.264 (AVC) and H.265 (HEVC) encoding with automatic fallback.
+/// Supports H.264 (AVC), H.265 (HEVC), VP9, and VP8 encoding with automatic fallback.
 /// Provides zero-copy encoding from D3D11 textures to NAL units.
-/// Supports NVIDIA NVENC, AMD AMF, and Intel QSV hardware encoders.
+/// Supports NVIDIA NVENC, AMD AMF, Intel QSV hardware encoders, and libvpx software fallback.
 /// </summary>
 public unsafe class LibAvEncoder : IDisposable
 {
@@ -228,7 +230,8 @@ public unsafe class LibAvEncoder : IDisposable
     }
     
     /// <summary>
-    /// Select optimal encoder based on GPU vendor and preferred codec
+    /// Select optimal encoder based on GPU vendor and preferred codec.
+    /// Fallback chain: H265 -> H264 -> VP9 -> VP8
     /// </summary>
     private AVCodec* SelectEncoder()
     {
@@ -237,34 +240,57 @@ public unsafe class LibAvEncoder : IDisposable
         Console.WriteLine($"[LibAvEncoder] SelectEncoder: vendor={vendor}");
         AVCodec* codec = null;
 
-        // Try H.265 first if preferred
-        if (_preferredCodec == VideoCodec.H265)
+        // Try encoders based on preferred codec with fallback chain
+        switch (_preferredCodec)
         {
-            Console.WriteLine("[LibAvEncoder] Trying H.265 encoder...");
-            codec = SelectH265Encoder(vendor);
-            if (codec != null)
-            {
-                _currentCodec = VideoCodec.H265;
-                Console.WriteLine($"[LibAvEncoder] Selected H.265 encoder: {_encoderName}");
-                return codec;
-            }
-            Console.WriteLine($"[LibAvEncoder] H.265 encoder not available for {vendor}, falling back to H.264");
+            case VideoCodec.H265:
+                Console.WriteLine("[LibAvEncoder] Trying H.265 encoder...");
+                codec = SelectH265Encoder(vendor);
+                if (codec != null)
+                {
+                    _currentCodec = VideoCodec.H265;
+                    Console.WriteLine($"[LibAvEncoder] Selected H.265 encoder: {_encoderName}");
+                    return codec;
+                }
+                Console.WriteLine($"[LibAvEncoder] H.265 not available, falling back to H.264...");
+                goto case VideoCodec.H264;
+
+            case VideoCodec.H264:
+                Console.WriteLine("[LibAvEncoder] Trying H.264 encoder...");
+                codec = SelectH264Encoder(vendor);
+                if (codec != null)
+                {
+                    _currentCodec = VideoCodec.H264;
+                    Console.WriteLine($"[LibAvEncoder] Selected H.264 encoder: {_encoderName}");
+                    return codec;
+                }
+                Console.WriteLine("[LibAvEncoder] H.264 not available, falling back to VP9...");
+                goto case VideoCodec.VP9;
+
+            case VideoCodec.VP9:
+                codec = SelectVP9Encoder();
+                if (codec != null)
+                {
+                    _currentCodec = VideoCodec.VP9;
+                    Console.WriteLine($"[LibAvEncoder] Selected VP9 encoder: {_encoderName}");
+                    return codec;
+                }
+                Console.WriteLine("[LibAvEncoder] VP9 not available, falling back to VP8...");
+                goto case VideoCodec.VP8;
+
+            case VideoCodec.VP8:
+                codec = SelectVP8Encoder();
+                if (codec != null)
+                {
+                    _currentCodec = VideoCodec.VP8;
+                    Console.WriteLine($"[LibAvEncoder] Selected VP8 encoder: {_encoderName}");
+                    return codec;
+                }
+                break;
         }
 
-        // Fallback to H.264
-        Console.WriteLine("[LibAvEncoder] Trying H.264 encoder...");
-        codec = SelectH264Encoder(vendor);
-        if (codec != null)
-        {
-            _currentCodec = VideoCodec.H264;
-            Console.WriteLine($"[LibAvEncoder] Selected H.264 encoder: {_encoderName}");
-        }
-        else
-        {
-            Console.WriteLine("[LibAvEncoder] No encoder found!");
-        }
-
-        return codec;
+        Console.WriteLine("[LibAvEncoder] ERROR: No encoder found! All fallbacks failed.");
+        return null;
     }
 
     /// <summary>
@@ -372,7 +398,41 @@ public unsafe class LibAvEncoder : IDisposable
 
         return codec;
     }
-    
+
+    /// <summary>
+    /// Select VP9 encoder (libvpx-vp9 software encoder)
+    /// </summary>
+    private AVCodec* SelectVP9Encoder()
+    {
+        Console.WriteLine("[LibAvEncoder] Trying VP9 encoder (libvpx-vp9)...");
+        var codec = ffmpeg.avcodec_find_encoder_by_name("libvpx-vp9");
+        if (codec != null)
+        {
+            _encoderName = "libvpx-vp9";
+            Console.WriteLine("[LibAvEncoder] VP9 encoder found: libvpx-vp9");
+            return codec;
+        }
+        Console.WriteLine("[LibAvEncoder] VP9 encoder not found");
+        return null;
+    }
+
+    /// <summary>
+    /// Select VP8 encoder (libvpx software encoder)
+    /// </summary>
+    private AVCodec* SelectVP8Encoder()
+    {
+        Console.WriteLine("[LibAvEncoder] Trying VP8 encoder (libvpx)...");
+        var codec = ffmpeg.avcodec_find_encoder_by_name("libvpx");
+        if (codec != null)
+        {
+            _encoderName = "libvpx";
+            Console.WriteLine("[LibAvEncoder] VP8 encoder found: libvpx");
+            return codec;
+        }
+        Console.WriteLine("[LibAvEncoder] VP8 encoder not found");
+        return null;
+    }
+
     /// <summary>
     /// Configure encoder options based on encoder type
     /// </summary>
@@ -608,6 +668,60 @@ public unsafe class LibAvEncoder : IDisposable
                     _codecCtx->rc_max_rate = _bitrate;
                     _codecCtx->rc_buffer_size = _bitrate / 4;
                 }
+                break;
+
+            // ============ VP9/VP8 SOFTWARE ENCODERS (FALLBACK) ============
+
+            case "libvpx-vp9":
+                // VP9 software encoder - realtime mode for low latency streaming
+                Console.WriteLine("[LibAvEncoder] Configuring VP9 encoder (libvpx-vp9) for realtime streaming");
+
+                // Use YUV420P for VP9 (libvpx doesn't support NV12 directly)
+                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_YUV420P;
+
+                // Realtime encoding for low latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "deadline", "realtime", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "cpu-used", "8", 0);  // 0-8, higher = faster
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "lag-in-frames", "0", 0);  // No frame buffering
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "error-resilient", "1", 0);  // Error resilience for streaming
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "row-mt", "1", 0);  // Row-based multithreading
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "tile-columns", "2", 0);  // Parallel tile encoding
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "frame-parallel", "1", 0);
+
+                // Use multiple threads for VP9 (software encoder benefits from threading)
+                _codecCtx->thread_count = Math.Max(2, Environment.ProcessorCount / 2);
+
+                // Bitrate settings
+                _codecCtx->bit_rate = _bitrate;
+                _codecCtx->rc_max_rate = _bitrate * 2;  // Allow 2x burst for scene changes
+                _codecCtx->rc_buffer_size = _bitrate;   // 1 second buffer
+
+                Console.WriteLine($"[LibAvEncoder] VP9 config: {_bitrate/1000}kbps, {_codecCtx->thread_count} threads, cpu-used=8");
+                break;
+
+            case "libvpx":
+                // VP8 software encoder - fastest mode for final fallback
+                Console.WriteLine("[LibAvEncoder] Configuring VP8 encoder (libvpx) for realtime streaming");
+
+                // Use YUV420P for VP8
+                _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_YUV420P;
+
+                // Maximum speed for low latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "deadline", "realtime", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "cpu-used", "16", 0);  // Max speed for VP8 (0-16)
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "lag-in-frames", "0", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "error-resilient", "1", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "token-parts", "2", 0);  // Parallel token encoding
+
+                // Use multiple threads
+                _codecCtx->thread_count = Math.Max(2, Environment.ProcessorCount / 2);
+
+                // Bitrate settings
+                _codecCtx->bit_rate = _bitrate;
+                _codecCtx->rc_max_rate = _bitrate * 2;
+                _codecCtx->rc_buffer_size = _bitrate;
+
+                Console.WriteLine($"[LibAvEncoder] VP8 config: {_bitrate/1000}kbps, {_codecCtx->thread_count} threads, cpu-used=16");
                 break;
         }
     }
