@@ -123,13 +123,23 @@ public class SIPSorceryStreamer : IDisposable
         var (h264Pt, h264Fmtp) = TryGetH264FromOfferSdp(offerSdp);
         Console.WriteLine($"[SIPSorcery] Offer H264 pt={h264Pt ?? 96}, fmtp={h264Fmtp ?? "default"}");
 
-        // Create PeerConnection (no STUN for LAN)
+        // Log client fingerprint from offer for DTLS debugging
+        foreach (var line in offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (line.StartsWith("a=fingerprint:") || line.StartsWith("a=setup:"))
+                Console.WriteLine($"[SIPSorcery] Client SDP: {line}");
+        }
+
+        // Create PeerConnection with STUN for better ICE reliability
         var cfg = new RTCConfiguration
         {
-            iceServers = new List<RTCIceServer>()
+            iceServers = new List<RTCIceServer>
+            {
+                new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+            }
         };
         _pc = new RTCPeerConnection(cfg);
-        Console.WriteLine("[SIPSorcery] PeerConnection created");
+        Console.WriteLine("[SIPSorcery] PeerConnection created (with STUN)");
 
         // Create N video tracks - one per monitor
         for (int i = 0; i < dimensions.Count; i++)
@@ -248,6 +258,15 @@ public class SIPSorceryStreamer : IDisposable
         if (!answerSdp.Contains("SAVPF"))
             answerSdp = answerSdp.Replace("SAVP", "SAVPF");
         answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
+
+        // Fix DTLS setup role: Server (answerer) should be PASSIVE, client (offerer) should be ACTIVE.
+        // SIPSorcery generates "setup:active" by default which can cause DTLS handshake failures
+        // when client also tries to be active. The answerer MUST be passive per RFC 5763.
+        if (answerSdp.Contains("a=setup:active"))
+        {
+            answerSdp = answerSdp.Replace("a=setup:active", "a=setup:passive");
+            Console.WriteLine("[SIPSorcery] Fixed DTLS setup: active -> passive (answerer must be passive)");
+        }
 
         // Log DTLS-critical SDP attributes for debugging
         foreach (var line in answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
