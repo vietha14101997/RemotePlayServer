@@ -9,6 +9,7 @@ using DataChannelDotnet.Bindings;
 using DataChannelDotnet.Data;
 using DataChannelDotnet.Impl;
 using Vortice.Direct3D11;
+using RemotePlayServer.Utils;
 
 namespace RemotePlayServer.Encoding;
 

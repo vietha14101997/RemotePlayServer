@@ -538,6 +538,122 @@
         max-height: 350px;
       }
     }
+
+    /* VR Side-by-Side Mode */
+    .vr-mode {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999 !important;
+      background: #000 !important;
+      display: flex !important;
+      flex-direction: row !important;
+      overflow: hidden !important;
+    }
+
+    .vr-mode .vr-eye {
+      width: 50%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vr-mode .vr-eye video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .vr-mode .vr-divider {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 100%;
+      background: #333;
+      z-index: 10;
+    }
+
+    .vr-mode .vr-exit-btn {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .vr-mode:hover .vr-exit-btn {
+      opacity: 1;
+    }
+
+    .vr-mode .vr-info {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.7);
+      color: var(--accent-green);
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'SF Mono', Monaco, monospace;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .vr-mode:hover .vr-info {
+      opacity: 1;
+    }
+
+    /* VR Button in header */
+    .btn-vr {
+      background: var(--accent-purple);
+      color: #fff;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-vr:hover {
+      background: #8b5cf6;
+    }
+
+    .btn-vr:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* VR Settings in sidebar */
+    .vr-settings {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .vr-settings select {
+      flex: 1;
+    }
   </style>
 </head>
 
@@ -554,9 +670,20 @@
         <div class="phase-step" id="phase2">Phase 2</div>
         <div class="phase-step" id="phase3">Phase 3</div>
       </div>
-      <div class="connection-status">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Disconnected</span>
+      <div style="display: flex; align-items: center;">
+        <button class="btn-vr" id="btnVR" disabled title="Enter VR Side-by-Side Mode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
+            <path d="M6 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
+            <path d="M14 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
+            <path d="M10 12h4"/>
+          </svg>
+          VR
+        </button>
+        <div class="connection-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Disconnected</span>
+        </div>
       </div>
     </header>
 
@@ -685,6 +812,26 @@
             <div class="stat-card">
               <div class="label">Latency</div>
               <div class="value red" id="statLatency">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VR Settings -->
+        <div class="sidebar-section" id="vrSettingsSection">
+          <h3>VR Mode</h3>
+          <div class="form-group">
+            <label>Monitor for VR</label>
+            <select id="vrMonitor">
+              <option value="0">Monitor 0</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>IPD Adjustment (px)</label>
+            <input type="range" id="vrIPD" min="-50" max="50" value="0" />
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+              <span>-50</span>
+              <span id="vrIPDValue">0</span>
+              <span>+50</span>
             </div>
           </div>
         </div>
@@ -1542,6 +1689,10 @@
 
       showSection('statsSection', true);
 
+      // Enable VR button and update monitor options
+      $('btnVR').disabled = false;
+      updateVRMonitorOptions();
+
       // Start stats interval
       startStatsInterval();
     }
@@ -1654,6 +1805,14 @@
     function disconnect() {
       log('Disconnecting...', 'warn');
 
+      // Exit VR mode if active
+      if (typeof vrState !== 'undefined' && vrState.active) {
+        exitVRMode();
+      }
+
+      // Disable VR button
+      $('btnVR').disabled = true;
+
       // Clear intervals
       if (state.statsInterval) clearInterval(state.statsInterval);
       if (state.pingInterval) clearInterval(state.pingInterval);
@@ -1728,6 +1887,220 @@
     }
 
     // ============================================
+    // VR Side-by-Side Mode
+    // ============================================
+    const vrState = {
+      active: false,
+      container: null,
+      selectedMonitor: 0,
+      ipd: 0
+    };
+
+    function updateVRMonitorOptions() {
+      const select = $('vrMonitor');
+      select.innerHTML = '';
+      const count = state.monitorCount || parseInt($('monitors').value) || 1;
+      for (let i = 0; i < count; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Monitor ${i}`;
+        select.appendChild(option);
+      }
+    }
+
+    function enterVRMode() {
+      if (vrState.active) return;
+
+      const monitorIdx = parseInt($('vrMonitor').value) || 0;
+      const sourceVideo = state.videoElements[monitorIdx] || $('video0');
+
+      if (!sourceVideo || !sourceVideo.srcObject) {
+        log('No video stream available for VR mode', 'error');
+        return;
+      }
+
+      vrState.active = true;
+      vrState.selectedMonitor = monitorIdx;
+      log(`Entering VR mode with Monitor ${monitorIdx}`, 'info');
+
+      // Create VR container
+      const vrContainer = document.createElement('div');
+      vrContainer.id = 'vrContainer';
+      vrContainer.className = 'vr-mode';
+
+      // Left eye
+      const leftEye = document.createElement('div');
+      leftEye.className = 'vr-eye';
+      leftEye.id = 'vrLeftEye';
+      const leftVideo = document.createElement('video');
+      leftVideo.id = 'vrLeftVideo';
+      leftVideo.autoplay = true;
+      leftVideo.playsInline = true;
+      leftVideo.muted = true;
+      leftVideo.srcObject = sourceVideo.srcObject;
+      leftEye.appendChild(leftVideo);
+
+      // Right eye
+      const rightEye = document.createElement('div');
+      rightEye.className = 'vr-eye';
+      rightEye.id = 'vrRightEye';
+      const rightVideo = document.createElement('video');
+      rightVideo.id = 'vrRightVideo';
+      rightVideo.autoplay = true;
+      rightVideo.playsInline = true;
+      rightVideo.muted = true;
+      rightVideo.srcObject = sourceVideo.srcObject;
+      rightEye.appendChild(rightVideo);
+
+      // Divider
+      const divider = document.createElement('div');
+      divider.className = 'vr-divider';
+
+      // Exit button
+      const exitBtn = document.createElement('button');
+      exitBtn.className = 'vr-exit-btn';
+      exitBtn.textContent = 'Exit VR (ESC)';
+      exitBtn.onclick = exitVRMode;
+
+      // Info display
+      const info = document.createElement('div');
+      info.className = 'vr-info';
+      info.id = 'vrInfo';
+      info.textContent = 'VR Mode Active';
+
+      vrContainer.appendChild(leftEye);
+      vrContainer.appendChild(rightEye);
+      vrContainer.appendChild(divider);
+      vrContainer.appendChild(exitBtn);
+      vrContainer.appendChild(info);
+
+      document.body.appendChild(vrContainer);
+      vrState.container = vrContainer;
+
+      // Apply IPD
+      applyIPD();
+
+      // Play videos
+      leftVideo.play().catch(e => log(`VR left video error: ${e.message}`, 'error'));
+      rightVideo.play().catch(e => log(`VR right video error: ${e.message}`, 'error'));
+
+      // Request fullscreen
+      if (vrContainer.requestFullscreen) {
+        vrContainer.requestFullscreen().catch(e => {
+          log(`Fullscreen request failed: ${e.message}`, 'warn');
+        });
+      }
+
+      // Update button
+      $('btnVR').textContent = 'Exit VR';
+
+      // Update VR info with stats
+      updateVRInfo();
+    }
+
+    function exitVRMode() {
+      if (!vrState.active) return;
+
+      vrState.active = false;
+      log('Exiting VR mode', 'info');
+
+      // Exit fullscreen
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      // Remove VR container
+      if (vrState.container) {
+        // Stop videos
+        const leftVideo = $('vrLeftVideo');
+        const rightVideo = $('vrRightVideo');
+        if (leftVideo) { leftVideo.pause(); leftVideo.srcObject = null; }
+        if (rightVideo) { rightVideo.pause(); rightVideo.srcObject = null; }
+
+        vrState.container.remove();
+        vrState.container = null;
+      }
+
+      // Update button
+      $('btnVR').innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
+          <path d="M6 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
+          <path d="M14 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
+          <path d="M10 12h4"/>
+        </svg>
+        VR
+      `;
+    }
+
+    function applyIPD() {
+      const ipd = vrState.ipd;
+      const leftVideo = $('vrLeftVideo');
+      const rightVideo = $('vrRightVideo');
+
+      if (leftVideo) {
+        leftVideo.style.transform = `translateX(${-ipd}px)`;
+      }
+      if (rightVideo) {
+        rightVideo.style.transform = `translateX(${ipd}px)`;
+      }
+    }
+
+    function updateVRInfo() {
+      if (!vrState.active) return;
+
+      const info = $('vrInfo');
+      if (info) {
+        const fps = $(`fps${vrState.selectedMonitor}`)?.textContent || '--';
+        const bitrate = $(`bitrate${vrState.selectedMonitor}`)?.textContent || '--';
+        const rtt = $(`rtt${vrState.selectedMonitor}`)?.textContent || '--';
+        info.textContent = `Monitor ${vrState.selectedMonitor} | ${fps} | ${bitrate} | RTT: ${rtt}`;
+      }
+
+      if (vrState.active) {
+        requestAnimationFrame(updateVRInfo);
+      }
+    }
+
+    // VR event bindings
+    $('btnVR').onclick = () => {
+      if (vrState.active) {
+        exitVRMode();
+      } else {
+        enterVRMode();
+      }
+    };
+
+    $('vrIPD').oninput = (e) => {
+      vrState.ipd = parseInt(e.target.value);
+      $('vrIPDValue').textContent = vrState.ipd;
+      applyIPD();
+    };
+
+    $('vrMonitor').onchange = (e) => {
+      vrState.selectedMonitor = parseInt(e.target.value);
+      if (vrState.active) {
+        // Re-enter VR with new monitor
+        exitVRMode();
+        setTimeout(() => enterVRMode(), 100);
+      }
+    };
+
+    // ESC key to exit VR
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && vrState.active) {
+        exitVRMode();
+      }
+    });
+
+    // Fullscreen change handler
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && vrState.active) {
+        exitVRMode();
+      }
+    });
+
+    // ============================================
     // Event Bindings
     // ============================================
     $('btnConnect').onclick = () => startPhase1();
@@ -1758,8 +2131,14 @@
       }
     }
 
+    // Monitor count change handler
+    $('monitors').onchange = () => {
+      updateVRMonitorOptions();
+    };
+
     // Initialize
     parseUrlParams();
+    updateVRMonitorOptions();
     log('RemotePlay WebRTC Protocol V2 Client ready');
     log('Click "Connect" to start 3-phase connection');
   </script>

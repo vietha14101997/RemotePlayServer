@@ -6,6 +6,7 @@ using SharpGen.Runtime;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using RemotePlayServer.Utils;
 
 // Add P/Invoke for D3DCompiler
 internal static class D3DCompiler
