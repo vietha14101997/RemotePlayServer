@@ -215,6 +215,21 @@ public class SIPSorceryStreamer : IDisposable
         _pc.onconnectionstatechange += (state) =>
         {
             Console.WriteLine($"[SIPSorcery] Peer state: {state}");
+            if (state == RTCPeerConnectionState.connected)
+            {
+                Console.WriteLine("[SIPSorcery] DTLS CONNECTED - media can flow now");
+            }
+            else if (state == RTCPeerConnectionState.failed)
+            {
+                Console.WriteLine("[SIPSorcery] DTLS FAILED - check certificate/fingerprint");
+                _connected = false;
+                OnConnectionFailed?.Invoke();
+            }
+        };
+
+        _pc.onsignalingstatechange += () =>
+        {
+            Console.WriteLine($"[SIPSorcery] Signaling state: {_pc.signalingState}");
         };
 
         // Set remote offer and create answer
@@ -233,6 +248,13 @@ public class SIPSorceryStreamer : IDisposable
         if (!answerSdp.Contains("SAVPF"))
             answerSdp = answerSdp.Replace("SAVP", "SAVPF");
         answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
+
+        // Log DTLS-critical SDP attributes for debugging
+        foreach (var line in answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (line.StartsWith("a=fingerprint:") || line.StartsWith("a=setup:"))
+                Console.WriteLine($"[SIPSorcery] SDP: {line}");
+        }
 
         Console.WriteLine($"[SIPSorcery] Answer ready, {answerSdp.Length} bytes");
         return answerSdp;
@@ -443,23 +465,43 @@ public class SIPSorceryStreamer : IDisposable
                 Console.WriteLine($"[SIPSorcery] Track {track.Index} frame #{frameNum}: {au.Length}B, NAL types=[{string.Join(",", nalTypes)}], key={isKeyframe}");
             }
 
-            // CRITICAL: SIPSorcery v8.0.23 supports VideoStreamList for multi-track
-            // Use indexed access to send to specific track
-            if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+            // DEBUG: Log VideoStreamList info on first frame of each track
+            if (frameNum == 0)
             {
-                // Send to specific video stream by index
+                var streamCount = _pc.VideoStreamList?.Count ?? 0;
+                Console.WriteLine($"[SIPSorcery] Track {track.Index} first frame: VideoStreamList.Count={streamCount}, rtpStep={rtpStep}");
+
+                // Log SSRC info for each video stream
+                if (_pc.VideoStreamList != null)
+                {
+                    for (int i = 0; i < Math.Min(3, _pc.VideoStreamList.Count); i++)
+                    {
+                        var vs = _pc.VideoStreamList[i];
+                        Console.WriteLine($"[SIPSorcery] VideoStream[{i}]: SSRC={vs.LocalTrack?.Ssrc ?? 0}");
+                    }
+                }
+            }
+
+            // WORKAROUND: Use default SendVideo for first track (track 0)
+            // VideoStreamList indexing may not match Unity WebRTC transceiver order
+            if (track.Index == 0)
+            {
+                // Always use _pc.SendVideo() for track 0 - goes to first video stream
+                _pc.SendVideo(rtpStep, au);
+                Interlocked.Increment(ref track.SentFrames);
+            }
+            else if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+            {
+                // Send to specific video stream by index for tracks 1, 2, ...
                 var videoStream = _pc.VideoStreamList[track.Index];
                 videoStream.SendVideo(rtpStep, au);
                 Interlocked.Increment(ref track.SentFrames);
             }
             else
             {
-                // Fallback: send via default (all tracks - only works for single track)
-                if (track.Index == 0)
-                {
-                    _pc.SendVideo(rtpStep, au);
-                    Interlocked.Increment(ref track.SentFrames);
-                }
+                // Fallback: skip tracks we can't send to
+                if (frameNum < 5)
+                    Console.WriteLine($"[SIPSorcery] Track {track.Index} SKIP: VideoStreamList null or index out of range");
             }
         }
         catch (Exception ex)

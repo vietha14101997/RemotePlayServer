@@ -633,6 +633,17 @@ namespace RemotePlayServer.Protocol
                 case "ping":
                     await SendMessageAsync(new PongMessage());
                     break;
+
+                case "restart_phase2":
+                    // Client is requesting full Phase 2 restart (ICE renegotiation)
+                    Console.WriteLine("[Protocol] Client requested Phase 2 restart");
+                    await HandleRestartPhase2Async();
+                    break;
+
+                case "reconnect_ack":
+                    // Client acknowledged successful reconnect for a monitor
+                    HandleReconnectAck(json);
+                    break;
             }
             return false;
         }
@@ -689,13 +700,14 @@ namespace RemotePlayServer.Protocol
 
             Console.WriteLine("[Protocol] Received single offer for all monitors");
 
-            // Clear all ICE state for reconnect case
+            // Clear answer ready state for new offer, but KEEP pending ICE candidates
+            // ICE candidates may arrive BEFORE the offer due to trickle ICE timing
             lock (_iceLock)
             {
                 _answersReady.Clear();
-                foreach (var pending in _pendingIce.Values)
-                    pending.Clear();
-                Console.WriteLine("[Protocol] Cleared all ICE state for new offer");
+                // NOTE: Do NOT clear _pendingIce - candidates received before offer should be preserved
+                var pendingCount = _pendingIce.TryGetValue(0, out var pending) ? pending.Count : 0;
+                Console.WriteLine($"[Protocol] Cleared answer state, preserved {pendingCount} pending ICE candidates");
             }
 
             try
@@ -745,11 +757,15 @@ namespace RemotePlayServer.Protocol
                 lock (_iceLock)
                 {
                     _answersReady.Add(0); // Mark single connection as ready
-                    // Process pending ICE candidates
-                    if (_pendingIce.TryGetValue(0, out var pending))
+                    // Process pending ICE candidates that arrived before/during offer processing
+                    if (_pendingIce.TryGetValue(0, out var pending) && pending.Count > 0)
                     {
+                        Console.WriteLine($"[Protocol] Applying {pending.Count} pending ICE candidates");
                         foreach (var cand in pending)
+                        {
                             _streamer.AddIceCandidate(cand, null);
+                            Console.WriteLine($"[Protocol] Applied pending ICE: {cand.Substring(0, Math.Min(50, cand.Length))}...");
+                        }
                         pending.Clear();
                     }
                 }
@@ -1100,6 +1116,10 @@ namespace RemotePlayServer.Protocol
                     }
 
                     var msgType = ProtocolMessageParser.GetMessageType(text);
+
+                    // DEBUG: Log ALL Phase 3 messages for troubleshooting
+                    Console.WriteLine($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}, preview={text.Substring(0, Math.Min(100, text.Length))}");
+
                     if (msgType == "stop_streaming" || text.Equals("stop_streaming", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("[Protocol] Received stop_streaming");
@@ -1151,6 +1171,7 @@ namespace RemotePlayServer.Protocol
                         }
                         catch { }
 
+                        Console.WriteLine($"[Protocol] request_keyframe received (monitor={monitorIndex}) - forcing IDR frame");
                         _streamer?.RequestKeyframe(monitorIndex);
                         continue;
                     }
@@ -1331,11 +1352,26 @@ namespace RemotePlayServer.Protocol
                     if (timeSinceLastPong > KEEPALIVE_INTERVAL_MS * 1.5)
                     {
                         _missedPongs++;
+                        Console.WriteLine($"[KeepAlive] Missed pong #{_missedPongs}, {timeSinceLastPong / 1000:F1}s since last response");
+
                         if (_missedPongs >= MAX_MISSED_PONGS)
                         {
-                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s, connection may be dead");
-                            // Don't close WebSocket - let the main loop handle timeout
-                            // This just provides early warning for logging
+                            Console.WriteLine($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s - closing connection");
+                            _keepAliveTimer?.Stop();
+
+                            // Actually close the connection instead of just warning
+                            try
+                            {
+                                await _ws.CloseAsync(
+                                    WebSocketCloseStatus.EndpointUnavailable,
+                                    "Client not responding to keepalive",
+                                    CancellationToken.None);
+                            }
+                            catch (Exception closeEx)
+                            {
+                                Console.WriteLine($"[KeepAlive] Error closing WebSocket: {closeEx.Message}");
+                            }
+                            return;
                         }
                     }
 
@@ -1682,6 +1718,10 @@ namespace RemotePlayServer.Protocol
             // Handle sequenced ping: "ping:N" -> "pong:N"
             if (trimmed.StartsWith("ping:", StringComparison.OrdinalIgnoreCase))
             {
+                // Track client activity for keepalive
+                _lastPongReceived = DateTime.UtcNow;
+                _missedPongs = 0;
+
                 // Extract sequence number and echo it back
                 var seq = trimmed.Substring(5);
                 await SendTextAsync($"pong:{seq}");
@@ -1691,11 +1731,101 @@ namespace RemotePlayServer.Protocol
             // Handle legacy ping: "ping" -> "pong"
             if (trimmed.Equals("ping", StringComparison.OrdinalIgnoreCase))
             {
+                // Track client activity for keepalive
+                _lastPongReceived = DateTime.UtcNow;
+                _missedPongs = 0;
+
                 await SendTextAsync("pong");
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Handle Phase 2 restart request from client.
+        /// Stops current streaming, closes all peer connections, and restarts ICE negotiation.
+        /// </summary>
+        private async Task HandleRestartPhase2Async()
+        {
+            Console.WriteLine("[Protocol] Handling restart_phase2 request...");
+
+            try
+            {
+                // 1. Stop current streaming if active
+                if (_streamer != null)
+                {
+                    Console.WriteLine("[Protocol] Stopping current stream for restart...");
+                    _streamer.Dispose();
+                    _streamer = null;
+                }
+
+                // 2. Stop capture if active
+                if (_sharedCapture != null)
+                {
+                    Console.WriteLine("[Protocol] Stopping capture for restart...");
+                    _sharedCapture.Stop();
+                    _sharedCapture.Dispose();
+                    _sharedCapture = null;
+                }
+
+                // 3. Get current monitor count from display config
+                int actualMonitors = _displayConfig?.Monitors ?? _monitors.Count;
+                actualMonitors = Math.Min(actualMonitors, _monitors.Count);
+
+                // 4. Send config_complete to client to trigger new ICE negotiation
+                Console.WriteLine("[Protocol] Sending config_complete for Phase 2 restart");
+                var completeMsg = new ConfigCompleteMessage
+                {
+                    Monitors = _monitors.Take(actualMonitors).Select((m, i) => new MonitorInfoDto
+                    {
+                        Id = i,
+                        Name = m.name,
+                        Width = m.width,
+                        Height = m.height
+                    }).ToList(),
+                    CaptureReady = false // Will be ready after new ICE negotiation
+                };
+                await SendMessageAsync(completeMsg);
+
+                Console.WriteLine("[Protocol] Phase 2 restart config_complete sent, waiting for ICE negotiation...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Error handling restart_phase2: {ex.Message}");
+                await SendMessageAsync(new ErrorMessage
+                {
+                    Phase = 2,
+                    Code = "RESTART_FAILED",
+                    Message = $"Failed to restart Phase 2: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Handle reconnect acknowledgment from client.
+        /// Called when client successfully reconnected a monitor.
+        /// </summary>
+        private void HandleReconnectAck(string json)
+        {
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("monitorIndex", out var monIdxElem))
+                {
+                    int monitorIndex = monIdxElem.GetInt32();
+                    Console.WriteLine($"[Protocol] Client acknowledged reconnect for monitor {monitorIndex}");
+
+                    // Could track reconnect state here if needed
+                    // _pendingReconnects.TryRemove(monitorIndex, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Protocol] Error parsing reconnect_ack: {ex.Message}");
+            }
         }
 
         private async Task SendProgressAsync(string step, int progress, string message)
