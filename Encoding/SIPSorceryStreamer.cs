@@ -201,15 +201,15 @@ public class SIPSorceryStreamer : IDisposable
         };
 
         // Connection state changes
+        // NOTE: Do NOT initialize encoders here - it blocks DTLS handshake!
+        // Encoder init moved to onconnectionstatechange (after DTLS complete)
         _pc.oniceconnectionstatechange += (state) =>
         {
             Console.WriteLine($"[SIPSorcery] ICE state: {state}");
             if (state == RTCIceConnectionState.connected)
             {
-                _connected = true;
-                Console.WriteLine("[SIPSorcery] ICE CONNECTED - initializing encoders");
-                InitializeEncoders();
-                OnAllTracksReady?.Invoke();
+                Console.WriteLine("[SIPSorcery] ICE CONNECTED - waiting for DTLS...");
+                // Don't initialize encoders here - let DTLS complete first
             }
             else if (state == RTCIceConnectionState.failed)
             {
@@ -222,12 +222,16 @@ public class SIPSorceryStreamer : IDisposable
             }
         };
 
+        // DTLS/SRTP connection state - initialize encoders AFTER DTLS completes
         _pc.onconnectionstatechange += (state) =>
         {
             Console.WriteLine($"[SIPSorcery] Peer state: {state}");
             if (state == RTCPeerConnectionState.connected)
             {
-                Console.WriteLine("[SIPSorcery] DTLS CONNECTED - media can flow now");
+                Console.WriteLine("[SIPSorcery] DTLS CONNECTED - initializing encoders now");
+                _connected = true;
+                InitializeEncoders();
+                OnAllTracksReady?.Invoke();
             }
             else if (state == RTCPeerConnectionState.failed)
             {
@@ -259,13 +263,14 @@ public class SIPSorceryStreamer : IDisposable
             answerSdp = answerSdp.Replace("SAVP", "SAVPF");
         answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
 
-        // Fix DTLS setup role: Server (answerer) should be PASSIVE, client (offerer) should be ACTIVE.
-        // SIPSorcery generates "setup:active" by default which can cause DTLS handshake failures
-        // when client also tries to be active. The answerer MUST be passive per RFC 5763.
+        // DTLS setup role: Keep SIPSorcery's default "setup:active"
+        // SIPSorcery internally acts as DTLS client when IceRole is active.
+        // Changing SDP text without changing internal behavior causes mismatch.
+        // Let SIPSorcery initiate DTLS handshake as active party.
+        // NOTE: RFC 5763 recommends answerer use "active" for parallel handshake.
         if (answerSdp.Contains("a=setup:active"))
         {
-            answerSdp = answerSdp.Replace("a=setup:active", "a=setup:passive");
-            Console.WriteLine("[SIPSorcery] Fixed DTLS setup: active -> passive (answerer must be passive)");
+            Console.WriteLine("[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)");
         }
 
         // Log DTLS-critical SDP attributes for debugging
