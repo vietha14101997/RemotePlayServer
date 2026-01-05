@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using QRCoder;
 using RemotePlayServer.Encoding;
+using RemotePlayServer.Utils;
 using SIPSorcery.Net;
 
 #if WINDOWS
@@ -249,6 +250,18 @@ partial class Program
         Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
+        // === USB MODE CHECK ===
+        // Only check if ADB is available. Actual setup happens on-demand when client requests USB mode.
+        bool adbAvailable = AdbHelper.Initialize();
+        if (adbAvailable)
+        {
+            Console.WriteLine("[USB] ADB available. USB mode will be setup on-demand when client requests.");
+        }
+        else
+        {
+            Console.WriteLine("[USB] ADB not found. WiFi mode only.");
+        }
+
         // Chụp trạng thái ban đầu và tạo marker phiên
         DisplayGuard.CaptureSnapshotAtStartup();
 
@@ -278,7 +291,7 @@ partial class Program
         var preferredIP = NetUtil.GetPreferredLocalIP();
 
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
-        
+
         // Tạo QRCode với IP ưu tiên và danh sách monitors
         var monitorsList = monitors.Select((m, i) => new { id = i, name = m.name, w = m.width, h = m.height });
         string monitorsJson = System.Text.Json.JsonSerializer.Serialize(monitorsList);
@@ -287,7 +300,18 @@ partial class Program
         Console.WriteLine("=== QRCode (Scan to connect) ===");
         Console.WriteLine($"Data: {qrData}");
         QRCodeUtil.PrintQRCodeToConsole(qrData);
-        
+
+        // Show connection options
+        Console.WriteLine();
+        if (adbAvailable)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=== Connection Options ===");
+            Console.WriteLine("  [USB]  Enable USB mode in client (Recommended - Low latency, Stable)");
+            Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
+            Console.ResetColor();
+        }
+
         Console.WriteLine();
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
@@ -304,6 +328,8 @@ partial class Program
         {
             Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
         }
+
+        // ADB reverse cleanup happens per-client in PhaseProtocolHandler
 
         // Không khôi phục Guard khi tắt server chủ động - chỉ khôi phục khi client disconnect hoặc crash
 
@@ -1036,13 +1062,18 @@ public class SignalAndRestServer
                 var clientId = Guid.NewGuid();
                 var remoteIp = ctx.Request.RemoteEndPoint?.Address;
 
-                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2");
+                // Parse query params for transport mode
+                var query = ctx.Request.Url?.Query ?? "";
+                var queryParams = HttpUtility.ParseQueryString(query);
+                bool isUsbTransport = queryParams["transport"]?.Equals("usb", StringComparison.OrdinalIgnoreCase) == true;
+
+                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2, transport={( isUsbTransport ? "USB" : "WiFi")}");
 
                 // V2 Protocol only: 3-phase connection (hardware discovery, config, streaming)
                 _ = Task.Run(async () =>
                 {
                     var handler = new RemotePlayServer.Protocol.PhaseProtocolHandler(
-                        clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None);
+                        clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None, isUsbTransport);
                     await handler.HandleAsync();
                 });
                 continue;

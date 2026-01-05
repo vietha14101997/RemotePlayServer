@@ -51,6 +51,7 @@ namespace RemotePlayServer.Encoding
         private const float BUFFER_HEALTH_HIGH = 0.7f;               // Buffer > 70% = healthy
         private const float BANDWIDTH_SAFETY_MARGIN = 0.8f;          // Use 80% of available bandwidth
         private const float FPS_DROP_THRESHOLD = 0.7f;               // FPS < 70% of target = reduce bitrate
+        private const float FPS_CRITICAL_THRESHOLD = 0.3f;           // FPS < 30% = critical, bypass warmup
 
         // Statistics
         public int AdjustmentCount { get; private set; }
@@ -170,7 +171,20 @@ namespace RemotePlayServer.Encoding
                 return Math.Max(MinBitrateKbps, current - decreaseStep);
             }
 
-            // During warmup, skip buffer/FPS-based decreases (these are normal during startup)
+            // CRITICAL FPS - bypass warmup if FPS is extremely low (device cannot handle bitrate)
+            if (feedback.TargetFps > 0)
+            {
+                float fpsRatio = feedback.EffectiveFps / feedback.TargetFps;
+                if (fpsRatio < FPS_CRITICAL_THRESHOLD)
+                {
+                    // Device is severely struggling - aggressive bitrate reduction even during warmup
+                    int aggressiveStep = Math.Max(1000, current / 4);  // 25% decrease, min 1Mbps
+                    Console.WriteLine($"[AdaptiveBitrate] CRITICAL FPS: {feedback.EffectiveFps:F1}/{feedback.TargetFps:F1} = {fpsRatio:P0} - aggressive reduction");
+                    return Math.Max(MinBitrateKbps, current - aggressiveStep);
+                }
+            }
+
+            // During warmup, skip normal buffer/FPS-based decreases (these are normal during startup)
             if (inWarmup)
             {
                 // Only log once every few seconds to avoid spam

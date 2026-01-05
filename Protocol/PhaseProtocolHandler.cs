@@ -92,33 +92,96 @@ namespace RemotePlayServer.Protocol
         private System.Timers.Timer? _keepAliveTimer;
         private DateTime _lastPongReceived = DateTime.UtcNow;
         private int _missedPongs = 0;
-        private const int KEEPALIVE_INTERVAL_MS = 5000;  // Ping every 5s
-        private const int MAX_MISSED_PONGS = 3;          // 15s without pong = dead
+        private const int KEEPALIVE_INTERVAL_MS = 2000;  // Ping every 2s (synchronized with client)
+        private const int MAX_MISSED_PONGS = 3;          // 6s without pong = dead (faster detection)
 
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
+
+        // Transport mode (USB vs WiFi)
+        private readonly bool _isUsbTransport;
+        private bool _usbSetupSuccess = false;  // Track if ADB reverse was setup successfully
+        private string? _usbDeviceSerial = null;  // Device serial for ADB cleanup
+        private const int USB_PORT = 8288;
+
+        /// <summary>
+        /// Default bitrate for USB mode (higher due to stable bandwidth).
+        /// </summary>
+        private const int USB_DEFAULT_BITRATE_KBPS = 30000; // 30 Mbps for USB
+
+        /// <summary>
+        /// Default bitrate for WiFi mode (lower to handle variable bandwidth).
+        /// </summary>
+        private const int WIFI_DEFAULT_BITRATE_KBPS = 15000; // 15 Mbps for WiFi
 
         public PhaseProtocolHandler(
             Guid clientId,
             WebSocket ws,
             System.Net.IPAddress? remoteIp,
-            CancellationToken ct)
+            CancellationToken ct,
+            bool isUsbTransport = false)
         {
             _clientId = clientId;
             _ws = ws;
             _remoteIp = remoteIp;
             _ct = ct;
+            _isUsbTransport = isUsbTransport;
         }
+
+        /// <summary>
+        /// Get default bitrate based on transport mode.
+        /// </summary>
+        public int GetDefaultBitrate() => _isUsbTransport ? USB_DEFAULT_BITRATE_KBPS : WIFI_DEFAULT_BITRATE_KBPS;
 
         /// <summary>
         /// Main entry point for handling the client connection.
         /// </summary>
         public async Task HandleAsync()
         {
-            Console.WriteLine($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol)");
+            string transportStr = _isUsbTransport ? "USB (stable)" : "WiFi";
+            Console.WriteLine($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol, transport={transportStr})");
 
             try
             {
+                // === USB MODE ON-DEMAND SETUP ===
+                // Only setup ADB reverse when client actually requests USB mode
+                if (_isUsbTransport)
+                {
+                    Console.WriteLine("[USB] Client requested USB mode, checking cable connection...");
+
+                    if (!AdbHelper.IsAvailable)
+                    {
+                        Console.WriteLine("[USB] ERROR: ADB not available on server");
+                        await SendErrorAsync(0, "USB_NOT_AVAILABLE", "ADB not available on server. Install Android SDK Platform Tools.");
+                        return;
+                    }
+
+                    var devices = AdbHelper.GetConnectedDevices();
+                    if (devices.Length == 0)
+                    {
+                        Console.WriteLine("[USB] ERROR: No USB device connected");
+                        await SendErrorAsync(0, "USB_NO_DEVICE", "No USB device connected. Please connect your device via USB cable and enable USB debugging.");
+                        return;
+                    }
+
+                    _usbDeviceSerial = devices[0];
+                    var deviceModel = AdbHelper.GetDeviceModel(_usbDeviceSerial) ?? "Unknown";
+                    Console.WriteLine($"[USB] Device found: {deviceModel} ({_usbDeviceSerial})");
+
+                    // Setup ADB reverse port forwarding
+                    if (AdbHelper.SetupReversePort(USB_PORT, _usbDeviceSerial))
+                    {
+                        _usbSetupSuccess = true;
+                        Console.WriteLine($"[USB] ADB reverse port forwarding setup: device:{USB_PORT} → localhost:{USB_PORT}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[USB] ERROR: Failed to setup ADB reverse port forwarding");
+                        await SendErrorAsync(0, "USB_SETUP_FAILED", "Failed to setup ADB reverse port forwarding. Check USB debugging permissions.");
+                        return;
+                    }
+                }
+
                 // Phase 1: Hardware discovery and speed test
                 await RunPhase1Async();
 
@@ -217,18 +280,28 @@ namespace RemotePlayServer.Protocol
             // Calculate and send suggested config based on Client's speed test results
             Console.WriteLine("[Protocol] Calculating suggested config...");
             var suggested = StreamingOptimizer.CalculateSuggestedConfig(_hardwareInfo, _encoderInfo, _speedTestResult);
+
+            // USB mode: Override bitrate with higher stable value (USB has 5Gbps bandwidth)
+            int finalBitrate = suggested.BitrateKbps;
+            string transportNote = "";
+            if (_isUsbTransport)
+            {
+                finalBitrate = Math.Max(suggested.BitrateKbps, USB_DEFAULT_BITRATE_KBPS);
+                transportNote = " [USB: High bitrate mode]";
+            }
+
             var sugMsg = new SuggestedConfigMessage
             {
                 Monitors = suggested.Monitors,
                 Resolution = new ResolutionDto { Width = suggested.ResolutionWidth, Height = suggested.ResolutionHeight },
-                BitrateKbps = suggested.BitrateKbps,
+                BitrateKbps = finalBitrate,
                 Fps = suggested.Fps,
                 RefreshRate = suggested.RefreshRate,
-                Reason = suggested.Reason,
+                Reason = suggested.Reason + transportNote,
                 SelectedCodec = _selectedCodec
             };
 
-            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps, codec={_selectedCodec}");
+            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={finalBitrate}kbps, codec={_selectedCodec}, transport={(_isUsbTransport ? "USB" : "WiFi")}");
             await SendMessageAsync(sugMsg);
             Console.WriteLine("[Protocol] ✓ suggested_config sent successfully");
 
@@ -1950,6 +2023,20 @@ namespace RemotePlayServer.Protocol
                     {
                         Console.WriteLine($"[Protocol] Restore failed: {ex.Message}");
                     }
+                }
+            }
+
+            // Cleanup ADB reverse port forwarding if USB mode was used
+            if (_usbSetupSuccess)
+            {
+                try
+                {
+                    AdbHelper.CleanupReversePort(USB_PORT, _usbDeviceSerial);
+                    Console.WriteLine($"[USB] ADB reverse port forwarding cleaned up for device {_usbDeviceSerial}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[USB] Failed to cleanup ADB reverse: {ex.Message}");
                 }
             }
 
