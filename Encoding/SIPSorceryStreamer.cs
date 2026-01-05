@@ -327,40 +327,87 @@ public class SIPSorceryStreamer : IDisposable
                     continue;
                 }
 
-                try
-                {
-                    ITextureEncoder? encoder = CreateEncoderForGpu(gpuVendor);
-                    if (encoder == null)
-                    {
-                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: No suitable encoder found for {gpuVendor}");
-                        continue;
-                    }
-
-                    encoder.OnEncodedData += (nal, keyframe, pts) =>
-                        OnEncodedData(track, nal, keyframe, pts);
-
-                    if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
-                    {
-                        track.Encoder = encoder;
-                        string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "");
-                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[SIPSorcery] Track {track.Index}: Encoder init failed");
-                        encoder.Dispose();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[SIPSorcery] Track {track.Index}: Encoder error: {ex.Message}");
-                }
+                // Try to initialize encoder with fallback chain
+                track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
             }
         }
     }
 
     /// <summary>
-    /// Create the appropriate hardware encoder based on GPU vendor
+    /// Try to initialize encoder with automatic fallback on failure
+    /// </summary>
+    private ITextureEncoder? TryInitializeEncoderWithFallback(TrackInfo track, ID3D11Device device, GpuVendorDetector.GpuVendor gpuVendor)
+    {
+        // First attempt: Use recommended encoder for GPU
+        ITextureEncoder? encoder = CreateEncoderForGpu(gpuVendor);
+        if (encoder == null)
+        {
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: No suitable encoder found for {gpuVendor}");
+            return null;
+        }
+
+        try
+        {
+            encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
+
+            if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
+            {
+                string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized");
+                return encoder;
+            }
+
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: Primary encoder init failed, trying fallback...");
+            encoder.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: Primary encoder error: {ex.Message}");
+            try { encoder.Dispose(); } catch { }
+        }
+
+        // Fallback: Try LibAvEncoderAdapter (FFmpeg-based, more compatible)
+        if (gpuVendor == GpuVendorDetector.GpuVendor.Intel)
+        {
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: Trying LibAv fallback for Intel...");
+            return TryInitializeLibAvEncoder(track, device);
+        }
+
+        // For other GPUs, also try LibAv as final fallback
+        Console.WriteLine($"[SIPSorcery] Track {track.Index}: Trying LibAv software fallback...");
+        return TryInitializeLibAvEncoder(track, device);
+    }
+
+    /// <summary>
+    /// Initialize LibAv encoder as fallback
+    /// </summary>
+    private ITextureEncoder? TryInitializeLibAvEncoder(TrackInfo track, ID3D11Device device)
+    {
+        try
+        {
+            var encoder = new LibAvEncoderAdapter();
+            encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
+
+            if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
+            {
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
+                return encoder;
+            }
+
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder init failed");
+            encoder.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder error: {ex.Message}");
+        }
+
+        Console.WriteLine($"[SIPSorcery] Track {track.Index}: ALL ENCODERS FAILED - no video output!");
+        return null;
+    }
+
+    /// <summary>
+    /// Create the appropriate hardware encoder based on GPU vendor with fallback chain
     /// </summary>
     private static ITextureEncoder? CreateEncoderForGpu(GpuVendorDetector.GpuVendor gpuVendor)
     {
@@ -373,7 +420,9 @@ public class SIPSorceryStreamer : IDisposable
                     Console.WriteLine("[SIPSorcery] Creating AMF encoder for AMD GPU");
                     return new AmfNativeWrapper();
                 }
-                break;
+                // AMD fallback to LibAv AMF
+                Console.WriteLine("[SIPSorcery] AMF native not available, trying LibAv encoder...");
+                return CreateLibAvFallbackEncoder("amf");
 
             case GpuVendorDetector.GpuVendor.NVIDIA:
                 // NVIDIA: Use NVENC encoder
@@ -388,16 +437,12 @@ public class SIPSorceryStreamer : IDisposable
                     Console.WriteLine("[SIPSorcery] NVENC not available, falling back to AMF");
                     return new AmfNativeWrapper();
                 }
-                break;
+                // NVIDIA fallback to LibAv NVENC
+                Console.WriteLine("[SIPSorcery] NVENC native not available, trying LibAv encoder...");
+                return CreateLibAvFallbackEncoder("nvenc");
 
             case GpuVendorDetector.GpuVendor.Intel:
-                // Intel: Use QSV encoder
-                if (QsvNativeWrapper.IsAvailable())
-                {
-                    Console.WriteLine("[SIPSorcery] Creating QSV encoder for Intel GPU");
-                    return new QsvNativeWrapper();
-                }
-                break;
+                return CreateIntelEncoder();
 
             default:
                 // Try each encoder in order of preference
@@ -408,11 +453,68 @@ public class SIPSorceryStreamer : IDisposable
                     return new AmfNativeWrapper();
                 if (QsvNativeWrapper.IsAvailable())
                     return new QsvNativeWrapper();
-                break;
+                // Final fallback to software
+                return CreateLibAvFallbackEncoder("software");
+        }
+    }
+
+    /// <summary>
+    /// Create Intel encoder with driver version-aware fallback chain:
+    /// 1. QsvNativeWrapper (Media Foundation) - requires driver >= 27.20.100.x
+    /// 2. LibAvEncoderAdapter with h264_qsv (FFmpeg QSV) - works with older drivers
+    /// 3. LibAvEncoderAdapter software (x264) - final fallback
+    /// </summary>
+    private static ITextureEncoder? CreateIntelEncoder()
+    {
+        var driverInfo = GpuVendorDetector.GetIntelDriverInfo();
+        Console.WriteLine($"[SIPSorcery] Intel GPU: {driverInfo.GpuName}");
+        Console.WriteLine($"[SIPSorcery] Intel driver: {driverInfo.DriverVersionString}, reason: {driverInfo.Reason}");
+
+        // Step 1: Try native MF encoder if driver supports it
+        if (driverInfo.RecommendedEncoder == "qsv_native" || driverInfo.RecommendedEncoder == "qsv_try_native")
+        {
+            if (QsvNativeWrapper.IsAvailable())
+            {
+                Console.WriteLine("[SIPSorcery] Trying QSV native encoder (Media Foundation)...");
+                var encoder = new QsvNativeWrapper();
+                // Note: Actual initialization happens later in InitializeEncoders()
+                // If it fails there, we should have a retry mechanism
+                return encoder;
+            }
+            Console.WriteLine("[SIPSorcery] QSV native not available (DLL missing or QsvIsAvailable=false)");
         }
 
-        Console.WriteLine("[SIPSorcery] No hardware encoder available!");
-        return null;
+        // Step 2: Try FFmpeg QSV (h264_qsv) - more compatible with older drivers
+        Console.WriteLine("[SIPSorcery] Trying FFmpeg QSV encoder (h264_qsv)...");
+        var ffmpegQsvEncoder = CreateLibAvFallbackEncoder("qsv");
+        if (ffmpegQsvEncoder != null)
+        {
+            return ffmpegQsvEncoder;
+        }
+
+        // Step 3: Final fallback to software encoder
+        Console.WriteLine("[SIPSorcery] All Intel hardware encoders failed, using software encoder...");
+        return CreateLibAvFallbackEncoder("software");
+    }
+
+    /// <summary>
+    /// Create LibAvEncoderAdapter as fallback encoder
+    /// </summary>
+    private static ITextureEncoder? CreateLibAvFallbackEncoder(string type)
+    {
+        try
+        {
+            Console.WriteLine($"[SIPSorcery] Creating LibAv fallback encoder (type={type})...");
+            var encoder = new LibAvEncoderAdapter();
+            // Note: LibAvEncoderAdapter will auto-detect hardware and fall back internally
+            // The 'type' hint is for logging purposes
+            return encoder;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SIPSorcery] LibAv fallback encoder creation failed: {ex.Message}");
+            return null;
+        }
     }
 
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
