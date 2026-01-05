@@ -38,8 +38,8 @@ Data: {"ip":"192.168.1.67","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected dfee8b9c-8f37-495b-b621-df3dee2f8ff9, protocol=v2
-[Protocol] Client dfee8b9c-8f37-495b-b621-df3dee2f8ff9 connected from 192.168.1.74 (v2 protocol)
+[Signal] Client connected 9d363e35-67ae-4c7a-92d2-9930af645ffd, protocol=v2
+[Protocol] Client 9d363e35-67ae-4c7a-92d2-9930af645ffd connected from 192.168.1.74 (v2 protocol)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
@@ -52,6 +52,8 @@ Server is running. Press ENTER to exit.
 [HardwareInfo] Encoder: QSV, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767584968645
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767584970661
 [Protocol] WaitForHardwareAck received: len=203, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
 [Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=MS-7B24 (Micro-Star International Co., Ltd.)
@@ -66,23 +68,21 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 12MB in 3526ms = 28.5 Mbps
+[Protocol] Download test complete: sent 8MB in 2488ms = 27.0 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 28.2Mbps, 26.8ms
-[Protocol] ✓ Received speedtest_result from client: 28.2Mbps, 26.8ms ping
+[Protocol] speedtest_result parsed: 31.0Mbps, 10.2ms
+[Protocol] ✓ Received speedtest_result from client: 31.0Mbps, 10.2ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 1x1366x768@45fps, bitrate=15000kbps, codec=H264
+[Protocol] Sending suggested_config: 1x1366x768@60fps, bitrate=15000kbps, codec=H264
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1767584139773...
-[Protocol] WaitForProceed received: ping:1767584141814...
-[Protocol] WaitForProceed received: ping:1767584143822...
-[Protocol] WaitForProceed received: ping:1767584145840...
-[Protocol] WaitForProceed received: ping:1767584147873...
-[Protocol] WaitForProceed received: ping:1767584149891...
+[Protocol] WaitForProceed received: ping:1767584976727...
+[Protocol] WaitForProceed received: ping:1767584978760...
+[Protocol] WaitForProceed received: ping:1767584980776...
+[Protocol] WaitForProceed received: ping:1767584982810...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -116,69 +116,73 @@ Server is running. Press ENTER to exit.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1767584151922...
+[Protocol] ICE RX: ping:1767584984840...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584153955...
+[Protocol] ICE RX: ping:1767584986857...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584155972...
+[Protocol] ICE RX: ping:1767584988873...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584157989...
+[Protocol] ICE RX: ping:1767584990907...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584160023...
+[Protocol] ICE RX: ping:1767584992941...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584162056...
+[Protocol] ICE RX: ping:1767584994957...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584164073...
+[Protocol] ICE RX: ping:1767584996990...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1815436851 1 udp 2122129151 19...
+[Protocol] ICE RX: ping:1767584999023...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"314293214 1 udp 2122129151 192...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2631664942 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3797082307 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3043097266 1 udp 2122197247 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3421445983 1 udp 2122197247 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6511895811151052424 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2886822654800054787 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 3 pending ICE candidates
 [Protocol] Parsed H264 PT from offer: 123
 [SIPSorcery] Processing offer for 1 monitors
 [SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 76:6A:EE:F2:1F:8A:9B:C0:4C:FC:8A:F8:6C:B2:49:8B:18:13:A3:1F:B4:AB:95:E0:6C:9F:67:73:0E:0C:B2:DE
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 8C:8A:42:6A:F4:D0:89:11:4D:CD:9A:6E:36:73:8D:4A:C5:90:BD:DD:01:B8:4E:D8:8E:C0:CA:BC:07:B0:05:E7
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
 [SIPSorcery] Added track 0: 1920x1080
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 58914 typ ...
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 52654 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 BE:CD:0D:AC:30:34:73:E4:A0:65:4B:A8:43:E5:29:50:1B:76:EC:4F:D1:78:5B:1F:D9:D2:65:87:9E:D0:D8:04
+[SIPSorcery] SDP: a=fingerprint:sha-256 60:D7:4D:00:5B:FA:F3:D6:E1:05:31:C0:30:FB:BD:F9:FF:98:B0:FB:F7:33:41:11:54:B0:FA:B1:10:8E:5A:2D
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1211 bytes
+[SIPSorcery] Answer ready, 1209 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
 [Protocol] SDP kept: a=rtpmap:123 H264/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[Protocol] Filtered SDP from 1211 to 707 bytes
+[Protocol] Filtered SDP from 1209 to 705 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 44379 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=709 bytes
-[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 58914 typ ...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 41323 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=707 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 52654 typ ...
 [Protocol] Applying 3 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:1815436851 1 udp 2122129151 192.168.1.74...
-[Protocol] Applied pending ICE: 1815436851 1 udp 2122129151 192.168.1.74 50980 typ...
-[SIPSorcery] Added remote ICE: candidate:2631664942 1 udp 2122262783 2402:800:6d6...
-[Protocol] Applied pending ICE: 2631664942 1 udp 2122262783 2402:800:6d62:7e9c:601...
-[SIPSorcery] Added remote ICE: candidate:3043097266 1 udp 2122197247 2402:800:6d6...
-[Protocol] Applied pending ICE: 3043097266 1 udp 2122197247 2402:800:6d62:7e9c:de3...
-[Protocol] ICE RX: ping:1767584166097...
+[SIPSorcery] Added remote ICE: candidate:314293214 1 udp 2122129151 192.168.1.74 ...
+[Protocol] Applied pending ICE: 314293214 1 udp 2122129151 192.168.1.74 54679 typ ...
+[SIPSorcery] Added remote ICE: candidate:3797082307 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 3797082307 1 udp 2122262783 2402:800:6d62:7e9c:601...
+[SIPSorcery] Added remote ICE: candidate:3421445983 1 udp 2122197247 2402:800:6d6...
+[Protocol] Applied pending ICE: 3421445983 1 udp 2122197247 2402:800:6d62:7e9c:de3...
+[Protocol] ICE RX: ping:1767585001050...
 [Protocol] ICE legacy format message
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 58914 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
+[Protocol] ICE RX: ping:1767585003066...
+[Protocol] ICE legacy format message
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 52654 ty...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
 [Protocol] Phase 3: Waiting for all monitors to connect...
@@ -186,11 +190,42 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [SIPSorcery] Detected GPU vendor: Intel
-[SIPSorcery] Creating QSV encoder for Intel GPU
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
 [QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
 [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
-[SIPSorcery] Track 0: Encoder init failed
+[SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
 [QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 15000kbps, codec=H265
+[LibAvEncoder] SetDllDirectory: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] FFmpeg.RootPath: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] SelectEncoder: preferredCodec=H265
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] SelectEncoder: vendor=Intel
+[LibAvEncoder] Trying H.265 encoder...
+[LibAvEncoder] Selected H.265 encoder: hevc_qsv
+[LibAvEncoder] Using encoder: hevc_qsv
+[LibAvEncoder] Configuring Intel HEVC QSV encoder (quality + low latency)
+[LibAvEncoder] HEVC QSV VBR: target 15000kbps, max 30000kbps
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002bf830b5bc0] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] QSV device created directly (matches known good config)
+[LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+[LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+[LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+[hevc_qsv @ 000002bf83b3a480] some encoding parameters are not supported by the QSV runtime. Please double check the input parameters.
+[LibAvEncoder] Failed to open codec: Function not implemented
+[LibAvEncoderAdapter] LibAvEncoder initialization failed
+[LibAvEncoder] Disposed (Safe)
+[SIPSorcery] Track 0: LibAv encoder init failed
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
+[SIPSorcery] Stats: m0:0
 [Protocol] All 1 tracks ready, sending ice_ready
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
@@ -202,19 +237,144 @@ Server is running. Press ENTER to exit.
 [MultimediaTimer] Timer resolution set to 1ms
 [PerMonitorCapture] Started 1 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[GpuColorConverter] GPU: Intel, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
-[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
-[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
-[GpuColorConverter] Compute Shader compiled and created successfully
-[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [SIPSorcery] Stats: m0:0
-[Capture FPS] Mon0: 26.9 fps (captured 81 in 3011ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.3 fps (captured 58 in 3010ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [SIPSorcery] Stats: m0:0
-[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
-[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
-[Capture FPS] Mon0: 32.2 fps (captured 97 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2340175383188079804 2 IN IP4 127.0.0.1\r\ns=-\r\n
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.3 fps (captured 58 in 3001ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2286007324806614435 2 IN IP4 127.0.0.1\r\ns=-\r\n
 [Protocol] Received reconnect offer during streaming (JSON format)
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 0 pending ICE candidates
@@ -224,16 +384,24 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Connection closed
 [SIPSorcery] Processing offer for 1 monitors
 [SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 C2:0C:09:A9:75:1C:A3:BE:B1:8B:74:0D:97:0B:CD:A1:C2:C9:EA:E3:36:15:87:A0:1A:7D:B6:76:4F:4F:84:E6
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 16:B2:AB:5B:A9:E9:40:43:04:55:95:F2:4E:37:37:45:06:E7:A5:DD:79:4A:34:13:38:A3:27:6A:FD:86:1E:10
 [SIPSorcery] Client SDP: a=setup:actpass
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [SIPSorcery] PeerConnection created (with STUN)
 [SIPSorcery] Added track 0: 1920x1080
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 53082 typ ...
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 61688 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 69:1D:F7:B7:79:D8:E5:19:09:3E:1B:C7:7C:EA:71:B4:8E:69:7A:07:9B:86:30:AA:A7:7D:AB:D7:38:B6:7C:F1
+[SIPSorcery] SDP: a=fingerprint:sha-256 31:6B:1F:41:E4:E9:B5:C2:0B:E8:26:FE:16:CB:EB:64:FC:27:2E:9E:C9:5B:B1:4F:EB:98:80:12:FE:8D:11:2F
 [SIPSorcery] SDP: a=setup:active
 [SIPSorcery] Answer ready, 1211 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
@@ -241,44 +409,349 @@ Server is running. Press ENTER to exit.
 [Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
 [Protocol] Filtered SDP from 1211 to 707 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 49485 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 75139 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
 [Protocol] Sent single answer, len=709 bytes
-[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 53082 typ ...
-[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"2891194164 1 udp 2122129151 192.168.1.74 50934 typ
-[SIPSorcery] Added remote ICE: candidate:2891194164 1 udp 2122129151 192.168.1.74...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1555907625 1 udp 2122262783 2402:800:6d62:7e9c:601
-[SIPSorcery] Added remote ICE: candidate:1555907625 1 udp 2122262783 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1962982325 1 udp 2122197247 2402:800:6d62:7e9c:de3
-[SIPSorcery] Added remote ICE: candidate:1962982325 1 udp 2122197247 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"2002206581 1 udp 1685921535 27.72.102.134 50934 ty
-[SIPSorcery] Added remote ICE: candidate:2002206581 1 udp 1685921535 27.72.102.13...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 53082 ty...
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 61688 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"3904580158 1 udp 2122129151 192.168.1.74 51940 typ
+[SIPSorcery] Added remote ICE: candidate:3904580158 1 udp 2122129151 192.168.1.74...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2337124284 1 udp 2122262783 2402:800:6d62:7e9c:601
+[SIPSorcery] Added remote ICE: candidate:2337124284 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1927138604 1 udp 2122197247 2402:800:6d62:7e9c:de3
+[SIPSorcery] Added remote ICE: candidate:1927138604 1 udp 2122197247 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"3921369112 1 udp 1685921535 27.72.102.134 51940 ty
+[SIPSorcery] Added remote ICE: candidate:3921369112 1 udp 1685921535 27.72.102.13...
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61688 ty...
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Detected GPU vendor: Intel
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
+[QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[SIPSorcery] Track 0: LibAv encoder init failed
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.4 fps (captured 59 in 3045ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.3 fps (captured 58 in 3007ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 5777038538711060444 2 IN IP4 127.0.0.1\r\ns=-\r\n
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Parsed H264 PT from offer: 123
+[SIPSorcery] Closing existing connection for reconnect...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 92:60:02:88:35:AC:01:40:E3:6D:95:2F:D7:AD:11:3D:6C:3B:5B:48:86:7A:D5:96:B9:D0:C7:78:81:15:B9:69
+[SIPSorcery] Client SDP: a=setup:actpass
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 61690 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 D8:D5:67:8B:E4:2E:FA:C0:DF:51:7F:67:B9:F9:C8:89:11:1F:32:90:FF:76:DB:9A:86:A4:CA:FC:41:5B:2F:35
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1210 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
+[Protocol] SDP kept: a=rtpmap:123 H264/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[Protocol] Filtered SDP from 1210 to 706 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 58679 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=708 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 61690 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"4148152384 1 udp 2122129151 192.168.1.74 61084 typ
+[SIPSorcery] Added remote ICE: candidate:4148152384 1 udp 2122129151 192.168.1.74...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2496220610 1 udp 2122262783 2402:800:6d62:7e9c:601
+[SIPSorcery] Added remote ICE: candidate:2496220610 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1834561362 1 udp 2122197247 2402:800:6d62:7e9c:de3
+[SIPSorcery] Added remote ICE: candidate:1834561362 1 udp 2122197247 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"4131371622 1 udp 1685921535 27.72.102.134 61084 ty
+[SIPSorcery] Added remote ICE: candidate:4131371622 1 udp 1685921535 27.72.102.13...
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61690 ty...
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
 [SIPSorcery] Detected GPU vendor: Intel
-[2026-01-05 10:36:16.824] UNOBSERVED TASK EXCEPTION:
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[2026-01-05 10:50:27.661] UNOBSERVED TASK EXCEPTION:
 System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
  ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
    at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
    --- End of inner exception stack trace ---
 
 
-[SIPSorcery] Creating QSV encoder for Intel GPU
+[2026-01-05 10:50:27.705] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
 [QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
-[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
-[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
-[QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
-[SIPSorcery] Track 0: Encoder init failed
+[QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
 [QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[SIPSorcery] Track 0: LibAv encoder init failed
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
 [Protocol] All 1 tracks ready, sending ice_ready
-[Protocol] Failed to send ice_ready: There is already one outstanding 'SendAsync' call for this WebSocket instance. ReceiveAsync and SendAsync can be called simultaneously, but at most one outstanding operation for each of them is allowed at the same time.
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.4 fps (captured 59 in 3042ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Capture FPS] Mon0: 19.4 fps (captured 59 in 3047ms, rate-limited=0)
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=stop_streaming, len=25, preview={"type":"stop_streaming"}
+[Protocol] Received stop_streaming
 [Protocol] Cursor tracking stopped
 [Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
@@ -286,6 +759,7 @@ System.AggregateException: A Task's exception(s) were not observed either by Wai
 [SIPSorcery] Peer state: closed
 [SIPSorcery] Connection closed
 [SIPSorcery] Disposed
+[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [PerMonitorCapture] Monitor 0: Capture thread stopped
 [MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
@@ -311,11 +785,3 @@ Device disabled successfully.
 [Guard] Restoring original state before exit...
 [Guard] Step 1: Restoring Text Scale first...
 [Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Step 2: Restoring per-monitor text scale...
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[Guard] Restore timeout.
-[Protocol] Display settings restored.
-[Protocol] Client dfee8b9c-8f37-495b-b621-df3dee2f8ff9 disconnected
