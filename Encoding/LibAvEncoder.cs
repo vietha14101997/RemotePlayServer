@@ -1662,14 +1662,14 @@ public unsafe class LibAvEncoder : IDisposable
                 }
 
                 // Force keyframe if requested (for reconnect scenarios)
-                if (forceKeyframe)
+                // Hardware encoders (QSV/NVENC/AMF) ignore pict_type hint, need forced_idr option
+                if (IsHardwareEncoder())
                 {
-                    _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "forced_idr", forceKeyframe ? "1" : "0", 0);
                 }
-                else
-                {
-                    _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
-                }
+                _hwFrame->pict_type = forceKeyframe
+                    ? AVPictureType.AV_PICTURE_TYPE_I
+                    : AVPictureType.AV_PICTURE_TYPE_NONE;
 
                 // Send frame to encoder
                 ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
@@ -1900,14 +1900,14 @@ public unsafe class LibAvEncoder : IDisposable
                     }
 
                     // 3. Force keyframe if requested (for reconnect scenarios)
-                    if (forceKeyframe)
+                    // Hardware encoders (QSV/NVENC/AMF) ignore pict_type hint, need forced_idr option
+                    if (IsHardwareEncoder())
                     {
-                        _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                        ffmpeg.av_opt_set(_codecCtx->priv_data, "forced_idr", forceKeyframe ? "1" : "0", 0);
                     }
-                    else
-                    {
-                        _hwFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
-                    }
+                    _hwFrame->pict_type = forceKeyframe
+                        ? AVPictureType.AV_PICTURE_TYPE_I
+                        : AVPictureType.AV_PICTURE_TYPE_NONE;
 
                     // 4. Send Frame to Encoder
                     // Since we used create_derived, _hwFrame from get_buffer(_hwFramesCtx) IS the QSV frame.
@@ -1946,14 +1946,14 @@ public unsafe class LibAvEncoder : IDisposable
                         swFrame->pts = currentPts;
 
                         // Force keyframe if requested (for reconnect scenarios)
-                        if (forceKeyframe)
+                        // Hardware encoders (QSV/NVENC/AMF) ignore pict_type hint, need forced_idr option
+                        if (IsHardwareEncoder())
                         {
-                            swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_I;
+                            ffmpeg.av_opt_set(_codecCtx->priv_data, "forced_idr", forceKeyframe ? "1" : "0", 0);
                         }
-                        else
-                        {
-                            swFrame->pict_type = AVPictureType.AV_PICTURE_TYPE_NONE;
-                        }
+                        swFrame->pict_type = forceKeyframe
+                            ? AVPictureType.AV_PICTURE_TYPE_I
+                            : AVPictureType.AV_PICTURE_TYPE_NONE;
 
                         ret = ffmpeg.avcodec_send_frame(_codecCtx, swFrame);
                     }
@@ -2032,6 +2032,16 @@ public unsafe class LibAvEncoder : IDisposable
                 ffmpeg.av_packet_unref(_packet);
             }
         }
+    }
+
+    /// <summary>
+    /// Check if current encoder is a hardware encoder that needs forced_idr option
+    /// </summary>
+    private bool IsHardwareEncoder()
+    {
+        return _encoderName.Contains("nvenc") ||
+               _encoderName.Contains("amf") ||
+               _encoderName.Contains("qsv");
     }
 
     private static string GetErrorMessage(int error)
