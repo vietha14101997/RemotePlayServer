@@ -198,35 +198,6 @@ namespace RemotePlayServer.Encoding
             // Check if we're still in warmup period
             bool inWarmup = (DateTime.UtcNow - _streamStartTime).TotalMilliseconds < WARMUP_PERIOD_MS;
 
-            // === DECREASE conditions (any of these triggers decrease) ===
-
-            // High packet loss - always react, even during warmup (real network issue)
-            if (feedback.PacketLossRate > PACKET_LOSS_INCREASE_THRESHOLD)
-            {
-                Console.WriteLine($"[AdaptiveBitrate] High packet loss: {feedback.PacketLossRate:P1}");
-                return Math.Max(MinBitrateKbps, current - decreaseStep);
-            }
-
-            // CRITICAL FPS - bypass warmup if FPS is extremely low (device cannot handle bitrate)
-            if (feedback.TargetFps > 0)
-            {
-                float fpsRatio = feedback.EffectiveFps / feedback.TargetFps;
-                if (fpsRatio < FPS_CRITICAL_THRESHOLD)
-                {
-                    // Device is severely struggling - aggressive bitrate reduction even during warmup
-                    int aggressiveStep = Math.Max(1000, current / 4);  // 25% decrease, min 1Mbps
-                    Console.WriteLine($"[AdaptiveBitrate] CRITICAL FPS: {feedback.EffectiveFps:F1}/{feedback.TargetFps:F1} = {fpsRatio:P0} - aggressive reduction");
-                    return Math.Max(MinBitrateKbps, current - aggressiveStep);
-                }
-            }
-
-            // During warmup, skip normal buffer/FPS-based decreases (these are normal during startup)
-            if (inWarmup)
-            {
-                // Only log once every few seconds to avoid spam
-                return current;
-            }
-
             // Check if there are actual dropped frames (network issue vs static content)
             // Low FPS with NO dropped frames = static content optimization, don't reduce bitrate
             int totalDroppedFrames = 0;
@@ -239,9 +210,42 @@ namespace RemotePlayServer.Encoding
                     totalRenderedFrames += monitor.RenderedFrames;
                 }
             }
+            bool hasActualProblems = totalDroppedFrames > 0 || feedback.PacketLossRate > 0.01f;
+
+            // === DECREASE conditions (any of these triggers decrease) ===
+
+            // High packet loss - always react, even during warmup (real network issue)
+            if (feedback.PacketLossRate > PACKET_LOSS_INCREASE_THRESHOLD)
+            {
+                Console.WriteLine($"[AdaptiveBitrate] High packet loss: {feedback.PacketLossRate:P1}");
+                return Math.Max(MinBitrateKbps, current - decreaseStep);
+            }
+
+            // CRITICAL FPS - only trigger if there are actual problems (dropped frames or packet loss)
+            // Low FPS alone can be due to static content optimization, not network issues
+            if (feedback.TargetFps > 0 && hasActualProblems)
+            {
+                float fpsRatio = feedback.EffectiveFps / feedback.TargetFps;
+                if (fpsRatio < FPS_CRITICAL_THRESHOLD)
+                {
+                    // Device is severely struggling WITH evidence of problems
+                    int aggressiveStep = Math.Max(1000, current / 4);  // 25% decrease, min 1Mbps
+                    Console.WriteLine($"[AdaptiveBitrate] CRITICAL FPS with drops: {feedback.EffectiveFps:F1}/{feedback.TargetFps:F1} = {fpsRatio:P0}, drops={totalDroppedFrames}");
+                    return Math.Max(MinBitrateKbps, current - aggressiveStep);
+                }
+            }
+
+            // During warmup, skip normal buffer/FPS-based decreases (these are normal during startup)
+            if (inWarmup)
+            {
+                // Only log once every few seconds to avoid spam
+                return current;
+            }
+
+            // Calculate hasSignificantDrops for remaining checks (>5% drop rate)
             bool hasSignificantDrops = totalDroppedFrames > 0 &&
                                        totalRenderedFrames > 0 &&
-                                       (float)totalDroppedFrames / (totalDroppedFrames + totalRenderedFrames) > 0.05f; // >5% drop rate
+                                       (float)totalDroppedFrames / (totalDroppedFrames + totalRenderedFrames) > 0.05f;
 
             // Track network issue time for auto-recovery
             bool hasNetworkIssue = hasSignificantDrops || feedback.PacketLossRate > 0.01f;
@@ -292,24 +296,28 @@ namespace RemotePlayServer.Encoding
                 return newBitrate;
             }
 
-            // === INCREASE conditions (all must be true) ===
+            // === INCREASE conditions ===
+            // Only increase if content is actively streaming (not static)
+            // Static content (low FPS) doesn't tell us anything about bandwidth headroom
+            float currentFpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 0f;
+            bool isActiveContent = currentFpsRatio > 0.6f;  // At least 60% of target FPS = active streaming
 
+            // Only increase if we're below initial AND conditions are good
+            // We don't proactively exceed initial bitrate - that's set by user preference
             bool canIncrease =
+                current < InitialBitrateKbps &&  // Only increase up to initial, not beyond
                 feedback.PacketLossRate < PACKET_LOSS_DECREASE_THRESHOLD &&
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
-                current < MaxBitrateKbps &&
-                !hasNetworkIssue;  // Simplified: just need no network issues
+                !hasNetworkIssue &&
+                isActiveContent;  // Must have active content to know bandwidth is sufficient
 
             if (canIncrease)
             {
-                // Don't exceed initial bitrate by too much (prevent runaway)
-                int maxIncreaseTarget = (int)(InitialBitrateKbps * 1.5);
-                int newBitrate = Math.Min(maxIncreaseTarget, current + increaseStep);
-                newBitrate = Math.Min(MaxBitrateKbps, newBitrate);
+                int newBitrate = Math.Min(InitialBitrateKbps, current + increaseStep);
 
                 if (newBitrate > current)
                 {
-                    Console.WriteLine($"[AdaptiveBitrate] Conditions good, increasing bitrate");
+                    Console.WriteLine($"[AdaptiveBitrate] Active content good (FPS {currentFpsRatio:P0}), recovering to {newBitrate} kbps");
                     return newBitrate;
                 }
             }
