@@ -44,6 +44,11 @@ namespace RemotePlayServer.Encoding
         private DateTime _streamStartTime = DateTime.MinValue;
         private const int WARMUP_PERIOD_MS = 15000; // 15 second warmup period
 
+        // Auto-recovery: Track stable periods to recover bitrate
+        private DateTime _lastNetworkIssueTime = DateTime.MinValue;
+        private const int RECOVERY_DELAY_MS = 10000; // 10 seconds without issues before recovery
+        private const int RECOVERY_COOLDOWN_MS = 5000; // 5 seconds between recovery steps
+
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease
         private const float PACKET_LOSS_DECREASE_THRESHOLD = 0.005f; // <0.5% loss allows increase
@@ -134,14 +139,45 @@ namespace RemotePlayServer.Encoding
 
         /// <summary>
         /// Update EWMA values with new feedback.
+        /// Only updates EWMA bandwidth downward when there are actual dropped frames (network issue).
+        /// Static content (low FPS, no drops) should not reduce EWMA bandwidth.
         /// </summary>
         private void UpdateEwma(QualityFeedbackMessage feedback)
         {
+            // Calculate dropped frames ratio to detect actual network issues vs static content
+            int totalDroppedFrames = 0;
+            int totalRenderedFrames = 0;
+            if (feedback.Monitors != null)
+            {
+                foreach (var monitor in feedback.Monitors)
+                {
+                    totalDroppedFrames += monitor.DroppedFrames;
+                    totalRenderedFrames += monitor.RenderedFrames;
+                }
+            }
+
             // Estimate bandwidth from effective FPS ratio
             float fpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 1f;
             double estimatedBandwidth = TargetBitrateKbps * fpsRatio;
 
-            _ewmaBandwidth = EWMA_ALPHA * estimatedBandwidth + (1 - EWMA_ALPHA) * _ewmaBandwidth;
+            // Only update EWMA bandwidth downward if there are actual dropped frames (network issue)
+            // Static content (low FPS, no drops) = content optimization, not network issue
+            bool hasNetworkIssue = totalDroppedFrames > 0 || feedback.PacketLossRate > 0.01f;
+
+            if (hasNetworkIssue)
+            {
+                // Network issue detected - update EWMA normally (can go up or down)
+                _ewmaBandwidth = EWMA_ALPHA * estimatedBandwidth + (1 - EWMA_ALPHA) * _ewmaBandwidth;
+            }
+            else if (estimatedBandwidth > _ewmaBandwidth)
+            {
+                // No network issue and bandwidth estimate is higher - allow recovery
+                // Use slower alpha for recovery to be conservative
+                double recoveryAlpha = EWMA_ALPHA * 0.5;
+                _ewmaBandwidth = recoveryAlpha * estimatedBandwidth + (1 - recoveryAlpha) * _ewmaBandwidth;
+            }
+            // else: No network issue, static content - keep EWMA stable (don't decrease)
+
             _ewmaPacketLoss = EWMA_ALPHA * feedback.AvgPacketLossRate + (1 - EWMA_ALPHA) * _ewmaPacketLoss;
             _ewmaRtt = EWMA_ALPHA * feedback.RttMs + (1 - EWMA_ALPHA) * _ewmaRtt;
         }
@@ -207,6 +243,13 @@ namespace RemotePlayServer.Encoding
                                        totalRenderedFrames > 0 &&
                                        (float)totalDroppedFrames / (totalDroppedFrames + totalRenderedFrames) > 0.05f; // >5% drop rate
 
+            // Track network issue time for auto-recovery
+            bool hasNetworkIssue = hasSignificantDrops || feedback.PacketLossRate > 0.01f;
+            if (hasNetworkIssue)
+            {
+                _lastNetworkIssueTime = DateTime.UtcNow;
+            }
+
             // Buffer starving - only reduce if there are actual dropped frames
             if (feedback.BufferStatus == "starving" && hasSignificantDrops)
             {
@@ -232,13 +275,30 @@ namespace RemotePlayServer.Encoding
                 return Math.Max(MinBitrateKbps, current - decreaseStep);
             }
 
+            // === AUTO-RECOVERY: Restore bitrate after stable period ===
+            // If no network issues for RECOVERY_DELAY_MS and bitrate is below initial, recover gradually
+            double timeSinceLastIssue = (DateTime.UtcNow - _lastNetworkIssueTime).TotalMilliseconds;
+            double timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
+
+            if (current < InitialBitrateKbps &&
+                timeSinceLastIssue > RECOVERY_DELAY_MS &&
+                timeSinceLastAdjustment > RECOVERY_COOLDOWN_MS &&
+                !hasNetworkIssue)
+            {
+                // Gradually recover toward initial bitrate
+                int recoveryStep = Math.Max(500, (InitialBitrateKbps - current) / 4); // 25% of deficit, min 500kbps
+                int newBitrate = Math.Min(InitialBitrateKbps, current + recoveryStep);
+                Console.WriteLine($"[AdaptiveBitrate] Auto-recovery: {current} → {newBitrate} kbps (stable for {timeSinceLastIssue/1000:F1}s)");
+                return newBitrate;
+            }
+
             // === INCREASE conditions (all must be true) ===
 
             bool canIncrease =
                 feedback.PacketLossRate < PACKET_LOSS_DECREASE_THRESHOLD &&
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
-                _ewmaBandwidth > current * 1.2 &&  // EWMA bandwidth 20% above current
-                current < MaxBitrateKbps;
+                current < MaxBitrateKbps &&
+                !hasNetworkIssue;  // Simplified: just need no network issues
 
             if (canIncrease)
             {
@@ -292,6 +352,7 @@ namespace RemotePlayServer.Encoding
             _ewmaPacketLoss = 0;
             _ewmaRtt = 30;
             _lastAdjustmentTime = DateTime.MinValue;
+            _lastNetworkIssueTime = DateTime.MinValue;
             AdjustmentCount = 0;
 
             Console.WriteLine($"[AdaptiveBitrate] Reset to {InitialBitrateKbps}kbps");
