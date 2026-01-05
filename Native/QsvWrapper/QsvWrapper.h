@@ -96,6 +96,14 @@ QSVWRAPPER_API int QsvDestroyEncoder(QsvEncoderHandle handle);
 /// </summary>
 QSVWRAPPER_API const char* QsvGetLastError();
 
+/// <summary>
+/// Dynamically change encoder bitrate without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bitrateKbps">New target bitrate in kbps</param>
+/// <returns>QSV_WRAPPER_OK on success</returns>
+QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps);
+
 #ifdef __cplusplus
 }
 #endif

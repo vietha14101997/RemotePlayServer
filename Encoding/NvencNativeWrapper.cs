@@ -68,6 +68,9 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr NvencGetLastError();
 
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencSetBitrate(IntPtr handle, int bitrateKbps);
+
     #endregion
 
     #region Fields
@@ -89,6 +92,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     public bool IsInitialized => _handle != IntPtr.Zero;
     public int Width => _width;
     public int Height => _height;
+    public int CurrentBitrateKbps => _bitrate;
 
     #endregion
 
@@ -218,6 +222,36 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[NvencNativeWrapper] Flush exception: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Dynamically change encoder bitrate
+    /// </summary>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = NvencSetBitrate(_handle, bitrateKbps);
+            if (result == NVENC_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Console.WriteLine($"[NvencNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"[NvencNativeWrapper] SetBitrate failed: {GetLastError()}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[NvencNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
         }
     }
 

@@ -446,12 +446,15 @@ public sealed class PerMonitorCapture : IDisposable
                 if (mon.Duplication == null) goto Pacing;
 
                 // RATE LIMITING CHECK (BEFORE acquiring frame)
-                // This is the key fix: don't even try to acquire frames too frequently
+                // Rate limiting controls SENDING, not ACQUIRING - always try to get the latest frame
                 long timeSinceLastSent = loopStart - mon.LastSentTime;
                 bool canSendFrame = mon.LastSentTime == 0 || timeSinceLastSent >= frameTimeMs;
 
-                // Use short timeout - we just want to check for new frames and release DXGI's internal queue
-                int timeoutMs = canSendFrame ? 5 : 1; // Even shorter timeout when rate limited
+                // Use consistent timeout for frame acquisition regardless of rate-limiting
+                // Previously: 1ms when rate-limited caused DXGI to always timeout, dropping FPS to 0
+                // Fix: Always use reasonable timeout to properly acquire and cache frames
+                const int ACQUIRE_TIMEOUT_MS = 8; // ~120fps max check rate, allows proper frame caching
+                int timeoutMs = ACQUIRE_TIMEOUT_MS;
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
 
                 if (result.Success && desktopResource != null)

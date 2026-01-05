@@ -437,6 +437,110 @@ namespace RemotePlayServer.Protocol
         public int TargetFps { get; set; }
     }
 
+    // ==================== Adaptive Bitrate Messages ====================
+
+    /// <summary>
+    /// Per-monitor quality feedback data.
+    /// </summary>
+    public class MonitorFeedback
+    {
+        [JsonPropertyName("index")]
+        public int Index { get; set; }
+
+        [JsonPropertyName("renderedFrames")]
+        public int RenderedFrames { get; set; }
+
+        [JsonPropertyName("realFrames")]
+        public int RealFrames { get; set; }
+
+        [JsonPropertyName("droppedFrames")]
+        public int DroppedFrames { get; set; }
+
+        [JsonPropertyName("texturePtrWorking")]
+        public bool TexturePtrWorking { get; set; }
+    }
+
+    /// <summary>
+    /// Client -> Server: Comprehensive quality feedback for adaptive bitrate.
+    /// Sent periodically (every ~3 seconds) to enable server-side bitrate adaptation.
+    /// </summary>
+    public class QualityFeedbackMessage : ProtocolMessage
+    {
+        public override string Type => "quality_feedback";
+
+        [JsonPropertyName("timestamp")]
+        public long Timestamp { get; set; }
+
+        [JsonPropertyName("rttMs")]
+        public float RttMs { get; set; }
+
+        [JsonPropertyName("avgRttMs")]
+        public float AvgRttMs { get; set; }
+
+        [JsonPropertyName("jitterMs")]
+        public float JitterMs { get; set; }
+
+        [JsonPropertyName("packetLossRate")]
+        public float PacketLossRate { get; set; }
+
+        [JsonPropertyName("avgPacketLossRate")]
+        public float AvgPacketLossRate { get; set; }
+
+        [JsonPropertyName("effectiveFps")]
+        public float EffectiveFps { get; set; }
+
+        [JsonPropertyName("targetFps")]
+        public float TargetFps { get; set; }
+
+        [JsonPropertyName("frameLatencyMs")]
+        public float FrameLatencyMs { get; set; }
+
+        [JsonPropertyName("bufferStatus")]
+        public string BufferStatus { get; set; } = "healthy"; // "healthy", "starving", "lossy", "high_latency", "overflow"
+
+        [JsonPropertyName("connectionHealth")]
+        public int ConnectionHealth { get; set; }
+
+        [JsonPropertyName("isWiFi")]
+        public bool IsWiFi { get; set; }
+
+        [JsonPropertyName("monitors")]
+        public List<MonitorFeedback>? Monitors { get; set; }
+    }
+
+    /// <summary>
+    /// Server -> Client: Bitrate adjustment notification.
+    /// Sent in response to quality_feedback when bitrate was changed.
+    /// </summary>
+    public class BitrateAdjustedMessage : ProtocolMessage
+    {
+        public override string Type => "bitrate_adjusted";
+
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+
+        [JsonPropertyName("bitrateKbps")]
+        public int BitrateKbps { get; set; }
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Server -> Client: Quality recommendation.
+    /// Sent when sustained poor quality suggests resolution/fps changes.
+    /// </summary>
+    public class QualityRecommendationMessage : ProtocolMessage
+    {
+        public override string Type => "quality_recommendation";
+
+        [JsonPropertyName("recommendation")]
+        public string Recommendation { get; set; } = ""; // "reduce_fps", "reduce_resolution", "reduce_bitrate"
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+    }
+
     // ==================== Common Messages ====================
 
     /// <summary>

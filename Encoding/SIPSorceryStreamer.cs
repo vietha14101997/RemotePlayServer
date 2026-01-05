@@ -9,6 +9,7 @@ using SIPSorcery.Media;
 using SIPSorceryMedia.Abstractions;
 using Vortice.Direct3D11;
 using RemotePlayServer.Utils;
+using RemotePlayServer.Protocol;
 
 namespace RemotePlayServer.Encoding;
 
@@ -32,6 +33,9 @@ public class SIPSorceryStreamer : IDisposable
     private volatile bool _running;
     private volatile bool _disposed;
     private volatile bool _connected;
+
+    // Adaptive bitrate controller
+    private readonly AdaptiveBitrateController _bitrateController = new();
 
     /// <summary>
     /// Per-track state including encoder and staging texture
@@ -729,6 +733,72 @@ public class SIPSorceryStreamer : IDisposable
     }
 
     public int GetCurrentTargetFps(int monitorIndex) => _fps;
+
+    /// <summary>
+    /// Process quality feedback from client and adjust bitrate if needed.
+    /// </summary>
+    /// <param name="feedback">Quality feedback from client.</param>
+    /// <returns>BitrateAdjustedMessage if bitrate was changed, null otherwise.</returns>
+    public BitrateAdjustedMessage? ProcessQualityFeedback(QualityFeedbackMessage feedback)
+    {
+        // Initialize controller on first feedback if not already done
+        if (_bitrateController.TargetBitrateKbps == 0)
+        {
+            _bitrateController.Initialize(_bitrateKbps, _bitrateKbps * 2);
+        }
+
+        // Process feedback through adaptive bitrate controller
+        var decision = _bitrateController.ProcessFeedback(feedback);
+
+        if (decision.Changed)
+        {
+            // Apply new bitrate to all track encoders
+            lock (_lock)
+            {
+                int successCount = 0;
+                foreach (var track in _tracks)
+                {
+                    if (track.Encoder != null)
+                    {
+                        if (track.Encoder.SetBitrate(decision.NewBitrate))
+                        {
+                            successCount++;
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} bitrate → {decision.NewBitrate}kbps");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} SetBitrate failed");
+                        }
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    Console.WriteLine($"[SIPSorcery] Bitrate adjusted: {decision.NewBitrate}kbps ({decision.Reason})");
+                }
+            }
+
+            // Return message to notify client
+            return new BitrateAdjustedMessage
+            {
+                MonitorIndex = -1, // All monitors
+                BitrateKbps = decision.NewBitrate,
+                Reason = decision.Reason
+            };
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get current adaptive bitrate statistics.
+    /// </summary>
+    public string GetBitrateStats() => _bitrateController.GetStats();
+
+    /// <summary>
+    /// Reset adaptive bitrate controller to initial state.
+    /// </summary>
+    public void ResetBitrateController() => _bitrateController.Reset();
 
     private async Task LogStatsAsync()
     {

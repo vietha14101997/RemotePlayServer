@@ -1238,6 +1238,29 @@ namespace RemotePlayServer.Protocol
                         }
                         continue;
                     }
+
+                    // Handle quality_feedback from client for adaptive bitrate
+                    if (msgType == "quality_feedback")
+                    {
+                        try
+                        {
+                            var feedback = ProtocolMessageParser.Parse<QualityFeedbackMessage>(text);
+                            if (feedback != null && _streamer != null)
+                            {
+                                var bitrateResult = _streamer.ProcessQualityFeedback(feedback);
+                                if (bitrateResult != null)
+                                {
+                                    await SendMessageAsync(bitrateResult);
+                                    Console.WriteLine($"[Protocol] Bitrate adjusted: {bitrateResult.BitrateKbps}kbps - {bitrateResult.Reason}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Protocol] quality_feedback error: {ex.Message}");
+                        }
+                        continue;
+                    }
                 }
                 catch (OperationCanceledException) { break; }
             }

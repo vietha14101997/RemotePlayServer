@@ -474,6 +474,55 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
     return AMF_WRAPPER_OK;
 }
 
+// Dynamically change encoder bitrate
+AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
+    if (!handle) {
+        g_lastError = "Invalid handle";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    if (bitrateKbps <= 0) {
+        g_lastError = "Invalid bitrate";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<AmfEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return AMF_WRAPPER_NOT_INITIALIZED;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    AMF_RESULT res;
+
+    // Update target bitrate (in bits/s)
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrateKbps * 1000);
+    if (res != AMF_OK) {
+        g_lastError = "SetProperty TARGET_BITRATE failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Update peak bitrate (slightly higher for quality headroom)
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrateKbps * 1200);
+    if (res != AMF_OK) {
+        g_lastError = "SetProperty PEAK_BITRATE failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Force IDR on next frame to apply new bitrate immediately
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+    if (res != AMF_OK) {
+        // Non-fatal - bitrate still changed
+        LogDebug("[AmfSetBitrate] Force IDR failed: %d", res);
+    }
+
+    ctx->bitrate = bitrateKbps;
+    LogDebug("[AmfSetBitrate] Bitrate changed to %d kbps", bitrateKbps);
+
+    return AMF_WRAPPER_OK;
+}
+
 // Get last error
 AMFWRAPPER_API const char* AmfGetLastError() {
     return g_lastError.c_str();

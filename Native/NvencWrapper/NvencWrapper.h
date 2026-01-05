@@ -96,6 +96,14 @@ NVENCWRAPPER_API int NvencDestroyEncoder(NvencEncoderHandle handle);
 /// </summary>
 NVENCWRAPPER_API const char* NvencGetLastError();
 
+/// <summary>
+/// Dynamically change encoder bitrate without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bitrateKbps">New target bitrate in kbps</param>
+/// <returns>NVENC_WRAPPER_OK on success</returns>
+NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps);
+
 #ifdef __cplusplus
 }
 #endif

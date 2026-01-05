@@ -512,3 +512,81 @@ NVENCWRAPPER_API int NvencDestroyEncoder(NvencEncoderHandle handle) {
 NVENCWRAPPER_API const char* NvencGetLastError() {
     return g_lastError.c_str();
 }
+
+// Set bitrate dynamically
+NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps) {
+    if (!handle || bitrateKbps <= 0) {
+        g_lastError = "Invalid parameters";
+        return NVENC_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<NvencEncoderContext*>(handle);
+    if (!ctx->initialized || !ctx->encoder) {
+        g_lastError = "Encoder not initialized";
+        return NVENC_WRAPPER_NOT_INITIALIZED;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    // Use nvEncReconfigureEncoder to change bitrate on the fly
+    NV_ENC_RECONFIGURE_PARAMS reconfigParams = {};
+    reconfigParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
+    reconfigParams.forceIDR = 1;  // Force IDR after bitrate change
+
+    // Initialize reInitEncodeParams with current settings
+    NV_ENC_INITIALIZE_PARAMS& reInitParams = reconfigParams.reInitEncodeParams;
+    reInitParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
+    reInitParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
+    reInitParams.presetGUID = NV_ENC_PRESET_P1_GUID;
+    reInitParams.encodeWidth = ctx->width;
+    reInitParams.encodeHeight = ctx->height;
+    reInitParams.darWidth = ctx->width;
+    reInitParams.darHeight = ctx->height;
+    reInitParams.frameRateNum = ctx->fps;
+    reInitParams.frameRateDen = 1;
+    reInitParams.enablePTD = 1;
+    reInitParams.maxEncodeWidth = ctx->width;
+    reInitParams.maxEncodeHeight = ctx->height;
+    reInitParams.tuningInfo = NV_ENC_TUNING_INFO_LOW_LATENCY;
+
+    // Get preset config for the new bitrate
+    NV_ENC_PRESET_CONFIG presetConfig = {};
+    presetConfig.version = NV_ENC_PRESET_CONFIG_VER;
+    presetConfig.presetCfg.version = NV_ENC_CONFIG_VER;
+
+    NVENCSTATUS nvStatus = ctx->nvenc.nvEncGetEncodePresetConfigEx(
+        ctx->encoder, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P1_GUID,
+        NV_ENC_TUNING_INFO_LOW_LATENCY, &presetConfig);
+
+    if (nvStatus != NV_ENC_SUCCESS) {
+        g_lastError = "nvEncGetEncodePresetConfigEx failed: " + std::to_string(nvStatus);
+        return NVENC_WRAPPER_FAIL;
+    }
+
+    // Update encode config with new bitrate
+    NV_ENC_CONFIG encodeConfig = presetConfig.presetCfg;
+    encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
+    encodeConfig.rcParams.averageBitRate = bitrateKbps * 1000;
+    encodeConfig.rcParams.maxBitRate = bitrateKbps * 1200;
+    encodeConfig.rcParams.vbvBufferSize = bitrateKbps * 1000 / ctx->fps;
+    encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
+    encodeConfig.gopLength = ctx->fps * 2;
+    encodeConfig.frameIntervalP = 1;
+    encodeConfig.encodeCodecConfig.h264Config.idrPeriod = encodeConfig.gopLength;
+    encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
+    encodeConfig.profileGUID = NV_ENC_H264_PROFILE_MAIN_GUID;
+
+    reInitParams.encodeConfig = &encodeConfig;
+
+    nvStatus = ctx->nvenc.nvEncReconfigureEncoder(ctx->encoder, &reconfigParams);
+    if (nvStatus != NV_ENC_SUCCESS) {
+        g_lastError = "nvEncReconfigureEncoder failed: " + std::to_string(nvStatus);
+        LogDebug("[NvencWrapper] SetBitrate failed: nvEncReconfigureEncoder returned %d", nvStatus);
+        return NVENC_WRAPPER_FAIL;
+    }
+
+    ctx->bitrate = bitrateKbps;
+    LogDebug("[NvencWrapper] Bitrate changed to %d kbps", bitrateKbps);
+
+    return NVENC_WRAPPER_OK;
+}

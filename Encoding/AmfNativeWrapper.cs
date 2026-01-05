@@ -75,7 +75,10 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr AmfGetLastError();
-    
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfSetBitrate(IntPtr handle, int bitrateKbps);
+
     #endregion
     
     #region Fields
@@ -97,7 +100,8 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     public bool IsInitialized => _handle != IntPtr.Zero;
     public int Width => _width;
     public int Height => _height;
-    
+    public int CurrentBitrateKbps => _bitrate;
+
     #endregion
     
     #region Events
@@ -241,7 +245,7 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     public void Flush()
     {
         if (_handle == IntPtr.Zero) return;
-        
+
         try
         {
             AmfFlush(_handle);
@@ -251,9 +255,40 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
             Console.WriteLine($"[AmfNativeWrapper] Flush exception: {ex.Message}");
         }
     }
-    
+
+    /// <summary>
+    /// Dynamically change encoder bitrate
+    /// </summary>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = AmfSetBitrate(_handle, bitrateKbps);
+            if (result == AMF_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Console.WriteLine($"[AmfNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                string error = GetLastError();
+                Console.WriteLine($"[AmfNativeWrapper] SetBitrate failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AmfNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
+    }
+
     #endregion
-    
+
     #region Private Methods
     
     private void NativeCallback(IntPtr data, uint size, long pts, int isKeyFrame, IntPtr userData)

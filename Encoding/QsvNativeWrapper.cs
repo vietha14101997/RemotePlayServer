@@ -68,6 +68,9 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr QsvGetLastError();
 
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvSetBitrate(IntPtr handle, int bitrateKbps);
+
     #endregion
 
     #region Fields
@@ -89,6 +92,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public bool IsInitialized => _handle != IntPtr.Zero;
     public int Width => _width;
     public int Height => _height;
+    public int CurrentBitrateKbps => _bitrate;
 
     #endregion
 
@@ -218,6 +222,37 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[QsvNativeWrapper] Flush exception: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Dynamically change encoder bitrate
+    /// </summary>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = QsvSetBitrate(_handle, bitrateKbps);
+            if (result == QSV_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Console.WriteLine($"[QsvNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                string error = GetLastError();
+                Console.WriteLine($"[QsvNativeWrapper] SetBitrate failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[QsvNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
         }
     }
 

@@ -111,6 +111,14 @@ AMFWRAPPER_API int AmfDestroyEncoder(AmfEncoderHandle handle);
 /// </summary>
 AMFWRAPPER_API const char* AmfGetLastError();
 
+/// <summary>
+/// Dynamically change encoder bitrate without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bitrateKbps">New target bitrate in kbps</param>
+/// <returns>AMF_WRAPPER_OK on success</returns>
+AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps);
+
 #ifdef __cplusplus
 }
 #endif
