@@ -601,9 +601,9 @@ public class SIPSorceryStreamer : IDisposable
 
             uint rtpStep = CalculateRtpStep(track, pts100ns);
 
-            // DEBUG: Log NAL types for first few frames
+            // DEBUG: Log NAL types for first few frames only (avoid spam)
             long frameNum = Interlocked.Read(ref track.SentFrames);
-            if (frameNum < 5 || isKeyframe)
+            if (frameNum < 5)
             {
                 var nalTypes = GetNalTypes(au);
                 Console.WriteLine($"[SIPSorcery] Track {track.Index} frame #{frameNum}: {au.Length}B, NAL types=[{string.Join(",", nalTypes)}], key={isKeyframe}");

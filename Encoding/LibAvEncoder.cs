@@ -444,10 +444,13 @@ public unsafe class LibAvEncoder : IDisposable
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        _codecCtx->gop_size = Math.Max(1, _fps / 20); // Keyframe every ~50ms for ultra-fast scene change recovery
+        // Infinite GOP - rely on hardware scene change detection (adaptive_i) and on-demand keyframes
+        // Setting very large value instead of 0 (0 = all I-frames in FFmpeg)
+        // Hardware encoders with adaptive_i will insert IDR on scene changes automatically
+        _codecCtx->gop_size = 10000; // ~2.7 minutes at 60fps - effectively infinite
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
-        
+
         // Force immediate output - no internal buffering
         _codecCtx->flags |= ffmpeg.AV_CODEC_FLAG_LOW_DELAY;
         // Removing GLOBAL_HEADER as it might be problematic for NVENC in some configs
