@@ -1,10 +1,53 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+
+/// <summary>
+/// Windows Multimedia Timer for high-resolution Sleep.
+/// Reduces Sleep granularity from ~15ms to ~1ms.
+/// </summary>
+internal static class MultimediaTimer
+{
+    [DllImport("winmm.dll", SetLastError = true)]
+    private static extern uint timeBeginPeriod(uint uPeriod);
+
+    [DllImport("winmm.dll", SetLastError = true)]
+    private static extern uint timeEndPeriod(uint uPeriod);
+
+    private static bool _initialized;
+    private static readonly object _lock = new();
+
+    public static void Begin()
+    {
+        lock (_lock)
+        {
+            if (!_initialized)
+            {
+                timeBeginPeriod(1); // Set timer resolution to 1ms
+                _initialized = true;
+                Console.WriteLine("[MultimediaTimer] Timer resolution set to 1ms");
+            }
+        }
+    }
+
+    public static void End()
+    {
+        lock (_lock)
+        {
+            if (_initialized)
+            {
+                timeEndPeriod(1);
+                _initialized = false;
+                Console.WriteLine("[MultimediaTimer] Timer resolution restored");
+            }
+        }
+    }
+}
 
 /// <summary>
 /// Captures individual monitors separately (not combined).
@@ -272,6 +315,9 @@ public sealed class PerMonitorCapture : IDisposable
         if (_running) return;
         _running = true;
 
+        // Enable high-resolution timer for precise Sleep()
+        MultimediaTimer.Begin();
+
         // Count active monitors (have device and duplication)
         int activeMonitors = 0;
         foreach (var mon in Monitors)
@@ -333,6 +379,9 @@ public sealed class PerMonitorCapture : IDisposable
             }
         }
 
+        // Restore default timer resolution
+        MultimediaTimer.End();
+
         Console.WriteLine("[PerMonitorCapture] All capture threads stopped");
     }
 
@@ -343,7 +392,11 @@ public sealed class PerMonitorCapture : IDisposable
     private void CaptureLoopForMonitor(MonitorInfo mon)
     {
         int frameTimeMs = 1000 / TargetFps;
-        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread started @ {TargetFps}fps (barrier sync enabled: {_captureBarrier != null})");
+
+        // With MultimediaTimer (1ms resolution), Sleep is now precise enough for all FPS
+        // Keep 3ms spin buffer for sub-millisecond precision at frame boundaries
+        const int sleepThresholdMs = 3;
+        Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: Capture thread started @ {TargetFps}fps, sleepThreshold={sleepThresholdMs}ms (barrier sync: {_captureBarrier != null})");
         var sw = System.Diagnostics.Stopwatch.StartNew();
         mon.LastFpsLogTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         mon.LastFpsLogFrameCount = 0;
@@ -506,8 +559,14 @@ public sealed class PerMonitorCapture : IDisposable
                 }
 
                 Pacing:
-                // STRICT PACING: Always wait until frame time has passed
-                // This ensures we never exceed TargetFps, preventing queue buildup
+                // STRICT PACING: Hybrid sleep + spin for CPU-efficient frame timing
+                // Sleep threshold is dynamic based on target FPS (set at loop start)
+                long remaining = frameTimeMs - (sw.ElapsedMilliseconds - loopStart);
+                if (remaining > sleepThresholdMs && sleepThresholdMs > 0)
+                {
+                    Thread.Sleep((int)(remaining - sleepThresholdMs)); // Yield CPU to OS
+                }
+                // Fine-grained spin for remaining time (precision timing)
                 while ((sw.ElapsedMilliseconds - loopStart) < frameTimeMs)
                 {
                     Thread.SpinWait(10);
