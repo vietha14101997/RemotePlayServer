@@ -40,6 +40,10 @@ namespace RemotePlayServer.Encoding
         private DateTime _lastAdjustmentTime = DateTime.MinValue;
         private const int ADJUSTMENT_COOLDOWN_MS = 2000; // 2 second cooldown between adjustments
 
+        // Warmup period - don't reduce bitrate due to FPS/buffer issues during startup
+        private DateTime _streamStartTime = DateTime.MinValue;
+        private const int WARMUP_PERIOD_MS = 15000; // 15 second warmup period
+
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease
         private const float PACKET_LOSS_DECREASE_THRESHOLD = 0.005f; // <0.5% loss allows increase
@@ -70,7 +74,10 @@ namespace RemotePlayServer.Encoding
             _ewmaPacketLoss = 0;
             _ewmaRtt = 30;
 
-            Console.WriteLine($"[AdaptiveBitrate] Initialized: target={initialBitrateKbps}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps");
+            // Start warmup period
+            _streamStartTime = DateTime.UtcNow;
+
+            Console.WriteLine($"[AdaptiveBitrate] Initialized: target={initialBitrateKbps}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
         }
 
         /// <summary>
@@ -151,35 +158,61 @@ namespace RemotePlayServer.Encoding
             int decreaseStep = Math.Max(500, current / 10);  // 10% decrease, min 500kbps
             int increaseStep = Math.Max(250, current / 20);  // 5% increase, min 250kbps
 
+            // Check if we're still in warmup period
+            bool inWarmup = (DateTime.UtcNow - _streamStartTime).TotalMilliseconds < WARMUP_PERIOD_MS;
+
             // === DECREASE conditions (any of these triggers decrease) ===
 
-            // High packet loss
+            // High packet loss - always react, even during warmup (real network issue)
             if (feedback.PacketLossRate > PACKET_LOSS_INCREASE_THRESHOLD)
             {
                 Console.WriteLine($"[AdaptiveBitrate] High packet loss: {feedback.PacketLossRate:P1}");
                 return Math.Max(MinBitrateKbps, current - decreaseStep);
             }
 
-            // Buffer starving
-            if (feedback.BufferStatus == "starving")
+            // During warmup, skip buffer/FPS-based decreases (these are normal during startup)
+            if (inWarmup)
             {
-                Console.WriteLine($"[AdaptiveBitrate] Buffer starving");
+                // Only log once every few seconds to avoid spam
+                return current;
+            }
+
+            // Check if there are actual dropped frames (network issue vs static content)
+            // Low FPS with NO dropped frames = static content optimization, don't reduce bitrate
+            int totalDroppedFrames = 0;
+            int totalRenderedFrames = 0;
+            if (feedback.Monitors != null)
+            {
+                foreach (var monitor in feedback.Monitors)
+                {
+                    totalDroppedFrames += monitor.DroppedFrames;
+                    totalRenderedFrames += monitor.RenderedFrames;
+                }
+            }
+            bool hasSignificantDrops = totalDroppedFrames > 0 &&
+                                       totalRenderedFrames > 0 &&
+                                       (float)totalDroppedFrames / (totalDroppedFrames + totalRenderedFrames) > 0.05f; // >5% drop rate
+
+            // Buffer starving - only reduce if there are actual dropped frames
+            if (feedback.BufferStatus == "starving" && hasSignificantDrops)
+            {
+                Console.WriteLine($"[AdaptiveBitrate] Buffer starving with drops: {totalDroppedFrames}/{totalRenderedFrames + totalDroppedFrames}");
                 return Math.Max(MinBitrateKbps, current - decreaseStep);
             }
 
-            // FPS significantly below target
-            if (feedback.TargetFps > 0)
+            // FPS significantly below target - only reduce if there are actual dropped frames
+            if (feedback.TargetFps > 0 && hasSignificantDrops)
             {
                 float fpsRatio = feedback.EffectiveFps / feedback.TargetFps;
                 if (fpsRatio < FPS_DROP_THRESHOLD)
                 {
-                    Console.WriteLine($"[AdaptiveBitrate] FPS drop: {feedback.EffectiveFps:F1}/{feedback.TargetFps:F1} = {fpsRatio:P0}");
+                    Console.WriteLine($"[AdaptiveBitrate] FPS drop with network issues: {feedback.EffectiveFps:F1}/{feedback.TargetFps:F1} = {fpsRatio:P0}");
                     return Math.Max(MinBitrateKbps, current - decreaseStep);
                 }
             }
 
-            // EWMA bandwidth suggests we're over capacity
-            if (_ewmaBandwidth < current * BANDWIDTH_SAFETY_MARGIN)
+            // EWMA bandwidth check - only if there are actual drops
+            if (_ewmaBandwidth < current * BANDWIDTH_SAFETY_MARGIN && hasSignificantDrops)
             {
                 Console.WriteLine($"[AdaptiveBitrate] EWMA bandwidth low: {_ewmaBandwidth:F0} < {current * BANDWIDTH_SAFETY_MARGIN:F0}");
                 return Math.Max(MinBitrateKbps, current - decreaseStep);

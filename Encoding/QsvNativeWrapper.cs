@@ -226,34 +226,17 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     }
 
     /// <summary>
-    /// Dynamically change encoder bitrate
+    /// Dynamically change encoder bitrate.
+    /// NOTE: QSV (Intel Media Foundation) doesn't reliably support runtime bitrate changes.
+    /// This method returns false to indicate the feature is not supported.
     /// </summary>
     public bool SetBitrate(int bitrateKbps)
     {
-        if (_handle == IntPtr.Zero || _disposed) return false;
-        if (bitrateKbps <= 0) return false;
-
-        try
-        {
-            int result = QsvSetBitrate(_handle, bitrateKbps);
-            if (result == QSV_WRAPPER_OK)
-            {
-                _bitrate = bitrateKbps;
-                Console.WriteLine($"[QsvNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
-                return true;
-            }
-            else
-            {
-                string error = GetLastError();
-                Console.WriteLine($"[QsvNativeWrapper] SetBitrate failed: {error}");
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[QsvNativeWrapper] SetBitrate exception: {ex.Message}");
-            return false;
-        }
+        // QSV encoder through Media Foundation doesn't reliably support runtime bitrate changes
+        // Attempting to change bitrate mid-stream can cause "incompatible video parameters" errors
+        // Return false to let the adaptive bitrate controller know this encoder doesn't support it
+        Console.WriteLine($"[QsvNativeWrapper] Runtime bitrate change not supported (requested: {bitrateKbps}kbps)");
+        return false;
     }
 
     #endregion

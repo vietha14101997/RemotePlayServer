@@ -2049,6 +2049,15 @@ public unsafe class LibAvEncoder : IDisposable
     {
         if (!_initialized || _disposed || _codecCtx == null) return false;
 
+        // QSV through FFmpeg doesn't support runtime bitrate changes well
+        // Return false to let caller know (won't crash, just skips adjustment)
+        if (_encoderName.Contains("qsv"))
+        {
+            // Only log once to avoid spam
+            Console.WriteLine($"[LibAvEncoder] QSV encoder doesn't support runtime bitrate change (requested: {bitrateKbps}kbps)");
+            return false;
+        }
+
         lock (_lock)
         {
             int newBitrateBps = bitrateKbps * 1000;
@@ -2078,11 +2087,6 @@ public unsafe class LibAvEncoder : IDisposable
                     {
                         ffmpeg.av_opt_set_int(_codecCtx->priv_data, "target_bitrate", newBitrateBps, 0);
                         ffmpeg.av_opt_set_int(_codecCtx->priv_data, "peak_bitrate", newBitrateBps * 3, 0);
-                    }
-                    // QSV
-                    else if (_encoderName.Contains("qsv"))
-                    {
-                        ffmpeg.av_opt_set_int(_codecCtx->priv_data, "b", newBitrateBps, 0);
                     }
                 }
 
