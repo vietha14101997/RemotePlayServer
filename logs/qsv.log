@@ -1,7 +1,7 @@
 === RemotePlayServer ===
 [System] Running as Administrator: YES
 [System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-[System] Local IP: 192.168.1.13
+[System] Local IP: 192.168.1.67
 [Encoder] FFmpeg x264 (Software)
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
@@ -9,459 +9,433 @@
 === Monitors ===
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
-[HTTP] Server: 192.168.1.13:8288
+[HTTP] Server: 192.168.1.67:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.13","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
+Data: {"ip":"192.168.1.67","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
 █████████████████████████████████████████████
 █████████████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀▄  █▄ ▄█▀█ █  ▀▄▄▄▄█ ▄▄▄▄▄ ████
-████ █   █ █ █▀▀█ ▀ ▄ █▄ █▄██▀▀▄▀█ █   █ ████
-████ █▄▄▄█ █▄▄ ▄▄▄▀▄▀██ ▄ ▄█ █▄█▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ █ █ █▄█▄▀▄▀▄▀ ▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-█████▄█ ▀ ▄▀   █ ▀████  ██▀█▄▄▀██▄▄▀▄▄  ▄████
-████▄▄█▄█▀▄ ▀▄███▄▀ ▀█▄▄▄█   ▄██  ██ ▄█▄ ████
-████ █▄ █ ▄█▀ █▄ █ █▀ ▀▄ █▄█ ▄██▀▀██▀███▀████
-█████ ▀▀█▀▄█ █▀▀██▀▀▀▄▀██▄▀▄▀▄▀█▀▄▀█▀▄▀▀▄████
-███████▄▀█▄█▄█ █▄█▄█▄▀██▄████▀▄▄ ▄██▀█▀▄▀████
-████▄█▄▀▄▄▄█▀█▄▀▀▀▄▄▀▄█▄▀▄▄█▀█▄█ █▄▀▄ ▄  ████
-████▄█ ▄ ▀▄ ▄▄▀ █▀█ ▄▄█ ▄ ▀ ▄▄▀ ▄ ▀▀█▀█▀▄████
-████ █▀█ █▄██▀▄█▀▀█▀▄▀▄▀ ▀█  █▄  ▀▄ █▀█▀█████
-████ ▄▄ ▄ ▄█ ▀█▄ ▀ ▄  ▀▄▀▀█▄▀█▄▄▀  ▄ ▄▀▄▀████
-█████ ▀██▀▄▀▄█ ▄ █  ▄█ █▄█▀▄ ▄ ▀ █▄▄  ▀█▄████
-███████▄██▄█ ▀█▀▄███▄█▀█▄███▀▀█▄ ▄▄▄  █ ▀████
-████ ▄▄▄▄▄ █▀█ █ █▄▀▄█▀▄ █▄▀▄█▄▄ █▄█  ██▀████
-████ █   █ █▀▀▀▀ ▀  ▄▀█▀▄▀▄ ▄▀▀  ▄  ▄ █ █████
-████ █▄▄▄█ █▀ ▄█▄█▄█▄▀▀▀▄▄▀█▄█▄▀▄  █▄█▀█ ████
-████▄▄▄▄▄▄▄███▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
+████ ▄▄▄▄▄ █ ▀▄▀▄ ▄  █ ▀ █▀██  ▄▄█ ▄▄▄▄▄ ████
+████ █   █ █▀█ ▄ ▄█▀█ ▀▀ ▄▄ █▄▀  █ █   █ ████
+████ █▄▄▄█ █▄▄▀▄▀ ▄▀▄ ▄ ▀██▄▄▄▄▄██ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀ █▄▀ █▄▀ █▄▀▄▀ █ █ █▄▄▄▄▄▄▄████
+████▄▀██▀█▄▄▀ ▄█▀█▄██▄    ██▀ █▀█▄██▄▄█ ▄████
+████▀▄▄█▀▄▄  █▀ ▀█ ▀▄ ▀▄█▄████▄██▄ ▄ ▄  ▄████
+████▄▀  █ ▄▀█ █▄▄▀▄█▀ █ ▄█▄█▄ ▀█▀▀▀▀█████████
+████▄█▀▄▄█▄    █▄ ▀▄    █▀   ▀▀     ▀▀ ██████
+████ █▄██ ▄██▄▄ ▀██▄ ▄ ██▄▀  ▀██▄▀ █ ▄█▀▄████
+████ ▀ ▀▄▄▄▀██▄▀██ ▄▀▄▀ █▄▄██▀ █ █ █  ▄ ▄████
+█████  ▀▀█▄█▄▀ ▄▄▄███ ▄█▄█ ▄█▀▀██▄ ▄█▄▄██████
+██████ ▄▄ ▄█▄   ▄▀▄  ▄▀▀▀ ▀████▀▄▄▀ ▄ ▀▄ ████
+████▄   ▄ ▄▀▄▀█▄▄█▄▄  █ █▀█▄█▀ ▄▀ ▄ ▄▄▀▄█████
+████▄█▀ ▄█▄▄▄ ▀ ▀  ██▀▀ ▄   ▀▀ ▄▀▀█▀ █ ▀█████
+████▄█▄██▄▄██ █▄▀█▄▄  ▄██▄▀ ▄▀▄█ ▄▄▄ ▀▀█▄████
+████ ▄▄▄▄▄ █▄█▄▀▄▀ ▀▄██ ▄█▄▀ ▀ ▄ █▄█  ███████
+████ █   █ ██▄▀█▀▄ ███▄▄▄▄█▄█▄▀█   ▄▄█▄▄▄████
+████ █▄▄▄█ ██▀  ▀██▄ ▄▄▀███ ▀██  ████▄█ █████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄▄▄█▄▄██▄█▄█▄███▄█▄█▄▄▄████
 █████████████████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected f7b47152-3187-4e1b-b480-7c8d08214a70, mode=multitrack
-[MultiPC Signal] Client f7b47152-3187-4e1b-b480-7c8d08214a70 connected from 192.168.1.3
-[MultiPC Signal] Config: 2 monitors @ 1600x900, 60fps, 20000kbps/stream
-[MultiPC Signal] Applying new display config: 2 monitors @ 1600x900, 60 fps
+[Signal] Client connected 5a737b35-bdaa-49b7-afa2-f2c6baeed5df, protocol=v2
+[Protocol] Client 5a737b35-bdaa-49b7-afa2-f2c6baeed5df connected from 192.168.1.74 (v2 protocol)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+[HardwareInfo] SetDllDirectory: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] HEVC encoder 'hevc_qsv': available
+[HardwareInfo] Encoder: QSV, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767583610041
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767583612074
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767583614108
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767583616142
+[Protocol] WaitForHardwareAck received: len=203, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=MS-7B24 (Micro-Star International Co., Ltd.)
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264, VP9, VP8]
+[Protocol] Codec negotiation: selected H264
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 12MB in 3411ms = 29.5 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=80
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 30.3Mbps, 16.9ms
+[Protocol] ✓ Received speedtest_result from client: 30.3Mbps, 16.9ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 1x1366x768@60fps, bitrate=15000kbps, codec=H264
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping:1767583622207...
+[Protocol] WaitForProceed received: ping:1767583624241...
+[Protocol] WaitForProceed received: ping:1767583626258...
+[Protocol] WaitForProceed received: ping:1767583628284...
+[Protocol] WaitForProceed received: ping:1767583630301...
+[Protocol] WaitForProceed received: ping:1767583632334...
+[Protocol] WaitForProceed received: ping:1767583634369...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":1920,"h":1080},"refreshRate":60,"bitrateKbps...
+[Protocol] Received display config: 1x1920x1080@60fps
+[Protocol] Applying new display config: 1 monitors @ 1920x1080
 [VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
 [VDD] Physical monitors detected: 1
-[VDD] Virtual monitors needed: 1 (target total: 2)
-[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
-[VDD] Resolution already present.
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /enable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Enabling device:          ROOT\DISPLAY\0000
-Device enabled successfully.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
+[VDD] Virtual monitors needed: 0 (target total: 1)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Display] Setting up 3-monitor system...
-[Display] Physical monitors: 2, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1600x900@60
-[Display] Setting \\.\DISPLAY40 [PHYSICAL] -> 1600x900@60
+[Display] Physical monitors: 1, Virtual monitors: 0
+[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ 3-monitor system configured:
-[Display]   • \\.\DISPLAY1 1600x900 [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY40 1600x900 [PHYSICAL]
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL] [PRIMARY]
 [Display] Setting Windows Text Scale to 125%...
 [Display] ✓ Text Scale set to 125%
-[MultiPC Signal] Available monitors: 2, using: 2
-[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[Protocol] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1600x900 - duplication ready
-[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY40 1600x900 - duplication ready
-[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
-[MultiPC] Created: 2mon 60fps 20000kbps (parallel device mode)
-[MultiPC] m0 device registered (parallel mode)
-[MultiPC Signal] Monitor 0: Using dedicated D3D11 device for parallel encoding
-[MultiPC] m1 device registered (parallel mode)
-[MultiPC Signal] Monitor 1: Using dedicated D3D11 device for parallel encoding
-[PerMonitorCapture] Started 2 parallel capture threads
-[MultiPC Signal] Received offer for monitor 0
-[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps
-[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps
-[MultiPC] m0 offer: 1600x900
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer
+[SIPSorcery] Created: 1 monitors, 60fps, 15000kbps
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping:1767583636390...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583638406...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583640440...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583642473...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583644490...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583646507...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583648523...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767583650540...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1724602127 1 udp 2122129151 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2518813714 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3214930830 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8362948807423655725 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 3 pending ICE candidates
+[Protocol] Parsed H264 PT from offer: 123
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 8A:7E:3B:BA:17:11:4C:59:80:30:BD:8C:4A:86:5D:44:84:43:12:1D:F9:64:56:7D:51:63:AA:4C:61:28:F5:F2
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 55766 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 93:2A:0F:A9:DF:25:27:AE:F1:F0:45:D9:35:A2:E9:15:08:E3:34:9D:49:69:D1:0B:E0:7B:05:4B:63:EE:23:48
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1211 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
+[Protocol] SDP kept: a=rtpmap:123 H264/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[Protocol] Filtered SDP from 1211 to 707 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 44286 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=709 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 55766 typ ...
+[Protocol] Applying 3 pending ICE candidates
+[SIPSorcery] Added remote ICE: candidate:1724602127 1 udp 2122129151 192.168.1.74...
+[Protocol] Applied pending ICE: 1724602127 1 udp 2122129151 192.168.1.74 51818 typ...
+[SIPSorcery] Added remote ICE: candidate:2518813714 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 2518813714 1 udp 2122262783 2402:800:6d62:7e9c:601...
+[SIPSorcery] Added remote ICE: candidate:3214930830 1 udp 2122197247 2402:800:6d6...
+[Protocol] Applied pending ICE: 3214930830 1 udp 2122197247 2402:800:6d62:7e9c:de3...
+[Protocol] ICE RX: ping:1767583652565...
+[Protocol] ICE legacy format message
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 55766 ty...
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[SIPSorcery] Peer state: connecting
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Detected GPU vendor: Intel
+[QsvNativeWrapper] QsvWrapper.dll not found
+[SIPSorcery] No hardware encoder available!
+[SIPSorcery] Track 0: No suitable encoder found for Intel
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Cursor tracking started
+[KeepAlive] Server-side keep-alive started (5s interval)
+[MultimediaTimer] Timer resolution set to 1ms
+[PerMonitorCapture] Started 1 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[MultiPC] m0 using dedicated D3D11 device
-[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
-[GpuColorConverter] GPU: Intel, using Video Processor for BGRA->NV12 conversion
-[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
-[GpuColorConverter] Initialized 1600x900 BGRA->NV12 converter
-[PerMonitorCapture] Monitor 1: GpuColorConverter created
+[GpuColorConverter] GPU: Intel, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compute Shader compiled and created successfully
 [PerMonitorCapture] Monitor 0: GpuColorConverter created
+[SIPSorcery] Stats: m0:0
+[Capture FPS] Mon0: 29.5 fps (captured 89 in 3014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
+[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
+[SIPSorcery] Stats: m0:0
+[Capture FPS] Mon0: 42.9 fps (captured 129 in 3008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 1331116192337252132 2 IN IP4 127.0.0.1\r\ns=-\r\n
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Parsed H264 PT from offer: 123
+[SIPSorcery] Closing existing connection for reconnect...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 1C:60:D5:70:61:20:A3:4A:EC:16:29:F4:BB:58:67:AE:F5:0F:D2:C2:11:FC:36:E0:85:D4:F0:D0:AF:77:AC:86
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 55768 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 F4:B5:2B:F2:88:19:DD:D2:50:91:92:41:63:8D:6E:DA:98:0D:4D:7A:AF:62:21:44:E0:06:D7:D0:06:C7:53:F8
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1211 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
+[Protocol] SDP kept: a=rtpmap:123 H264/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[Protocol] Filtered SDP from 1211 to 707 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 14293 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=709 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 55768 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"4099236481 1 udp 2122129151 192.168.1.74 56524 typ
+[SIPSorcery] Added remote ICE: candidate:4099236481 1 udp 2122129151 192.168.1.74...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2544101123 1 udp 2122262783 2402:800:6d62:7e9c:601
+[SIPSorcery] Added remote ICE: candidate:2544101123 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1848870291 1 udp 2122197247 2402:800:6d62:7e9c:de3
+[SIPSorcery] Added remote ICE: candidate:1848870291 1 udp 2122197247 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"4115992743 1 udp 1685921535 27.72.102.134 56524 ty
+[SIPSorcery] Added remote ICE: candidate:4115992743 1 udp 1685921535 27.72.102.13...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 55768 ty...
+[2026-01-05 10:27:43.435] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[MultiPC] m0 using DEDICATED D3D11 device (parallel mode)
-[MultiPC] m0 Intel GPU detected, using QSV encoder
-[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
-[LibAvEncoder] FFmpeg path: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
-[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
-[LibAvEncoder] Using encoder: h264_qsv
-[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
-[LibAvEncoder] Intel GPU: Trying QSV hardware context
-[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
-[AVHWDeviceContext @ 000001bd82cdda00] Using device 8086:5917 (Intel(R) UHD Graphics 620).
-[LibAvEncoder] QSV device created directly (matches known good config)
-[LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
-[LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
-[LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
-[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
-[LibAvEncoderAdapter] Initialized successfully
-[MultiPC] m0 encoder ready (parallel=True)
-[MultiPC] m0 answer created
-[MultiPC Signal] Sent answer for monitor 0
-[MultiPC Signal] Received offer for monitor 1
-[MultiPC] m1 offer: 1600x900
-[MultiPC] m1 using dedicated D3D11 device
+[SIPSorcery] Detected GPU vendor: Intel
+[QsvNativeWrapper] QsvWrapper.dll not found
+[SIPSorcery] No hardware encoder available!
+[SIPSorcery] Track 0: No suitable encoder found for Intel
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
+[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
+[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
+[SIPSorcery] Stats: m0:0
+[Capture FPS] Mon0: 40.5 fps (captured 122 in 3010ms, rate-limited=0)
+[SIPSorcery] Stats: m0:0
+[SIPSorcery] Stats: m0:0
+[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
+[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
+[Capture FPS] Mon0: 39.2 fps (captured 118 in 3008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8681504332210617299 2 IN IP4 127.0.0.1\r\ns=-\r\n
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Parsed H264 PT from offer: 123
+[SIPSorcery] Closing existing connection for reconnect...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 A7:BF:D0:A7:BF:41:F9:8A:5E:AD:AC:48:4A:EE:7E:F4:E4:2F:94:58:59:56:61:1D:49:64:41:2D:B6:F7:00:97
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 55770 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 A8:5A:5B:04:83:E7:88:AB:66:0E:FF:69:BC:9F:B3:89:9E:0B:DE:C2:B8:AD:FB:2E:27:91:F2:31:A5:DC:2F:C4
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1211 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
+[Protocol] SDP kept: a=rtpmap:123 H264/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[Protocol] Filtered SDP from 1211 to 707 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 13452 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=709 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 55770 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"3259720909 1 udp 2122129151 192.168.1.74 65377 typ
+[SIPSorcery] Added remote ICE: candidate:3259720909 1 udp 2122129151 192.168.1.74...
+[Protocol] Phase3 RX: type=candidate, len=185, preview={"type":"candidate","monitorIndex":0,"candidate":"849493968 1 udp 2122262783 2402:800:6d62:7e9c:6017
+[SIPSorcery] Added remote ICE: candidate:849493968 1 udp 2122262783 2402:800:6d62...
+[Protocol] Phase3 RX: type=candidate, len=185, preview={"type":"candidate","monitorIndex":0,"candidate":"455065676 1 udp 2122197247 2402:800:6d62:7e9c:de39
+[SIPSorcery] Added remote ICE: candidate:455065676 1 udp 2122197247 2402:800:6d62...
+[Protocol] Phase3 RX: type=candidate, len=192, preview={"type":"candidate","monitorIndex":0,"candidate":"424166540 1 udp 1685921535 27.72.102.134 65377 typ
+[SIPSorcery] Added remote ICE: candidate:424166540 1 udp 1685921535 27.72.102.134...
+[SIPSorcery] Stats: m0:0
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 55770 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[2026-01-05 10:27:49.475] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[MultiPC] m1 using DEDICATED D3D11 device (parallel mode)
-[MultiPC] m1 Intel GPU detected, using QSV encoder
-[LibAvEncoderAdapter] Initializing 1600x900 @ 60fps, 20000kbps
-[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
-[LibAvEncoder] Using encoder: h264_qsv
-[LibAvEncoder] Configuring Intel QSV encoder (Ultra Low Latency)
-[LibAvEncoder] Intel GPU: Trying QSV hardware context
-[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
-[AVHWDeviceContext @ 000001bd8b695200] Using device 8086:5917 (Intel(R) UHD Graphics 620).
-[LibAvEncoder] QSV device created directly (matches known good config)
-[LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
-[LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
-[LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
-[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
-[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
-[LibAvEncoder] Initialized 1600x900 @ 60fps, 20000kbps (D3D11 zero-copy)
-[LibAvEncoderAdapter] Initialized successfully
-[MultiPC] m1 encoder ready (parallel=True)
-[MultiPC] m1 answer created
-[MultiPC Signal] Sent answer for monitor 1
-[Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
-[Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
-[Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:3993816229 1 udp 2113937151 192.168.1.3 49183 typ host generation 0 ufrag gsl4 network-cost 999
-[Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
-[MultiPC] m0 ICE connected
-[Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
-[Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:2984072737 1 udp 2113939711 192.168.1.3 49184 typ host generation 0 ufrag gsl4 network-cost 999
-[Cluster Signal] Attempting to resolve mDNS: '87d11558-6519-4746-9cd1-d73abd27f740.local'
-[Cluster Signal] mDNS resolved '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
-[Cluster Signal] mDNS fallback: '87d11558-6519-4746-9cd1-d73abd27f740.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:88479265 1 udp 2113937151 192.168.1.3 49185 typ host generation 0 ufrag 0bhP network-cost 999
-[Cluster Signal] Attempting to resolve mDNS: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local'
-[Cluster Signal] mDNS resolved '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 125.235.4.59 (Public/Invalid IP). Ignoring to prevent loopback failure.
-[Cluster Signal] mDNS fallback: '0a34415f-cc8b-4c2f-8e3b-01729c0b300f.local' -> 192.168.1.3 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:1519881381 1 udp 2113939711 192.168.1.3 49186 typ host generation 0 ufrag 0bhP network-cost 999
-[MultiPC] m1 ICE connected
-[MultiPC] m1 PC connected
-[MultiPC] m0 PC connected
-[MultiPC] m0 enc#1: 102121B key=True NALs=[7,8,6,5]
-[MultiPC] m0 streaming started
-[MultiPC] m0 enc#2: 53733B key=False NALs=[6,1]
-[MultiPC] m1 enc#1: 108003B key=True NALs=[7,8,6,5]
-[MultiPC] m0 enc#3: 3594B key=False NALs=[6,1]
-[MultiPC] m1 streaming started
-[MultiPC] m0 enc#4: 4205B key=False NALs=[6,1]
-[MultiPC] m1 enc#2: 33485B key=False NALs=[6,1]
-[MultiPC] m0 enc#5: 20493B key=False NALs=[6,1]
-[MultiPC] m1 enc#3: 22405B key=False NALs=[6,1]
-[MultiPC] m1 enc#4: 21676B key=False NALs=[6,1]
-[MultiPC] m1 enc#5: 7317B key=False NALs=[6,1]
-[Capture FPS] Mon1: 36.5 fps (captured 110 frames in 3017ms)
-[Capture FPS] Mon0: 29.2 fps (captured 88 frames in 3014ms)
-[Encode FPS] Mon0: 44.6 fps (sent 135 in 3026ms, skipped=20)
-[Encode FPS] Mon1: 44.7 fps (sent 135 in 3018ms, skipped=23)
-[Capture FPS] Mon0: 29.2 fps (captured 88 frames in 3011ms)
-[Capture FPS] Mon1: 41.8 fps (captured 126 frames in 3013ms)
-[Encode FPS] Mon0: 52.7 fps (sent 159 in 3016ms, skipped=20)
-[Encode FPS] Mon1: 50.8 fps (sent 156 in 3073ms, skipped=23)
-[Capture FPS] Mon0: 38.5 fps (captured 116 frames in 3012ms)
-[Capture FPS] Mon1: 28.5 fps (captured 86 frames in 3015ms)
-[Encode FPS] Mon0: 40.3 fps (sent 121 in 3000ms, skipped=20)
-[Encode FPS] Mon1: 35.5 fps (sent 107 in 3014ms, skipped=23)
-[Capture FPS] Mon1: 23.3 fps (captured 70 frames in 3004ms)
-[Capture FPS] Mon0: 25.2 fps (captured 76 frames in 3016ms)
-[Encode FPS] Mon0: 36.7 fps (sent 111 in 3021ms, skipped=20)
-[Encode FPS] Mon1: 32.9 fps (sent 99 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 28.3 fps (captured 85 frames in 3002ms)
-[Capture FPS] Mon0: 30.5 fps (captured 92 frames in 3015ms)
-[Encode FPS] Mon0: 35.5 fps (sent 107 in 3015ms, skipped=20)
-[Encode FPS] Mon1: 34.0 fps (sent 102 in 3004ms, skipped=23)
-[Capture FPS] Mon1: 27.9 fps (captured 84 frames in 3012ms)
-[Capture FPS] Mon0: 28.8 fps (captured 87 frames in 3018ms)
-[Encode FPS] Mon0: 33.3 fps (sent 100 in 3001ms, skipped=20)
-[Encode FPS] Mon1: 30.5 fps (sent 92 in 3015ms, skipped=23)
-[Capture FPS] Mon1: 24.9 fps (captured 75 frames in 3014ms)
-[Capture FPS] Mon0: 26.2 fps (captured 79 frames in 3013ms)
-[Encode FPS] Mon0: 29.6 fps (sent 89 in 3009ms, skipped=20)
-[Encode FPS] Mon1: 31.6 fps (sent 95 in 3007ms, skipped=23)
-[Capture FPS] Mon1: 27.1 fps (captured 82 frames in 3021ms)
-[Capture FPS] Mon0: 29.0 fps (captured 87 frames in 3001ms)
-[Encode FPS] Mon0: 36.2 fps (sent 109 in 3015ms, skipped=20)
-[Encode FPS] Mon1: 34.3 fps (sent 103 in 3004ms, skipped=23)
-[Capture FPS] Mon1: 25.9 fps (captured 78 frames in 3008ms)
-[Capture FPS] Mon0: 28.8 fps (captured 87 frames in 3018ms)
-[Encode FPS] Mon0: 34.0 fps (sent 103 in 3028ms, skipped=20)
-[Encode FPS] Mon1: 31.2 fps (sent 94 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 28.2 fps (captured 85 frames in 3013ms)
-[Capture FPS] Mon0: 30.8 fps (captured 93 frames in 3016ms)
-[Encode FPS] Mon0: 37.4 fps (sent 113 in 3019ms, skipped=20)
-[Encode FPS] Mon1: 34.4 fps (sent 104 in 3024ms, skipped=23)
-[Capture FPS] Mon1: 27.2 fps (captured 83 frames in 3047ms)
-[Capture FPS] Mon0: 29.4 fps (captured 89 frames in 3032ms)
-[Encode FPS] Mon0: 33.5 fps (sent 101 in 3014ms, skipped=20)
-[Encode FPS] Mon1: 31.2 fps (sent 94 in 3015ms, skipped=23)
-[Capture FPS] Mon1: 27.7 fps (captured 83 frames in 3001ms)
-[Capture FPS] Mon0: 28.2 fps (captured 85 frames in 3011ms)
-[Encode FPS] Mon0: 31.3 fps (sent 94 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 33.5 fps (sent 101 in 3015ms, skipped=23)
-[Capture FPS] Mon1: 29.0 fps (captured 87 frames in 3002ms)
-[Capture FPS] Mon0: 28.7 fps (captured 86 frames in 3001ms)
-[Encode FPS] Mon0: 39.8 fps (sent 120 in 3014ms, skipped=20)
-[Encode FPS] Mon1: 36.6 fps (sent 110 in 3006ms, skipped=23)
-[Capture FPS] Mon1: 29.6 fps (captured 89 frames in 3005ms)
-[Capture FPS] Mon0: 35.1 fps (captured 106 frames in 3024ms)
-[Encode FPS] Mon0: 46.3 fps (sent 140 in 3026ms, skipped=20)
-[Encode FPS] Mon1: 40.0 fps (sent 121 in 3026ms, skipped=23)
-[Capture FPS] Mon1: 27.5 fps (captured 83 frames in 3018ms)
-[Capture FPS] Mon0: 38.0 fps (captured 115 frames in 3024ms)
-[Encode FPS] Mon0: 42.5 fps (sent 128 in 3015ms, skipped=20)
-[Encode FPS] Mon1: 35.0 fps (sent 105 in 3001ms, skipped=23)
-[Capture FPS] Mon1: 28.7 fps (captured 87 frames in 3028ms)
-[Capture FPS] Mon0: 35.7 fps (captured 108 frames in 3025ms)
-[Encode FPS] Mon0: 38.3 fps (sent 115 in 3000ms, skipped=20)
-[Encode FPS] Mon1: 34.4 fps (sent 104 in 3022ms, skipped=23)
-[Capture FPS] Mon1: 27.5 fps (captured 83 frames in 3016ms)
-[Capture FPS] Mon0: 31.2 fps (captured 94 frames in 3011ms)
-[Encode FPS] Mon0: 44.8 fps (sent 135 in 3014ms, skipped=20)
-[Encode FPS] Mon1: 37.5 fps (sent 113 in 3017ms, skipped=23)
-[Capture FPS] Mon1: 27.0 fps (captured 81 frames in 3000ms)
-[Capture FPS] Mon0: 31.4 fps (captured 95 frames in 3022ms)
-[Encode FPS] Mon0: 37.7 fps (sent 114 in 3026ms, skipped=20)
-[Encode FPS] Mon1: 33.6 fps (sent 101 in 3003ms, skipped=23)
-[Capture FPS] Mon1: 23.8 fps (captured 72 frames in 3023ms)
-[Capture FPS] Mon0: 29.2 fps (captured 88 frames in 3013ms)
-[Encode FPS] Mon0: 38.2 fps (sent 115 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 32.9 fps (sent 99 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 28.0 fps (captured 84 frames in 3000ms)
-[Capture FPS] Mon0: 32.1 fps (captured 97 frames in 3024ms)
-[Encode FPS] Mon0: 33.0 fps (sent 99 in 3004ms, skipped=20)
-[Encode FPS] Mon1: 30.5 fps (sent 92 in 3012ms, skipped=23)
-[Capture FPS] Mon1: 23.3 fps (captured 70 frames in 3004ms)
-[Capture FPS] Mon0: 23.8 fps (captured 72 frames in 3025ms)
-[Encode FPS] Mon0: 28.9 fps (sent 87 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 30.9 fps (sent 94 in 3043ms, skipped=23)
-[Capture FPS] Mon1: 23.0 fps (captured 69 frames in 3006ms)
-[Capture FPS] Mon0: 24.9 fps (captured 75 frames in 3012ms)
-[Encode FPS] Mon0: 33.5 fps (sent 101 in 3019ms, skipped=20)
-[Encode FPS] Mon1: 30.1 fps (sent 91 in 3025ms, skipped=23)
-[Capture FPS] Mon1: 25.2 fps (captured 76 frames in 3021ms)
-[Capture FPS] Mon0: 30.4 fps (captured 92 frames in 3027ms)
-[Encode FPS] Mon0: 38.5 fps (sent 116 in 3012ms, skipped=20)
-[Encode FPS] Mon1: 34.5 fps (sent 104 in 3012ms, skipped=23)
-[Capture FPS] Mon1: 26.2 fps (captured 79 frames in 3012ms)
-[Capture FPS] Mon0: 28.7 fps (captured 87 frames in 3032ms)
-[Encode FPS] Mon0: 33.1 fps (sent 100 in 3018ms, skipped=20)
-[Encode FPS] Mon1: 31.2 fps (sent 94 in 3010ms, skipped=23)
-[Capture FPS] Mon1: 21.9 fps (captured 66 frames in 3014ms)
-[Capture FPS] Mon0: 22.2 fps (captured 68 frames in 3058ms)
-[Encode FPS] Mon0: 24.9 fps (sent 75 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 27.0 fps (sent 81 in 3002ms, skipped=23)
-[Capture FPS] Mon1: 22.2 fps (captured 67 frames in 3015ms)
-[Capture FPS] Mon0: 24.2 fps (captured 73 frames in 3012ms)
-[Encode FPS] Mon0: 39.8 fps (sent 120 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 36.9 fps (sent 111 in 3010ms, skipped=23)
-[Capture FPS] Mon1: 42.9 fps (captured 129 frames in 3005ms)
-[Capture FPS] Mon0: 30.0 fps (captured 90 frames in 3004ms)
-[Encode FPS] Mon0: 48.4 fps (sent 146 in 3019ms, skipped=20)
-[Encode FPS] Mon1: 52.3 fps (sent 157 in 3004ms, skipped=23)
-[Capture FPS] Mon1: 39.7 fps (captured 120 frames in 3019ms)
-[Capture FPS] Mon0: 19.9 fps (captured 60 frames in 3011ms)
-[Encode FPS] Mon0: 47.6 fps (sent 143 in 3005ms, skipped=20)
-[Encode FPS] Mon1: 50.2 fps (sent 151 in 3008ms, skipped=23)
-[Capture FPS] Mon1: 43.6 fps (captured 131 frames in 3006ms)
-[Capture FPS] Mon0: 19.3 fps (captured 58 frames in 3007ms)
-[Encode FPS] Mon0: 49.3 fps (sent 148 in 3001ms, skipped=20)
-[Encode FPS] Mon1: 51.6 fps (sent 155 in 3004ms, skipped=23)
-[Capture FPS] Mon1: 38.7 fps (captured 117 frames in 3026ms)
-[Capture FPS] Mon0: 28.1 fps (captured 85 frames in 3021ms)
-[Encode FPS] Mon0: 45.9 fps (sent 138 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 43.1 fps (sent 130 in 3013ms, skipped=23)
-[Capture FPS] Mon1: 30.7 fps (captured 93 frames in 3025ms)
-[Capture FPS] Mon0: 32.2 fps (captured 97 frames in 3013ms)
-[Encode FPS] Mon0: 41.6 fps (sent 125 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 40.6 fps (sent 122 in 3002ms, skipped=23)
-[Capture FPS] Mon1: 24.7 fps (captured 74 frames in 3000ms)
-[Capture FPS] Mon0: 23.8 fps (captured 72 frames in 3026ms)
-[Encode FPS] Mon0: 34.6 fps (sent 104 in 3006ms, skipped=20)
-[Encode FPS] Mon1: 38.1 fps (sent 115 in 3015ms, skipped=23)
-[Capture FPS] Mon1: 38.6 fps (captured 116 frames in 3009ms)
-[Capture FPS] Mon0: 34.2 fps (captured 103 frames in 3013ms)
-[Encode FPS] Mon0: 45.8 fps (sent 138 in 3011ms, skipped=20)
-[Encode FPS] Mon1: 45.3 fps (sent 137 in 3027ms, skipped=23)
-[Capture FPS] Mon1: 30.2 fps (captured 91 frames in 3016ms)
-[Capture FPS] Mon0: 27.3 fps (captured 82 frames in 3008ms)
-[Encode FPS] Mon0: 39.4 fps (sent 119 in 3017ms, skipped=20)
-[Encode FPS] Mon1: 40.6 fps (sent 122 in 3004ms, skipped=23)
-[Capture FPS] Mon1: 35.2 fps (captured 106 frames in 3014ms)
-[Capture FPS] Mon0: 32.9 fps (captured 99 frames in 3012ms)
-[Encode FPS] Mon0: 46.3 fps (sent 140 in 3027ms, skipped=20)
-[Encode FPS] Mon1: 41.6 fps (sent 126 in 3032ms, skipped=23)
-[Capture FPS] Mon1: 30.6 fps (captured 92 frames in 3011ms)
-[Capture FPS] Mon0: 37.6 fps (captured 113 frames in 3009ms)
-[Encode FPS] Mon0: 46.2 fps (sent 139 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 47.2 fps (sent 142 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 41.2 fps (captured 124 frames in 3010ms)
-[Capture FPS] Mon0: 7.3 fps (captured 22 frames in 3007ms)
-[Encode FPS] Mon0: 41.1 fps (sent 124 in 3020ms, skipped=20)
-[Encode FPS] Mon1: 44.8 fps (sent 135 in 3013ms, skipped=23)
-[Capture FPS] Mon1: 28.2 fps (captured 85 frames in 3009ms)
-[Capture FPS] Mon0: 25.7 fps (captured 78 frames in 3031ms)
-[Encode FPS] Mon0: 31.3 fps (sent 95 in 3032ms, skipped=20)
-[Encode FPS] Mon1: 33.4 fps (sent 101 in 3024ms, skipped=23)
-[Capture FPS] Mon1: 23.1 fps (captured 70 frames in 3034ms)
-[Capture FPS] Mon0: 20.9 fps (captured 63 frames in 3015ms)
-[Encode FPS] Mon0: 32.0 fps (sent 96 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 36.0 fps (sent 108 in 3003ms, skipped=23)
-[Capture FPS] Mon1: 35.8 fps (captured 108 frames in 3014ms)
-[Capture FPS] Mon0: 33.3 fps (captured 100 frames in 3001ms)
-[Encode FPS] Mon0: 46.1 fps (sent 139 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 43.3 fps (sent 130 in 3001ms, skipped=23)
-[Capture FPS] Mon1: 36.6 fps (captured 110 frames in 3003ms)
-[Capture FPS] Mon0: 43.7 fps (captured 132 frames in 3023ms)
-[Encode FPS] Mon0: 46.6 fps (sent 140 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 46.4 fps (sent 140 in 3017ms, skipped=23)
-[Capture FPS] Mon1: 39.3 fps (captured 118 frames in 3002ms)
-[Capture FPS] Mon0: 36.3 fps (captured 109 frames in 3006ms)
-[Encode FPS] Mon0: 44.5 fps (sent 134 in 3010ms, skipped=20)
-[Encode FPS] Mon1: 46.9 fps (sent 141 in 3005ms, skipped=23)
-[Capture FPS] Mon1: 38.3 fps (captured 115 frames in 3002ms)
-[Capture FPS] Mon0: 37.7 fps (captured 114 frames in 3021ms)
-[Encode FPS] Mon0: 45.2 fps (sent 136 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 40.3 fps (sent 121 in 3000ms, skipped=23)
-[Capture FPS] Mon1: 30.7 fps (captured 92 frames in 3001ms)
-[Capture FPS] Mon0: 37.1 fps (captured 112 frames in 3021ms)
-[Encode FPS] Mon0: 48.0 fps (sent 144 in 3000ms, skipped=20)
-[Encode FPS] Mon1: 41.8 fps (sent 126 in 3012ms, skipped=23)
-[Capture FPS] Mon1: 28.1 fps (captured 86 frames in 3063ms)
-[Capture FPS] Mon0: 34.3 fps (captured 103 frames in 3000ms)
-[Encode FPS] Mon0: 33.8 fps (sent 102 in 3022ms, skipped=20)
-[Encode FPS] Mon1: 32.3 fps (sent 97 in 3000ms, skipped=23)
-[Capture FPS] Mon1: 26.2 fps (captured 79 frames in 3016ms)
-[Capture FPS] Mon0: 27.3 fps (captured 82 frames in 3005ms)
-[Encode FPS] Mon0: 38.0 fps (sent 114 in 3002ms, skipped=20)
-[Encode FPS] Mon1: 36.1 fps (sent 109 in 3019ms, skipped=23)
-[Capture FPS] Mon1: 30.9 fps (captured 93 frames in 3008ms)
-[Capture FPS] Mon0: 37.9 fps (captured 114 frames in 3005ms)
-[Encode FPS] Mon0: 49.4 fps (sent 149 in 3015ms, skipped=20)
-[Encode FPS] Mon1: 40.8 fps (sent 123 in 3014ms, skipped=23)
-[Capture FPS] Mon1: 32.6 fps (captured 98 frames in 3010ms)
-[Capture FPS] Mon0: 34.3 fps (captured 103 frames in 3002ms)
-[Encode FPS] Mon0: 37.6 fps (sent 113 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 41.6 fps (sent 125 in 3002ms, skipped=23)
-[Capture FPS] Mon1: 40.2 fps (captured 121 frames in 3013ms)
-[Capture FPS] Mon0: 36.8 fps (captured 111 frames in 3017ms)
-[Encode FPS] Mon0: 42.0 fps (sent 127 in 3022ms, skipped=20)
-[Encode FPS] Mon1: 45.5 fps (sent 137 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 36.7 fps (captured 110 frames in 3001ms)
-[Capture FPS] Mon0: 36.5 fps (captured 110 frames in 3014ms)
-[Encode FPS] Mon0: 46.6 fps (sent 140 in 3003ms, skipped=20)
-[Encode FPS] Mon1: 46.1 fps (sent 139 in 3012ms, skipped=23)
-[Capture FPS] Mon1: 43.0 fps (captured 130 frames in 3026ms)
-[Capture FPS] Mon0: 39.2 fps (captured 118 frames in 3007ms)
-[Encode FPS] Mon0: 45.6 fps (sent 137 in 3002ms, skipped=20)
-[Encode FPS] Mon1: 48.1 fps (sent 145 in 3014ms, skipped=23)
-[Capture FPS] Mon1: 39.3 fps (captured 118 frames in 3004ms)
-[Capture FPS] Mon0: 38.1 fps (captured 115 frames in 3021ms)
-[Encode FPS] Mon0: 44.6 fps (sent 134 in 3006ms, skipped=20)
-[Encode FPS] Mon1: 45.9 fps (sent 138 in 3008ms, skipped=23)
-[Capture FPS] Mon1: 37.3 fps (captured 112 frames in 3002ms)
-[Capture FPS] Mon0: 34.2 fps (captured 103 frames in 3009ms)
-[Encode FPS] Mon0: 44.3 fps (sent 133 in 3005ms, skipped=20)
-[Encode FPS] Mon1: 45.4 fps (sent 137 in 3020ms, skipped=23)
-[Capture FPS] Mon1: 40.5 fps (captured 122 frames in 3011ms)
-[Capture FPS] Mon0: 39.5 fps (captured 119 frames in 3014ms)
-[Encode FPS] Mon0: 46.3 fps (sent 140 in 3022ms, skipped=20)
-[Encode FPS] Mon1: 48.0 fps (sent 145 in 3020ms, skipped=23)
-[Capture FPS] Mon1: 37.3 fps (captured 112 frames in 3003ms)
-[Capture FPS] Mon0: 37.8 fps (captured 114 frames in 3012ms)
-[Encode FPS] Mon0: 47.9 fps (sent 144 in 3006ms, skipped=20)
-[Encode FPS] Mon1: 46.1 fps (sent 140 in 3034ms, skipped=23)
-[Capture FPS] Mon1: 37.4 fps (captured 113 frames in 3018ms)
-[Capture FPS] Mon0: 40.6 fps (captured 122 frames in 3005ms)
-[Encode FPS] Mon0: 46.5 fps (sent 140 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 44.9 fps (sent 135 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 39.0 fps (captured 117 frames in 3002ms)
-[Capture FPS] Mon0: 36.3 fps (captured 109 frames in 3003ms)
-[Encode FPS] Mon0: 43.3 fps (sent 130 in 3002ms, skipped=20)
-[Encode FPS] Mon1: 45.2 fps (sent 136 in 3008ms, skipped=23)
-[Capture FPS] Mon1: 37.1 fps (captured 112 frames in 3015ms)
-[Capture FPS] Mon0: 41.1 fps (captured 124 frames in 3014ms)
-[Encode FPS] Mon0: 45.8 fps (sent 138 in 3013ms, skipped=20)
-[Encode FPS] Mon1: 40.6 fps (sent 122 in 3007ms, skipped=23)
-[Capture FPS] Mon1: 28.5 fps (captured 86 frames in 3016ms)
-[Capture FPS] Mon0: 37.6 fps (captured 113 frames in 3002ms)
-[Encode FPS] Mon0: 51.5 fps (sent 155 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 43.6 fps (sent 132 in 3030ms, skipped=23)
-[Capture FPS] Mon1: 36.3 fps (captured 109 frames in 3001ms)
-[Capture FPS] Mon0: 41.0 fps (captured 123 frames in 3000ms)
-[Encode FPS] Mon0: 43.0 fps (sent 129 in 3002ms, skipped=20)
-[Encode FPS] Mon1: 45.2 fps (sent 136 in 3009ms, skipped=23)
-[Capture FPS] Mon1: 42.5 fps (captured 128 frames in 3010ms)
-[Capture FPS] Mon0: 34.5 fps (captured 104 frames in 3013ms)
-[Encode FPS] Mon0: 44.9 fps (sent 135 in 3008ms, skipped=20)
-[Encode FPS] Mon1: 49.7 fps (sent 150 in 3017ms, skipped=23)
-[Capture FPS] Mon1: 41.2 fps (captured 124 frames in 3008ms)
-[Capture FPS] Mon0: 36.4 fps (captured 110 frames in 3018ms)
-[LibAvEncoder] Disposed (Safe)
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m0 PC closed
-[LibAvEncoder] Disposed (Safe)
-[LibAvEncoderAdapter] Disposed
-[MultiPC] m1 PC closed
-[PerMonitorCapture] Monitor 1: Capture thread stopped
+[SIPSorcery] Detected GPU vendor: Intel
+[QsvNativeWrapper] QsvWrapper.dll not found
+[SIPSorcery] No hardware encoder available!
+[SIPSorcery] Track 0: No suitable encoder found for Intel
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
+[SIPSorcery] Stats: m0:0
+[Capture FPS] Mon0: 47.9 fps (captured 144 in 3008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
+[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
+[SIPSorcery] Stats: m0:0
+[SIPSorcery] Stats: m0:0
+[SIPSorcery] Stats: m0:0
+[Capture FPS] Mon0: 15.3 fps (captured 46 in 3008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=skip_to_live, len=23, preview={"type":"skip_to_live"}
+[Protocol] skip_to_live received (monitor=-1) - forcing keyframe for latency recovery
+[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 4148109963132524150 2 IN IP4 127.0.0.1\r\ns=-\r\n
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Parsed H264 PT from offer: 123
+[SIPSorcery] Closing existing connection for reconnect...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 F4:63:70:D4:30:43:DD:A8:9E:85:39:F7:64:E6:0C:0B:4A:73:78:33:E8:93:C4:2C:7F:DF:6B:EF:2E:42:E1:06
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 55770 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 B6:37:44:D8:8C:DE:BF:80:E2:9D:F1:8E:1E:D5:A1:17:B8:53:41:1B:1D:76:0E:BE:5A:60:53:BA:B5:F6:A8:4E
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1211 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
+[Protocol] SDP kept: a=rtpmap:123 H264/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
+[Protocol] Filtered SDP from 1211 to 707 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 79248 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=709 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 55770 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"4028512931 1 udp 2122129151 192.168.1.74 65488 typ
+[SIPSorcery] Added remote ICE: candidate:4028512931 1 udp 2122129151 192.168.1.74...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2481504033 1 udp 2122262783 2402:800:6d62:7e9c:601
+[SIPSorcery] Added remote ICE: candidate:2481504033 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1786305969 1 udp 2122197247 2402:800:6d62:7e9c:de3
+[SIPSorcery] Added remote ICE: candidate:1786305969 1 udp 2122197247 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"4045293701 1 udp 1685921535 27.72.102.134 65488 ty
+[SIPSorcery] Added remote ICE: candidate:4045293701 1 udp 1685921535 27.72.102.13...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 55770 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
+[SIPSorcery] Detected GPU vendor: Intel
+[QsvNativeWrapper] QsvWrapper.dll not found
+[SIPSorcery] No hardware encoder available!
+[SIPSorcery] Track 0: No suitable encoder found for Intel
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Phase3 RX: type=stop_streaming, len=25, preview={"type":"stop_streaming"}
+[Protocol] Received stop_streaming
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
+[Protocol] Phase changed to: Disconnecting
+[SIPSorcery] Stopping...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
 [PerMonitorCapture] Monitor 0: Capture thread stopped
+[MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
 [PerMonitorCapture] All capture threads stopped
-[Guard] Restoring display settings after MultiPC client disconnect...
+[Protocol] Restoring display settings...
 [Guard] RestoreAndCleanupWithTimeout called...
 [Guard] SnapshotPath exists: True
 [Guard] Attempting to disable VDD...
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
-[2025-12-17 01:02:34.494] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY40
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
@@ -480,16 +454,9 @@ Device disabled successfully.
 [Guard] Restoring per-monitor text scale...
 [Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
 [TextScale] Removed custom DPI for \\.\DISPLAY1
+[Guard] Restore timeout.
+[Protocol] Display settings restored.
+[Protocol] Client 5a737b35-bdaa-49b7-afa2-f2c6baeed5df disconnected
 [TextScale] Enhanced broadcast refresh completed.
 [Guard] ✓ Virtual monitor text scale restored to 100%
 [Guard] Per-monitor text scale restoration completed.
-[Guard] Step 3: Restoring monitor modes...
-[Guard] Monitor modes restored.
-[Guard] Step 4: Restoring taskbar flag...
-[Guard] Taskbar multi-monitor flag restored to 0.
-[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
-[Guard] Allowing system to settle after restore...
-[Guard] ✅ All settings restored and system settled.
-[Guard] Restore done.
-[Guard] Display settings restored.
-[Signal] MultiPC client disconnected f7b47152-3187-4e1b-b480-7c8d08214a70
