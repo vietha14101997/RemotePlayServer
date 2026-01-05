@@ -38,8 +38,8 @@ Data: {"ip":"192.168.1.67","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLA
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 9d363e35-67ae-4c7a-92d2-9930af645ffd, protocol=v2
-[Protocol] Client 9d363e35-67ae-4c7a-92d2-9930af645ffd connected from 192.168.1.74 (v2 protocol)
+[Signal] Client connected a2ec953e-fac3-4293-87c7-8bf65760531b, protocol=v2
+[Protocol] Client a2ec953e-fac3-4293-87c7-8bf65760531b connected from 192.168.1.74 (v2 protocol)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
@@ -52,8 +52,6 @@ Server is running. Press ENTER to exit.
 [HardwareInfo] Encoder: QSV, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
-[Protocol] WaitForHardwareAck received: len=18, text=ping:1767584968645
-[Protocol] WaitForHardwareAck received: len=18, text=ping:1767584970661
 [Protocol] WaitForHardwareAck received: len=203, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
 [Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=MS-7B24 (Micro-Star International Co., Ltd.)
@@ -68,21 +66,23 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 8MB in 2488ms = 27.0 Mbps
+[Protocol] Download test complete: sent 8MB in 4128ms = 16.3 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 31.0Mbps, 10.2ms
-[Protocol] ✓ Received speedtest_result from client: 31.0Mbps, 10.2ms ping
+[Protocol] speedtest_result parsed: 32.7Mbps, 31.9ms
+[Protocol] ✓ Received speedtest_result from client: 32.7Mbps, 31.9ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 1x1366x768@60fps, bitrate=15000kbps, codec=H264
+[Protocol] Sending suggested_config: 1x1366x768@45fps, bitrate=15000kbps, codec=H264
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1767584976727...
-[Protocol] WaitForProceed received: ping:1767584978760...
-[Protocol] WaitForProceed received: ping:1767584980776...
-[Protocol] WaitForProceed received: ping:1767584982810...
+[Protocol] WaitForProceed received: ping:1767585666927...
+[Protocol] WaitForProceed received: ping:1767585668960...
+[Protocol] WaitForProceed received: ping:1767585670977...
+[Protocol] WaitForProceed received: ping:1767585672994...
+[Protocol] WaitForProceed received: ping:1767585675027...
+[Protocol] WaitForProceed received: ping:1767585677043...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -109,85 +109,79 @@ Server is running. Press ENTER to exit.
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
 [PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
-[Protocol] Creating SIPSorceryStreamer
-[SIPSorcery] Created: 1 monitors, 60fps, 15000kbps
+[Protocol] Creating SIPSorceryStreamer with codec=H264
+[SIPSorcery] Created: 1 monitors, 60fps, 15000kbps, codec=H264
 [SIPSorcery] Stored pending device for monitor 0
 [Protocol] Monitor 0: Using dedicated D3D11 device
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1767584984840...
+[Protocol] ICE RX: ping:1767585679073...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584986857...
+[Protocol] ICE RX: ping:1767585681107...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584988873...
+[Protocol] ICE RX: ping:1767585683139...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584990907...
+[Protocol] ICE RX: ping:1767585685173...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584992941...
+[Protocol] ICE RX: ping:1767585687206...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584994957...
+[Protocol] ICE RX: ping:1767585689232...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584996990...
+[Protocol] ICE RX: ping:1767585691249...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767584999023...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"314293214 1 udp 2122129151 192...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2988764843 1 udp 2122129151 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3797082307 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3520228137 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3421445983 1 udp 2122197247 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"675416505 1 udp 2122197247 240...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2886822654800054787 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 4539725922403603722 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 3 pending ICE candidates
 [Protocol] Parsed H264 PT from offer: 123
 [SIPSorcery] Processing offer for 1 monitors
 [SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 8C:8A:42:6A:F4:D0:89:11:4D:CD:9A:6E:36:73:8D:4A:C5:90:BD:DD:01:B8:4E:D8:8E:C0:CA:BC:07:B0:05:E7
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 ED:6D:F4:E7:8F:63:A0:FD:DB:0D:67:59:52:AD:51:8D:D7:ED:B1:D5:FB:6B:F8:2F:FC:B2:25:32:0D:61:C0:54
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
 [SIPSorcery] Added track 0: 1920x1080
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 52654 typ ...
+[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 54280 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 60:D7:4D:00:5B:FA:F3:D6:E1:05:31:C0:30:FB:BD:F9:FF:98:B0:FB:F7:33:41:11:54:B0:FA:B1:10:8E:5A:2D
+[SIPSorcery] SDP: a=fingerprint:sha-256 66:CB:73:D7:F5:72:1B:FD:90:18:FC:E5:41:1F:6B:78:65:6A:94:6B:7F:FC:A7:61:45:70:77:25:08:58:E1:80
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1209 bytes
+[SIPSorcery] Answer ready, 1211 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
 [Protocol] SDP kept: a=rtpmap:123 H264/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[Protocol] Filtered SDP from 1209 to 705 bytes
+[Protocol] Filtered SDP from 1211 to 707 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 41323 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=707 bytes
-[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 52654 typ ...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 73348 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=709 bytes
+[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 54280 typ ...
 [Protocol] Applying 3 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:314293214 1 udp 2122129151 192.168.1.74 ...
-[Protocol] Applied pending ICE: 314293214 1 udp 2122129151 192.168.1.74 54679 typ ...
-[SIPSorcery] Added remote ICE: candidate:3797082307 1 udp 2122262783 2402:800:6d6...
-[Protocol] Applied pending ICE: 3797082307 1 udp 2122262783 2402:800:6d62:7e9c:601...
-[SIPSorcery] Added remote ICE: candidate:3421445983 1 udp 2122197247 2402:800:6d6...
-[Protocol] Applied pending ICE: 3421445983 1 udp 2122197247 2402:800:6d62:7e9c:de3...
-[Protocol] ICE RX: ping:1767585001050...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767585003066...
-[Protocol] ICE legacy format message
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 52654 ty...
+[SIPSorcery] Added remote ICE: candidate:2988764843 1 udp 2122129151 192.168.1.74...
+[Protocol] Applied pending ICE: 2988764843 1 udp 2122129151 192.168.1.74 50036 typ...
+[SIPSorcery] Added remote ICE: candidate:3520228137 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 3520228137 1 udp 2122262783 2402:800:6d62:7e9c:601...
+[SIPSorcery] Added remote ICE: candidate:675416505 1 udp 2122197247 2402:800:6d62...
+[Protocol] Applied pending ICE: 675416505 1 udp 2122197247 2402:800:6d62:7e9c:de39...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 54280 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
-[Protocol] Phase 3: Waiting for all monitors to connect...
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
+[Protocol] Phase 3: Waiting for all monitors to connect...
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
 [SIPSorcery] Detected GPU vendor: Intel
 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
@@ -199,33 +193,34 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
 [QsvNativeWrapper] Disposed
 [SIPSorcery] Track 0: Trying LibAv fallback for Intel...
-[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 15000kbps, codec=H265
+[SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 0: Trying LibAv with H264...
+[LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 15000kbps, codec=H264
 [LibAvEncoder] SetDllDirectory: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
 [LibAvEncoder] FFmpeg.RootPath: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
-[LibAvEncoder] SelectEncoder: preferredCodec=H265
+[LibAvEncoder] SelectEncoder: preferredCodec=H264
 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
 [LibAvEncoder] SelectEncoder: vendor=Intel
-[LibAvEncoder] Trying H.265 encoder...
-[LibAvEncoder] Selected H.265 encoder: hevc_qsv
-[LibAvEncoder] Using encoder: hevc_qsv
-[LibAvEncoder] Configuring Intel HEVC QSV encoder (quality + low latency)
-[LibAvEncoder] HEVC QSV VBR: target 15000kbps, max 30000kbps
+[LibAvEncoder] Trying H.264 encoder...
+[LibAvEncoder] SelectH264Encoder: vendor=Intel
+[LibAvEncoder] Trying encoder: h264_qsv
+[LibAvEncoder] Encoder h264_qsv: FOUND
+[LibAvEncoder] Selected H.264 encoder: h264_qsv
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+[LibAvEncoder] QSV VBR mode: target 15000kbps, max 45000kbps
 [LibAvEncoder] Intel GPU: Trying QSV hardware context
 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
-[AVHWDeviceContext @ 000002bf830b5bc0] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[AVHWDeviceContext @ 000001bf8321ff40] Using device 8086:5917 (Intel(R) UHD Graphics 620).
 [LibAvEncoder] QSV device created directly (matches known good config)
 [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
-[hevc_qsv @ 000002bf83b3a480] some encoding parameters are not supported by the QSV runtime. Please double check the input parameters.
-[LibAvEncoder] Failed to open codec: Function not implemented
-[LibAvEncoderAdapter] LibAvEncoder initialization failed
-[LibAvEncoder] Disposed (Safe)
-[SIPSorcery] Track 0: LibAv encoder init failed
-[LibAvEncoderAdapter] Disposed
-[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
-[SIPSorcery] Stats: m0:0
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1920x1080 @ 60fps, 15000kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully with codec: H264
+[SIPSorcery] Track 0: LibAv encoder initialized (codec: H264)
 [Protocol] All 1 tracks ready, sending ice_ready
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
@@ -237,529 +232,701 @@ Server is running. Press ENTER to exit.
 [MultimediaTimer] Timer resolution set to 1ms
 [PerMonitorCapture] Started 1 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.3 fps (captured 58 in 3010ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.3 fps (captured 58 in 3001ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2286007324806614435 2 IN IP4 127.0.0.1\r\ns=-\r\n
-[Protocol] Received reconnect offer during streaming (JSON format)
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Parsed H264 PT from offer: 123
-[SIPSorcery] Closing existing connection for reconnect...
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Connection closed
-[SIPSorcery] Processing offer for 1 monitors
-[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 16:B2:AB:5B:A9:E9:40:43:04:55:95:F2:4E:37:37:45:06:E7:A5:DD:79:4A:34:13:38:A3:27:6A:FD:86:1E:10
-[SIPSorcery] Client SDP: a=setup:actpass
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 61688 typ ...
-[SIPSorcery] Signaling state: stable
-[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 31:6B:1F:41:E4:E9:B5:C2:0B:E8:26:FE:16:CB:EB:64:FC:27:2E:9E:C9:5B:B1:4F:EB:98:80:12:FE:8D:11:2F
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1211 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
-[Protocol] SDP kept: a=rtpmap:123 H264/90000
-[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[Protocol] Filtered SDP from 1211 to 707 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 75139 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=709 bytes
-[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 61688 typ ...
-[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"3904580158 1 udp 2122129151 192.168.1.74 51940 typ
-[SIPSorcery] Added remote ICE: candidate:3904580158 1 udp 2122129151 192.168.1.74...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2337124284 1 udp 2122262783 2402:800:6d62:7e9c:601
-[SIPSorcery] Added remote ICE: candidate:2337124284 1 udp 2122262783 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1927138604 1 udp 2122197247 2402:800:6d62:7e9c:de3
-[SIPSorcery] Added remote ICE: candidate:1927138604 1 udp 2122197247 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"3921369112 1 udp 1685921535 27.72.102.134 51940 ty
-[SIPSorcery] Added remote ICE: candidate:3921369112 1 udp 1685921535 27.72.102.13...
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61688 ty...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[SIPSorcery] Detected GPU vendor: Intel
-[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
-[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
-[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Trying QSV native encoder (Media Foundation)...
-[QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
-[QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
-[SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
-[QsvNativeWrapper] Disposed
-[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
-[LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
-[SIPSorcery] Track 0: LibAv encoder init failed
-[LibAvEncoderAdapter] Disposed
-[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
-[Protocol] All 1 tracks ready, sending ice_ready
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.4 fps (captured 59 in 3045ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.3 fps (captured 58 in 3007ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Protocol] Phase3 RX: type=offer, len=4599, preview={"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 5777038538711060444 2 IN IP4 127.0.0.1\r\ns=-\r\n
-[Protocol] Received reconnect offer during streaming (JSON format)
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Parsed H264 PT from offer: 123
-[SIPSorcery] Closing existing connection for reconnect...
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Connection closed
-[SIPSorcery] Processing offer for 1 monitors
-[SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 92:60:02:88:35:AC:01:40:E3:6D:95:2F:D7:AD:11:3D:6C:3B:5B:48:86:7A:D5:96:B9:D0:C7:78:81:15:B9:69
-[SIPSorcery] Client SDP: a=setup:actpass
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Local ICE: 346310703 1 udp 2113937663 192.168.1.67 61690 typ ...
-[SIPSorcery] Signaling state: stable
-[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 D8:D5:67:8B:E4:2E:FA:C0:DF:51:7F:67:B9:F9:C8:89:11:1F:32:90:FF:76:DB:9A:86:A4:CA:FC:41:5B:2F:35
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1210 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
-[Protocol] SDP kept: a=rtpmap:123 H264/90000
-[Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[Protocol] Filtered SDP from 1210 to 706 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 58679 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=708 bytes
-[Protocol] Sent extracted ICE candidate: candidate:346310703 1 udp 2113937663 192.168.1.67 61690 typ ...
-[Protocol] Phase3 RX: type=candidate, len=160, preview={"type":"candidate","monitorIndex":0,"candidate":"4148152384 1 udp 2122129151 192.168.1.74 61084 typ
-[SIPSorcery] Added remote ICE: candidate:4148152384 1 udp 2122129151 192.168.1.74...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"2496220610 1 udp 2122262783 2402:800:6d62:7e9c:601
-[SIPSorcery] Added remote ICE: candidate:2496220610 1 udp 2122262783 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=186, preview={"type":"candidate","monitorIndex":0,"candidate":"1834561362 1 udp 2122197247 2402:800:6d62:7e9c:de3
-[SIPSorcery] Added remote ICE: candidate:1834561362 1 udp 2122197247 2402:800:6d6...
-[Protocol] Phase3 RX: type=candidate, len=193, preview={"type":"candidate","monitorIndex":0,"candidate":"4131371622 1 udp 1685921535 27.72.102.134 61084 ty
-[SIPSorcery] Added remote ICE: candidate:4131371622 1 udp 1685921535 27.72.102.13...
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61690 ty...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
-[Protocol] Phase3 RX: type=reconnect_ack, len=41, preview={"type":"reconnect_ack","monitorIndex":0}
-[SIPSorcery] Detected GPU vendor: Intel
-[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
-[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
-[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[2026-01-05 10:50:27.661] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[2026-01-05 10:50:27.705] UNOBSERVED TASK EXCEPTION:
-System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
- ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Net.Sockets.SocketReceiveFromResult>.GetResult(Int16 token)
-   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
-   --- End of inner exception stack trace ---
-
-
-[SIPSorcery] Trying QSV native encoder (Media Foundation)...
-[QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 15000kbps
-[QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
-[SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
-[QsvNativeWrapper] Disposed
-[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
-[LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
-[SIPSorcery] Track 0: LibAv encoder init failed
-[LibAvEncoderAdapter] Disposed
-[SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
-[Protocol] All 1 tracks ready, sending ice_ready
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.4 fps (captured 59 in 3042ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[SIPSorcery] Stats: m0:0
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[Capture FPS] Mon0: 19.4 fps (captured 59 in 3047ms, rate-limited=0)
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
+[GpuColorConverter] GPU: Intel, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[SIPSorcery] Track 0 frame #0: 197942B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=1, rtpStep=25803
+[SIPSorcery] VideoStream[0]: SSRC=1697631135
+[SIPSorcery] Track 0 frame #1: 268150B, NAL types=[7,8,6,1], key=False
+[SIPSorcery] Track 0 frame #2: 279574B, NAL types=[7,8,6,1], key=False
+[SIPSorcery] Track 0 frame #3: 343984B, NAL types=[7,8,6,1], key=False
+[SIPSorcery] Track 0 frame #4: 337389B, NAL types=[7,8,6,1], key=False
+[SIPSorcery] Stats: m0:5
+[SIPSorcery] Track 0 frame #6: 381472B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #9: 169109B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #12: 131915B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #15: 73744B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #18: 99047B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #21: 81257B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #24: 74509B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #27: 70286B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #30: 92804B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #33: 75982B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #36: 71419B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #39: 76469B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #42: 77097B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #45: 84970B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 9.6 fps (captured 29 in 3018ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #48: 77923B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #51: 72921B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #54: 72817B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #57: 77576B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #60: 77763B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #63: 72937B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #66: 72906B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #69: 73141B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #72: 73108B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #75: 78042B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #78: 78292B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #81: 73429B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #84: 78339B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #87: 78332B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #90: 78268B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
+[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
+[SIPSorcery] Track 0 frame #93: 79024B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:95
+[SIPSorcery] Track 0 frame #96: 79123B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #99: 61224B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #102: 73459B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #105: 67305B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #108: 90767B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #111: 111278B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #114: 78512B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #117: 78629B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #120: 78683B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #123: 78504B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #126: 86548B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #129: 67326B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #132: 73788B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #135: 73831B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #138: 78723B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #141: 73817B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=fps_feedback, len=97, preview={"type":"fps_feedback","monitorIndex":0,"effectiveFps":3.6,"renderedFrames":30,"droppedFrames":0}
+[SIPSorcery] Track 0 frame #144: 73772B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] FPS feedback m0: 3.6fps, dropped=0
+[SIPSorcery] Track 0 frame #147: 67603B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #150: 89620B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #153: 85933B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #156: 78207B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 21.5 fps (captured 65 in 3022ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #159: 78228B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #162: 78031B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #165: 77808B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #168: 77985B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #171: 77991B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #174: 78839B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #177: 78751B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #180: 78710B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #183: 78480B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #186: 78573B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #189: 73638B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #192: 78638B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #195: 78601B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #198: 73464B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #201: 73586B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:202
+[SIPSorcery] Track 0 frame #204: 73822B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #207: 73804B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #210: 73003B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #213: 72859B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #216: 72878B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #219: 72827B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #222: 72695B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #225: 73382B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #228: 72996B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #231: 73611B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #234: 67469B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #237: 73468B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #240: 78523B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #243: 73425B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #246: 73521B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #249: 73337B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=fps_feedback, len=98, preview={"type":"fps_feedback","monitorIndex":0,"effectiveFps":10.0,"renderedFrames":30,"droppedFrames":0}
+[SIPSorcery] FPS feedback m0: 10.0fps, dropped=0
+[SIPSorcery] Track 0 frame #252: 73258B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #255: 72623B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #258: 72815B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #261: 72833B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.9 fps (captured 60 in 3010ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #264: 77832B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #267: 72990B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #270: 72799B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #273: 72985B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #276: 72958B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #279: 77938B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #282: 73747B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #285: 73677B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #288: 78677B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #291: 73659B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #294: 73733B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #297: 73744B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #300: 73712B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:303
+[SIPSorcery] Track 0 frame #303: 67672B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #306: 73792B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #309: 73007B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #312: 72998B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #315: 73018B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #318: 72986B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #321: 73103B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #324: 73069B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #327: 72725B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #330: 72379B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #333: 73038B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #336: 73506B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #339: 73459B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #342: 73427B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #345: 73472B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #348: 73325B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #351: 73331B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #354: 73455B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 18.2 fps (captured 55 in 3023ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #357: 73443B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #360: 73037B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #363: 73166B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #366: 73207B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #369: 73246B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #372: 73156B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #375: 73188B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #378: 73218B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #381: 73111B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #384: 73243B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #387: 73178B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #390: 74115B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #393: 67955B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #396: 74071B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:398
+[SIPSorcery] Track 0 frame #399: 74078B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #402: 74136B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #405: 73254B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #408: 73343B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #411: 67281B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #414: 73385B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #417: 73277B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #420: 73392B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #423: 73364B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #426: 73428B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #429: 73364B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #432: 73468B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #435: 73481B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #438: 73569B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #441: 73469B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #444: 67519B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #447: 73460B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #450: 73370B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #453: 73426B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.3 fps (captured 58 in 3004ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #456: 73381B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #459: 73166B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #462: 73111B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #465: 73327B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #468: 73310B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #471: 73248B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #474: 73279B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #477: 73293B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #480: 73168B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #483: 73210B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #486: 68024B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #489: 74122B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #492: 74006B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #495: 74140B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:496
+[SIPSorcery] Track 0 frame #498: 74166B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #501: 73384B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #504: 73504B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #507: 73526B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #510: 67486B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #513: 73461B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #516: 73594B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #519: 73553B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #522: 73424B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #525: 73483B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #528: 73542B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #531: 73516B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #534: 73568B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #537: 67526B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #540: 73315B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #543: 73498B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #546: 73479B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #549: 56746B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #552: 73268B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.5 fps (captured 59 in 3024ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #555: 56600B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #558: 73153B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #561: 56583B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #564: 73360B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #567: 73306B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #570: 56555B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #573: 73183B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #576: 73206B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #579: 56551B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #582: 73205B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #585: 73999B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #588: 57306B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #591: 68054B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #594: 57325B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:595
+[SIPSorcery] Track 0 frame #597: 87455B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #600: 78326B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #603: 56738B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #606: 67502B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #609: 67606B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #612: 73550B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #615: 56867B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #618: 86671B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #621: 78610B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #624: 56861B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #627: 73614B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #630: 56991B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #633: 86574B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #636: 78487B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #639: 56883B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #642: 67742B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #645: 57005B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #648: 86589B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 18.5 fps (captured 56 in 3022ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #651: 86751B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #654: 56843B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #657: 73641B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #660: 56982B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #663: 67704B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #666: 73712B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #669: 73702B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #672: 73610B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #675: 73582B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #678: 57040B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
+[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
+[SIPSorcery] Track 0 frame #681: 73436B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #684: 31857B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #687: 62271B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:688
+[SIPSorcery] Track 0 frame #690: 79561B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #693: 78637B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #696: 78701B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #699: 56988B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #702: 67765B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #705: 67650B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #708: 56962B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #711: 86748B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #714: 78802B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #717: 57107B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #720: 73871B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #723: 73866B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #726: 57134B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #729: 67700B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #732: 73736B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #735: 57121B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #738: 73831B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #741: 73704B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #744: 57066B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #747: 67828B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.0 fps (captured 57 in 3001ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #750: 73865B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #753: 56943B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #756: 86636B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #759: 78812B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #762: 56692B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #765: 67559B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #768: 73467B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #771: 56820B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #774: 67533B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #777: 74415B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #780: 57507B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #783: 87286B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #786: 79205B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:787
+[SIPSorcery] Track 0 frame #789: 57372B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #792: 67411B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #795: 56623B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #798: 73418B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #801: 56608B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #804: 86540B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #807: 78429B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #810: 56681B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #813: 73336B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #816: 73426B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #819: 56871B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #822: 73500B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #825: 56891B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #828: 86579B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #831: 78484B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #834: 56946B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #837: 67698B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #840: 67798B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.1 fps (captured 58 in 3036ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #843: 56965B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #846: 73606B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #849: 57124B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #852: 86975B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #855: 78723B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #858: 57120B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #861: 67734B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #864: 73772B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #867: 73898B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #870: 57150B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #873: 67643B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #876: 57532B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #879: 87338B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #882: 78776B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:883
+[SIPSorcery] Track 0 frame #885: 57146B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #888: 67131B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #891: 67126B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #894: 73100B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #897: 56496B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #900: 85913B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #903: 85945B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #906: 56500B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #909: 73131B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #912: 56532B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #915: 73103B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #918: 73108B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #921: 56513B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #924: 73080B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #927: 56474B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #930: 85941B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #933: 78009B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #936: 56518B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #939: 72999B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 14.3 fps (captured 43 in 3005ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #942: 67145B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #945: 77915B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #948: 56464B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #951: 67052B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #954: 56412B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #957: 72962B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #960: 73582B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #963: 56842B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #966: 67510B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #969: 67509B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #972: 57527B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #975: 87322B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #978: 79457B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:980
+[SIPSorcery] Track 0 frame #981: 57492B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #984: 56933B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #987: 67622B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #990: 73662B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #993: 57009B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #996: 73682B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #999: 73714B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1002: 56930B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1005: 67661B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1008: 73341B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1011: 56686B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1014: 86334B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1017: 78394B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1020: 56673B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1023: 73569B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1026: 73491B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1029: 56833B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1032: 67638B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1035: 67665B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 15.9 fps (captured 48 in 3010ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1038: 67605B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1041: 67638B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1044: 57214B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1047: 74355B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1050: 57320B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1053: 67974B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1056: 74194B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1059: 57211B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1062: 87355B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1065: 79482B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1068: 58038B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1071: 69110B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1074: 69055B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1077
+[SIPSorcery] Track 0 frame #1077: 58028B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1080: 75506B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1083: 57373B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1086: 68265B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1089: 57401B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1092: 87847B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1095: 79635B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1098: 57430B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1101: 57482B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1104: 74654B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1107: 57465B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1110: 87808B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1113: 79323B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1116: 57300B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1119: 68072B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1122: 57321B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1125: 74324B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1128: 57305B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1131: 68092B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 17.4 fps (captured 53 in 3040ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1134: 57347B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1137: 87584B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1140: 87759B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1143: 57270B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1146: 57353B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1149: 74547B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1152: 57326B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1155: 68284B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1158: 74568B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1161: 74478B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1164: 57856B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1167: 57722B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1170: 88479B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1173: 80377B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1175
+[SIPSorcery] Track 0 frame #1176: 57755B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1179: 57734B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1182: 74593B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1185: 68022B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1188: 74390B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1191: 57233B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1194: 68238B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1197: 68254B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1200: 57286B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1203: 68263B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1206: 68297B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1209: 74662B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1212: 57303B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1215: 87527B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1218: 79419B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1221: 57331B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1224: 57238B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1227: 74550B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1230: 57289B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.8 fps (captured 60 in 3025ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1233: 68314B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1236: 74459B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1239: 57332B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1242: 68299B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1245: 74637B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1248: 57166B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1251: 87778B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1254: 79639B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1257: 57189B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
+[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
+[SIPSorcery] Track 0 frame #1260: 57258B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1266: 57908B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1269: 88905B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1270
+[SIPSorcery] Track 0 frame #1272: 75632B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1275: 57401B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1278: 57368B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1281: 74927B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1284: 74994B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1287: 57327B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1290: 68358B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1293: 68365B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1296: 68289B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1299: 68407B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1302: 74995B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1305: 57303B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1308: 68186B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1311: 57263B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1314: 74802B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1317: 57438B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1320: 88020B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1323: 79778B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1326: 57380B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1329: 57366B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.6 fps (captured 59 in 3013ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1332: 74854B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1335: 57337B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1338: 74796B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1341: 57267B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1344: 68330B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1347: 74688B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1350: 57304B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1353: 68393B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1356: 74629B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1359: 57960B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1362: 69154B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1365: 57900B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1368: 88837B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1370
+[SIPSorcery] Track 0 frame #1371: 80546B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1374: 57959B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1377: 57263B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1380: 74750B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1383: 57318B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1386: 87877B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1389: 79584B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1392: 57403B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1395: 68169B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1398: 68338B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1401: 68393B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1404: 68118B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1407: 68028B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1410: 68147B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1413: 68217B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1416: 68132B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1419: 57297B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1422: 87876B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 18.0 fps (captured 54 in 3000ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1425: 87849B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1428: 57344B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1431: 68236B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1434: 57129B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1437: 67934B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1440: 68040B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1443: 74513B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1446: 57105B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1449: 67933B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1452: 57120B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1455: 87503B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1458: 80084B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1461: 57740B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1464
+[SIPSorcery] Track 0 frame #1464: 68686B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1467: 57867B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1470: 74563B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1473: 57127B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1476: 87718B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1479: 79549B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1482: 57274B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1485: 67979B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1488: 74602B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1491: 57204B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1494: 67991B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1497: 57179B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1500: 74690B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1503: 74786B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1506: 57086B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1509: 68008B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1512: 57302B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1515: 74656B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1518: 57277B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1521: 87905B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 19.5 fps (captured 59 in 3023ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1524: 79795B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1527: 57267B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1530: 68186B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1533: 68254B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1536: 74618B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1539: 57108B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1542: 87798B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1545: 79624B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1548: 57166B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1551: 68812B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1554: 57922B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1557: 68859B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1560: 57792B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1562
+[SIPSorcery] Track 0 frame #1563: 75339B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1566: 57857B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1569: 68044B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1572: 74540B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1575: 57294B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1578: 68167B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1581: 74563B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1584: 57322B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1587: 68110B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1590: 74636B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1593: 57308B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1596: 87847B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1599: 79457B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1602: 57297B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1605: 57375B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1608: 74585B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1611: 57392B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1614: 87972B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 18.2 fps (captured 55 in 3015ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1617: 79635B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1620: 57439B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1623: 68275B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1626: 57242B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1629: 87553B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1632: 79439B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1635: 57250B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1638: 68088B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1641: 57202B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1644: 87734B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1647: 87556B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1650: 57908B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1653: 57899B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1654
+[SIPSorcery] Track 0 frame #1656: 75495B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1659: 58064B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1662: 68338B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1665: 57454B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1668: 87892B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1671: 79695B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1674: 57501B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1677: 68442B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1680: 57455B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1683: 74859B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1686: 68363B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1689: 68415B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1692: 57521B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1695: 68428B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1698: 74846B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1701: 57500B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1704: 68448B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1707: 74816B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 17.2 fps (captured 52 in 3019ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1710: 74671B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1713: 57559B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1716: 57451B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1719: 87699B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1722: 79387B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1725: 57339B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1728: 68197B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1731: 57292B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1734: 74500B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1737: 57292B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1740: 87559B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1743: 80327B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1746: 58097B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1748
+[SIPSorcery] Track 0 frame #1749: 57746B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1752: 68889B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1755: 57100B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1758: 74498B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1761: 74519B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1764: 57227B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1767: 68132B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1770: 57213B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1773: 74435B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1776: 74534B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1779: 57261B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1782: 68206B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1785: 57201B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1788: 74617B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1791: 57238B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1794: 87701B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1797: 79512B, NAL types=[7,8,6,5], key=True
+[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
+[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
+[SIPSorcery] Track 0 frame #1800: 57228B, NAL types=[7,8,6,5], key=True
+[Capture FPS] Mon0: 17.2 fps (captured 52 in 3025ms, rate-limited=0)
+[SIPSorcery] Track 0 frame #1803: 31810B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1806: 62164B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1809: 79652B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1812: 74600B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1815: 106759B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1818: 79650B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1821: 57288B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1824: 68223B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1827: 74125B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1830: 74991B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1833: 57655B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1836: 68610B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1839: 68631B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Stats: m0:1842
+[SIPSorcery] Track 0 frame #1842: 75007B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1845: 57673B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1848: 87353B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1851: 79168B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1854: 57109B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1857: 68004B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1860: 57120B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1863: 87428B, NAL types=[7,8,6,5], key=True
+[SIPSorcery] Track 0 frame #1866: 79202B, NAL types=[7,8,6,5], key=True
 [Protocol] Phase3 RX: type=stop_streaming, len=25, preview={"type":"stop_streaming"}
 [Protocol] Received stop_streaming
 [Protocol] Cursor tracking stopped
 [Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
 [SIPSorcery] Stopping...
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoderAdapter] Disposed
 [SIPSorcery] Peer state: closed
 [SIPSorcery] Connection closed
 [SIPSorcery] Disposed
-[PerMonitorCapture] Monitor 0 error: Object reference not set to an instance of an object.
 [PerMonitorCapture] Monitor 0: Capture thread stopped
 [MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
@@ -770,6 +937,14 @@ System.AggregateException: A Task's exception(s) were not observed either by Wai
 [Guard] Attempting to disable VDD...
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[2026-01-05 11:02:35.477] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
 [Guard] ForceDisableVdd: VDD is currently ENABLED
 [Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
@@ -785,3 +960,8 @@ Device disabled successfully.
 [Guard] Restoring original state before exit...
 [Guard] Step 1: Restoring Text Scale first...
 [Guard] Restoring original text size...
+[Guard] ✓ Text size restored successfully.
+[Guard] Step 2: Restoring per-monitor text scale...
+[Guard] Restoring per-monitor text scale...
+[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
+[TextScale] Removed custom DPI for \\.\DISPLAY1
