@@ -497,10 +497,11 @@ namespace RemotePlayServer.Protocol
             // Initialize TCS for waiting on all connections
             _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            // Create SIPSorcery streamer
-            Console.WriteLine($"[Protocol] Creating SIPSorceryStreamer");
+            // Create SIPSorcery streamer with negotiated codec
+            var negotiatedCodec = ParseVideoCodec(_selectedCodec);
+            Console.WriteLine($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}");
             _streamer = new RemotePlayServer.Encoding.SIPSorceryStreamer(
-                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device);
+                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device, negotiatedCodec);
 
             // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)
@@ -1524,6 +1525,21 @@ namespace RemotePlayServer.Protocol
             // Default fallback to H264
             _selectedCodec = "H264";
             Console.WriteLine("[Protocol] Codec negotiation: no match found, defaulting to H264");
+        }
+
+        /// <summary>
+        /// Parse codec string to VideoCodec enum
+        /// </summary>
+        private static VideoCodec ParseVideoCodec(string codec)
+        {
+            return codec?.ToUpperInvariant() switch
+            {
+                "H264" => VideoCodec.H264,
+                "H265" or "HEVC" => VideoCodec.H265,
+                "VP9" => VideoCodec.VP9,
+                "VP8" => VideoCodec.VP8,
+                _ => VideoCodec.H264 // Default fallback
+            };
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ public class SIPSorceryStreamer : IDisposable
     private readonly int _monitorCount;
     private readonly int _fps;
     private readonly int _bitrateKbps;
+    private readonly VideoCodec _negotiatedCodec;
     private ID3D11Device? _sharedDevice;
 
     private RTCPeerConnection? _pc;
@@ -78,9 +79,10 @@ public class SIPSorceryStreamer : IDisposable
         _monitorCount = monitorCount;
         _fps = fps;
         _bitrateKbps = kbps;
+        _negotiatedCodec = codec;
         _sharedDevice = device;
 
-        Console.WriteLine($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {kbps}kbps");
+        Console.WriteLine($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {kbps}kbps, codec={codec}");
     }
 
     public void SetDevice(ID3D11Device device)
@@ -380,26 +382,42 @@ public class SIPSorceryStreamer : IDisposable
 
     /// <summary>
     /// Initialize LibAv encoder as fallback
+    /// Uses negotiated codec first, then fallback to other compatible codecs
     /// </summary>
     private ITextureEncoder? TryInitializeLibAvEncoder(TrackInfo track, ID3D11Device device)
     {
-        try
-        {
-            var encoder = new LibAvEncoderAdapter();
-            encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
+        // Build codec list with negotiated codec first, then fallbacks
+        var codecs = new List<VideoCodec> { _negotiatedCodec };
 
-            if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
+        // Add fallbacks (only codecs client might support)
+        if (_negotiatedCodec != VideoCodec.H264) codecs.Add(VideoCodec.H264);
+        if (_negotiatedCodec != VideoCodec.VP9) codecs.Add(VideoCodec.VP9);
+        if (_negotiatedCodec != VideoCodec.VP8) codecs.Add(VideoCodec.VP8);
+        // Note: Don't add H265 as fallback - most WebRTC clients don't support it
+
+        Console.WriteLine($"[SIPSorcery] Track {track.Index}: Codec priority: [{string.Join(", ", codecs)}]");
+
+        foreach (var codec in codecs)
+        {
+            try
             {
-                Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
-                return encoder;
-            }
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: Trying LibAv with {codec}...");
+                var encoder = new LibAvEncoderAdapter();
+                encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
-            Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder init failed");
-            encoder.Dispose();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder error: {ex.Message}");
+                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device, codec))
+                {
+                    Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
+                    return encoder;
+                }
+
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv {codec} init failed, trying next...");
+                encoder.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: LibAv {codec} error: {ex.Message}");
+            }
         }
 
         Console.WriteLine($"[SIPSorcery] Track {track.Index}: ALL ENCODERS FAILED - no video output!");
