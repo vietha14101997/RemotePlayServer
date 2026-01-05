@@ -534,6 +534,14 @@ namespace RemotePlayServer.Protocol
                     _allConnectedTcs?.TrySetResult(true);
                     if (_ws.State != WebSocketState.Open) return;
                     Console.WriteLine($"[Protocol] All {actualMonitors} tracks ready, sending ice_ready");
+
+                    // Check if encoder supports BGRA mode (skip color conversion)
+                    if (_streamer.AnyTrackRequiresBgraInput())
+                    {
+                        Console.WriteLine("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
+                        _capture.UseBgraMode = true;
+                    }
+
                     var msg = new IceReadyMessage { MonitorCount = actualMonitors };
                     await SendMessageAsync(msg);
                     Console.WriteLine("[Protocol] Starting early capture to prevent browser track timeout...");
@@ -1292,9 +1300,23 @@ namespace RemotePlayServer.Protocol
                 try { RoInitialize(1); } catch { }
                 try
                 {
+                    // NV12 frame handler (standard path with color conversion)
                     _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
                     {
                         _streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
+
+                        if (monitorIndex == 0)
+                        {
+                            var fn = Interlocked.Increment(ref _frameCount);
+                            _frameTiming.Enqueue((fn, timestamp));
+                            while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
+                        }
+                    };
+
+                    // BGRA frame handler (zero-copy path, no color conversion)
+                    _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
+                    {
+                        _streamer?.PushBgraTexture(monitorIndex, bgraTexture, w, h);
 
                         if (monitorIndex == 0)
                         {

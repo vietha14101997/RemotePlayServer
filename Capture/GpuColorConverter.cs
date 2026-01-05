@@ -61,7 +61,8 @@ public sealed class GpuColorConverter : IDisposable
     // Video Processor is disabled for NVIDIA due to issues, replaced with Compute Shader
     private bool _useVideoProcessor;
     private bool _useComputeShader;
-    private bool _needsIntermediateCopy; // New flag for NVIDIA
+    private bool _needsIntermediateCopy; // Flag for safe copy (tested at runtime)
+    private bool _directBindingTested; // Whether we've tested direct SRV binding
     
     // Compute Shader resources
     private ID3D11ComputeShader? _computeShader;
@@ -109,8 +110,9 @@ public sealed class GpuColorConverter : IDisposable
         // Intel: Untested, safer to use Compute Shader
         _useVideoProcessor = false;
         _useComputeShader = true;
-        _needsIntermediateCopy = true; // Use safe copy to avoid Desktop Dup + UAV layout issues
-        Console.WriteLine($"[GpuColorConverter] GPU: {vendor}, using COMPUTE SHADER (with Safe Copy) for BGRA->NV12");
+        _needsIntermediateCopy = false; // Will be tested at runtime - try direct binding first
+        _directBindingTested = false;
+        Console.WriteLine($"[GpuColorConverter] GPU: {vendor}, using COMPUTE SHADER for BGRA->NV12 (will test direct binding)");
         
         // Query video device interface
         _videoDevice = device.QueryInterface<ID3D11VideoDevice>();
@@ -913,16 +915,49 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
         
         try
         {
-            // Copy input texture to our internal safe texture
-            _context.CopyResource(_bgraTexture, bgraTexture);
-            
+            // Zero-copy optimization: try to bind Desktop Dup texture directly as SRV
+            // This avoids an 8MB copy per frame (1920x1080 BGRA = 8MB)
+            ID3D11ShaderResourceView? inputSRV = null;
+            bool usedDirectBinding = false;
+
+            if (!_directBindingTested)
+            {
+                // First frame: test if direct SRV binding works
+                try
+                {
+                    inputSRV = _device.CreateShaderResourceView(bgraTexture);
+                    usedDirectBinding = true;
+                    _needsIntermediateCopy = false;
+                    Console.WriteLine("[GpuColorConverter] Direct SRV binding succeeded - zero-copy mode enabled");
+                }
+                catch
+                {
+                    _needsIntermediateCopy = true;
+                    Console.WriteLine("[GpuColorConverter] Direct SRV binding failed - using safe copy mode");
+                }
+                _directBindingTested = true;
+            }
+
+            if (_needsIntermediateCopy)
+            {
+                // Safe copy mode: copy to internal texture, use cached SRV
+                _context.CopyResource(_bgraTexture, bgraTexture);
+                inputSRV = _bgraSRV;
+            }
+            else if (!usedDirectBinding)
+            {
+                // Direct binding mode (after first frame): create temp SRV
+                inputSRV = _device.CreateShaderResourceView(bgraTexture);
+                usedDirectBinding = true;
+            }
+
             // Update Constant Buffer
             var paramsData = new CSParams { Width = (uint)_width, Height = (uint)_height };
             _context.UpdateSubresource(paramsData, _csParamsBuffer!);
-            
+
             _context.CSSetShader(_computeShader);
             _context.CSSetConstantBuffer(0, _csParamsBuffer);
-            _context.CSSetShaderResource(0, _bgraSRV);
+            _context.CSSetShaderResource(0, inputSRV);
             _context.CSSetUnorderedAccessView(0, currentYUAV);
             _context.CSSetUnorderedAccessView(1, currentUVUAV);
             
@@ -930,13 +965,19 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
             int dispatchX = (_width + 15) / 16;
             int dispatchY = (_height + 15) / 16;
             _context.Dispatch((uint)dispatchX, (uint)dispatchY, 1);
-            
+
             // Clean up bindings
             _context.CSSetShaderResource(0, null);
             _context.CSSetUnorderedAccessView(0, null);
             _context.CSSetUnorderedAccessView(1, null);
             _context.CSSetConstantBuffer(0, null);
-            
+
+            // Dispose temporary SRV if we created one
+            if (usedDirectBinding && inputSRV != null)
+            {
+                inputSRV.Dispose();
+            }
+
             return true;
         }
         catch (Exception ex)

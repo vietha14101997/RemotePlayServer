@@ -79,6 +79,23 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int AmfSetBitrate(IntPtr handle, int bitrateKbps);
 
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfCreateEncoderBgra(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfEncodeBgraTexture(
+        IntPtr handle,
+        IntPtr texture,
+        int forceKeyframe
+    );
+
     #endregion
     
     #region Fields
@@ -92,15 +109,26 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     private int _height;
     private int _fps;
     private int _bitrate;
-    
+    private bool _useBgraMode;
+
     #endregion
-    
+
     #region Properties
-    
+
     public bool IsInitialized => _handle != IntPtr.Zero;
     public int Width => _width;
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
+
+    /// <summary>
+    /// AMF supports BGRA input directly (internal color conversion)
+    /// </summary>
+    public bool SupportsBgraInput => true;
+
+    /// <summary>
+    /// True if encoder was initialized in BGRA mode
+    /// </summary>
+    public bool UsingBgraMode => _useBgraMode;
 
     #endregion
     
@@ -283,6 +311,92 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[AmfNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Initialize the AMF encoder in BGRA mode - accepts BGRA textures directly.
+    /// AMF handles color conversion internally in hardware.
+    /// </summary>
+    public bool InitializeBgra(int width, int height, int fps, int bitrate, ID3D11Device device)
+    {
+        if (_handle != IntPtr.Zero) return true;
+
+        try
+        {
+            _width = width;
+            _height = height;
+            _fps = fps;
+            _bitrate = bitrate;
+            _useBgraMode = true;
+
+            Console.WriteLine($"[AmfNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps");
+
+            int result = AmfCreateEncoderBgra(
+                out _handle,
+                device.NativePointer,
+                width,
+                height,
+                fps,
+                bitrate
+            );
+
+            if (result != AMF_WRAPPER_OK)
+            {
+                string error = GetLastError();
+                Console.WriteLine($"[AmfNativeWrapper] AmfCreateEncoderBgra failed: {error}");
+                _handle = IntPtr.Zero;
+                _useBgraMode = false;
+                return false;
+            }
+
+            // Set up callback
+            _nativeCallback = NativeCallback;
+            _callbackHandle = GCHandle.Alloc(_nativeCallback);
+
+            result = AmfSetEncodedDataCallback(_handle, _nativeCallback, IntPtr.Zero);
+            if (result != AMF_WRAPPER_OK)
+            {
+                Console.WriteLine("[AmfNativeWrapper] Failed to set callback");
+                Cleanup();
+                _useBgraMode = false;
+                return false;
+            }
+
+            Console.WriteLine("[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AmfNativeWrapper] InitializeBgra exception: {ex.Message}");
+            Cleanup();
+            _useBgraMode = false;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Encode a D3D11 BGRA texture directly (zero-copy, AMF converts internally)
+    /// Use with encoder initialized via InitializeBgra()
+    /// </summary>
+    public bool EncodeBgraTexture(ID3D11Texture2D bgraTexture, bool forceKeyframe = false)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (!_useBgraMode)
+        {
+            Console.WriteLine("[AmfNativeWrapper] EncodeBgraTexture called but encoder not in BGRA mode");
+            return false;
+        }
+
+        try
+        {
+            int result = AmfEncodeBgraTexture(_handle, bgraTexture.NativePointer, forceKeyframe ? 1 : 0);
+            return result == AMF_WRAPPER_OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AmfNativeWrapper] EncodeBgraTexture exception: {ex.Message}");
             return false;
         }
     }

@@ -47,22 +47,25 @@ struct AmfEncoderContext {
     amf::AMFContextPtr context;
     amf::AMFComponentPtr encoder;
     ID3D11Device* d3dDevice;
-    
+
     int width;
     int height;
     int fps;
     int bitrate;
-    
+
     AmfEncodedDataCallback callback;
     void* userData;
-    
+
     int64_t pts;
     std::atomic<bool> initialized;
     std::mutex encodeMutex;
-    
-    AmfEncoderContext() : d3dDevice(nullptr), width(0), height(0), fps(0), 
-                          bitrate(0), callback(nullptr), userData(nullptr), 
-                          pts(0), initialized(false) {}
+
+    // BGRA mode - when true, encoder accepts BGRA input directly
+    bool useBgraInput;
+
+    AmfEncoderContext() : d3dDevice(nullptr), width(0), height(0), fps(0),
+                          bitrate(0), callback(nullptr), userData(nullptr),
+                          pts(0), initialized(false), useBgraInput(false) {}
 };
 
 // Check AMF availability
@@ -519,6 +522,203 @@ AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
 
     ctx->bitrate = bitrateKbps;
     LogDebug("[AmfSetBitrate] Bitrate changed to %d kbps", bitrateKbps);
+
+    return AMF_WRAPPER_OK;
+}
+
+// Create encoder with BGRA input support (no NV12 conversion needed)
+// AMF internally converts BGRA to NV12 in hardware when submitting
+AMFWRAPPER_API int AmfCreateEncoderBgra(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate)
+{
+    if (!outHandle || !d3d11Device || width <= 0 || height <= 0) {
+        g_lastError = "Invalid parameters";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    *outHandle = nullptr;
+
+    // Create context
+    auto ctx = new AmfEncoderContext();
+    ctx->d3dDevice = d3d11Device;
+    ctx->width = width;
+    ctx->height = height;
+    ctx->fps = fps;
+    ctx->bitrate = bitrate;
+    ctx->useBgraInput = true;  // Mark as BGRA mode
+
+    AMF_RESULT res;
+
+    // Initialize AMF factory
+    res = g_AMFFactory.Init();
+    if (res != AMF_OK) {
+        g_lastError = "AMF Factory init failed: " + std::to_string(res);
+        delete ctx;
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Create AMF context
+    res = g_AMFFactory.GetFactory()->CreateContext(&ctx->context);
+    if (res != AMF_OK || !ctx->context) {
+        g_lastError = "CreateContext failed: " + std::to_string(res);
+        delete ctx;
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Initialize with D3D11 device (CRITICAL for zero-copy)
+    res = ctx->context->InitDX11(d3d11Device);
+    if (res != AMF_OK) {
+        g_lastError = "InitDX11 failed: " + std::to_string(res);
+        delete ctx;
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Create H.264 encoder component
+    res = g_AMFFactory.GetFactory()->CreateComponent(ctx->context, AMFVideoEncoderVCE_AVC, &ctx->encoder);
+    if (res != AMF_OK || !ctx->encoder) {
+        g_lastError = "CreateComponent failed: " + std::to_string(res);
+        delete ctx;
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Configure encoder for low-latency streaming
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_BASELINE);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 40);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1200);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+
+    // Initialize encoder with BGRA format - AMF handles color conversion internally
+    res = ctx->encoder->Init(amf::AMF_SURFACE_BGRA, width, height);
+    if (res != AMF_OK) {
+        g_lastError = "Encoder Init (BGRA) failed: " + std::to_string(res);
+        delete ctx;
+        return AMF_WRAPPER_FAIL;
+    }
+
+    ctx->initialized = true;
+    *outHandle = ctx;
+
+    LogDebug("[AmfCreateEncoderBgra] Created BGRA encoder %dx%d @ %d fps, %d kbps", width, height, fps, bitrate);
+
+    return AMF_WRAPPER_OK;
+}
+
+// Encode BGRA D3D11 texture directly (zero-copy, AMF converts internally)
+AMFWRAPPER_API int AmfEncodeBgraTexture(AmfEncoderHandle handle, ID3D11Texture2D* bgraTexture, int forceKeyframe)
+{
+    if (!handle || !bgraTexture) {
+        g_lastError = "Invalid parameters";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<AmfEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return AMF_WRAPPER_NOT_INITIALIZED;
+    }
+
+    if (!ctx->useBgraInput) {
+        g_lastError = "Encoder not in BGRA mode";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    int64_t inputFrame = g_frameCount++;
+    LogDebug("[AmfEncodeBgraTexture] Input frame #%lld, forceKeyframe=%d", inputFrame, forceKeyframe);
+
+    AMF_RESULT res;
+
+    // Create AMF surface from BGRA D3D11 texture directly (TRUE ZERO-COPY!)
+    amf::AMFSurfacePtr surface;
+    res = ctx->context->CreateSurfaceFromDX11Native(bgraTexture, &surface, nullptr);
+    if (res != AMF_OK || !surface) {
+        g_lastError = "CreateSurfaceFromDX11Native (BGRA) failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Set PTS
+    surface->SetPts(ctx->pts);
+    ctx->pts += 10000000 / ctx->fps;  // 100ns units
+
+    // Force keyframe if requested
+    if (forceKeyframe) {
+        LogDebug("[AmfEncodeBgraTexture] Setting IDR properties for frame #%lld", inputFrame);
+
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+
+        surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+    }
+
+    // Submit to encoder - AMF internally converts BGRA to NV12 in hardware
+    res = ctx->encoder->SubmitInput(surface);
+    if (res != AMF_OK && res != AMF_INPUT_FULL) {
+        g_lastError = "SubmitInput (BGRA) failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+    LogDebug("[AmfEncodeBgraTexture] SubmitInput result: %d", res);
+
+    // Reset force picture type
+    if (forceKeyframe) {
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_NONE);
+    }
+
+    // Release surface reference early
+    surface = nullptr;
+
+    // Query ALL pending outputs
+    amf::AMFDataPtr outputData;
+    int outputCount = 0;
+    while (ctx->encoder->QueryOutput(&outputData) == AMF_OK && outputData) {
+        amf::AMFBufferPtr buffer(outputData);
+        if (buffer) {
+            uint8_t* data = static_cast<uint8_t*>(buffer->GetNative());
+            size_t size = buffer->GetSize();
+            int64_t pts = buffer->GetPts();
+
+            // Scan NAL types
+            std::string nalTypes;
+            int isKeyFrame = 0;
+            for (size_t i = 0; i + 4 < size; i++) {
+                if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+                    int nalType = data[i+4] & 0x1F;
+                    if (!nalTypes.empty()) nalTypes += ",";
+                    nalTypes += std::to_string(nalType);
+                    if (nalType == 7 || nalType == 5) {
+                        isKeyFrame = 1;
+                    }
+                }
+            }
+
+            LogDebug("[AmfEncodeBgraTexture] Output #%d: size=%zu, pts=%lld, NALs=[%s], isKey=%d",
+                     outputCount++, size, pts, nalTypes.c_str(), isKeyFrame);
+
+            if (ctx->callback) {
+                ctx->callback(data, static_cast<uint32_t>(size), pts, isKeyFrame, ctx->userData);
+            }
+        }
+        outputData = nullptr;
+    }
 
     return AMF_WRAPPER_OK;
 }

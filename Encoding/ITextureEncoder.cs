@@ -46,4 +46,33 @@ public interface ITextureEncoder : IDisposable
     /// Get current target bitrate.
     /// </summary>
     int CurrentBitrateKbps { get; }
+
+    /// <summary>
+    /// True if this encoder supports BGRA input directly (no NV12 conversion needed).
+    /// When true, use InitializeBgra() and EncodeBgraTexture() instead.
+    /// </summary>
+    bool SupportsBgraInput => false;
+
+    /// <summary>
+    /// True if encoder was initialized in BGRA mode.
+    /// </summary>
+    bool UsingBgraMode => false;
+
+    /// <summary>
+    /// Initialize encoder in BGRA mode (no color conversion needed).
+    /// Only supported if SupportsBgraInput is true.
+    /// </summary>
+    bool InitializeBgra(int width, int height, int fps, int bitrate, ID3D11Device device)
+    {
+        return false; // Default: not supported
+    }
+
+    /// <summary>
+    /// Encode a D3D11 BGRA texture directly.
+    /// Only supported if initialized in BGRA mode.
+    /// </summary>
+    bool EncodeBgraTexture(ID3D11Texture2D bgraTexture, bool forceKeyframe = false)
+    {
+        return false; // Default: not supported
+    }
 }
