@@ -192,6 +192,35 @@ namespace RemotePlayServer.Protocol
         /// </summary>
         [JsonPropertyName("selectedCodec")]
         public string SelectedCodec { get; set; } = "H264";
+
+        /// <summary>
+        /// Connection type: "USB", "WiFi", "LAN", or "Internet".
+        /// Used by client for UI display and quality rating.
+        /// </summary>
+        [JsonPropertyName("connectionType")]
+        public string ConnectionType { get; set; } = "Unknown";
+
+        /// <summary>
+        /// Network test results (ping, jitter, bandwidth).
+        /// Included so client can display accurate network info.
+        /// </summary>
+        [JsonPropertyName("networkInfo")]
+        public NetworkInfoDto? NetworkInfo { get; set; }
+    }
+
+    /// <summary>
+    /// Network info DTO for suggested_config message.
+    /// </summary>
+    public class NetworkInfoDto
+    {
+        [JsonPropertyName("pingMs")]
+        public double PingMs { get; set; }
+
+        [JsonPropertyName("jitterMs")]
+        public double JitterMs { get; set; }
+
+        [JsonPropertyName("bandwidthMbps")]
+        public double BandwidthMbps { get; set; }
     }
 
     public class ResolutionDto
@@ -418,6 +447,9 @@ namespace RemotePlayServer.Protocol
 
         [JsonPropertyName("renderedFrames")]
         public int RenderedFrames { get; set; }
+
+        [JsonPropertyName("totalFrames")]
+        public long TotalFrames { get; set; }  // Cumulative frames since stream start (for pipeline comparison)
 
         [JsonPropertyName("droppedFrames")]
         public int DroppedFrames { get; set; }

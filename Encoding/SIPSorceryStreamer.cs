@@ -14,7 +14,7 @@ using RemotePlayServer.Protocol;
 namespace RemotePlayServer.Encoding;
 
 /// <summary>
-/// SIPSorcery-based WebRTC streamer with interface matching LibDataChannelStreamer.
+/// SIPSorcery-based WebRTC streamer for multi-monitor desktop streaming.
 /// Uses SIPSorcery's VideoStreamList for multi-track support (v6.0.8+).
 /// </summary>
 public class SIPSorceryStreamer : IDisposable
@@ -73,7 +73,7 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
-    // Events matching LibDataChannelStreamer interface
+    // Events for connection state notifications
     public event Action? OnAllTracksReady;
     public event Action<string>? OnIceCandidate;
     public event Action? OnConnectionFailed;
@@ -119,7 +119,6 @@ public class SIPSorceryStreamer : IDisposable
 
     /// <summary>
     /// Process single SDP offer (with N m= sections), create N tracks, return single answer.
-    /// Interface matches LibDataChannelStreamer.ProcessOfferAsync().
     /// </summary>
     public async Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
     {
@@ -822,8 +821,24 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
-    public void ProcessFpsFeedback(int monitorIndex, float effectiveFps, int droppedFrames)
+    public void ProcessFpsFeedback(int monitorIndex, float effectiveFps, int droppedFrames, long clientTotalFrames)
     {
+        // Get server's sent frame count for this monitor
+        long serverSentFrames = 0;
+        lock (_lock)
+        {
+            if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
+            {
+                serverSentFrames = Interlocked.Read(ref _tracks[monitorIndex].SentFrames);
+            }
+        }
+
+        // Calculate loss percentage
+        float lossPercent = serverSentFrames > 0
+            ? (1f - (float)clientTotalFrames / serverSentFrames) * 100f
+            : 0f;
+
+        Console.WriteLine($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (loss={lossPercent:F1}%)");
         Console.WriteLine($"[SIPSorcery] FPS feedback m{monitorIndex}: {effectiveFps:F1}fps, dropped={droppedFrames}");
     }
 

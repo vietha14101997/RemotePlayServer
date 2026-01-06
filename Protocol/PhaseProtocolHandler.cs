@@ -251,6 +251,9 @@ namespace RemotePlayServer.Protocol
                 transportNote = " [USB: High bitrate mode]";
             }
 
+            // Determine connection type: USB takes priority over speedtest classification
+            string connectionType = _isUsbTransport ? "USB" : _speedTestResult.ConnectionType;
+
             var sugMsg = new SuggestedConfigMessage
             {
                 Monitors = suggested.Monitors,
@@ -259,7 +262,14 @@ namespace RemotePlayServer.Protocol
                 Fps = suggested.Fps,
                 RefreshRate = suggested.RefreshRate,
                 Reason = suggested.Reason + transportNote,
-                SelectedCodec = _selectedCodec
+                SelectedCodec = _selectedCodec,
+                ConnectionType = connectionType,
+                NetworkInfo = new NetworkInfoDto
+                {
+                    PingMs = _speedTestResult.PingMs,
+                    JitterMs = _speedTestResult.JitterMs,
+                    BandwidthMbps = _speedTestResult.BandwidthMbps
+                }
             };
 
             Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={finalBitrate}kbps, codec={_selectedCodec}, transport={(_isUsbTransport ? "USB" : "WiFi")}");
@@ -937,7 +947,6 @@ namespace RemotePlayServer.Protocol
         /// <summary>
         /// Parse the H264 payload type from the offer SDP.
         /// Browser offers multiple H264 profiles - we prefer Constrained Baseline (42e01f) with packetization-mode=1.
-        /// Same logic as LibDataChannelStreamer.ParseH264PayloadType().
         /// </summary>
         private int ParseH264PayloadType(string sdp)
         {
@@ -1266,7 +1275,8 @@ namespace RemotePlayServer.Protocol
                                 _streamer.ProcessFpsFeedback(
                                     feedback.MonitorIndex,
                                     feedback.EffectiveFps,
-                                    feedback.DroppedFrames);
+                                    feedback.DroppedFrames,
+                                    feedback.TotalFrames);
 
                                 // Send acknowledgment with current target FPS
                                 var ack = new FpsAdjustedMessage
