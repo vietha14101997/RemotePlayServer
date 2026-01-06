@@ -96,6 +96,48 @@ NVENCWRAPPER_API int NvencDestroyEncoder(NvencEncoderHandle handle);
 /// </summary>
 NVENCWRAPPER_API const char* NvencGetLastError();
 
+/// <summary>
+/// Dynamically change encoder bitrate without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bitrateKbps">New target bitrate in kbps</param>
+/// <returns>NVENC_WRAPPER_OK on success</returns>
+NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps);
+
+/// <summary>
+/// Create an NVENC encoder instance that accepts BGRA input directly.
+/// This eliminates the need for CPU/GPU color conversion, NVENC handles it internally.
+/// </summary>
+/// <param name="outHandle">Output encoder handle</param>
+/// <param name="d3d11Device">D3D11 device to use for encoding (shared device)</param>
+/// <param name="width">Video width</param>
+/// <param name="height">Video height</param>
+/// <param name="fps">Frames per second</param>
+/// <param name="bitrate">Target bitrate in kbps</param>
+/// <returns>NVENC_WRAPPER_OK on success</returns>
+NVENCWRAPPER_API int NvencCreateEncoderBgra(
+    NvencEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate
+);
+
+/// <summary>
+/// Encode a D3D11 BGRA texture directly (zero-copy, no color conversion needed)
+/// Use with encoder created by NvencCreateEncoderBgra
+/// </summary>
+/// <param name="handle">Encoder handle (created with NvencCreateEncoderBgra)</param>
+/// <param name="bgraTexture">D3D11 BGRA texture (B8G8R8A8_UNORM) to encode</param>
+/// <param name="forceKeyframe">Force IDR frame</param>
+/// <returns>NVENC_WRAPPER_OK on success</returns>
+NVENCWRAPPER_API int NvencEncodeBgraTexture(
+    NvencEncoderHandle handle,
+    ID3D11Texture2D* bgraTexture,
+    int forceKeyframe
+);
+
 #ifdef __cplusplus
 }
 #endif

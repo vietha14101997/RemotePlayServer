@@ -9,11 +9,12 @@ using SIPSorcery.Media;
 using SIPSorceryMedia.Abstractions;
 using Vortice.Direct3D11;
 using RemotePlayServer.Utils;
+using RemotePlayServer.Protocol;
 
 namespace RemotePlayServer.Encoding;
 
 /// <summary>
-/// SIPSorcery-based WebRTC streamer with interface matching LibDataChannelStreamer.
+/// SIPSorcery-based WebRTC streamer for multi-monitor desktop streaming.
 /// Uses SIPSorcery's VideoStreamList for multi-track support (v6.0.8+).
 /// </summary>
 public class SIPSorceryStreamer : IDisposable
@@ -29,9 +30,15 @@ public class SIPSorceryStreamer : IDisposable
     private readonly object _lock = new();
     private readonly Dictionary<int, ID3D11Device> _pendingDevices = new();
 
+    // Permanent device mappings - persists across reconnections
+    private readonly Dictionary<int, ID3D11Device> _deviceMappings = new();
+
     private volatile bool _running;
     private volatile bool _disposed;
     private volatile bool _connected;
+
+    // Adaptive bitrate controller
+    private readonly AdaptiveBitrateController _bitrateController = new();
 
     /// <summary>
     /// Per-track state including encoder and staging texture
@@ -66,7 +73,7 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
-    // Events matching LibDataChannelStreamer interface
+    // Events for connection state notifications
     public event Action? OnAllTracksReady;
     public event Action<string>? OnIceCandidate;
     public event Action? OnConnectionFailed;
@@ -94,6 +101,9 @@ public class SIPSorceryStreamer : IDisposable
     {
         lock (_lock)
         {
+            // Always store in permanent mappings (survives reconnection)
+            _deviceMappings[monitorIndex] = device;
+
             if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
             {
                 _tracks[monitorIndex].Device = device;
@@ -109,7 +119,6 @@ public class SIPSorceryStreamer : IDisposable
 
     /// <summary>
     /// Process single SDP offer (with N m= sections), create N tracks, return single answer.
-    /// Interface matches LibDataChannelStreamer.ProcessOfferAsync().
     /// </summary>
     public async Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
     {
@@ -167,9 +176,14 @@ public class SIPSorceryStreamer : IDisposable
 
             _pc.addTrack(track);
 
-            // Check for pending per-monitor device
+            // Get device for track - priority: permanent mappings > pending > shared
             ID3D11Device? deviceForTrack = _sharedDevice;
-            if (_pendingDevices.TryGetValue(i, out var pendingDevice))
+            if (_deviceMappings.TryGetValue(i, out var mappedDevice))
+            {
+                // Use permanent mapping (survives reconnection)
+                deviceForTrack = mappedDevice;
+            }
+            else if (_pendingDevices.TryGetValue(i, out var pendingDevice))
             {
                 deviceForTrack = pendingDevice;
                 _pendingDevices.Remove(i);
@@ -185,7 +199,7 @@ public class SIPSorceryStreamer : IDisposable
                 Device = deviceForTrack
             });
 
-            Console.WriteLine($"[SIPSorcery] Added track {i}: {w}x{h}");
+            Console.WriteLine($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8})");
         }
 
         // ICE candidate forwarding
@@ -240,6 +254,20 @@ public class SIPSorceryStreamer : IDisposable
                 Console.WriteLine("[SIPSorcery] DTLS FAILED - check certificate/fingerprint");
                 _connected = false;
                 OnConnectionFailed?.Invoke();
+            }
+            else if (state == RTCPeerConnectionState.closed)
+            {
+                // Connection was closed unexpectedly (DTLS timeout, network issue, etc.)
+                // Client should send a reconnect offer to recover
+                Console.WriteLine("[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer");
+                _connected = false;
+            }
+            else if (state == RTCPeerConnectionState.disconnected)
+            {
+                // Temporary disconnection - may recover automatically
+                // Don't fire OnConnectionFailed yet, give ICE time to recover
+                Console.WriteLine("[SIPSorcery] Peer state DISCONNECTED - may recover, waiting...");
+                _connected = false;
             }
         };
 
@@ -352,7 +380,23 @@ public class SIPSorceryStreamer : IDisposable
         {
             encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
-            if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device))
+            bool initSuccess;
+            // Use BGRA mode if encoder supports it (eliminates GPU color conversion)
+            if (encoder.SupportsBgraInput)
+            {
+                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateKbps, device);
+                if (initSuccess)
+                {
+                    string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
+                    Console.WriteLine($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized (BGRA mode - no color conversion)");
+                    return encoder;
+                }
+                // Fallback to NV12 mode if BGRA failed
+                Console.WriteLine($"[SIPSorcery] Track {track.Index}: BGRA mode failed, trying NV12 mode...");
+            }
+
+            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device);
+            if (initSuccess)
             {
                 string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
                 Console.WriteLine($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized");
@@ -443,11 +487,11 @@ public class SIPSorceryStreamer : IDisposable
                 return CreateLibAvFallbackEncoder("amf");
 
             case GpuVendorDetector.GpuVendor.NVIDIA:
-                // NVIDIA: Use NVENC encoder
+                // NVIDIA: Use NVENC encoder with BGRA mode (no color conversion needed)
                 if (NvencNativeWrapper.IsAvailable())
                 {
-                    Console.WriteLine("[SIPSorcery] Creating NVENC encoder for NVIDIA GPU");
-                    return new NvencNativeWrapper();
+                    Console.WriteLine("[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)");
+                    return new NvencNativeWrapper();  // Will use InitializeBgra when initializing
                 }
                 // Fallback to AMF if available (some systems have both)
                 if (AmfNativeWrapper.IsAvailable())
@@ -532,6 +576,60 @@ public class SIPSorceryStreamer : IDisposable
         {
             Console.WriteLine($"[SIPSorcery] LibAv fallback encoder creation failed: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Check if a track requires BGRA input (no color conversion needed)
+    /// </summary>
+    public bool RequiresBgraInput(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return false;
+        var track = _tracks[monitorIndex];
+        return track.Encoder?.UsingBgraMode ?? false;
+    }
+
+    /// <summary>
+    /// Check if any track requires BGRA input
+    /// </summary>
+    public bool AnyTrackRequiresBgraInput()
+    {
+        lock (_lock)
+        {
+            return _tracks.Any(t => t.Encoder?.UsingBgraMode ?? false);
+        }
+    }
+
+    /// <summary>
+    /// Push BGRA texture directly (for NVENC BGRA mode - no color conversion)
+    /// </summary>
+    public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height)
+    {
+        if (!_running || _disposed || !_connected) return;
+        if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
+
+        var track = _tracks[monitorIndex];
+        if (track.Encoder == null) return;
+
+        lock (_lock)
+        {
+            try
+            {
+                // Force keyframe for first 5 frames
+                // Also force if explicitly requested
+                long frameNum = Interlocked.Read(ref track.EncodedFrames);
+                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe;
+                track.ForceNextKeyframe = false;
+
+                // Encode BGRA directly - no staging texture or copy needed
+                track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
+                Interlocked.Increment(ref track.EncodedFrames);
+            }
+            catch (Exception ex)
+            {
+                if (Interlocked.Read(ref track.EncodedFrames) % 60 == 0)
+                    Console.WriteLine($"[SIPSorcery] Track {monitorIndex} BGRA encode error: {ex.Message}");
+            }
         }
     }
 
@@ -723,12 +821,94 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
-    public void ProcessFpsFeedback(int monitorIndex, float effectiveFps, int droppedFrames)
+    public void ProcessFpsFeedback(int monitorIndex, float effectiveFps, int droppedFrames, long clientTotalFrames)
     {
+        // Get server's sent frame count for this monitor
+        long serverSentFrames = 0;
+        lock (_lock)
+        {
+            if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
+            {
+                serverSentFrames = Interlocked.Read(ref _tracks[monitorIndex].SentFrames);
+            }
+        }
+
+        // Calculate loss percentage
+        float lossPercent = serverSentFrames > 0
+            ? (1f - (float)clientTotalFrames / serverSentFrames) * 100f
+            : 0f;
+
+        Console.WriteLine($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (loss={lossPercent:F1}%)");
         Console.WriteLine($"[SIPSorcery] FPS feedback m{monitorIndex}: {effectiveFps:F1}fps, dropped={droppedFrames}");
     }
 
     public int GetCurrentTargetFps(int monitorIndex) => _fps;
+
+    /// <summary>
+    /// Process quality feedback from client and adjust bitrate if needed.
+    /// </summary>
+    /// <param name="feedback">Quality feedback from client.</param>
+    /// <returns>BitrateAdjustedMessage if bitrate was changed, null otherwise.</returns>
+    public BitrateAdjustedMessage? ProcessQualityFeedback(QualityFeedbackMessage feedback)
+    {
+        // Initialize controller on first feedback if not already done
+        if (_bitrateController.TargetBitrateKbps == 0)
+        {
+            _bitrateController.Initialize(_bitrateKbps, _bitrateKbps * 2);
+        }
+
+        // Process feedback through adaptive bitrate controller
+        var decision = _bitrateController.ProcessFeedback(feedback);
+
+        if (decision.Changed)
+        {
+            // Apply new bitrate to all track encoders
+            lock (_lock)
+            {
+                int successCount = 0;
+                foreach (var track in _tracks)
+                {
+                    if (track.Encoder != null)
+                    {
+                        if (track.Encoder.SetBitrate(decision.NewBitrate))
+                        {
+                            successCount++;
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} bitrate → {decision.NewBitrate}kbps");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} SetBitrate failed");
+                        }
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    Console.WriteLine($"[SIPSorcery] Bitrate adjusted: {decision.NewBitrate}kbps ({decision.Reason})");
+                }
+            }
+
+            // Return message to notify client
+            return new BitrateAdjustedMessage
+            {
+                MonitorIndex = -1, // All monitors
+                BitrateKbps = decision.NewBitrate,
+                Reason = decision.Reason
+            };
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get current adaptive bitrate statistics.
+    /// </summary>
+    public string GetBitrateStats() => _bitrateController.GetStats();
+
+    /// <summary>
+    /// Reset adaptive bitrate controller to initial state.
+    /// </summary>
+    public void ResetBitrateController() => _bitrateController.Reset();
 
     private async Task LogStatsAsync()
     {

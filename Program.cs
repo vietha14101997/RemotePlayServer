@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using QRCoder;
 using RemotePlayServer.Encoding;
+using RemotePlayServer.Utils;
 using SIPSorcery.Net;
 
 #if WINDOWS
@@ -249,6 +250,24 @@ partial class Program
         Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
+        // === USB TETHERING DETECTION ===
+        // USB Tethering creates a real network interface over USB cable.
+        // This allows FULL TCP+UDP communication (both signaling AND WebRTC media).
+        string? usbTetheringIP = null;
+        var usbTetherInfo = UsbTetheringHelper.Detect();
+        if (usbTetherInfo.IsAvailable)
+        {
+            usbTetheringIP = usbTetherInfo.ServerIP;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[USB] USB Tethering ACTIVE! Server IP: {usbTetheringIP}");
+            Console.WriteLine($"[USB] Full TCP+UDP streaming over USB cable");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.WriteLine("[USB] Not detected. Enable USB Tethering on phone for USB streaming.");
+        }
+
         // Chụp trạng thái ban đầu và tạo marker phiên
         DisplayGuard.CaptureSnapshotAtStartup();
 
@@ -278,16 +297,36 @@ partial class Program
         var preferredIP = NetUtil.GetPreferredLocalIP();
 
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
-        
-        // Tạo QRCode với IP ưu tiên và danh sách monitors
-        var monitorsList = monitors.Select((m, i) => new { id = i, name = m.name, w = m.width, h = m.height });
-        string monitorsJson = System.Text.Json.JsonSerializer.Serialize(monitorsList);
-        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":{port},\"monitors\":{monitorsJson}}}";
+
+        // Tạo QRCode đơn giản: chỉ chứa WiFi IP, Port, và USB IP (nếu có)
+        string usbIPJson = usbTetheringIP != null ? $",\"usbIP\":\"{usbTetheringIP}\"" : "";
+        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":\"{port}\"{usbIPJson}}}";
         Console.WriteLine();
         Console.WriteLine("=== QRCode (Scan to connect) ===");
         Console.WriteLine($"Data: {qrData}");
         QRCodeUtil.PrintQRCodeToConsole(qrData);
-        
+
+        // Show connection options
+        Console.WriteLine();
+        Console.WriteLine("=== Connection Options ===");
+
+        // USB Tethering (full TCP+UDP over USB cable)
+        if (usbTetheringIP != null)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"  [USB]  {usbTetheringIP}:{port} (Full streaming over USB cable)");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("  [USB]  Not available. Enable USB Tethering on phone");
+            Console.ResetColor();
+        }
+
+        // WiFi (always available)
+        Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
+
         Console.WriteLine();
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
@@ -1036,13 +1075,18 @@ public class SignalAndRestServer
                 var clientId = Guid.NewGuid();
                 var remoteIp = ctx.Request.RemoteEndPoint?.Address;
 
-                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2");
+                // Parse query params for transport mode
+                var query = ctx.Request.Url?.Query ?? "";
+                var queryParams = HttpUtility.ParseQueryString(query);
+                bool isUsbTransport = queryParams["transport"]?.Equals("usb", StringComparison.OrdinalIgnoreCase) == true;
+
+                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2, transport={( isUsbTransport ? "USB" : "WiFi")}");
 
                 // V2 Protocol only: 3-phase connection (hardware discovery, config, streaming)
                 _ = Task.Run(async () =>
                 {
                     var handler = new RemotePlayServer.Protocol.PhaseProtocolHandler(
-                        clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None);
+                        clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None, isUsbTransport);
                     await handler.HandleAsync();
                 });
                 continue;

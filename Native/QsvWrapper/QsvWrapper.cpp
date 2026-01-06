@@ -566,6 +566,66 @@ QSVWRAPPER_API int QsvDestroyEncoder(QsvEncoderHandle handle) {
     return QSV_WRAPPER_OK;
 }
 
+// Dynamically change encoder bitrate
+QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
+    if (!handle) {
+        g_lastError = "Invalid handle";
+        return QSV_WRAPPER_INVALID_PARAM;
+    }
+
+    if (bitrateKbps <= 0) {
+        g_lastError = "Invalid bitrate";
+        return QSV_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<QsvEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return QSV_WRAPPER_NOT_INITIALIZED;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    HRESULT hr;
+    ICodecAPI* codecApi = nullptr;
+    hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&codecApi));
+    if (FAILED(hr)) {
+        g_lastError = "Failed to get ICodecAPI";
+        return QSV_WRAPPER_FAIL;
+    }
+
+    VARIANT var;
+    VariantInit(&var);
+
+    // Set new mean bitrate (in bits/s)
+    var.vt = VT_UI4;
+    var.ulVal = bitrateKbps * 1000;
+    hr = codecApi->SetValue(&CODECAPI_AVEncCommonMeanBitRate, &var);
+    if (FAILED(hr)) {
+        // Log but continue - some encoders may not support dynamic bitrate
+        LogDebug("[QsvSetBitrate] CODECAPI_AVEncCommonMeanBitRate failed: 0x%08X, trying MaxBitRate", hr);
+        // Try max bitrate as fallback
+        hr = codecApi->SetValue(&CODECAPI_AVEncCommonMaxBitRate, &var);
+        if (FAILED(hr)) {
+            codecApi->Release();
+            g_lastError = "SetValue bitrate failed: " + std::to_string(hr);
+            return QSV_WRAPPER_FAIL;
+        }
+    }
+
+    // Force keyframe after bitrate change
+    var.vt = VT_UI4;
+    var.ulVal = 1;
+    codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
+
+    codecApi->Release();
+
+    ctx->bitrate = bitrateKbps;
+    LogDebug("[QsvSetBitrate] Bitrate changed to %d kbps", bitrateKbps);
+
+    return QSV_WRAPPER_OK;
+}
+
 // Get last error
 QSVWRAPPER_API const char* QsvGetLastError() {
     return g_lastError.c_str();

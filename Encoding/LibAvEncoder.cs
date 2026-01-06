@@ -2010,12 +2010,12 @@ public unsafe class LibAvEncoder : IDisposable
     public void Flush()
     {
         if (!_initialized || _disposed) return;
-        
+
         lock (_lock)
         {
             // Send null frame to flush
             ffmpeg.avcodec_send_frame(_codecCtx, null);
-            
+
             while (true)
             {
                 int ret = ffmpeg.avcodec_receive_packet(_codecCtx, _packet);
@@ -2025,11 +2025,80 @@ public unsafe class LibAvEncoder : IDisposable
 
                 byte[] nalData = new byte[_packet->size];
                 Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
-                
+
                 bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
                 OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
 
                 ffmpeg.av_packet_unref(_packet);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Current target bitrate in kbps.
+    /// </summary>
+    public int CurrentBitrateKbps => _bitrate / 1000;
+
+    /// <summary>
+    /// Dynamically change encoder bitrate without reinitialization.
+    /// Works for most hardware encoders (NVENC, AMF, QSV) in VBR mode.
+    /// </summary>
+    /// <param name="bitrateKbps">New target bitrate in kbps.</param>
+    /// <returns>True if bitrate was changed successfully.</returns>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (!_initialized || _disposed || _codecCtx == null) return false;
+
+        // QSV through FFmpeg doesn't support runtime bitrate changes well
+        // Return false to let caller know (won't crash, just skips adjustment)
+        if (_encoderName.Contains("qsv"))
+        {
+            // Only log once to avoid spam
+            Console.WriteLine($"[LibAvEncoder] QSV encoder doesn't support runtime bitrate change (requested: {bitrateKbps}kbps)");
+            return false;
+        }
+
+        lock (_lock)
+        {
+            int newBitrateBps = bitrateKbps * 1000;
+            int oldBitrateBps = _bitrate;
+
+            if (newBitrateBps == oldBitrateBps) return true; // No change needed
+
+            try
+            {
+                // Update codec context bitrate parameters
+                _codecCtx->bit_rate = newBitrateBps;
+                _codecCtx->rc_max_rate = newBitrateBps * 3;     // VBR max = 3x target
+                _codecCtx->rc_buffer_size = newBitrateBps / 2;  // 500ms buffer
+
+                // For hardware encoders, try to update via av_opt_set
+                // This may or may not work depending on the encoder and FFmpeg version
+                if (IsHardwareEncoder())
+                {
+                    // NVENC
+                    if (_encoderName.Contains("nvenc"))
+                    {
+                        ffmpeg.av_opt_set_int(_codecCtx->priv_data, "b", newBitrateBps, 0);
+                        ffmpeg.av_opt_set_int(_codecCtx->priv_data, "maxrate", newBitrateBps * 3, 0);
+                    }
+                    // AMF
+                    else if (_encoderName.Contains("amf"))
+                    {
+                        ffmpeg.av_opt_set_int(_codecCtx->priv_data, "target_bitrate", newBitrateBps, 0);
+                        ffmpeg.av_opt_set_int(_codecCtx->priv_data, "peak_bitrate", newBitrateBps * 3, 0);
+                    }
+                }
+
+                _bitrate = newBitrateBps;
+                Console.WriteLine($"[LibAvEncoder] Bitrate changed: {oldBitrateBps / 1000} → {bitrateKbps} kbps ({_encoderName})");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LibAvEncoder] SetBitrate failed: {ex.Message}");
+                return false;
             }
         }
     }

@@ -68,6 +68,26 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr NvencGetLastError();
 
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencSetBitrate(IntPtr handle, int bitrateKbps);
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencCreateEncoderBgra(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencEncodeBgraTexture(
+        IntPtr handle,
+        IntPtr texture,
+        int forceKeyframe
+    );
+
     #endregion
 
     #region Fields
@@ -81,6 +101,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     private int _height;
     private int _fps;
     private int _bitrate;
+    private bool _useBgraMode;
 
     #endregion
 
@@ -89,6 +110,17 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     public bool IsInitialized => _handle != IntPtr.Zero;
     public int Width => _width;
     public int Height => _height;
+    public int CurrentBitrateKbps => _bitrate;
+
+    /// <summary>
+    /// NVENC supports BGRA input directly (no NV12 conversion needed)
+    /// </summary>
+    public bool SupportsBgraInput => true;
+
+    /// <summary>
+    /// True if encoder was initialized in BGRA mode (no color conversion needed)
+    /// </summary>
+    public bool UsingBgraMode => _useBgraMode;
 
     #endregion
 
@@ -186,6 +218,67 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     }
 
     /// <summary>
+    /// Initialize the NVENC encoder in BGRA mode - accepts BGRA textures directly without color conversion.
+    /// This eliminates the need for GPU compute shader BGRA→NV12 conversion.
+    /// </summary>
+    public bool InitializeBgra(int width, int height, int fps, int bitrate, ID3D11Device device)
+    {
+        if (_handle != IntPtr.Zero) return true;
+
+        try
+        {
+            _width = width;
+            _height = height;
+            _fps = fps;
+            _bitrate = bitrate;
+            _useBgraMode = true;
+
+            Console.WriteLine($"[NvencNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps");
+
+            int result = NvencCreateEncoderBgra(
+                out _handle,
+                device.NativePointer,
+                width,
+                height,
+                fps,
+                bitrate
+            );
+
+            if (result != NVENC_WRAPPER_OK)
+            {
+                string error = GetLastError();
+                Console.WriteLine($"[NvencNativeWrapper] NvencCreateEncoderBgra failed: {error}");
+                _handle = IntPtr.Zero;
+                _useBgraMode = false;
+                return false;
+            }
+
+            // Set up callback
+            _nativeCallback = NativeCallback;
+            _callbackHandle = GCHandle.Alloc(_nativeCallback);
+
+            result = NvencSetEncodedDataCallback(_handle, _nativeCallback, IntPtr.Zero);
+            if (result != NVENC_WRAPPER_OK)
+            {
+                Console.WriteLine("[NvencNativeWrapper] Failed to set callback");
+                Cleanup();
+                _useBgraMode = false;
+                return false;
+            }
+
+            Console.WriteLine("[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[NvencNativeWrapper] InitializeBgra exception: {ex.Message}");
+            Cleanup();
+            _useBgraMode = false;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Encode a D3D11 NV12 texture (zero-copy)
     /// </summary>
     public bool EncodeTexture(ID3D11Texture2D texture, bool forceKeyframe = false)
@@ -205,6 +298,31 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     }
 
     /// <summary>
+    /// Encode a D3D11 BGRA texture directly (zero-copy, no color conversion)
+    /// Use with encoder initialized via InitializeBgra()
+    /// </summary>
+    public bool EncodeBgraTexture(ID3D11Texture2D bgraTexture, bool forceKeyframe = false)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (!_useBgraMode)
+        {
+            Console.WriteLine("[NvencNativeWrapper] EncodeBgraTexture called but encoder not in BGRA mode");
+            return false;
+        }
+
+        try
+        {
+            int result = NvencEncodeBgraTexture(_handle, bgraTexture.NativePointer, forceKeyframe ? 1 : 0);
+            return result == NVENC_WRAPPER_OK;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[NvencNativeWrapper] EncodeBgraTexture exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Flush encoder to get remaining frames
     /// </summary>
     public void Flush()
@@ -218,6 +336,36 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[NvencNativeWrapper] Flush exception: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Dynamically change encoder bitrate
+    /// </summary>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = NvencSetBitrate(_handle, bitrateKbps);
+            if (result == NVENC_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Console.WriteLine($"[NvencNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"[NvencNativeWrapper] SetBitrate failed: {GetLastError()}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[NvencNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
         }
     }
 

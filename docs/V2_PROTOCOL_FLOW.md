@@ -12,7 +12,7 @@ V2 Protocol là giao thức 3-phase connection giữa VR Client (Unity) và Remo
 │   (Unity WebRTC)    │◄──── WebSocket ───►│   (SIPSorcery)      │
 │                     │                    │                     │
 │ PhaseProtocolClient │                    │ PhaseProtocolHandler│
-│ MultiPCStreamClient │                    │ MultiPCStreamer     │
+│ ConnectionViewModel │                    │ SIPSorceryStreamer  │
 └─────────────────────┘                    └─────────────────────┘
 ```
 
@@ -292,17 +292,15 @@ Phase3_Streaming
 | File | Description |
 |------|-------------|
 | `PhaseProtocolClient.cs` | Main V2 protocol handler |
-| `MultiPCStreamClient.cs` | V1/V2 wrapper, texture handling |
 | `SpeedTestClient.cs` | Client-side speed test |
-| `ConnectionStateMachine.cs` | State management |
-| `ClusterAutoBinder.cs` | UI ↔ Protocol bridge |
+| `ConnectionViewModel.cs` | State management & UI binding |
 
 ### Server (.NET)
 
 | File | Description |
 |------|-------------|
 | `PhaseProtocolHandler.cs` | Main V2 protocol handler |
-| `MultiPCStreamer.cs` | WebRTC peer connections |
+| `SIPSorceryStreamer.cs` | WebRTC peer connections & encoding |
 | `ProtocolMessages.cs` | JSON message types |
 | `SpeedTest.cs` | Speed test & config optimizer |
 | `PerMonitorCapture.cs` | Desktop capture |

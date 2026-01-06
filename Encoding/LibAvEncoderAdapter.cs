@@ -31,6 +31,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
     public bool IsInitialized => _encoder?.IsInitialized ?? false;
     public int Width => _width;
     public int Height => _height;
+    public int CurrentBitrateKbps => _encoder?.CurrentBitrateKbps ?? _bitrate;
 
     /// <summary>
     /// The currently active video codec (H264 or H265)
@@ -197,6 +198,21 @@ public class LibAvEncoderAdapter : ITextureEncoder
     public void Flush()
     {
         _encoder?.Flush();
+    }
+
+    /// <summary>
+    /// Dynamically change encoder bitrate
+    /// </summary>
+    public bool SetBitrate(int bitrateKbps)
+    {
+        if (_encoder == null) return false;
+
+        bool result = _encoder.SetBitrate(bitrateKbps);
+        if (result)
+        {
+            _bitrate = bitrateKbps;
+        }
+        return result;
     }
 
     private void Cleanup()

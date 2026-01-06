@@ -108,6 +108,19 @@ public sealed class PerMonitorCapture : IDisposable
     /// Parameters: monitorIndex, nv12Texture, width, height, timestamp
     /// </summary>
     public event Action<int, ID3D11Texture2D, int, int, long>? OnMonitorFrame;
+
+    /// <summary>
+    /// Callback for BGRA texture frame (for encoders that accept BGRA directly).
+    /// When set, bypasses color conversion for better GPU efficiency.
+    /// Parameters: monitorIndex, bgraTexture, width, height, timestamp
+    /// </summary>
+    public event Action<int, ID3D11Texture2D, int, int, long>? OnMonitorFrameBgra;
+
+    /// <summary>
+    /// When true, sends BGRA frames directly via OnMonitorFrameBgra instead of converting to NV12.
+    /// Set this after encoder initialization if encoder supports BGRA input.
+    /// </summary>
+    public bool UseBgraMode { get; set; } = false;
     
     // public event Action<int, byte[], int, int, long>? OnMonitorNV12Bytes; // UNUSED
 
@@ -446,12 +459,15 @@ public sealed class PerMonitorCapture : IDisposable
                 if (mon.Duplication == null) goto Pacing;
 
                 // RATE LIMITING CHECK (BEFORE acquiring frame)
-                // This is the key fix: don't even try to acquire frames too frequently
+                // Rate limiting controls SENDING, not ACQUIRING - always try to get the latest frame
                 long timeSinceLastSent = loopStart - mon.LastSentTime;
                 bool canSendFrame = mon.LastSentTime == 0 || timeSinceLastSent >= frameTimeMs;
 
-                // Use short timeout - we just want to check for new frames and release DXGI's internal queue
-                int timeoutMs = canSendFrame ? 5 : 1; // Even shorter timeout when rate limited
+                // Use consistent timeout for frame acquisition regardless of rate-limiting
+                // Previously: 1ms when rate-limited caused DXGI to always timeout, dropping FPS to 0
+                // Fix: Always use reasonable timeout to properly acquire and cache frames
+                const int ACQUIRE_TIMEOUT_MS = 8; // ~120fps max check rate, allows proper frame caching
+                int timeoutMs = ACQUIRE_TIMEOUT_MS;
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
 
                 if (result.Success && desktopResource != null)
@@ -484,20 +500,29 @@ public sealed class PerMonitorCapture : IDisposable
                         // Only convert and send if rate limiting allows
                         if (canSendFrame)
                         {
-                            // GPU Video Processor conversion
-                            if (mon.ColorConverter == null && mon.Device != null)
+                            if (UseBgraMode)
                             {
-                                mon.ColorConverter = new GpuColorConverter(mon.Device, mon.Width, mon.Height);
-                                Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created");
-                            }
-
-                            var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
-                            mon.LastNV12Frame = nv12Texture;
-
-                            if (nv12Texture != null)
-                            {
+                                // BGRA mode - send BGRA texture directly (no color conversion)
                                 mon.LastSentTime = loopStart;
-                                OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                                OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame!, mon.Width, mon.Height, captureTimestamp);
+                            }
+                            else
+                            {
+                                // NV12 mode - GPU Video Processor conversion
+                                if (mon.ColorConverter == null && mon.Device != null)
+                                {
+                                    mon.ColorConverter = new GpuColorConverter(mon.Device, mon.Width, mon.Height);
+                                    Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: GpuColorConverter created");
+                                }
+
+                                var nv12Texture = mon.ColorConverter?.ConvertToTexture(mon.LastFrame!);
+                                mon.LastNV12Frame = nv12Texture;
+
+                                if (nv12Texture != null)
+                                {
+                                    mon.LastSentTime = loopStart;
+                                    OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                                }
                             }
                         }
                         else
@@ -515,10 +540,18 @@ public sealed class PerMonitorCapture : IDisposable
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
                     // No new frame from DXGI - send cached frame if rate limiting allows
-                    if (canSendFrame && mon.LastNV12Frame != null)
+                    if (canSendFrame)
                     {
-                        mon.LastSentTime = loopStart;
-                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        if (UseBgraMode && mon.LastFrame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTimestamp);
+                        }
+                        else if (mon.LastNV12Frame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        }
                     }
                 }
                 else if (result == Vortice.DXGI.ResultCode.AccessLost)
@@ -531,10 +564,18 @@ public sealed class PerMonitorCapture : IDisposable
                     Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: ACCESS_LOST (count={mon.AccessLostCount}) - recreating duplication...");
 
                     // Send cached frame to keep stream alive
-                    if (canSendFrame && mon.LastNV12Frame != null)
+                    if (canSendFrame)
                     {
-                        mon.LastSentTime = loopStart;
-                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        if (UseBgraMode && mon.LastFrame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTimestamp);
+                        }
+                        else if (mon.LastNV12Frame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        }
                     }
 
                     // Wait a bit for Windows to stabilize, then recreate duplication
@@ -551,10 +592,18 @@ public sealed class PerMonitorCapture : IDisposable
                     // Other error - log and send cached frame
                     Console.WriteLine($"[PerMonitorCapture] Monitor {mon.Index}: DXGI error 0x{result.Code:X8}");
 
-                    if (canSendFrame && mon.LastNV12Frame != null)
+                    if (canSendFrame)
                     {
-                        mon.LastSentTime = loopStart;
-                        OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        if (UseBgraMode && mon.LastFrame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTimestamp);
+                        }
+                        else if (mon.LastNV12Frame != null)
+                        {
+                            mon.LastSentTime = loopStart;
+                            OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+                        }
                     }
                 }
 

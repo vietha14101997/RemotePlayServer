@@ -192,6 +192,61 @@ namespace RemotePlayServer.Protocol
         /// </summary>
         [JsonPropertyName("selectedCodec")]
         public string SelectedCodec { get; set; } = "H264";
+
+        /// <summary>
+        /// Connection type: "USB", "WiFi", "LAN", or "Internet".
+        /// Used by client for UI display and quality rating.
+        /// </summary>
+        [JsonPropertyName("connectionType")]
+        public string ConnectionType { get; set; } = "Unknown";
+
+        /// <summary>
+        /// Network test results (ping, jitter, bandwidth).
+        /// Included so client can display accurate network info.
+        /// </summary>
+        [JsonPropertyName("networkInfo")]
+        public NetworkInfoDto? NetworkInfo { get; set; }
+    }
+
+    /// <summary>
+    /// Network info DTO for suggested_config message.
+    /// </summary>
+    public class NetworkInfoDto
+    {
+        [JsonPropertyName("pingMs")]
+        public double PingMs { get; set; }
+
+        [JsonPropertyName("jitterMs")]
+        public double JitterMs { get; set; }
+
+        [JsonPropertyName("bandwidthMbps")]
+        public double BandwidthMbps { get; set; }
+
+        /// <summary>
+        /// True if connection is via USB Tethering (RNDIS).
+        /// </summary>
+        [JsonPropertyName("isUsbMode")]
+        public bool IsUsbMode { get; set; }
+
+        /// <summary>
+        /// USB-specific ICMP latency in milliseconds (when isUsbMode is true).
+        /// This is measured directly via ICMP ping to the USB gateway, not WebSocket.
+        /// Typically < 1ms for USB connections.
+        /// </summary>
+        [JsonPropertyName("usbLatencyMs")]
+        public double UsbLatencyMs { get; set; }
+
+        /// <summary>
+        /// USB interface version: "USB 2.0", "USB 3.0", or null if not USB mode.
+        /// </summary>
+        [JsonPropertyName("usbVersion")]
+        public string? UsbVersion { get; set; }
+
+        /// <summary>
+        /// Estimated bandwidth for USB mode in Mbps (480 for USB 2.0, 5000 for USB 3.0).
+        /// </summary>
+        [JsonPropertyName("usbEstimatedBandwidthMbps")]
+        public double UsbEstimatedBandwidthMbps { get; set; }
     }
 
     public class ResolutionDto
@@ -419,6 +474,9 @@ namespace RemotePlayServer.Protocol
         [JsonPropertyName("renderedFrames")]
         public int RenderedFrames { get; set; }
 
+        [JsonPropertyName("totalFrames")]
+        public long TotalFrames { get; set; }  // Cumulative frames since stream start (for pipeline comparison)
+
         [JsonPropertyName("droppedFrames")]
         public int DroppedFrames { get; set; }
     }
@@ -435,6 +493,110 @@ namespace RemotePlayServer.Protocol
 
         [JsonPropertyName("targetFps")]
         public int TargetFps { get; set; }
+    }
+
+    // ==================== Adaptive Bitrate Messages ====================
+
+    /// <summary>
+    /// Per-monitor quality feedback data.
+    /// </summary>
+    public class MonitorFeedback
+    {
+        [JsonPropertyName("index")]
+        public int Index { get; set; }
+
+        [JsonPropertyName("renderedFrames")]
+        public int RenderedFrames { get; set; }
+
+        [JsonPropertyName("realFrames")]
+        public int RealFrames { get; set; }
+
+        [JsonPropertyName("droppedFrames")]
+        public int DroppedFrames { get; set; }
+
+        [JsonPropertyName("texturePtrWorking")]
+        public bool TexturePtrWorking { get; set; }
+    }
+
+    /// <summary>
+    /// Client -> Server: Comprehensive quality feedback for adaptive bitrate.
+    /// Sent periodically (every ~3 seconds) to enable server-side bitrate adaptation.
+    /// </summary>
+    public class QualityFeedbackMessage : ProtocolMessage
+    {
+        public override string Type => "quality_feedback";
+
+        [JsonPropertyName("timestamp")]
+        public long Timestamp { get; set; }
+
+        [JsonPropertyName("rttMs")]
+        public float RttMs { get; set; }
+
+        [JsonPropertyName("avgRttMs")]
+        public float AvgRttMs { get; set; }
+
+        [JsonPropertyName("jitterMs")]
+        public float JitterMs { get; set; }
+
+        [JsonPropertyName("packetLossRate")]
+        public float PacketLossRate { get; set; }
+
+        [JsonPropertyName("avgPacketLossRate")]
+        public float AvgPacketLossRate { get; set; }
+
+        [JsonPropertyName("effectiveFps")]
+        public float EffectiveFps { get; set; }
+
+        [JsonPropertyName("targetFps")]
+        public float TargetFps { get; set; }
+
+        [JsonPropertyName("frameLatencyMs")]
+        public float FrameLatencyMs { get; set; }
+
+        [JsonPropertyName("bufferStatus")]
+        public string BufferStatus { get; set; } = "healthy"; // "healthy", "starving", "lossy", "high_latency", "overflow"
+
+        [JsonPropertyName("connectionHealth")]
+        public int ConnectionHealth { get; set; }
+
+        [JsonPropertyName("isWiFi")]
+        public bool IsWiFi { get; set; }
+
+        [JsonPropertyName("monitors")]
+        public List<MonitorFeedback>? Monitors { get; set; }
+    }
+
+    /// <summary>
+    /// Server -> Client: Bitrate adjustment notification.
+    /// Sent in response to quality_feedback when bitrate was changed.
+    /// </summary>
+    public class BitrateAdjustedMessage : ProtocolMessage
+    {
+        public override string Type => "bitrate_adjusted";
+
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+
+        [JsonPropertyName("bitrateKbps")]
+        public int BitrateKbps { get; set; }
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Server -> Client: Quality recommendation.
+    /// Sent when sustained poor quality suggests resolution/fps changes.
+    /// </summary>
+    public class QualityRecommendationMessage : ProtocolMessage
+    {
+        public override string Type => "quality_recommendation";
+
+        [JsonPropertyName("recommendation")]
+        public string Recommendation { get; set; } = ""; // "reduce_fps", "reduce_resolution", "reduce_bitrate"
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
     }
 
     // ==================== Common Messages ====================

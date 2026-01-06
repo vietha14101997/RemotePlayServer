@@ -92,30 +92,54 @@ namespace RemotePlayServer.Protocol
         private System.Timers.Timer? _keepAliveTimer;
         private DateTime _lastPongReceived = DateTime.UtcNow;
         private int _missedPongs = 0;
-        private const int KEEPALIVE_INTERVAL_MS = 5000;  // Ping every 5s
-        private const int MAX_MISSED_PONGS = 3;          // 15s without pong = dead
+        private const int KEEPALIVE_INTERVAL_MS = 2000;  // Ping every 2s (synchronized with client)
+        private const int MAX_MISSED_PONGS = 3;          // 6s without pong = dead (faster detection)
 
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
+
+        // Transport mode (USB Tethering vs WiFi)
+        private readonly bool _isUsbTransport;
+
+        // Track if display settings were modified (for cleanup)
+        private bool _displayModified = false;
+
+        /// <summary>
+        /// Default bitrate for USB mode (higher due to stable bandwidth).
+        /// </summary>
+        private const int USB_DEFAULT_BITRATE_KBPS = 30000; // 30 Mbps for USB
+
+        /// <summary>
+        /// Default bitrate for WiFi mode (lower to handle variable bandwidth).
+        /// </summary>
+        private const int WIFI_DEFAULT_BITRATE_KBPS = 15000; // 15 Mbps for WiFi
 
         public PhaseProtocolHandler(
             Guid clientId,
             WebSocket ws,
             System.Net.IPAddress? remoteIp,
-            CancellationToken ct)
+            CancellationToken ct,
+            bool isUsbTransport = false)
         {
             _clientId = clientId;
             _ws = ws;
             _remoteIp = remoteIp;
             _ct = ct;
+            _isUsbTransport = isUsbTransport;
         }
+
+        /// <summary>
+        /// Get default bitrate based on transport mode.
+        /// </summary>
+        public int GetDefaultBitrate() => _isUsbTransport ? USB_DEFAULT_BITRATE_KBPS : WIFI_DEFAULT_BITRATE_KBPS;
 
         /// <summary>
         /// Main entry point for handling the client connection.
         /// </summary>
         public async Task HandleAsync()
         {
-            Console.WriteLine($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol)");
+            string transportStr = _isUsbTransport ? "USB Tethering" : "WiFi";
+            Console.WriteLine($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol, transport={transportStr})");
 
             try
             {
@@ -217,18 +241,65 @@ namespace RemotePlayServer.Protocol
             // Calculate and send suggested config based on Client's speed test results
             Console.WriteLine("[Protocol] Calculating suggested config...");
             var suggested = StreamingOptimizer.CalculateSuggestedConfig(_hardwareInfo, _encoderInfo, _speedTestResult);
+
+            // USB mode: Measure USB-specific latency and override bitrate
+            int finalBitrate = suggested.BitrateKbps;
+            string transportNote = "";
+            UsbNetworkLatencyResult? usbLatency = null;
+            
+            if (_isUsbTransport)
+            {
+                // Measure USB network latency using ICMP ping to gateway
+                Console.WriteLine("[Protocol] USB Mode: Measuring USB network latency...");
+                usbLatency = await UsbNetworkLatency.MeasureAsync();
+                
+                if (usbLatency.IsUsbMode)
+                {
+                    Console.WriteLine($"[Protocol] ✓ USB Latency: {usbLatency.LatencyMs:F2}ms, Jitter: {usbLatency.JitterMs:F2}ms, Version: {usbLatency.InterfaceType}");
+                    
+                    // Override ping with USB-measured latency (more accurate than WebSocket ping)
+                    if (usbLatency.LatencyMs > 0 && usbLatency.LatencyMs < _speedTestResult.PingMs)
+                    {
+                        Console.WriteLine($"[Protocol] Using USB latency {usbLatency.LatencyMs:F2}ms instead of WebSocket ping {_speedTestResult.PingMs:F2}ms");
+                    }
+                }
+                
+                finalBitrate = Math.Max(suggested.BitrateKbps, USB_DEFAULT_BITRATE_KBPS);
+                transportNote = " [USB: High bitrate mode]";
+            }
+
+            // Determine connection type: USB takes priority over speedtest classification
+            string connectionType = _isUsbTransport ? "USB" : _speedTestResult.ConnectionType;
+
+            // Build NetworkInfoDto with USB-specific fields
+            // In USB mode, use USB-measured jitter instead of WebSocket jitter
+            var networkInfo = new NetworkInfoDto
+            {
+                PingMs = _speedTestResult.PingMs,
+                JitterMs = (usbLatency?.IsUsbMode == true && usbLatency.JitterMs > 0) 
+                    ? usbLatency.JitterMs  // Use USB ICMP jitter
+                    : _speedTestResult.JitterMs,
+                BandwidthMbps = _speedTestResult.BandwidthMbps,
+                IsUsbMode = _isUsbTransport && usbLatency?.IsUsbMode == true,
+                UsbLatencyMs = usbLatency?.LatencyMs ?? 0,
+                UsbVersion = usbLatency?.InterfaceType,
+                UsbEstimatedBandwidthMbps = usbLatency?.EstimatedBandwidthMbps ?? 0
+            };
+
             var sugMsg = new SuggestedConfigMessage
             {
                 Monitors = suggested.Monitors,
                 Resolution = new ResolutionDto { Width = suggested.ResolutionWidth, Height = suggested.ResolutionHeight },
-                BitrateKbps = suggested.BitrateKbps,
+                BitrateKbps = finalBitrate,
                 Fps = suggested.Fps,
                 RefreshRate = suggested.RefreshRate,
-                Reason = suggested.Reason,
-                SelectedCodec = _selectedCodec
+                Reason = suggested.Reason + transportNote,
+                SelectedCodec = _selectedCodec,
+                ConnectionType = connectionType,
+                NetworkInfo = networkInfo
             };
 
-            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={suggested.BitrateKbps}kbps, codec={_selectedCodec}");
+            Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={finalBitrate}kbps, codec={_selectedCodec}, transport={(_isUsbTransport ? "USB" : "WiFi")}");
             await SendMessageAsync(sugMsg);
             Console.WriteLine("[Protocol] ✓ suggested_config sent successfully");
 
@@ -474,6 +545,9 @@ namespace RemotePlayServer.Protocol
                     StartupSteps.EnsureExtendDesktopWithVirtual();
                     Thread.Sleep(1000);
                 });
+
+                // Mark display as modified for cleanup
+                _displayModified = true;
             }
 
             await SendProgressAsync("capture_init", 90, "Initializing capture...");
@@ -534,6 +608,14 @@ namespace RemotePlayServer.Protocol
                     _allConnectedTcs?.TrySetResult(true);
                     if (_ws.State != WebSocketState.Open) return;
                     Console.WriteLine($"[Protocol] All {actualMonitors} tracks ready, sending ice_ready");
+
+                    // Check if encoder supports BGRA mode (skip color conversion)
+                    if (_streamer.AnyTrackRequiresBgraInput())
+                    {
+                        Console.WriteLine("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
+                        _capture.UseBgraMode = true;
+                    }
+
                     var msg = new IceReadyMessage { MonitorCount = actualMonitors };
                     await SendMessageAsync(msg);
                     Console.WriteLine("[Protocol] Starting early capture to prevent browser track timeout...");
@@ -892,7 +974,6 @@ namespace RemotePlayServer.Protocol
         /// <summary>
         /// Parse the H264 payload type from the offer SDP.
         /// Browser offers multiple H264 profiles - we prefer Constrained Baseline (42e01f) with packetization-mode=1.
-        /// Same logic as LibDataChannelStreamer.ParseH264PayloadType().
         /// </summary>
         private int ParseH264PayloadType(string sdp)
         {
@@ -1221,7 +1302,8 @@ namespace RemotePlayServer.Protocol
                                 _streamer.ProcessFpsFeedback(
                                     feedback.MonitorIndex,
                                     feedback.EffectiveFps,
-                                    feedback.DroppedFrames);
+                                    feedback.DroppedFrames,
+                                    feedback.TotalFrames);
 
                                 // Send acknowledgment with current target FPS
                                 var ack = new FpsAdjustedMessage
@@ -1235,6 +1317,29 @@ namespace RemotePlayServer.Protocol
                         catch (Exception ex)
                         {
                             Console.WriteLine($"[Protocol] fps_feedback error: {ex.Message}");
+                        }
+                        continue;
+                    }
+
+                    // Handle quality_feedback from client for adaptive bitrate
+                    if (msgType == "quality_feedback")
+                    {
+                        try
+                        {
+                            var feedback = ProtocolMessageParser.Parse<QualityFeedbackMessage>(text);
+                            if (feedback != null && _streamer != null)
+                            {
+                                var bitrateResult = _streamer.ProcessQualityFeedback(feedback);
+                                if (bitrateResult != null)
+                                {
+                                    await SendMessageAsync(bitrateResult);
+                                    Console.WriteLine($"[Protocol] Bitrate adjusted: {bitrateResult.BitrateKbps}kbps - {bitrateResult.Reason}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Protocol] quality_feedback error: {ex.Message}");
                         }
                         continue;
                     }
@@ -1269,9 +1374,23 @@ namespace RemotePlayServer.Protocol
                 try { RoInitialize(1); } catch { }
                 try
                 {
+                    // NV12 frame handler (standard path with color conversion)
                     _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
                     {
                         _streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
+
+                        if (monitorIndex == 0)
+                        {
+                            var fn = Interlocked.Increment(ref _frameCount);
+                            _frameTiming.Enqueue((fn, timestamp));
+                            while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
+                        }
+                    };
+
+                    // BGRA frame handler (zero-copy path, no color conversion)
+                    _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
+                    {
+                        _streamer?.PushBgraTexture(monitorIndex, bgraTexture, w, h);
 
                         if (monitorIndex == 0)
                         {
@@ -1893,18 +2012,23 @@ namespace RemotePlayServer.Protocol
                     _sharedCapture.Stop();
                     _sharedCapture.Dispose();
                     _sharedCapture = null;
+                }
+            }
 
-                    // Restore display settings
-                    Console.WriteLine("[Protocol] Restoring display settings...");
-                    try
-                    {
-                        DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
-                        Console.WriteLine("[Protocol] Display settings restored.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Protocol] Restore failed: {ex.Message}");
-                    }
+            // Restore display settings if they were modified
+            // This runs even if _sharedCapture was already disposed (e.g., during reconnect attempts)
+            if (_displayModified)
+            {
+                Console.WriteLine("[Protocol] Restoring display settings...");
+                try
+                {
+                    DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
+                    Console.WriteLine("[Protocol] Display settings restored.");
+                    _displayModified = false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Protocol] Restore failed: {ex.Message}");
                 }
             }
 

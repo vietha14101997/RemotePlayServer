@@ -111,6 +111,48 @@ AMFWRAPPER_API int AmfDestroyEncoder(AmfEncoderHandle handle);
 /// </summary>
 AMFWRAPPER_API const char* AmfGetLastError();
 
+/// <summary>
+/// Dynamically change encoder bitrate without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bitrateKbps">New target bitrate in kbps</param>
+/// <returns>AMF_WRAPPER_OK on success</returns>
+AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps);
+
+/// <summary>
+/// Create an AMF encoder instance with BGRA input support.
+/// AMF internally converts BGRA to NV12 in hardware - no CPU/shader conversion needed.
+/// </summary>
+/// <param name="outHandle">Output encoder handle</param>
+/// <param name="d3d11Device">D3D11 device to use for encoding</param>
+/// <param name="width">Video width</param>
+/// <param name="height">Video height</param>
+/// <param name="fps">Frames per second</param>
+/// <param name="bitrate">Target bitrate in kbps</param>
+/// <returns>AMF_WRAPPER_OK on success</returns>
+AMFWRAPPER_API int AmfCreateEncoderBgra(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate
+);
+
+/// <summary>
+/// Encode a D3D11 BGRA texture directly (zero-copy, AMF converts internally)
+/// Use with encoder created via AmfCreateEncoderBgra()
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="bgraTexture">D3D11 BGRA texture to encode</param>
+/// <param name="forceKeyframe">Force IDR frame</param>
+/// <returns>AMF_WRAPPER_OK on success</returns>
+AMFWRAPPER_API int AmfEncodeBgraTexture(
+    AmfEncoderHandle handle,
+    ID3D11Texture2D* bgraTexture,
+    int forceKeyframe
+);
+
 #ifdef __cplusplus
 }
 #endif
