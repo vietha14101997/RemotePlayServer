@@ -76,20 +76,19 @@ namespace RemotePlayServer.Utils
                         .Select(ua => ua.Address.ToString())
                         .ToList();
 
-                    // Check 1: Interface name matches USB tethering patterns
-                    bool nameMatches = USB_INTERFACE_PATTERNS.Any(pattern =>
-                        ni.Name.Contains(pattern, StringComparison.OrdinalIgnoreCase) ||
-                        ni.Description.Contains(pattern, StringComparison.OrdinalIgnoreCase));
-
-                    // Check 2: IP is in USB tethering range
+                    // Check 1: IP is in USB tethering range
                     var usbIP = ipv4Addresses.FirstOrDefault(ip =>
                         USB_TETHERING_PREFIXES.Any(prefix => ip.StartsWith(prefix)));
 
-                    if (nameMatches || usbIP != null)
+                    // Check 2: Interface description contains "NDIS" (Remote NDIS is THE standard USB Tethering driver)
+                    // This is a definitive indicator - RNDIS/Remote NDIS is specifically for USB networking
+                    bool isNdisInterface = ni.Description.Contains("NDIS", StringComparison.OrdinalIgnoreCase);
+
+                    // Detect if: IP in known range OR interface is clearly NDIS-based USB Tethering
+                    if (usbIP != null || (isNdisInterface && ipv4Addresses.Count > 0))
                     {
-                        // Found a potential USB tethering interface
-                        var serverIP = usbIP ?? ipv4Addresses.FirstOrDefault();
-                        if (serverIP == null) continue;
+                        var serverIP = usbIP ?? ipv4Addresses.First();
+                        Console.WriteLine($"[USB-Tether] Detected by: {(usbIP != null ? "IP range" : "NDIS interface")}");
 
                         // Get gateway (phone's IP)
                         var gateway = ipProps.GatewayAddresses

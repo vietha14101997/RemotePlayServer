@@ -298,12 +298,9 @@ partial class Program
 
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
 
-        // Tạo QRCode với IP ưu tiên và danh sách monitors
-        // Include USB Tethering IP if available for client to use
-        var monitorsList = monitors.Select((m, i) => new { id = i, name = m.name, w = m.width, h = m.height });
-        string monitorsJson = System.Text.Json.JsonSerializer.Serialize(monitorsList);
+        // Tạo QRCode đơn giản: chỉ chứa WiFi IP, Port, và USB IP (nếu có)
         string usbIPJson = usbTetheringIP != null ? $",\"usbIP\":\"{usbTetheringIP}\"" : "";
-        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":{port}{usbIPJson},\"monitors\":{monitorsJson}}}";
+        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":\"{port}\"{usbIPJson}}}";
         Console.WriteLine();
         Console.WriteLine("=== QRCode (Scan to connect) ===");
         Console.WriteLine($"Data: {qrData}");
