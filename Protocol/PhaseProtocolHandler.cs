@@ -272,10 +272,13 @@ namespace RemotePlayServer.Protocol
             string connectionType = _isUsbTransport ? "USB" : _speedTestResult.ConnectionType;
 
             // Build NetworkInfoDto with USB-specific fields
+            // In USB mode, use USB-measured jitter instead of WebSocket jitter
             var networkInfo = new NetworkInfoDto
             {
                 PingMs = _speedTestResult.PingMs,
-                JitterMs = _speedTestResult.JitterMs,
+                JitterMs = (usbLatency?.IsUsbMode == true && usbLatency.JitterMs > 0) 
+                    ? usbLatency.JitterMs  // Use USB ICMP jitter
+                    : _speedTestResult.JitterMs,
                 BandwidthMbps = _speedTestResult.BandwidthMbps,
                 IsUsbMode = _isUsbTransport && usbLatency?.IsUsbMode == true,
                 UsbLatencyMs = usbLatency?.LatencyMs ?? 0,

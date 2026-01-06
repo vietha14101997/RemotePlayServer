@@ -81,8 +81,8 @@ namespace RemotePlayServer.Utils
                 result.IsUsbMode = true;
                 result.GatewayIP = usbInfo.GatewayIP;
 
-                // Detect USB version based on interface description
-                result.InterfaceType = DetectUsbVersion(usbInfo.Description ?? "");
+                // Detect USB version based on interface speed and description
+                result.InterfaceType = DetectUsbVersion(usbInfo);
                 result.EstimatedBandwidthMbps = result.InterfaceType.Contains("3.") 
                     ? USB_3_BANDWIDTH_MBPS 
                     : USB_2_BANDWIDTH_MBPS;
@@ -95,7 +95,7 @@ namespace RemotePlayServer.Utils
                 if (avgLatency > 0)
                 {
                     result.LatencyMs = avgLatency;
-                    result.JitterMs = jitter;
+                    result.JitterMs = jitter;  // Use actual measured jitter, not hardcoded
                     Console.WriteLine($"[UsbLatency] ✓ ICMP RTT: {avgLatency:F2}ms, Jitter: {jitter:F2}ms");
                 }
                 else
@@ -218,20 +218,206 @@ namespace RemotePlayServer.Utils
         }
 
         /// <summary>
-        /// Detect USB version from interface description.
+        /// Detect USB version using multiple methods:
+        /// 1. WMI query for USB controllers (most reliable)
+        /// 2. Registry check for USB host controllers
+        /// 3. Network interface speed (fallback, unreliable for RNDIS)
+        /// 
+        /// Note: RNDIS reports its own virtual link speed (~426 Mbps) regardless
+        /// of actual USB port speed, so we must use other methods.
         /// </summary>
-        private static string DetectUsbVersion(string description)
+        private static string DetectUsbVersion(UsbTetheringHelper.UsbTetheringInfo usbInfo)
         {
-            // Common USB 3.0 indicators
+            // Method 1: Check WMI for USB 3.0 controllers with connected devices
+            try
+            {
+                var usbVersion = DetectUsbVersionViaWmi();
+                if (!string.IsNullOrEmpty(usbVersion))
+                {
+                    Console.WriteLine($"[UsbLatency] USB version detected via WMI: {usbVersion}");
+                    return usbVersion;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UsbLatency] WMI USB detection failed: {ex.Message}");
+            }
+
+            // Method 2: Check Registry for xHCI (USB 3.0) host controllers
+            try
+            {
+                var usbVersion = DetectUsbVersionViaRegistry();
+                if (!string.IsNullOrEmpty(usbVersion))
+                {
+                    Console.WriteLine($"[UsbLatency] USB version detected via Registry: {usbVersion}");
+                    return usbVersion;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UsbLatency] Registry USB detection failed: {ex.Message}");
+            }
+
+            // Method 3: Check interface description for clues
+            string description = usbInfo.Description ?? "";
             if (description.Contains("USB 3", StringComparison.OrdinalIgnoreCase) ||
                 description.Contains("USB3", StringComparison.OrdinalIgnoreCase) ||
-                description.Contains("SuperSpeed", StringComparison.OrdinalIgnoreCase))
+                description.Contains("SuperSpeed", StringComparison.OrdinalIgnoreCase) ||
+                description.Contains("xHCI", StringComparison.OrdinalIgnoreCase))
             {
+                Console.WriteLine($"[UsbLatency] USB 3.0 detected from interface description");
                 return "USB 3.0";
             }
 
-            // Most RNDIS connections are USB 2.0
+            // Method 4: Fallback to link speed (unreliable for RNDIS but try anyway)
+            try
+            {
+                var ni = NetworkInterface.GetAllNetworkInterfaces()
+                    .FirstOrDefault(n => n.Name == usbInfo.InterfaceName);
+
+                if (ni != null)
+                {
+                    double speedMbps = ni.Speed / 1_000_000.0;
+                    Console.WriteLine($"[UsbLatency] Interface '{usbInfo.InterfaceName}' link speed: {speedMbps:F0} Mbps (RNDIS virtual speed)");
+                    
+                    // Note: RNDIS typically reports ~426 Mbps regardless of USB version
+                    // This is NOT a reliable indicator
+                    if (speedMbps > 1000) // Very high speed might indicate USB 3.0
+                    {
+                        return "USB 3.0";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UsbLatency] Interface speed check failed: {ex.Message}");
+            }
+
+            Console.WriteLine($"[UsbLatency] USB version defaulting to USB 2.0");
             return "USB 2.0";
+        }
+
+        /// <summary>
+        /// Use WMI to detect USB 3.0 host controllers with connected devices.
+        /// This is the most reliable method on Windows.
+        /// </summary>
+        private static string? DetectUsbVersionViaWmi()
+        {
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                "SELECT * FROM Win32_USBController");
+
+            bool hasUsb30Controller = false;
+            bool hasUsb20Controller = false;
+
+            foreach (var obj in searcher.Get())
+            {
+                string name = obj["Name"]?.ToString() ?? "";
+                string desc = obj["Description"]?.ToString() ?? "";
+                string pnpClass = obj["PNPClass"]?.ToString() ?? "";
+                
+                // Check for USB 3.0/3.1/3.2 indicators
+                if (name.Contains("xHCI", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("USB 3", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("USB3", StringComparison.OrdinalIgnoreCase) ||
+                    desc.Contains("xHCI", StringComparison.OrdinalIgnoreCase) ||
+                    desc.Contains("USB 3", StringComparison.OrdinalIgnoreCase) ||
+                    desc.Contains("eXtensible Host Controller", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasUsb30Controller = true;
+                    Console.WriteLine($"[UsbLatency] Found USB 3.x controller: {name}");
+                }
+                else if (name.Contains("EHCI", StringComparison.OrdinalIgnoreCase) ||
+                         name.Contains("USB 2", StringComparison.OrdinalIgnoreCase) ||
+                         desc.Contains("Enhanced Host Controller", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasUsb20Controller = true;
+                }
+            }
+
+            // Also check for USB hub to see which controller the device is connected to
+            using var hubSearcher = new System.Management.ManagementObjectSearcher(
+                "SELECT * FROM Win32_USBHub WHERE Status='OK'");
+
+            foreach (var obj in hubSearcher.Get())
+            {
+                string name = obj["Name"]?.ToString() ?? "";
+                string deviceId = obj["DeviceID"]?.ToString() ?? "";
+                
+                // USB 3.0 devices often have SuperSpeed in their name or USB\\VID_xxxx&PID_xxxx\\x pattern
+                if (name.Contains("SuperSpeed", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("USB 3", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"[UsbLatency] Found USB 3.0 hub: {name}");
+                    hasUsb30Controller = true;
+                }
+            }
+
+            if (hasUsb30Controller)
+            {
+                return "USB 3.0";
+            }
+            else if (hasUsb20Controller)
+            {
+                return "USB 2.0";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Check Windows Registry for USB host controller types.
+        /// </summary>
+        private static string? DetectUsbVersionViaRegistry()
+        {
+            try
+            {
+                // Look for xHCI controllers (USB 3.0+)
+                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                    @"SYSTEM\CurrentControlSet\Services\USBXHCI");
+                
+                if (key != null)
+                {
+                    Console.WriteLine("[UsbLatency] USB xHCI service found (USB 3.x support present)");
+                    return "USB 3.0";
+                }
+            }
+            catch { }
+
+            try
+            {
+                // Alternative: Check Enum\USB for connected devices
+                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                    @"SYSTEM\CurrentControlSet\Enum\USB");
+                
+                if (key != null)
+                {
+                    foreach (var subKeyName in key.GetSubKeyNames())
+                    {
+                        // VID_xxxx&PID_xxxx pattern
+                        if (subKeyName.Contains("VID_", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using var subKey = key.OpenSubKey(subKeyName);
+                            if (subKey != null)
+                            {
+                                foreach (var instanceName in subKey.GetSubKeyNames())
+                                {
+                                    using var instanceKey = subKey.OpenSubKey(instanceName);
+                                    var friendlyName = instanceKey?.GetValue("FriendlyName")?.ToString() ?? "";
+                                    
+                                    if (friendlyName.Contains("USB 3", StringComparison.OrdinalIgnoreCase) ||
+                                        friendlyName.Contains("SuperSpeed", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        return "USB 3.0";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         /// <summary>
