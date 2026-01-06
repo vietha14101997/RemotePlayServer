@@ -221,6 +221,32 @@ namespace RemotePlayServer.Protocol
 
         [JsonPropertyName("bandwidthMbps")]
         public double BandwidthMbps { get; set; }
+
+        /// <summary>
+        /// True if connection is via USB Tethering (RNDIS).
+        /// </summary>
+        [JsonPropertyName("isUsbMode")]
+        public bool IsUsbMode { get; set; }
+
+        /// <summary>
+        /// USB-specific ICMP latency in milliseconds (when isUsbMode is true).
+        /// This is measured directly via ICMP ping to the USB gateway, not WebSocket.
+        /// Typically < 1ms for USB connections.
+        /// </summary>
+        [JsonPropertyName("usbLatencyMs")]
+        public double UsbLatencyMs { get; set; }
+
+        /// <summary>
+        /// USB interface version: "USB 2.0", "USB 3.0", or null if not USB mode.
+        /// </summary>
+        [JsonPropertyName("usbVersion")]
+        public string? UsbVersion { get; set; }
+
+        /// <summary>
+        /// Estimated bandwidth for USB mode in Mbps (480 for USB 2.0, 5000 for USB 3.0).
+        /// </summary>
+        [JsonPropertyName("usbEstimatedBandwidthMbps")]
+        public double UsbEstimatedBandwidthMbps { get; set; }
     }
 
     public class ResolutionDto

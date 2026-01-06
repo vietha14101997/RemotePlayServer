@@ -242,17 +242,46 @@ namespace RemotePlayServer.Protocol
             Console.WriteLine("[Protocol] Calculating suggested config...");
             var suggested = StreamingOptimizer.CalculateSuggestedConfig(_hardwareInfo, _encoderInfo, _speedTestResult);
 
-            // USB mode: Override bitrate with higher stable value (USB has 5Gbps bandwidth)
+            // USB mode: Measure USB-specific latency and override bitrate
             int finalBitrate = suggested.BitrateKbps;
             string transportNote = "";
+            UsbNetworkLatencyResult? usbLatency = null;
+            
             if (_isUsbTransport)
             {
+                // Measure USB network latency using ICMP ping to gateway
+                Console.WriteLine("[Protocol] USB Mode: Measuring USB network latency...");
+                usbLatency = await UsbNetworkLatency.MeasureAsync();
+                
+                if (usbLatency.IsUsbMode)
+                {
+                    Console.WriteLine($"[Protocol] ✓ USB Latency: {usbLatency.LatencyMs:F2}ms, Jitter: {usbLatency.JitterMs:F2}ms, Version: {usbLatency.InterfaceType}");
+                    
+                    // Override ping with USB-measured latency (more accurate than WebSocket ping)
+                    if (usbLatency.LatencyMs > 0 && usbLatency.LatencyMs < _speedTestResult.PingMs)
+                    {
+                        Console.WriteLine($"[Protocol] Using USB latency {usbLatency.LatencyMs:F2}ms instead of WebSocket ping {_speedTestResult.PingMs:F2}ms");
+                    }
+                }
+                
                 finalBitrate = Math.Max(suggested.BitrateKbps, USB_DEFAULT_BITRATE_KBPS);
                 transportNote = " [USB: High bitrate mode]";
             }
 
             // Determine connection type: USB takes priority over speedtest classification
             string connectionType = _isUsbTransport ? "USB" : _speedTestResult.ConnectionType;
+
+            // Build NetworkInfoDto with USB-specific fields
+            var networkInfo = new NetworkInfoDto
+            {
+                PingMs = _speedTestResult.PingMs,
+                JitterMs = _speedTestResult.JitterMs,
+                BandwidthMbps = _speedTestResult.BandwidthMbps,
+                IsUsbMode = _isUsbTransport && usbLatency?.IsUsbMode == true,
+                UsbLatencyMs = usbLatency?.LatencyMs ?? 0,
+                UsbVersion = usbLatency?.InterfaceType,
+                UsbEstimatedBandwidthMbps = usbLatency?.EstimatedBandwidthMbps ?? 0
+            };
 
             var sugMsg = new SuggestedConfigMessage
             {
@@ -264,12 +293,7 @@ namespace RemotePlayServer.Protocol
                 Reason = suggested.Reason + transportNote,
                 SelectedCodec = _selectedCodec,
                 ConnectionType = connectionType,
-                NetworkInfo = new NetworkInfoDto
-                {
-                    PingMs = _speedTestResult.PingMs,
-                    JitterMs = _speedTestResult.JitterMs,
-                    BandwidthMbps = _speedTestResult.BandwidthMbps
-                }
+                NetworkInfo = networkInfo
             };
 
             Console.WriteLine($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={finalBitrate}kbps, codec={_selectedCodec}, transport={(_isUsbTransport ? "USB" : "WiFi")}");
