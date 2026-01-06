@@ -250,16 +250,22 @@ partial class Program
         Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
-        // === USB MODE CHECK ===
-        // Only check if ADB is available. Actual setup happens on-demand when client requests USB mode.
-        bool adbAvailable = AdbHelper.Initialize();
-        if (adbAvailable)
+        // === USB TETHERING DETECTION ===
+        // USB Tethering creates a real network interface over USB cable.
+        // This allows FULL TCP+UDP communication (both signaling AND WebRTC media).
+        string? usbTetheringIP = null;
+        var usbTetherInfo = UsbTetheringHelper.Detect();
+        if (usbTetherInfo.IsAvailable)
         {
-            Console.WriteLine("[USB] ADB available. USB mode will be setup on-demand when client requests.");
+            usbTetheringIP = usbTetherInfo.ServerIP;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[USB] USB Tethering ACTIVE! Server IP: {usbTetheringIP}");
+            Console.WriteLine($"[USB] Full TCP+UDP streaming over USB cable");
+            Console.ResetColor();
         }
         else
         {
-            Console.WriteLine("[USB] ADB not found. WiFi mode only.");
+            Console.WriteLine("[USB] Not detected. Enable USB Tethering on phone for USB streaming.");
         }
 
         // Chụp trạng thái ban đầu và tạo marker phiên
@@ -293,9 +299,11 @@ partial class Program
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
 
         // Tạo QRCode với IP ưu tiên và danh sách monitors
+        // Include USB Tethering IP if available for client to use
         var monitorsList = monitors.Select((m, i) => new { id = i, name = m.name, w = m.width, h = m.height });
         string monitorsJson = System.Text.Json.JsonSerializer.Serialize(monitorsList);
-        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":{port},\"monitors\":{monitorsJson}}}";
+        string usbIPJson = usbTetheringIP != null ? $",\"usbIP\":\"{usbTetheringIP}\"" : "";
+        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":{port}{usbIPJson},\"monitors\":{monitorsJson}}}";
         Console.WriteLine();
         Console.WriteLine("=== QRCode (Scan to connect) ===");
         Console.WriteLine($"Data: {qrData}");
@@ -303,14 +311,24 @@ partial class Program
 
         // Show connection options
         Console.WriteLine();
-        if (adbAvailable)
+        Console.WriteLine("=== Connection Options ===");
+
+        // USB Tethering (full TCP+UDP over USB cable)
+        if (usbTetheringIP != null)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("=== Connection Options ===");
-            Console.WriteLine("  [USB]  Enable USB mode in client (Recommended - Low latency, Stable)");
-            Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
+            Console.WriteLine($"  [USB]  {usbTetheringIP}:{port} (Full streaming over USB cable)");
             Console.ResetColor();
         }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("  [USB]  Not available. Enable USB Tethering on phone");
+            Console.ResetColor();
+        }
+
+        // WiFi (always available)
+        Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
 
         Console.WriteLine();
         Console.WriteLine("Server is running. Press ENTER to exit.");
@@ -328,8 +346,6 @@ partial class Program
         {
             Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
         }
-
-        // ADB reverse cleanup happens per-client in PhaseProtocolHandler
 
         // Không khôi phục Guard khi tắt server chủ động - chỉ khôi phục khi client disconnect hoặc crash
 

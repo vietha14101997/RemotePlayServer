@@ -98,11 +98,11 @@ namespace RemotePlayServer.Protocol
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
 
-        // Transport mode (USB vs WiFi)
+        // Transport mode (USB Tethering vs WiFi)
         private readonly bool _isUsbTransport;
-        private bool _usbSetupSuccess = false;  // Track if ADB reverse was setup successfully
-        private string? _usbDeviceSerial = null;  // Device serial for ADB cleanup
-        private const int USB_PORT = 8288;
+
+        // Track if display settings were modified (for cleanup)
+        private bool _displayModified = false;
 
         /// <summary>
         /// Default bitrate for USB mode (higher due to stable bandwidth).
@@ -138,50 +138,11 @@ namespace RemotePlayServer.Protocol
         /// </summary>
         public async Task HandleAsync()
         {
-            string transportStr = _isUsbTransport ? "USB (stable)" : "WiFi";
+            string transportStr = _isUsbTransport ? "USB Tethering" : "WiFi";
             Console.WriteLine($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol, transport={transportStr})");
 
             try
             {
-                // === USB MODE ON-DEMAND SETUP ===
-                // Only setup ADB reverse when client actually requests USB mode
-                if (_isUsbTransport)
-                {
-                    Console.WriteLine("[USB] Client requested USB mode, checking cable connection...");
-
-                    if (!AdbHelper.IsAvailable)
-                    {
-                        Console.WriteLine("[USB] ERROR: ADB not available on server");
-                        await SendErrorAsync(0, "USB_NOT_AVAILABLE", "ADB not available on server. Install Android SDK Platform Tools.");
-                        return;
-                    }
-
-                    var devices = AdbHelper.GetConnectedDevices();
-                    if (devices.Length == 0)
-                    {
-                        Console.WriteLine("[USB] ERROR: No USB device connected");
-                        await SendErrorAsync(0, "USB_NO_DEVICE", "No USB device connected. Please connect your device via USB cable and enable USB debugging.");
-                        return;
-                    }
-
-                    _usbDeviceSerial = devices[0];
-                    var deviceModel = AdbHelper.GetDeviceModel(_usbDeviceSerial) ?? "Unknown";
-                    Console.WriteLine($"[USB] Device found: {deviceModel} ({_usbDeviceSerial})");
-
-                    // Setup ADB reverse port forwarding
-                    if (AdbHelper.SetupReversePort(USB_PORT, _usbDeviceSerial))
-                    {
-                        _usbSetupSuccess = true;
-                        Console.WriteLine($"[USB] ADB reverse port forwarding setup: device:{USB_PORT} → localhost:{USB_PORT}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("[USB] ERROR: Failed to setup ADB reverse port forwarding");
-                        await SendErrorAsync(0, "USB_SETUP_FAILED", "Failed to setup ADB reverse port forwarding. Check USB debugging permissions.");
-                        return;
-                    }
-                }
-
                 // Phase 1: Hardware discovery and speed test
                 await RunPhase1Async();
 
@@ -547,6 +508,9 @@ namespace RemotePlayServer.Protocol
                     StartupSteps.EnsureExtendDesktopWithVirtual();
                     Thread.Sleep(1000);
                 });
+
+                // Mark display as modified for cleanup
+                _displayModified = true;
             }
 
             await SendProgressAsync("capture_init", 90, "Initializing capture...");
@@ -2011,32 +1975,23 @@ namespace RemotePlayServer.Protocol
                     _sharedCapture.Stop();
                     _sharedCapture.Dispose();
                     _sharedCapture = null;
-
-                    // Restore display settings
-                    Console.WriteLine("[Protocol] Restoring display settings...");
-                    try
-                    {
-                        DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
-                        Console.WriteLine("[Protocol] Display settings restored.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Protocol] Restore failed: {ex.Message}");
-                    }
                 }
             }
 
-            // Cleanup ADB reverse port forwarding if USB mode was used
-            if (_usbSetupSuccess)
+            // Restore display settings if they were modified
+            // This runs even if _sharedCapture was already disposed (e.g., during reconnect attempts)
+            if (_displayModified)
             {
+                Console.WriteLine("[Protocol] Restoring display settings...");
                 try
                 {
-                    AdbHelper.CleanupReversePort(USB_PORT, _usbDeviceSerial);
-                    Console.WriteLine($"[USB] ADB reverse port forwarding cleaned up for device {_usbDeviceSerial}");
+                    DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
+                    Console.WriteLine("[Protocol] Display settings restored.");
+                    _displayModified = false;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[USB] Failed to cleanup ADB reverse: {ex.Message}");
+                    Console.WriteLine($"[Protocol] Restore failed: {ex.Message}");
                 }
             }
 
