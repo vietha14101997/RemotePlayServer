@@ -297,6 +297,8 @@ namespace RemotePlayServer.Utils
     {
         /// <summary>
         /// Calculate optimal streaming configuration based on hardware and network.
+        /// Note: Resolution is now server-controlled. Server captures at native resolution
+        /// and resizes to max 1440x810 before encoding.
         /// </summary>
         public static SuggestedConfig CalculateSuggestedConfig(
             HardwareInfo hw,
@@ -305,35 +307,17 @@ namespace RemotePlayServer.Utils
         {
             var config = new SuggestedConfig();
 
-            // Resolution based on GPU VRAM
-            if (hw.Gpu.VramMB >= 8192) // 8GB+
-            {
-                config.ResolutionWidth = 1920;
-                config.ResolutionHeight = 1080;
-            }
-            else if (hw.Gpu.VramMB >= 4096) // 4GB
-            {
-                config.ResolutionWidth = 1600;
-                config.ResolutionHeight = 900;
-            }
-            else // <4GB
-            {
-                config.ResolutionWidth = 1366;
-                config.ResolutionHeight = 768;
-            }
+            // Resolution is fixed: Server captures at native and resizes to max 1440x810
+            // This is the maximum resolution after server-side resize
+            config.ResolutionWidth = 1440;
+            config.ResolutionHeight = 810;
 
             // Calculate recommended bitrate per monitor based on resolution and network
             double availableBandwidth = network.BandwidthMbps > 0 ? network.BandwidthMbps : 100;
 
-            // Base bitrate recommendation based on resolution (realistic for H.264/H.265)
-            // These are "high quality" targets - not maximum possible
-            int baseBitrateKbps;
-            if (config.ResolutionWidth >= 1920)
-                baseBitrateKbps = 15000;  // 1080p: 15 Mbps is excellent quality
-            else if (config.ResolutionWidth >= 1600)
-                baseBitrateKbps = 12000;  // 900p: 12 Mbps
-            else
-                baseBitrateKbps = 10000;  // 768p: 10 Mbps
+            // Base bitrate recommendation based on 1440x810 resolution
+            // This is a "high quality" target for H.264/H.265 at this resolution
+            int baseBitrateKbps = 12000;  // 1440x810: 12 Mbps is excellent quality
 
             // Scale up slightly if network is very good (low ping, high bandwidth)
             if (network.PingMs < 10 && availableBandwidth > 500)
@@ -358,7 +342,7 @@ namespace RemotePlayServer.Utils
                 rawBitrate = 40000;  // Max quality for LAN
             }
 
-            // Round to nearest dropdown option: 5, 10, 15, 20, 30 Mbps
+            // Round to nearest dropdown option: 15, 20, 25, 30, 40 Mbps
             config.BitrateKbps = RoundToNearestBitrateOption(rawBitrate);
 
             // FPS based on encoder capability and ping
@@ -429,12 +413,7 @@ namespace RemotePlayServer.Utils
             var reasons = new List<string>();
 
             // Resolution reason
-            if (hw.Gpu.VramMB >= 8192)
-                reasons.Add($"1080p (VRAM: {hw.Gpu.VramGB}GB)");
-            else if (hw.Gpu.VramMB >= 4096)
-                reasons.Add($"900p (VRAM: {hw.Gpu.VramGB}GB)");
-            else
-                reasons.Add($"768p (VRAM limited)");
+            reasons.Add($"1440x810 (Server-controlled, max auto-resize)");
 
             // Bitrate reason
             reasons.Add($"{config.BitrateKbps / 1000}Mbps (BW: {network.BandwidthMbps:F0}Mbps)");

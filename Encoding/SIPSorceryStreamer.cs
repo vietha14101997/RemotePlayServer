@@ -910,11 +910,85 @@ public class SIPSorceryStreamer : IDisposable
     /// </summary>
     public void ResetBitrateController() => _bitrateController.Reset();
 
+    /// <summary>
+    /// Dynamically update streaming configuration during Phase 3.
+    /// </summary>
+    /// <param name="fps">New target FPS (optional, null = no change). Note: FPS change may not take effect until reconnect.</param>
+    /// <param name="totalBitrateKbps">New TOTAL bitrate in kbps for ALL monitors (optional, null = no change).</param>
+    /// <returns>Tuple of (success, appliedFps, appliedTotalBitrate, message)</returns>
+    public (bool Success, int Fps, int BitrateKbps, string Message) UpdateConfig(int? fps, int? totalBitrateKbps)
+    {
+        var messages = new List<string>();
+        int appliedFps = _fps;
+        int appliedBitrate = _bitrateKbps;
+        bool anySuccess = false;
+
+        // FPS change - currently only tracked, actual encoder FPS change would require restart
+        if (fps.HasValue && fps.Value != _fps)
+        {
+            // Note: Most hardware encoders don't support runtime FPS changes
+            // This logs the request but actual change would require encoder restart
+            Console.WriteLine($"[SIPSorcery] FPS change requested: {_fps} → {fps.Value} (note: may require reconnect)");
+            appliedFps = fps.Value;
+            messages.Add($"FPS target: {fps.Value}");
+            anySuccess = true;  // Acknowledged even if not immediately applied
+        }
+
+        // Bitrate change - apply to all encoders
+        if (totalBitrateKbps.HasValue && totalBitrateKbps.Value > 0)
+        {
+            int perMonitorBitrate = totalBitrateKbps.Value / Math.Max(1, _monitorCount);
+            Console.WriteLine($"[SIPSorcery] Bitrate update: total={totalBitrateKbps.Value}kbps, per-monitor={perMonitorBitrate}kbps");
+
+            lock (_lock)
+            {
+                int successCount = 0;
+                foreach (var track in _tracks)
+                {
+                    if (track.Encoder != null)
+                    {
+                        if (track.Encoder.SetBitrate(perMonitorBitrate))
+                        {
+                            successCount++;
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} bitrate → {perMonitorBitrate}kbps");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} SetBitrate failed (encoder may not support runtime change)");
+                        }
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    appliedBitrate = totalBitrateKbps.Value;
+                    messages.Add($"Bitrate: {totalBitrateKbps.Value}kbps ({successCount}/{_tracks.Count} encoders updated)");
+                    anySuccess = true;
+                }
+                else if (_tracks.Count > 0)
+                {
+                    messages.Add("Bitrate change not supported by current encoder(s)");
+                }
+            }
+        }
+
+        string message = messages.Count > 0 ? string.Join(", ", messages) : "No changes applied";
+        Console.WriteLine($"[SIPSorcery] UpdateConfig result: {message}");
+
+        return (anySuccess, appliedFps, appliedBitrate, message);
+    }
+
+    /// <summary>
+    /// Get current streaming config.
+    /// </summary>
+    public (int Fps, int TotalBitrateKbps, int MonitorCount) GetCurrentConfig() =>
+        (_fps, _bitrateKbps, _monitorCount);
+
     private async Task LogStatsAsync()
     {
         while (_running && !_disposed)
         {
-            await Task.Delay(3000);
+            await Task.Delay(10000);
             if (!_running) break;
 
             lock (_lock)

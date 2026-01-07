@@ -338,6 +338,9 @@ partial class Program
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await server.StopAsync();
             Console.WriteLine("[Shutdown] Server stopped.");
+            
+            // Restore Windows Scale and Layout
+            StartupSteps.RestoreDpiSettings();
         }
         catch (Exception ex)
         {
@@ -422,6 +425,39 @@ static class StartupSteps
         Console.WriteLine($"[VDD] Set monitor count to {count} in {settingsPath}");
     }
 
+    // Store original physical monitor names and resolutions before VDD is enabled
+    private static readonly HashSet<string> _physicalMonitorNames = new();
+    private static readonly List<(string name, int width, int height, int refreshRate)> _originalPhysicalMonitors = new();
+    
+    // Store original DPI settings
+    private static List<(DpiScalingHelper.LUID adapterId, uint sourceId, DpiScalingHelper.DpiScalingInfo info)>? _originalDpiSettings;
+
+    public static void RestoreDpiSettings()
+    {
+        if (_originalDpiSettings == null || _originalDpiSettings.Count == 0) return;
+
+        Console.WriteLine("[Display] Restoring original Windows Scale and Layout...");
+        bool allSuccess = true;
+        foreach (var (adapterId, sourceId, info) in _originalDpiSettings)
+        {
+            if (info.IsValid)
+            {
+               Console.WriteLine($"[Display] Restoring Monitor {sourceId} to {info.Current}%");
+               if (!DpiScalingHelper.SetDpiScaling(adapterId, sourceId, info.Current))
+               {
+                   allSuccess = false;
+                   Console.WriteLine($"[Display] ⚠ Failed to restore Monitor {sourceId}");
+               }
+            }
+        }
+        
+        if (allSuccess)
+            Console.WriteLine("[Display] ✓ All monitors restored to original scale.");
+        else
+            Console.WriteLine("[Display] ⚠ Some monitors failed to restore.");
+    }
+
+
     // (1) Cấu hình VDD để tạo hệ thống 3 màn hình
     public static void EnsureVddResolutionThenToggleDriver(
         string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
@@ -441,8 +477,21 @@ static class StartupSteps
                 Thread.Sleep(1500);
             }
 
+            // Save physical monitor names and resolutions BEFORE enabling VDD
+            // Any monitor present now (with VDD disabled) is a physical monitor
+            _physicalMonitorNames.Clear();
+            _originalPhysicalMonitors.Clear();
+            var monitors = WgcInterop.ListMonitorsDXGI();
+            foreach (var mon in monitors)
+            {
+                _physicalMonitorNames.Add(mon.name);
+                var mode = DisplayUtil.GetCurrentMode(mon.name);
+                _originalPhysicalMonitors.Add((mon.name, mode.Width, mode.Height, mode.Frequency));
+                Console.WriteLine($"[VDD] Saved physical monitor: {mon.name} ({mode.Width}x{mode.Height}@{mode.Frequency}Hz)");
+            }
+
             // Đếm màn hình vật lý
-            int physicalCount = CountPhysicalMonitors();
+            int physicalCount = _physicalMonitorNames.Count;
             Console.WriteLine($"[VDD] Physical monitors detected: {physicalCount}");
 
             // Bước 2: Tính số màn hình ảo cần tạo
@@ -458,8 +507,13 @@ static class StartupSteps
             // Bước 3: Cập nhật vdd_settings.xml
             SetVddMonitorCount(settingsPath, virtualNeeded);
             
-            // Đảm bảo có resolution phù hợp cho màn hình ảo
-            EnsureResolutionInVddXml(settingsPath, MONITOR_WIDTH, MONITOR_HEIGHT, MONITOR_REFRESH);
+            // Đảm bảo có resolution của primary physical monitor trong VDD settings
+            // VDD monitors sẽ được set giống primary physical monitor
+            var primaryMon = _originalPhysicalMonitors.FirstOrDefault();
+            int resW = primaryMon.width > 0 ? primaryMon.width : 1920;
+            int resH = primaryMon.height > 0 ? primaryMon.height : 1080;
+            int resHz = primaryMon.refreshRate > 0 ? primaryMon.refreshRate : 60;
+            EnsureResolutionInVddXml(settingsPath, resW, resH, resHz);
         }
         catch (Exception ex)
         {
@@ -770,26 +824,49 @@ static class StartupSteps
         }
 
         // Phân loại màn hình vật lý và ảo
+        // Physical = monitors that existed BEFORE VDD was enabled (saved in _physicalMonitorNames)
+        // Virtual = NEW monitors that appeared AFTER VDD was enabled
         var physicalMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
         var virtualMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
 
         foreach (var mon in mons)
         {
-            if (DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
-                virtualMonitors.Add(mon);
-            else
+            if (_physicalMonitorNames.Contains(mon.name))
                 physicalMonitors.Add(mon);
+            else
+                virtualMonitors.Add(mon); // New monitor = VDD virtual monitor
         }
 
         Console.WriteLine($"[Display] Physical monitors: {physicalMonitors.Count}, Virtual monitors: {virtualMonitors.Count}");
 
-        // Set resolution 1366x768 cho TẤT CẢ màn hình
-        foreach (var mon in mons)
+        // Get primary physical monitor's original resolution (to match VDD monitors)
+        var primaryOriginal = _originalPhysicalMonitors.FirstOrDefault();
+        int targetWidth = primaryOriginal.width > 0 ? primaryOriginal.width : 1920;
+        int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
+        int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
+
+        // Set VDD virtual monitors to SAME resolution as primary physical monitor
+        foreach (var mon in virtualMonitors)
         {
-            string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "VIRTUAL" : "PHYSICAL";
-            Console.WriteLine($"[Display] Setting {mon.name} [{type}] -> {MONITOR_WIDTH}x{MONITOR_HEIGHT}@{MONITOR_REFRESH}");
-            DisplayUtil.ForceResolution(mon.name, MONITOR_WIDTH, MONITOR_HEIGHT, MONITOR_REFRESH);
+            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz (match primary)");
+            DisplayUtil.ForceResolution(mon.name, targetWidth, targetHeight, targetRefresh);
             Thread.Sleep(300);
+        }
+
+        // Restore original resolution for physical monitors (VDD enabling may have changed them)
+        foreach (var mon in physicalMonitors)
+        {
+            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+            if (original.name != null && (mon.width != original.width || mon.height != original.height))
+            {
+                Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to original {original.width}x{original.height}@{original.refreshRate}Hz");
+                DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
+                Thread.Sleep(300);
+            }
+            else
+            {
+                Console.WriteLine($"[Display] Keeping {mon.name} [PHYSICAL] at {mon.width}x{mon.height}");
+            }
         }
 
         Thread.Sleep(1000);
@@ -808,16 +885,29 @@ static class StartupSteps
         foreach (var mon in mons)
         {
             var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(mon.name);
-            string type = DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon) ? "VIRTUAL" : "PHYSICAL";
+            // Use saved physical monitor names for accurate detection
+            string type = _physicalMonitorNames.Contains(mon.name) ? "PHYSICAL" : "VIRTUAL";
             bool isPrimary = DisplayUtil.IsPrimary(mon.name);
             Console.WriteLine($"[Display]   • {mon.name} {w}x{h} [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
         
-        // Set Windows Text Scale 125% (system-wide) for better readability in VR
-        Console.WriteLine("[Display] Setting Windows Text Scale to 125%...");
-        TextScaleUtil.SetPercent(125);
-        Console.WriteLine("[Display] ✓ Text Scale set to 125%");
+        // Set Windows Scale and Layout to 125% (system-wide) for better readability in VR
+        // Using undocumented Windows API (DisplayConfigSetDeviceInfo) for immediate effect
+        Console.WriteLine("[Display] Setting Windows Scale and Layout to 125%...");
+        
+        // Save current settings before changing
+        _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
+        
+        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
+        {
+            Console.WriteLine("[Display] ✓ Scale and Layout set to 125%");
+        }
+        else
+        {
+            Console.WriteLine("[Display] ⚠ Failed to set Scale and Layout");
+        }
     }
+
 
     /// <summary>
     /// Set một màn hình làm primary display

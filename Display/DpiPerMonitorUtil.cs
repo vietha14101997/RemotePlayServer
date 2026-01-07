@@ -15,8 +15,8 @@ static class DpiPerMonitorUtil
 
     public struct PerMonDpi
     {
-        public string SubKey;     // tên key con (đại diện 1 màn)
-        public int? DpiValue;     // DWORD, thường = 96(100%), 120(125%), 144(150%)...
+        public string SubKey { get; set; }     // tên key con (đại diện 1 màn)
+        public int? DpiValue { get; set; }     // DWORD, thường = 96(100%), 120(125%), 144(150%)...
     }
 
     public static List<PerMonDpi> SnapshotAll()

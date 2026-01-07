@@ -133,6 +133,13 @@ static class DisplayUtil
         File.WriteAllText(path, JsonSerializer.Serialize(snaps));
     }
 
+    public static DisplayModeSnapshot GetCurrentMode(string deviceName)
+    {
+        if (TryGetMode(deviceName, out var snap))
+            return snap;
+        return new DisplayModeSnapshot { DeviceName = deviceName, Width = 1920, Height = 1080, Frequency = 60 };
+    }
+
     public static List<DisplayModeSnapshot>? LoadSnapshot(string path)
     {
         try

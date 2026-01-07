@@ -31,6 +31,7 @@ static class DisplayGuard
         public int? MMTaskbarEnabled { get; set; }  // 0/1
         public TextScaleUtil.Snapshot TextScale { get; set; }
         public Dictionary<string, int> PerMonitorTextScale { get; set; } = new(); // monitor name -> original percent
+        public List<DpiPerMonitorUtil.PerMonDpi>? DpiSnapshot { get; set; }  // Scale and Layout snapshot
         public string? VddInstanceId { get; set; }  // PNPDeviceID
         public bool? VddWasEnabled { get; set; }    // trạng thái driver tại thời điểm chụp
     }
@@ -97,6 +98,10 @@ static class DisplayGuard
                 snap.PerMonitorTextScale[mon.name] = originalPercent;
                 Console.WriteLine($"[Guard] Saved original text scale for {mon.name}: {originalPercent}%");
             }
+
+            // 3c) Scale and Layout (DPI) snapshot
+            snap.DpiSnapshot = DpiPerMonitorUtil.SnapshotAll();
+            Console.WriteLine($"[Guard] Saved DPI snapshot for {snap.DpiSnapshot.Count} monitors");
 
             // 4) VDD PNP instance & trạng thái
             var vddId = FindPnpInstanceIdByNameContains(DriverNameContains);
@@ -264,30 +269,27 @@ static class DisplayGuard
 
         try
         {
-            // 1) Khôi phục Text Scale TRƯỚC TIÊN (theo yêu cầu)
+            // 1) Khôi phục Scale and Layout (DPI) - CHỈ cần restore cái này
+            // Không restore TextScale vì chúng ta không thay đổi nó khi connect
+            // TextScaleFactor (Make text bigger) khác với Scale and Layout (DpiValue)
             if (cancellationToken.IsCancellationRequested) return;
-            Console.WriteLine("[Guard] Step 1: Restoring Text Scale first...");
-            RestoreTextScaleSafe(snap);
+            Console.WriteLine("[Guard] Step 1: Restoring Scale and Layout (DPI)...");
+            RestoreDpiSafe(snap);
 
-            // 2) Khôi phục per-monitor text scale
+            // 2) Khôi phục độ phân giải
             if (cancellationToken.IsCancellationRequested) return;
-            Console.WriteLine("[Guard] Step 2: Restoring per-monitor text scale...");
-            RestorePerMonitorTextScaleSafe(snap);
-
-            // 3) Khôi phục độ phân giải
-            if (cancellationToken.IsCancellationRequested) return;
-            Console.WriteLine("[Guard] Step 3: Restoring monitor modes...");
+            Console.WriteLine("[Guard] Step 2: Restoring monitor modes...");
             RestoreMonitorModesSafe(snap);
 
-            // 4) Khôi phục taskbar flag
+            // 3) Khôi phục taskbar flag
             if (cancellationToken.IsCancellationRequested) return;
-            Console.WriteLine("[Guard] Step 4: Restoring taskbar flag...");
+            Console.WriteLine("[Guard] Step 3: Restoring taskbar flag...");
             RestoreTaskbarFlagSafe(snap);
 
-            // 5) Safe disable VDD (last step, most dangerous)
+            // 4) Safe disable VDD (last step, most dangerous)
             if (disableVdd && !cancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine("[Guard] Step 5: Disabling VDD...");
+                Console.WriteLine("[Guard] Step 4: Disabling VDD...");
                 SafeDisableVdd(snap, cancellationToken);
             }
         }
@@ -348,6 +350,27 @@ static class DisplayGuard
             }
         }
         catch (Exception ex) { Console.WriteLine("[Guard] Taskbar flag restore failed: " + ex.Message); }
+    }
+
+    static void RestoreDpiSafe(Snapshot snap)
+    {
+        try
+        {
+            if (snap.DpiSnapshot != null && snap.DpiSnapshot.Count > 0)
+            {
+                Console.WriteLine("[Guard] Restoring Scale and Layout (DPI)...");
+                DpiPerMonitorUtil.Restore(snap.DpiSnapshot);
+                Console.WriteLine("[Guard] ✓ Scale and Layout restored.");
+            }
+            else
+            {
+                Console.WriteLine("[Guard] No DPI snapshot available, skipping.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Guard] DPI restore failed: {ex.Message}");
+        }
     }
 
     static void RestoreTextScaleSafe(Snapshot snap)

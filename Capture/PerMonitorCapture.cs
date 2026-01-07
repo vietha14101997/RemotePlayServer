@@ -444,9 +444,9 @@ public sealed class PerMonitorCapture : IDisposable
                     captureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 }
 
-                // FPS logging every 3 seconds
+                // FPS logging every 10 seconds
                 long timeSinceLastLog = captureTimestamp - mon.LastFpsLogTime;
-                if (timeSinceLastLog >= 3000)
+                if (timeSinceLastLog >= 10000)
                 {
                     long framesSinceLastLog = mon.CaptureFrameCount - mon.LastFpsLogFrameCount;
                     double fps = framesSinceLastLog * 1000.0 / timeSinceLastLog;

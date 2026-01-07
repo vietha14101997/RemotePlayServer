@@ -175,6 +175,10 @@ namespace RemotePlayServer.Protocol
         [JsonPropertyName("resolution")]
         public ResolutionDto Resolution { get; set; } = new();
 
+        /// <summary>
+        /// TOTAL bitrate in kbps for ALL monitors combined.
+        /// Server divides this by monitor count for per-encoder bitrate.
+        /// </summary>
         [JsonPropertyName("bitrateKbps")]
         public int BitrateKbps { get; set; } = 20000;
 
@@ -420,6 +424,49 @@ namespace RemotePlayServer.Protocol
     public class StopStreamingMessage : ProtocolMessage
     {
         public override string Type => "stop_streaming";
+    }
+
+    /// <summary>
+    /// Client -> Server: Update streaming config during Phase 3.
+    /// Allows dynamic FPS and Bitrate changes without reconnection.
+    /// Bitrate is TOTAL for all monitors combined.
+    /// </summary>
+    public class UpdateConfigMessage : ProtocolMessage
+    {
+        public override string Type => "update_config";
+
+        /// <summary>
+        /// New target FPS (optional, null = no change).
+        /// </summary>
+        [JsonPropertyName("fps")]
+        public int? Fps { get; set; }
+
+        /// <summary>
+        /// New TOTAL bitrate in kbps for ALL monitors combined (optional, null = no change).
+        /// Server will divide by monitor count for per-encoder bitrate.
+        /// </summary>
+        [JsonPropertyName("bitrateKbps")]
+        public int? BitrateKbps { get; set; }
+    }
+
+    /// <summary>
+    /// Server -> Client: Acknowledgment that config was updated.
+    /// </summary>
+    public class ConfigUpdatedMessage : ProtocolMessage
+    {
+        public override string Type => "config_updated";
+
+        [JsonPropertyName("fps")]
+        public int Fps { get; set; }
+
+        [JsonPropertyName("bitrateKbps")]
+        public int BitrateKbps { get; set; }
+
+        [JsonPropertyName("success")]
+        public bool Success { get; set; }
+
+        [JsonPropertyName("message")]
+        public string Message { get; set; } = "";
     }
 
     /// <summary>

@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using Vortice.Direct3D11;
 using RemotePlayServer.Utils;
 using RemotePlayServer.Encoding;
 
@@ -58,6 +59,7 @@ namespace RemotePlayServer.Protocol
         private RemotePlayServer.Encoding.SIPSorceryStreamer? _streamer;
         private CancellationTokenSource? _captureCts;
         private Thread? _captureThread;
+        private RemotePlayServer.Utils.TextureResizer? _textureResizer;
 
         // ICE handling
         private readonly Dictionary<int, List<string>> _pendingIce = new();
@@ -501,14 +503,15 @@ namespace RemotePlayServer.Protocol
         {
             await SendProgressAsync("vdd_setup", 0, "Checking display configuration...");
 
-            bool configChanged = config.Monitors != DisplayConfig.MonitorCount ||
-                                 config.Resolution.Width != DisplayConfig.MonitorWidth ||
-                                 config.Resolution.Height != DisplayConfig.MonitorHeight ||
-                                 config.Fps != DisplayConfig.StreamFps;
+            // NOTE: We IGNORE client's resolution - server captures at NATIVE resolution
+            // Server may later resize before encoding (to max 1440x810), but display stays native
+            // Only check for monitor count and FPS changes
+            bool monitorCountChanged = config.Monitors != DisplayConfig.MonitorCount;
+            bool fpsChanged = config.Fps != DisplayConfig.StreamFps;
 
-            if (configChanged)
+            if (monitorCountChanged || fpsChanged)
             {
-                Console.WriteLine($"[Protocol] Applying new display config: {config.Monitors} monitors @ {config.Resolution.Width}x{config.Resolution.Height}");
+                Console.WriteLine($"[Protocol] Applying new display config: {config.Monitors} monitors @ {config.Fps}fps (keeping native resolution)");
 
                 // Stop existing capture if config changed
                 lock (_captureLock)
@@ -522,16 +525,15 @@ namespace RemotePlayServer.Protocol
                     }
                 }
 
-                // Update config
+                // Update config - DO NOT change resolution, keep native
                 DisplayConfig.MonitorCount = config.Monitors;
-                DisplayConfig.MonitorWidth = config.Resolution.Width;
-                DisplayConfig.MonitorHeight = config.Resolution.Height;
+                // DisplayConfig.MonitorWidth/Height stay at native - don't update from client
                 DisplayConfig.StreamFps = config.Fps;
                 DisplayConfig.RefreshRate = config.RefreshRate;
 
                 await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
 
-                // Apply VDD and resolution changes
+                // Apply VDD topology changes (only adds/removes virtual monitors, doesn't change resolution)
                 await Task.Run(() =>
                 {
                     StartupSteps.EnsureVddResolutionThenToggleDriver();
@@ -553,6 +555,7 @@ namespace RemotePlayServer.Protocol
             await SendProgressAsync("capture_init", 90, "Initializing capture...");
         }
 
+
         private async Task CreateCaptureAndStreamerAsync(int actualMonitors, DisplayConfigMessage config)
         {
             // Create capture
@@ -572,10 +575,18 @@ namespace RemotePlayServer.Protocol
             _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             // Create SIPSorcery streamer with negotiated codec
+            // BitrateKbps from client is TOTAL for all monitors - divide by count for per-encoder bitrate
             var negotiatedCodec = ParseVideoCodec(_selectedCodec);
-            Console.WriteLine($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}");
+            int perEncoderBitrate = config.BitrateKbps / Math.Max(1, actualMonitors);
+            Console.WriteLine($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, bitrate={perEncoderBitrate}kbps per encoder (total={config.BitrateKbps}kbps)");
             _streamer = new RemotePlayServer.Encoding.SIPSorceryStreamer(
-                actualMonitors, config.Fps, config.BitrateKbps, _capture.Device, negotiatedCodec);
+                actualMonitors, config.Fps, perEncoderBitrate, _capture.Device, negotiatedCodec);
+
+            // Create texture resizer for max resolution enforcement (1440x810)
+            // Create texture resizer (per-device scalers will be created on demand)
+            _textureResizer = new RemotePlayServer.Utils.TextureResizer(actualMonitors);
+            Console.WriteLine($"[Protocol] Created TextureResizer for {actualMonitors} monitors (max: {RemotePlayServer.Utils.TextureResizer.MaxWidth}x{RemotePlayServer.Utils.TextureResizer.MaxHeight})");
+
 
             // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)
@@ -795,15 +806,31 @@ namespace RemotePlayServer.Protocol
 
             try
             {
-                // Build dimensions list from display config
+                // Build dimensions list using RESIZED resolution
+                // Each monitor has separate D3D11 device with dedicated GPU scaler
+                // TextureResizer creates per-device scalers on demand
                 var monitorCount = _displayConfig?.Monitors ?? 1;
                 var dimensions = new List<(int w, int h)>();
                 for (int i = 0; i < monitorCount; i++)
                 {
-                    dimensions.Add((
-                        _displayConfig?.Resolution.Width ?? 1920,
-                        _displayConfig?.Resolution.Height ?? 1080
-                    ));
+                    // Use resized resolution for encoder initialization
+                    if (i < _monitors.Count)
+                    {
+                        var nativeW = _monitors[i].width;
+                        var nativeH = _monitors[i].height;
+                        
+                        // Calculate what TextureResizer will produce after scaling
+                        var (targetW, targetH) = RemotePlayServer.Utils.TextureResizer.CalculateTargetSize(nativeW, nativeH);
+                        
+                        dimensions.Add((targetW, targetH));
+                        Console.WriteLine($"[Protocol] Monitor {i} native={nativeW}x{nativeH} -> encoder={targetW}x{targetH}");
+                    }
+                    else
+                    {
+                        // Fallback to max resize dimensions
+                        dimensions.Add((RemotePlayServer.Utils.TextureResizer.MaxWidth, RemotePlayServer.Utils.TextureResizer.MaxHeight));
+                        Console.WriteLine($"[Protocol] Monitor {i} using default encoder resolution: {RemotePlayServer.Utils.TextureResizer.MaxWidth}x{RemotePlayServer.Utils.TextureResizer.MaxHeight}");
+                    }
                 }
 
                 // Parse offer to find H264 PT (must match what the streamer uses)
@@ -1199,8 +1226,11 @@ namespace RemotePlayServer.Protocol
 
                     var msgType = ProtocolMessageParser.GetMessageType(text);
 
-                    // DEBUG: Log ALL Phase 3 messages for troubleshooting
-                    Console.WriteLine($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}, preview={text.Substring(0, Math.Min(100, text.Length))}");
+                    // Log important Phase 3 messages (skip frequent ones like quality_feedback, ping)
+                    if (msgType != "quality_feedback" && msgType != "fps_feedback" && !text.StartsWith("ping:"))
+                    {
+                        Console.WriteLine($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}");
+                    }
 
                     if (msgType == "stop_streaming" || text.Equals("stop_streaming", StringComparison.OrdinalIgnoreCase))
                     {
@@ -1253,7 +1283,6 @@ namespace RemotePlayServer.Protocol
                         }
                         catch { }
 
-                        Console.WriteLine($"[Protocol] request_keyframe received (monitor={monitorIndex}) - forcing IDR frame");
                         _streamer?.RequestKeyframe(monitorIndex);
                         continue;
                     }
@@ -1343,6 +1372,39 @@ namespace RemotePlayServer.Protocol
                         }
                         continue;
                     }
+
+                    // Handle update_config from client for dynamic FPS/Bitrate changes
+                    if (msgType == "update_config")
+                    {
+                        try
+                        {
+                            var updateMsg = ProtocolMessageParser.Parse<UpdateConfigMessage>(text);
+                            if (updateMsg != null && _streamer != null)
+                            {
+                                Console.WriteLine($"[Protocol] update_config received: fps={updateMsg.Fps}, bitrate={updateMsg.BitrateKbps}kbps");
+
+                                var (success, appliedFps, appliedBitrate, message) = _streamer.UpdateConfig(
+                                    updateMsg.Fps,
+                                    updateMsg.BitrateKbps);
+
+                                // Send acknowledgment
+                                var ack = new ConfigUpdatedMessage
+                                {
+                                    Fps = appliedFps,
+                                    BitrateKbps = appliedBitrate,
+                                    Success = success,
+                                    Message = message
+                                };
+                                await SendMessageAsync(ack);
+                                Console.WriteLine($"[Protocol] config_updated sent: {message}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Protocol] update_config error: {ex.Message}");
+                        }
+                        continue;
+                    }
                 }
                 catch (OperationCanceledException) { break; }
             }
@@ -1390,7 +1452,26 @@ namespace RemotePlayServer.Protocol
                     // BGRA frame handler (zero-copy path, no color conversion)
                     _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
                     {
-                        _streamer?.PushBgraTexture(monitorIndex, bgraTexture, w, h);
+                        // Resize texture if it exceeds max resolution (1440x810)
+                        ID3D11Texture2D? textureToSend = bgraTexture;
+                        int targetWidth = w;
+                        int targetHeight = h;
+
+                        if (_textureResizer != null && RemotePlayServer.Utils.TextureResizer.NeedsResize(w, h))
+                        {
+                            // Get device for this monitor (each monitor has dedicated device)
+                            var device = _capture?.GetDeviceForMonitor(monitorIndex);
+                            if (device != null)
+                            {
+                                var (resized, rw, rh) = _textureResizer.ResizeBgraTexture(device, bgraTexture, w, h, monitorIndex);
+                                textureToSend = resized;
+                                targetWidth = rw;
+                                targetHeight = rh;
+                            }
+                        }
+
+                        // Push texture (null-forgiving since textureToSend is always non-null)
+                        _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight);
 
                         if (monitorIndex == 0)
                         {
@@ -2003,6 +2084,10 @@ namespace RemotePlayServer.Protocol
             // Dispose streamer
             _streamer?.Dispose();
             _streamer = null;
+
+            // Dispose texture resizer
+            _textureResizer?.Dispose();
+            _textureResizer = null;
 
             // Cleanup shared capture if we were the last user
             lock (_captureLock)
