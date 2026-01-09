@@ -3,12 +3,12 @@
 [System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
 [System] Local IP: 192.168.1.8
 [Encoder] AMD AMF (Hardware)
-[ADB] adb.exe not found. USB mode unavailable.
-[USB] ADB not found. WiFi mode only.
+[USB] Not detected. Enable USB Tethering on phone for USB streaming.
 [TextScale] Registry DPI for \\.\DISPLAY2: 120
 [Guard] Saved original text scale for \\.\DISPLAY2: 125%
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] Saved DPI snapshot for 8 monitors
 [Guard] Snapshot captured.
 === Monitors ===
   \\.\DISPLAY2: 1920x1080 [Physical]
@@ -17,39 +17,34 @@
 [HTTP] Server: 192.168.1.8:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.8","port":8288,"monitors":[{"id":0,"name":"\\\\.\\DISPLAY2","w":1920,"h":1080},{"id":1,"name":"\\\\.\\DISPLAY1","w":1920,"h":1080}]}
-█████████████████████████████████████████████████████
-█████████████████████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀ ▄▄█▄▀▀▄▀▄█ █▄▄▄▀▀█▀▀▀▄▄█▀▄█ ▄▄▄▄▄ ████
-████ █   █ █ █ ▄█▀▀█ ▀ ██ ▀▄▀█▀█▀▀ ██▄█ ▀█ █   █ ████
-████ █▄▄▄█ █▄█▀▀▄▄▀▄ █▀▄ ▄▄▄ ██▀▀███▀▀▄▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ █▄▀ █ █▄█ █▄▀ ▀▄▀ ▀ ▀ █▄▄▄▄▄▄▄████
-█████▄█▄▀▄▄▀▄██▄ ▄ █▀█▀ ▄▄ ▄▄  ▄▀▄██▄ █▀▄▄ █  ▄  ████
-█████▀▀▄ █▄    ▄ ▀  █▀▄▄▄ ▄ ▄ ▄ ▄▄█▄▀▄ ▄█▄█▄▄▀█ ▀████
-████ ▄▀▀ ▀▄▀▀ █▀▀▀ ▀▀▀▄█ █▀▀▄█▀█▀▄▀▄ ▄▄ ▀ █ ▄▀█▀█████
-████▄ ▀▀█ ▄██▀▀ ▀█ ██ ▀▀██ ██▀▄▀██ ▄▄▀▀▀▀▀▀██▀ ▀█████
-████▀███▀█▄█▄▀█▄███▄▄███▀▀▀▄▄█▀█▀▀▄▄ █ ▄ ▀█▄▄█ █▀████
-█████ █▄█▄▄▀▄▀▀█ █▄  ▀ █▄ █ ▄▀█▄▄ ▄▀▄▀█  ▄▀▄▄▀▀▄ ████
-████▀█   ▄▄▄ ▀ ▀█▀ ▀▀  ▀ ▄▄▄  ▄▀ ▀█▀▀ ▀  ▄▄▄ ▄█ ▀████
-████▀██▄ █▄█  ▄▀▄█▄█ ▀▀▀ █▄█ ▄▄▀▀▄▄▀█ █  █▄█ █▄█ ████
-████▀ ▀▄  ▄▄ █▄ █▀▄▄▄▄  ▄ ▄▄▄ ▀▄ ▀ ▄ ▀▀▄   ▄ █▄▄▄████
-████▀ ▄█▀█▄█▄█▄ ▀▀█▀▄▀▄██▀█▄▄█▀▄█▀█ ▄▀▄█▄▀█ ▄█▄██████
-████▄▀█▀ ▄▄▄█▄  ▀▀▄▄███▀▀█▄ ██▄███ ▄█ ▄███▄ ▀ ▄██████
-████▄█▄ ▄▀▄▀▄▄██ ▄█▀▄▄█▄▄▄▀▀▄▄█▄█ █▄█▄▀▀█▄█▀ ▄█ █████
-████ ▀ █▄▄▄ ▀▀  █ ▀▄▀   ▀█  ▀▄█ ██▀ ▀█▀▄▀  ▄█▄█ ▀████
-█████▀▀▀ █▄▀▄█▄▄▄█  ▀█▄▀ ▀ █▄█▄ ██▄▀██ ▀██   ▀▄█▄████
-████▄██▄▄█▄█▀▄ ██▄ █▀▄▀█ ▄▄▄ ▄▄ ▀▄█ ▄ █  ▄▄▄ █▄▄▄████
-████ ▄▄▄▄▄ █▀▀▄▀ ▀ ▀▀▀   █▄█ ▄▀ █ █ ▀▀▀▄ █▄█ ▄▀█ ████
-████ █   █ █▀▄▄▄▀█▄▄█▄▀▄ ▄▄▄ █ █ ██▄▄██▄ ▄▄▄ ▄███████
-████ █▄▄▄█ █▀▀▀ █ ▄▄█▄ ▄█▄█ ▀█▄ █▀▀▄█ ▀ ▀▄█▄▀ ▄▄▀████
-████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄█▄█▄█▄█▄▄▄█▄█▄███▄██▄█▄██████
-█████████████████████████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+Data: {"ip":"192.168.1.8","port":"8288"}
+█████████████████████████████████████
+█████████████████████████████████████
+████ ▄▄▄▄▄ █ █▀█▀ ▀▄▄█▄█▀█ ▄▄▄▄▄ ████
+████ █   █ █ █▀ ▄  ▄▄   ▄█ █   █ ████
+████ █▄▄▄█ ██▀▄▄▄█▄█▄▀▀  █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄█▄█ ▀▄█ █ ▀ █▄▄▄▄▄▄▄████
+████▄▀  ▄█▄█▄█▀ ▀ ▀▀▀█ ▀  █▀▀▄▄ ▄████
+████▄ ▄▄▀ ▄▄ ▄ ▄▄▀▀▀▄▄▄ █▄█  ▀█▄ ████
+████  █▄▄▀▄▄   █▄▄▀█▄█▀▀▀██ █▀▄ █████
+████ ██ ▄▀▄▀▀ ██▄ █▄▄  ▄ █▄▄█▀▄██████
+████▀▄▄▀  ▄  █ █   ██ ▀▀▀██▄ █▄█▄████
+████ ▄ █ ▀▄▀ ▀▄▀ ▀▀ █▄▄██ ▀▀▄▄█▄█████
+████▄▄█▄██▄▄▀█ ▄▀ █▀▄██▄ ▄▄▄ █   ████
+████ ▄▄▄▄▄ ██▄██▀ █▀▀█▄  █▄█ ██▀▀████
+████ █   █ █ ▄█▀██ █ ▀██ ▄▄  ▄█▄ ████
+████ █▄▄▄█ █▄█ ▀ ▄ ▀█▄  ▄█▀█ ▄█▀▀████
+████▄▄▄▄▄▄▄█▄▄█▄▄▄▄▄███▄█▄███▄▄██████
+█████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
+=== Connection Options ===
+  [USB]  Not available. Enable USB Tethering on phone
+  [WiFi] 192.168.1.8:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 94ce7c3f-8ab7-4ca4-9914-a619c33d9f20, protocol=v2, transport=WiFi
-[Protocol] Client 94ce7c3f-8ab7-4ca4-9914-a619c33d9f20 connected from 192.168.1.3 (v2 protocol, transport=WiFi)
+[Signal] Client connected 87cbd4c8-b7ce-474b-92d8-9ce6720b65ca, protocol=v2, transport=WiFi
+[Protocol] Client 87cbd4c8-b7ce-474b-92d8-9ce6720b65ca connected from 192.168.1.6 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
@@ -62,6 +57,7 @@ Server is running. Press ENTER to exit.
 [HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=18, text=ping:1767785916639
 [Protocol] WaitForHardwareAck received: len=172, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
 [Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=vivo V2352GA
@@ -76,366 +72,171 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 40MB in 2216ms = 151.4 Mbps
+[Protocol] Download test complete: sent 40MB in 2404ms = 139.6 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
-[Protocol] WaitForSpeedTest received: type=speedtest_result, len=82
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=83
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 138.2Mbps, 54.8ms
-[Protocol] ✓ Received speedtest_result from client: 138.2Mbps, 54.8ms ping
+[Protocol] speedtest_result parsed: 138.7Mbps, 54.9ms
+[Protocol] ✓ Received speedtest_result from client: 138.7Mbps, 54.9ms ping
 [Protocol] Calculating suggested config...
-[Protocol] Sending suggested_config: 3x1600x900@30fps, bitrate=15000kbps, codec=H264, transport=WiFi
+[Protocol] Sending suggested_config: 3x1440x810@30fps, bitrate=15000kbps, codec=H264, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1767630312715...
-[Protocol] WaitForProceed received: ping:1767630314740...
-[Protocol] WaitForProceed received: ping:1767630316764...
-[Protocol] WaitForProceed received: ping:1767630318788...
-[Protocol] WaitForProceed received: ping:1767630320814...
-[Protocol] WaitForProceed received: ping:1767630322840...
-[Protocol] WaitForProceed received: ping:1767630324863...
-[Protocol] WaitForProceed received: ping:1767630326891...
-[Protocol] WaitForProceed received: ping:1767630328910...
+[Protocol] WaitForProceed received: ping:1767785922709...
+[Protocol] WaitForProceed received: ping:1767785924727...
+[Protocol] WaitForProceed received: ping:1767785926747...
+[Protocol] WaitForProceed received: ping:1767785928766...
+[Protocol] WaitForProceed received: ping:1767785930785...
+[Protocol] WaitForProceed received: ping:1767785932807...
+[Protocol] WaitForProceed received: ping:1767785934828...
+[Protocol] WaitForProceed received: ping:1767785936853...
+[Protocol] WaitForProceed received: ping:1767785938873...
+[Protocol] WaitForProceed received: ping:1767785940895...
+[Protocol] WaitForProceed received: ping:1767785942919...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
 [Protocol] Phase changed to: Phase2_ApplyConfig
 [Protocol] Phase 2: Waiting for display config...
-[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":1920,"h":1080},"refreshRate":60,"bitrateKbps...
-[Protocol] Received display config: 1x1920x1080@60fps
-[Protocol] Applying new display config: 1 monitors @ 1920x1080
-[VDD] Physical monitor found: \\.\DISPLAY2 (1920x1080)
-[VDD] Physical monitor found: \\.\DISPLAY1 (1920x1080)
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1440,"h":810},"refreshRate":60,"bitrateKbps"...
+[Protocol] Received display config: 2x1440x810@60fps
+[Protocol] Applying new display config: 2 monitors @ 60fps (keeping native resolution)
+[VDD] Saved physical monitor: \\.\DISPLAY2 (1920x1080@60Hz)
+[VDD] Saved physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
 [VDD] Physical monitors detected: 2
-[VDD] Virtual monitors needed: 0 (target total: 1)
+[VDD] Virtual monitors needed: 0 (target total: 2)
 [VDD] No virtual monitors needed - you already have 3+ physical monitors.
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 2, Virtual monitors: 0
-[Display] Setting \\.\DISPLAY2 [PHYSICAL] -> 1920x1080@60
-[Display] Setting \\.\DISPLAY1 [PHYSICAL] -> 1920x1080@60
+[Display] Keeping \\.\DISPLAY2 [PHYSICAL] at 1920x1080
+[Display] Keeping \\.\DISPLAY1 [PHYSICAL] at 1920x1080
 [Display] Setting \\.\DISPLAY2 as PRIMARY display
 [Display] ✓ \\.\DISPLAY2 set as primary
 [Display] ✓ 3-monitor system configured:
 [Display]   • \\.\DISPLAY2 1920x1080 [PHYSICAL] [PRIMARY]
 [Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL]
-[Display] Setting Windows Text Scale to 125%...
-[Display] ✓ Text Scale set to 125%
-[Protocol] Available monitors: 2, using: 1
-[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[Display] Setting Windows Scale and Layout to 125%...
+[DpiScaling] Setting 125% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 125%
+[DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 125%
+[Display] ✓ Scale and Layout set to 125%
+[Protocol] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1920x1080 - duplication ready
-[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
-[Protocol] Creating SIPSorceryStreamer with codec=H264
-[SIPSorcery] Created: 1 monitors, 60fps, 30000kbps, codec=H264
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=7500kbps per encoder (total=15000kbps)
+[SIPSorcery] Created: 2 monitors, 60fps, 7500kbps, codec=H264
+[TextureResizer] Initialized for 2 monitors (per-device GPU scaling)
+[Protocol] Created TextureResizer for 2 monitors (max: 1440x810)
 [SIPSorcery] Stored pending device for monitor 0
 [Protocol] Monitor 0: Using dedicated D3D11 device
+[SIPSorcery] Stored pending device for monitor 1
+[Protocol] Monitor 1: Using dedicated D3D11 device
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1767630330940...
+[Protocol] ICE RX: ping:1767785944953...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767630332959...
+[Protocol] ICE RX: ping:1767785946973...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1767630334978...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"33837356 1 udp 2122194687 192....
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2387884045 1 udp 2122129151 30...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"60067733 1 udp 2122262783 2402...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 305864353629495440 2 IN IP4 1...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 3175009470922600959 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 3 pending ICE candidates
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1440x810
+[Protocol] Monitor 1 native=1920x1080 -> encoder=1440x810
 [Protocol] Parsed H264 PT from offer: 124
-[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Processing offer for 2 monitors
 [SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 54:DE:40:9D:77:94:73:60:AE:C5:F5:E4:32:53:18:B0:95:4D:EB:28:AB:48:AA:1A:26:9E:67:5D:2D:A4:DD:8F
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 D0:B5:9A:1F:25:41:D5:8C:2E:DC:DC:FA:2B:21:5D:6E:C2:E0:FC:68:5E:CB:1D:B8:8C:3D:9C:C3:BF:B0:52:80
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 D0:B5:9A:1F:25:41:D5:8C:2E:DC:DC:FA:2B:21:5D:6E:C2:E0:FC:68:5E:CB:1D:B8:8C:3D:9C:C3:BF:B0:52:80
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080 (device=837A80B0)
+[SIPSorcery] Added track 0: 1440x810 (device=0306B0E9)
+[SIPSorcery] Added track 1: 1440x810 (device=03855059)
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] Local ICE: 1173202931 1 udp 2113940223 2402:800:610d:cef6:25e...
-[SIPSorcery] Local ICE: 1517773618 1 udp 2113940223 2402:800:610d:cef6:34f...
-[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 52164 typ ...
+[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
+[SIPSorcery] Local ICE: 3329542283 1 udp 2113940223 2402:800:610d:eab:74c2...
+[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 60488 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 99:CB:F5:12:11:81:EB:71:41:A2:56:EE:69:4F:99:4F:07:2B:DC:78:44:C8:3A:70:CE:A1:00:AF:71:E7:BD:03
+[SIPSorcery] SDP: a=fingerprint:sha-256 FD:81:52:48:BB:7B:95:5F:52:7C:6E:EF:BC:D3:43:58:68:C8:77:D7:2F:01:64:38:9D:7C:AE:70:F9:79:35:07
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 709 bytes
+[SIPSorcery] SDP: a=fingerprint:sha-256 FD:81:52:48:BB:7B:95:5F:52:7C:6E:EF:BC:D3:43:58:68:C8:77:D7:2F:01:64:38:9D:7C:AE:70:F9:79:35:07
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1265 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124
 [Protocol] SDP kept: a=rtpmap:124 H264/90000
 [Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 709 to 709 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 1265 to 1265 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 74305 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=711 bytes
-[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 52164 typ ...
-[Protocol] Applying 3 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:33837356 1 udp 2122194687 192.168.1.3 57...
-[Protocol] Applied pending ICE: 33837356 1 udp 2122194687 192.168.1.3 57048 typ ho...
-[SIPSorcery] Added remote ICE: candidate:2387884045 1 udp 2122129151 30.113.13.25...
-[Protocol] Applied pending ICE: 2387884045 1 udp 2122129151 30.113.13.254 35819 ty...
-[SIPSorcery] Added remote ICE: candidate:60067733 1 udp 2122262783 2402:800:610d:...
-[Protocol] Applied pending ICE: 60067733 1 udp 2122262783 2402:800:610d:cef6:e81f:...
-[SIPSorcery] Local ICE: 4204608317 1 udp 1677730047 171.241.18.17 52164 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 60695 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1297 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 60488 typ ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3256805525 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3256805525 1 udp 2122194687 192.168.1.6 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1850128444 1 udp 2122129151 14...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1850128444 1 udp 2122129151 145.9.109.14...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2036145445 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:2036145445 1 udp 2122262783 2402:800:610...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3256805525 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3256805525 1 udp 2122194687 192.168.1.6 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1850128444 1 udp 2122129151 14...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1850128444 1 udp 2122129151 145.9.109.14...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2036145445 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:2036145445 1 udp 2122262783 2402:800:610...
+[Protocol] ICE RX: ping:1767785949001...
+[Protocol] ICE legacy format message
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 60488 ty...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
-[SIPSorcery] Detected GPU vendor: AMD
-[SIPSorcery] Creating AMF encoder for AMD GPU
-[AmfNativeWrapper] Initializing BGRA mode 1920x1080 @ 60fps, 30000kbps
-[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
-[SIPSorcery] Track 0: Amf encoder initialized (BGRA mode - no color conversion)
-[Protocol] All 1 tracks ready, sending ice_ready
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[MultimediaTimer] Timer resolution set to 1ms
-[PerMonitorCapture] Started 1 parallel capture threads (synchronized)
-[Protocol] Phase 3: Waiting for all monitors to connect...
-[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
-[Protocol] Phase 3: All monitors connected!
-[Protocol] Phase changed to: Phase3_Streaming
-[Protocol] Phase 3: Starting stream...
-[Protocol] Capture thread already running, skipping start
-[Protocol] Cursor tracking started
-[KeepAlive] Server-side keep-alive started (5s interval)
-[SIPSorcery] Track 0 frame #0: 228572B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 first frame: VideoStreamList.Count=1, rtpStep=52137
-[SIPSorcery] VideoStream[0]: SSRC=256785763
-[SIPSorcery] Track 0 frame #1: 259670B, NAL types=[7,8,5], key=True
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630336957,"rttMs":1486.0,"avgRttMs":634.9,"jitterMs":611.
-[AdaptiveBitrate] Initialized: target=30000kbps, range=[2000-60000]kbps, warmup=15000ms
-[SIPSorcery] Track 0 frame #2: 169437B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #3: 114537B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #4: 98049B, NAL types=[7,8,5], key=True
-[SIPSorcery] Stats: m0:168
-[Capture FPS] Mon0: 16.6 fps (captured 50 in 3005ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630339962,"rttMs":36.0,"avgRttMs":548.1,"jitterMs":624.3,
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[Protocol] Phase3 RX: type=fps_feedback, len=97, preview={"type":"fps_feedback","monitorIndex":0,"effectiveFps":5.4,"renderedFrames":30,"droppedFrames":0}
-[SIPSorcery] FPS feedback m0: 5.4fps, dropped=0
-[SIPSorcery] Stats: m0:343
-[Capture FPS] Mon0: 52.7 fps (captured 159 in 3016ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630342968,"rttMs":18.0,"avgRttMs":512.7,"jitterMs":586.4,
-[SIPSorcery] Stats: m0:520
-[Capture FPS] Mon0: 59.1 fps (captured 178 in 3010ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630345968,"rttMs":51.0,"avgRttMs":456.6,"jitterMs":517.4,
-[SIPSorcery] Stats: m0:707
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630348972,"rttMs":18.0,"avgRttMs":266.2,"jitterMs":487.2,
-[SIPSorcery] Stats: m0:895
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630351976,"rttMs":18.0,"avgRttMs":121.7,"jitterMs":428.2,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 30000 → 31500 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 31500kbps
-[SIPSorcery] Track 0 bitrate → 31500kbps
-[SIPSorcery] Bitrate adjusted: 31500kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 31500kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1082
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630354979,"rttMs":18.0,"avgRttMs":121.7,"jitterMs":401.4,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 31500 → 33075 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 33075kbps
-[SIPSorcery] Track 0 bitrate → 33075kbps
-[SIPSorcery] Bitrate adjusted: 33075kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 33075kbps - conditions_good (loss=0.0%, buffer=healthy)
-[Protocol] Phase3 RX: type=start_streaming, len=26, preview={"type":"start_streaming"}
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:1270
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630357982,"rttMs":18.0,"avgRttMs":119.7,"jitterMs":353.0,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 33075 → 34728 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 34728kbps
-[SIPSorcery] Track 0 bitrate → 34728kbps
-[SIPSorcery] Bitrate adjusted: 34728kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 34728kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1457
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630360984,"rttMs":20.0,"avgRttMs":119.8,"jitterMs":331.1,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 34728 → 36464 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 36464kbps
-[SIPSorcery] Track 0 bitrate → 36464kbps
-[SIPSorcery] Bitrate adjusted: 36464kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 36464kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1645
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630363987,"rttMs":18.0,"avgRttMs":116.7,"jitterMs":291.1,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 36464 → 38287 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 38287kbps
-[SIPSorcery] Track 0 bitrate → 38287kbps
-[SIPSorcery] Bitrate adjusted: 38287kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 38287kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1832
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630367003,"rttMs":18.0,"avgRttMs":115.6,"jitterMs":272.9,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 38287 → 40201 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 40201kbps
-[SIPSorcery] Track 0 bitrate → 40201kbps
-[SIPSorcery] Bitrate adjusted: 40201kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 40201kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:2020
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=376, preview={"type":"quality_feedback","timestamp":1767630370017,"rttMs":19.0,"avgRttMs":113.5,"jitterMs":240.1,
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 40201 → 42211 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 42211kbps
-[SIPSorcery] Track 0 bitrate → 42211kbps
-[SIPSorcery] Bitrate adjusted: 42211kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 42211kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:2207
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630373019,"rttMs":20.0,"avgRttMs":21.9,"jitterMs":225.1,"
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 42211 → 44321 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 44321kbps
-[SIPSorcery] Track 0 bitrate → 44321kbps
-[SIPSorcery] Bitrate adjusted: 44321kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 44321kbps - conditions_good (loss=0.0%, buffer=healthy)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:2395
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630376022,"rttMs":20.0,"avgRttMs":18.9,"jitterMs":198.0,"
-[AdaptiveBitrate] Conditions good, increasing bitrate
-[AdaptiveBitrate] Adjusting: 44321 → 45000 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 45000kbps
-[SIPSorcery] Track 0 bitrate → 45000kbps
-[SIPSorcery] Bitrate adjusted: 45000kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 45000kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:2582
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630379024,"rttMs":18.0,"avgRttMs":18.9,"jitterMs":185.7,"
-[SIPSorcery] Stats: m0:2770
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630382025,"rttMs":18.0,"avgRttMs":18.9,"jitterMs":163.6,"
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:2957
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630385029,"rttMs":19.0,"avgRttMs":18.8,"jitterMs":153.4,"
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:3145
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630388030,"rttMs":19.0,"avgRttMs":18.7,"jitterMs":135.0,"
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:3332
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630391034,"rttMs":18.0,"avgRttMs":18.7,"jitterMs":126.6,"
-[Capture FPS] Mon0: 62.2 fps (captured 187 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:3520
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630394038,"rttMs":20.0,"avgRttMs":18.9,"jitterMs":111.4,"
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:3702
-[Protocol] Phase3 RX: type=quality_feedback, len=375, preview={"type":"quality_feedback","timestamp":1767630397041,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":104.5,"
-[Capture FPS] Mon0: 57.9 fps (captured 174 in 3004ms, rate-limited=0)
-[SIPSorcery] Stats: m0:3868
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630400043,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":91.8,"p
-[Capture FPS] Mon0: 55.3 fps (captured 166 in 3000ms, rate-limited=0)
-[SIPSorcery] Stats: m0:4035
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630403046,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":86.1,"p
-[Capture FPS] Mon0: 55.6 fps (captured 167 in 3003ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:4213
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630406051,"rttMs":18.0,"avgRttMs":18.9,"jitterMs":76.0,"p
-[Capture FPS] Mon0: 59.5 fps (captured 179 in 3006ms, rate-limited=0)
-[SIPSorcery] Stats: m0:4400
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630409054,"rttMs":17.0,"avgRttMs":18.9,"jitterMs":71.3,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:4588
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630412057,"rttMs":36.0,"avgRttMs":18.9,"jitterMs":63.8,"p
-[Capture FPS] Mon0: 61.8 fps (captured 186 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:4775
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630415057,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":60.9,"p
-[Capture FPS] Mon0: 37.6 fps (captured 113 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:4963
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630418062,"rttMs":18.0,"avgRttMs":18.8,"jitterMs":53.6,"p
-[Capture FPS] Mon0: 26.9 fps (captured 81 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:5151
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630421062,"rttMs":19.0,"avgRttMs":18.8,"jitterMs":50.3,"p
-[Capture FPS] Mon0: 56.8 fps (captured 171 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:5338
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630424067,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":46.3,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:5525
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630427069,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":43.4,"p
-[Capture FPS] Mon0: 60.1 fps (captured 181 in 3012ms, rate-limited=0)
-[SIPSorcery] Stats: m0:5712
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630430072,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":38.3,"p
-[Capture FPS] Mon0: 59.5 fps (captured 179 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:5901
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630433074,"rttMs":20.0,"avgRttMs":18.9,"jitterMs":35.9,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:6087
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630436076,"rttMs":20.0,"avgRttMs":18.9,"jitterMs":31.7,"p
-[Capture FPS] Mon0: 59.5 fps (captured 179 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:6275
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630439078,"rttMs":18.0,"avgRttMs":18.9,"jitterMs":29.8,"p
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:6463
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630442080,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":28.0,"p
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:6651
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630445082,"rttMs":19.0,"avgRttMs":18.9,"jitterMs":24.8,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:6837
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630448084,"rttMs":20.0,"avgRttMs":19.0,"jitterMs":23.3,"p
-[Capture FPS] Mon0: 59.2 fps (captured 178 in 3009ms, rate-limited=0)
-[SIPSorcery] Stats: m0:7025
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630451086,"rttMs":18.0,"avgRttMs":20.1,"jitterMs":22.6,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:7212
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630454088,"rttMs":17.0,"avgRttMs":18.9,"jitterMs":21.3,"p
-[Capture FPS] Mon0: 59.2 fps (captured 178 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[SIPSorcery] Stats: m0:7400
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630457094,"rttMs":19.0,"avgRttMs":19.0,"jitterMs":18.9,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:7589
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630460096,"rttMs":19.0,"avgRttMs":19.1,"jitterMs":17.8,"p
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:7776
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630463099,"rttMs":18.0,"avgRttMs":18.9,"jitterMs":15.7,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:7963
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630466101,"rttMs":20.0,"avgRttMs":18.9,"jitterMs":14.8,"p
-[Capture FPS] Mon0: 59.8 fps (captured 180 in 3008ms, rate-limited=0)
-[SIPSorcery] Stats: m0:8151
-[Protocol] Phase3 RX: type=quality_feedback, len=374, preview={"type":"quality_feedback","timestamp":1767630469103,"rttMs":20.0,"avgRttMs":19.1,"jitterMs":13.1,"p
-[Capture FPS] Mon0: 60.2 fps (captured 181 in 3008ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27, preview={"type":"request_keyframe"}
-[Protocol] request_keyframe received (monitor=-1) - forcing IDR frame
-[Protocol] Client 94ce7c3f-8ab7-4ca4-9914-a619c33d9f20 disconnected prematurely
-[Protocol] Phase changed to: Disconnecting
-[SIPSorcery] Stopping...
-[AmfNativeWrapper] Disposed
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] ICE state: disconnected
+[SIPSorcery] Peer state: failed
+[SIPSorcery] DTLS FAILED - check certificate/fingerprint
+[Protocol] Connection failed, requesting full reconnect
+[SIPSorcery] Stats: m0:0, m1:0
+[SIPSorcery] ICE state: failed
+[Protocol] Connection failed, requesting full reconnect
+[SIPSorcery] Peer state: failed
+[SIPSorcery] DTLS FAILED - check certificate/fingerprint
+[Protocol] Connection failed, requesting full reconnect
+[SIPSorcery] Stats: m0:0, m1:0
 [SIPSorcery] Peer state: closed
 [SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Peer state: failed
+[SIPSorcery] DTLS FAILED - check certificate/fingerprint
+[Protocol] Connection failed, requesting full reconnect
+[SIPSorcery] Peer state: failed
+[SIPSorcery] DTLS FAILED - check certificate/fingerprint
+[Protocol] Connection failed, requesting full reconnect
+[Protocol] Client 87cbd4c8-b7ce-474b-92d8-9ce6720b65ca disconnected prematurely
+[Protocol] Phase changed to: Disconnecting
+[SIPSorcery] Stopping...
 [SIPSorcery] Connection closed
 [SIPSorcery] Disposed
-[PerMonitorCapture] Monitor 0: Capture thread stopped
-[MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
 [PerMonitorCapture] All capture threads stopped
 [Protocol] Restoring display settings...
@@ -457,23 +258,902 @@ Device disabled successfully.
 
 [Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
 [Guard] Restoring original state before exit...
-[Guard] Step 1: Restoring Text Scale first...
-[Guard] Restoring original text size...
-[Guard] ✓ Text size restored successfully.
-[Guard] Step 2: Restoring per-monitor text scale...
-[Guard] Restoring per-monitor text scale...
-[Guard] Restoring text scale for virtual monitor: \\.\DISPLAY1
-[TextScale] Removed custom DPI for \\.\DISPLAY1
-[TextScale] Enhanced broadcast refresh completed.
-[Guard] ✓ Virtual monitor text scale restored to 100%
-[Guard] Per-monitor text scale restoration completed.
-[Guard] Step 3: Restoring monitor modes...
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] ✓ Scale and Layout restored.
+[Guard] Step 2: Restoring monitor modes...
 [Guard] Monitor modes restored.
-[Guard] Step 4: Restoring taskbar flag...
+[Guard] Step 3: Restoring taskbar flag...
 [Guard] Taskbar multi-monitor flag restored to 1.
 [Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
 [Guard] Allowing system to settle after restore...
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client 94ce7c3f-8ab7-4ca4-9914-a619c33d9f20 disconnected
+[Protocol] Client 87cbd4c8-b7ce-474b-92d8-9ce6720b65ca disconnected
+[Signal] Client connected fde1c8c0-dd1d-4ca9-b145-895e19700e44, protocol=v2, transport=WiFi
+[Protocol] Client fde1c8c0-dd1d-4ca9-b145-895e19700e44 connected from 192.168.1.6 (v2 protocol, transport=WiFi)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
+[HardwareInfo] HEVC encoder 'hevc_amf': available
+[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=172, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=vivo V2352GA
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264, VP9, VP8]
+[Protocol] Codec negotiation: selected H264
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 40MB in 2309ms = 145.3 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=82
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 138.4Mbps, 37.7ms
+[Protocol] ✓ Received speedtest_result from client: 138.4Mbps, 37.7ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 3x1440x810@45fps, bitrate=15000kbps, codec=H264, transport=WiFi
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping:1767786679458...
+[Protocol] WaitForProceed received: ping:1767786681478...
+[Protocol] WaitForProceed received: ping:1767786683503...
+[Protocol] WaitForProceed received: ping:1767786685532...
+[Protocol] WaitForProceed received: ping:1767786687555...
+[Protocol] WaitForProceed received: ping:1767786689577...
+[Protocol] WaitForProceed received: ping:1767786691597...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1440,"h":810},"refreshRate":60,"bitrateKbps"...
+[Protocol] Received display config: 2x1440x810@45fps
+[Protocol] Applying new display config: 2 monitors @ 45fps (keeping native resolution)
+[VDD] Saved physical monitor: \\.\DISPLAY2 (1920x1080@60Hz)
+[VDD] Saved physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+[VDD] Physical monitors detected: 2
+[VDD] Virtual monitors needed: 0 (target total: 2)
+[VDD] No virtual monitors needed - you already have 3+ physical monitors.
+[Display] Setting up 3-monitor system...
+[Display] Physical monitors: 2, Virtual monitors: 0
+[Display] Keeping \\.\DISPLAY2 [PHYSICAL] at 1920x1080
+[Display] Keeping \\.\DISPLAY1 [PHYSICAL] at 1920x1080
+[Display] Setting \\.\DISPLAY2 as PRIMARY display
+[Display] ✓ \\.\DISPLAY2 set as primary
+[Display] ✓ 3-monitor system configured:
+[Display]   • \\.\DISPLAY2 1920x1080 [PHYSICAL] [PRIMARY]
+[Display]   • \\.\DISPLAY1 1920x1080 [PHYSICAL]
+[Display] Setting Windows Scale and Layout to 125%...
+[DpiScaling] Setting 125% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 125%
+[DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 125%
+[Display] ✓ Scale and Layout set to 125%
+[Protocol] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 45fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY2 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=7500kbps per encoder (total=15000kbps)
+[SIPSorcery] Created: 2 monitors, 45fps, 7500kbps, codec=H264
+[TextureResizer] Initialized for 2 monitors (per-device GPU scaling)
+[Protocol] Created TextureResizer for 2 monitors (max: 1440x810)
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[SIPSorcery] Stored pending device for monitor 1
+[Protocol] Monitor 1: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping:1767786693617...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767786695643...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1767786697668...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 563508420847983418 2 IN IP4 1...
+[Protocol] ICE message type: offer
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1440x810
+[Protocol] Monitor 1 native=1920x1080 -> encoder=1440x810
+[Protocol] Parsed H264 PT from offer: 124
+[SIPSorcery] Processing offer for 2 monitors
+[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 6D:C3:2E:3C:C3:18:13:74:E5:A3:26:88:69:7D:B2:27:00:9D:BA:39:49:20:50:B8:58:EB:9E:0D:B4:0A:79:24
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 6D:C3:2E:3C:C3:18:13:74:E5:A3:26:88:69:7D:B2:27:00:9D:BA:39:49:20:50:B8:58:EB:9E:0D:B4:0A:79:24
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1440x810 (device=037663A9)
+[SIPSorcery] Added track 1: 1440x810 (device=02BD55A9)
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
+[SIPSorcery] Local ICE: 3329542283 1 udp 2113940223 2402:800:610d:eab:74c2...
+[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 57270 typ ...
+[SIPSorcery] Signaling state: stable
+[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
+[SIPSorcery] SDP: a=fingerprint:sha-256 8C:75:68:22:C1:5D:CD:D9:F3:B2:15:18:82:53:47:57:25:CF:0D:75:8F:62:88:F8:10:13:BB:2F:85:52:21:F6
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] SDP: a=fingerprint:sha-256 8C:75:68:22:C1:5D:CD:D9:F3:B2:15:18:82:53:47:57:25:CF:0D:75:8F:62:88:F8:10:13:BB:2F:85:52:21:F6
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1266 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 1266 to 1266 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 59209 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1298 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 57270 typ ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"73811624 1 udp 2122194687 192....
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:73811624 1 udp 2122194687 192.168.1.6 50...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3771707267 1 udp 2122129151 14...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3771707267 1 udp 2122129151 145.9.109.14...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1289024797 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1289024797 1 udp 2122262783 2402:800:610...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"73811624 1 udp 2122194687 192....
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:73811624 1 udp 2122194687 192.168.1.6 59...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3771707267 1 udp 2122129151 14...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3771707267 1 udp 2122129151 145.9.109.14...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1289024797 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1289024797 1 udp 2122262783 2402:800:610...
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 57270 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[SIPSorcery] Detected GPU vendor: AMD
+[SIPSorcery] Creating AMF encoder for AMD GPU
+[AmfNativeWrapper] Initializing BGRA mode 1440x810 @ 45fps, 7500kbps
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
+[SIPSorcery] Track 0: Amf encoder initialized (BGRA mode - no color conversion)
+[SIPSorcery] Creating AMF encoder for AMD GPU
+[AmfNativeWrapper] Initializing BGRA mode 1440x810 @ 45fps, 7500kbps
+[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
+[SIPSorcery] Track 1: Amf encoder initialized (BGRA mode - no color conversion)
+[Protocol] All 2 tracks ready, sending ice_ready
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Cursor tracking started
+[MultimediaTimer] Timer resolution set to 1ms
+[KeepAlive] Server-side keep-alive started (5s interval)
+[PerMonitorCapture] Created frame sync barrier for 2 monitors
+[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 45fps, sleepThreshold=3ms (barrier sync: True)
+[PerMonitorCapture] Monitor 1: Capture thread started @ 45fps, sleepThreshold=3ms (barrier sync: True)
+[AdaptiveBitrate] Initialized: target=7500kbps, range=[2000-15000]kbps, warmup=15000ms
+[GpuTextureScaler] Monitor 1: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 1 (device=23902BD5790)
+[GpuTextureScaler] Monitor 1: Output texture 1440x810
+[GpuTextureScaler] Monitor 0: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 0 (device=23903766190)
+[GpuTextureScaler] Monitor 0: Output texture 1440x810
+[SIPSorcery] Track 1 frame #0: 32045B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 first frame: VideoStreamList.Count=2, rtpStep=45382
+[SIPSorcery] VideoStream[0]: SSRC=2091014938
+[SIPSorcery] VideoStream[1]: SSRC=690032405
+[SIPSorcery] Track 1 frame #1: 51339B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #2: 32045B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #0: 65505B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=2, rtpStep=45397
+[SIPSorcery] VideoStream[0]: SSRC=2091014938
+[SIPSorcery] VideoStream[1]: SSRC=690032405
+[SIPSorcery] Track 0 frame #1: 89752B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #2: 58264B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #3: 39690B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #4: 29157B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #3: 25198B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #4: 40095B, NAL types=[7,8,5], key=True
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Pipeline] Mon0: Server sent 328, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m0: 5.5fps, dropped=0
+[Pipeline] Mon1: Server sent 328, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m1: 5.5fps, dropped=0
+[SIPSorcery] Stats: m0:636, m1:636
+[Capture FPS] Mon1: 29.8 fps (captured 299 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10026ms, rate-limited=0)
+[Protocol] Phase3 RX: type=start_streaming, len=26
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:1297, m1:1296
+[Capture FPS] Mon1: 30.3 fps (captured 303 in 10012ms, rate-limited=0)
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10012ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1954, m1:1952
+[Capture FPS] Mon1: 30.4 fps (captured 304 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:2613, m1:2612
+[Capture FPS] Mon1: 30.4 fps (captured 304 in 10006ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10006ms, rate-limited=0)
+[SIPSorcery] Stats: m0:3266, m1:3267
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10008ms, rate-limited=0)
+[Capture FPS] Mon1: 31.3 fps (captured 313 in 10008ms, rate-limited=0)
+[SIPSorcery] Stats: m0:3920, m1:3920
+[Capture FPS] Mon1: 31.3 fps (captured 313 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:4576, m1:4576
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10019ms, rate-limited=0)
+[Capture FPS] Mon1: 30.7 fps (captured 308 in 10019ms, rate-limited=0)
+[SIPSorcery] Stats: m0:5236, m1:5235
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10018ms, rate-limited=0)
+[Capture FPS] Mon1: 30.5 fps (captured 306 in 10018ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:5895, m1:5896
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 30.9 fps (captured 309 in 10003ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:6553, m1:6553
+[Capture FPS] Mon1: 30.8 fps (captured 309 in 10029ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10029ms, rate-limited=0)
+[SIPSorcery] Stats: m0:7212, m1:7212
+[Capture FPS] Mon1: 30.4 fps (captured 304 in 10002ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10002ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:7870, m1:7871
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 30.4 fps (captured 305 in 10020ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:8530, m1:8529
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10009ms, rate-limited=0)
+[Capture FPS] Mon1: 30.2 fps (captured 302 in 10009ms, rate-limited=0)
+[SIPSorcery] Stats: m0:9190, m1:9190
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10027ms, rate-limited=0)
+[Capture FPS] Mon1: 30.6 fps (captured 307 in 10027ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:9846, m1:9846
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10003ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:10500, m1:10500
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10024ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10024ms, rate-limited=0)
+[SIPSorcery] Stats: m0:11165, m1:11165
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10014ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:11824, m1:11825
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10017ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:12484, m1:12484
+[Capture FPS] Mon1: 29.9 fps (captured 299 in 10012ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10012ms, rate-limited=0)
+[SIPSorcery] Stats: m0:13151, m1:13151
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 30.1 fps (captured 301 in 10007ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:13814, m1:13812
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10005ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10005ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:14488, m1:14488
+[Capture FPS] Mon0: 30.0 fps (captured 300 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 299 in 10007ms, rate-limited=0)
+[SIPSorcery] Stats: m0:15146, m1:15146
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10008ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:15804, m1:15804
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10010ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10010ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:16458, m1:16458
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10005ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10005ms, rate-limited=0)
+[SIPSorcery] Stats: m0:17118, m1:17118
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10020ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:17772, m1:17772
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10008ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:18429, m1:18428
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10020ms, rate-limited=0)
+[SIPSorcery] Stats: m0:19085, m1:19082
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10015ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10015ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:19745, m1:19744
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10025ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:20400, m1:20400
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10007ms, rate-limited=0)
+[SIPSorcery] Stats: m0:21061, m1:21061
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10009ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10009ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:21716, m1:21716
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10022ms, rate-limited=0)
+[Capture FPS] Mon0: 30.5 fps (captured 306 in 10022ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:22377, m1:22376
+[Capture FPS] Mon0: 30.0 fps (captured 301 in 10022ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10022ms, rate-limited=0)
+[SIPSorcery] Stats: m0:23039, m1:23039
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10011ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:23692, m1:23692
+[Capture FPS] Mon0: 30.0 fps (captured 301 in 10019ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10019ms, rate-limited=0)
+[SIPSorcery] Stats: m0:24347, m1:24347
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon1: 30.4 fps (captured 304 in 10008ms, rate-limited=0)
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10008ms, rate-limited=0)
+[SIPSorcery] Stats: m0:25010, m1:25010
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10025ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:25668, m1:25668
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10025ms, rate-limited=0)
+[SIPSorcery] Stats: m0:26329, m1:26328
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10022ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10022ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:26987, m1:26987
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10009ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10009ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:27647, m1:27646
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10004ms, rate-limited=0)
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10004ms, rate-limited=0)
+[SIPSorcery] Stats: m0:28309, m1:28308
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10012ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10012ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:28966, m1:28966
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10019ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10019ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:29619, m1:29619
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10003ms, rate-limited=0)
+[SIPSorcery] Stats: m0:30277, m1:30277
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10011ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:30940, m1:30940
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10023ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10023ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:31594, m1:31594
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10024ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10024ms, rate-limited=0)
+[SIPSorcery] Stats: m0:32258, m1:32259
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10011ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:32919, m1:32919
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10001ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10001ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:33579, m1:33579
+[Capture FPS] Mon0: 30.6 fps (captured 307 in 10030ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10030ms, rate-limited=0)
+[SIPSorcery] Stats: m0:34230, m1:34229
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10023ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10023ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:34891, m1:34892
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10024ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10024ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:35552, m1:35553
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10023ms, rate-limited=0)
+[Capture FPS] Mon0: 30.7 fps (captured 308 in 10023ms, rate-limited=0)
+[SIPSorcery] Stats: m0:36216, m1:36216
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:36878, m1:36878
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10027ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10027ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:37532, m1:37532
+[Capture FPS] Mon0: 30.6 fps (captured 307 in 10026ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10026ms, rate-limited=0)
+[SIPSorcery] Stats: m0:38189, m1:38189
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10012ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10012ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:38847, m1:38846
+[Capture FPS] Mon1: 29.9 fps (captured 299 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:39503, m1:39502
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10025ms, rate-limited=0)
+[Capture FPS] Mon1: 30.8 fps (captured 309 in 10025ms, rate-limited=0)
+[SIPSorcery] Stats: m0:40152, m1:40152
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10018ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10018ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:40802, m1:40802
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10025ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10025ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:41452, m1:41452
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10019ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10019ms, rate-limited=0)
+[SIPSorcery] Stats: m0:42100, m1:42100
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10026ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10026ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:42751, m1:42750
+[Capture FPS] Mon0: 30.9 fps (captured 309 in 10002ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10002ms, rate-limited=0)
+[SIPSorcery] Stats: m0:43400, m1:43401
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10010ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10010ms, rate-limited=0)
+[SIPSorcery] Stats: m0:44050, m1:44050
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:44702, m1:44703
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10016ms, rate-limited=0)
+[SIPSorcery] Stats: m0:45352, m1:45353
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.7 fps (captured 308 in 10027ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10027ms, rate-limited=0)
+[SIPSorcery] Stats: m0:46001, m1:46000
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10018ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10018ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:46653, m1:46653
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10030ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10030ms, rate-limited=0)
+[SIPSorcery] Stats: m0:47302, m1:47303
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10008ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:47954, m1:47954
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10003ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:48607, m1:48607
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10017ms, rate-limited=0)
+[SIPSorcery] Stats: m0:49254, m1:49254
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10020ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:49908, m1:49909
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10016ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:50558, m1:50556
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10024ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10024ms, rate-limited=0)
+[SIPSorcery] Stats: m0:51209, m1:51208
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:51860, m1:51860
+[Capture FPS] Mon0: 30.7 fps (captured 307 in 10002ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10002ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:52509, m1:52508
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10022ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10022ms, rate-limited=0)
+[SIPSorcery] Stats: m0:53158, m1:53159
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10024ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10024ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:53810, m1:53810
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10000ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:54460, m1:54460
+[Capture FPS] Mon0: 30.6 fps (captured 307 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10020ms, rate-limited=0)
+[SIPSorcery] Stats: m0:55113, m1:55113
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:55765, m1:55762
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10024ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10024ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:56414, m1:56414
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10003ms, rate-limited=0)
+[SIPSorcery] Stats: m0:57064, m1:57064
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:57717, m1:57716
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10015ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10015ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:58368, m1:58368
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10016ms, rate-limited=0)
+[SIPSorcery] Stats: m0:59022, m1:59022
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10018ms, rate-limited=0)
+[Capture FPS] Mon1: 32.7 fps (captured 328 in 10018ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:59674, m1:59675
+[Capture FPS] Mon0: 30.8 fps (captured 308 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 32.7 fps (captured 327 in 10014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:60328, m1:60326
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10016ms, rate-limited=0)
+[SIPSorcery] Stats: m0:60980, m1:60980
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:61632, m1:61632
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10022ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10022ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:62284, m1:62285
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10014ms, rate-limited=0)
+[SIPSorcery] Stats: m0:62934, m1:62934
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10008ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:63583, m1:63583
+[Capture FPS] Mon0: 30.5 fps (captured 306 in 10018ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10018ms, rate-limited=0)
+[SIPSorcery] Stats: m0:64236, m1:64236
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10000ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10000ms, rate-limited=0)
+[SIPSorcery] Stats: m0:64887, m1:64887
+[Capture FPS] Mon0: 30.7 fps (captured 307 in 10010ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10010ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:65538, m1:65538
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10007ms, rate-limited=0)
+[SIPSorcery] Stats: m0:66189, m1:66189
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10019ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10019ms, rate-limited=0)
+[SIPSorcery] Stats: m0:66840, m1:66840
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10002ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10002ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:67492, m1:67492
+[Capture FPS] Mon0: 30.0 fps (captured 300 in 10015ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10015ms, rate-limited=0)
+[SIPSorcery] Stats: m0:68146, m1:68147
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10012ms, rate-limited=0)
+[Capture FPS] Mon1: 32.7 fps (captured 327 in 10012ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:68797, m1:68797
+[Capture FPS] Mon0: 30.5 fps (captured 306 in 10029ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10029ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:69449, m1:69449
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10026ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10026ms, rate-limited=0)
+[SIPSorcery] Stats: m0:70103, m1:70103
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10012ms, rate-limited=0)
+[Capture FPS] Mon1: 32.8 fps (captured 328 in 10012ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:70755, m1:70754
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10016ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:71404, m1:71404
+[Capture FPS] Mon0: 29.8 fps (captured 298 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10003ms, rate-limited=0)
+[SIPSorcery] Stats: m0:72054, m1:72054
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10007ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:72704, m1:72704
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10004ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 325 in 10004ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:73356, m1:73356
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10030ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10030ms, rate-limited=0)
+[SIPSorcery] Stats: m0:74009, m1:74008
+[Capture FPS] Mon0: 30.7 fps (captured 308 in 10030ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10030ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:74660, m1:74659
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 326 in 10011ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:75313, m1:75312
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10026ms, rate-limited=0)
+[Capture FPS] Mon1: 32.6 fps (captured 327 in 10026ms, rate-limited=0)
+[SIPSorcery] Stats: m0:75964, m1:75964
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10022ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10022ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:76612, m1:76612
+[Capture FPS] Mon0: 30.5 fps (captured 306 in 10021ms, rate-limited=0)
+[Capture FPS] Mon1: 32.4 fps (captured 325 in 10021ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:77267, m1:77266
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 32.7 fps (captured 327 in 10011ms, rate-limited=0)
+[SIPSorcery] Stats: m0:77918, m1:77919
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10027ms, rate-limited=0)
+[Capture FPS] Mon1: 32.5 fps (captured 326 in 10027ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:78570, m1:78570
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10015ms, rate-limited=0)
+[Capture FPS] Mon1: 31.7 fps (captured 317 in 10015ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:79220, m1:79220
+[Capture FPS] Mon1: 31.2 fps (captured 312 in 10011ms, rate-limited=0)
+[Capture FPS] Mon0: 29.9 fps (captured 299 in 10011ms, rate-limited=0)
+[SIPSorcery] Stats: m0:79878, m1:79879
+[Capture FPS] Mon0: 30.0 fps (captured 301 in 10029ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10029ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:80528, m1:80528
+[Capture FPS] Mon1: 31.3 fps (captured 313 in 10013ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10013ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:81180, m1:81180
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10016ms, rate-limited=0)
+[Capture FPS] Mon0: 30.0 fps (captured 300 in 10016ms, rate-limited=0)
+[SIPSorcery] Stats: m0:81833, m1:81833
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 31.4 fps (captured 314 in 10014ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:82492, m1:82491
+[Capture FPS] Mon0: 30.5 fps (captured 305 in 10015ms, rate-limited=0)
+[Capture FPS] Mon1: 31.2 fps (captured 312 in 10015ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:83149, m1:83149
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10018ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 301 in 10018ms, rate-limited=0)
+[SIPSorcery] Stats: m0:83803, m1:83802
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10029ms, rate-limited=0)
+[Capture FPS] Mon1: 30.3 fps (captured 304 in 10029ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:84465, m1:84465
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10014ms, rate-limited=0)
+[SIPSorcery] Stats: m0:85118, m1:85118
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10007ms, rate-limited=0)
+[Capture FPS] Mon1: 31.4 fps (captured 314 in 10007ms, rate-limited=0)
+[SIPSorcery] Stats: m0:85788, m1:85786
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10000ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 299 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:86445, m1:86444
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10026ms, rate-limited=0)
+[Capture FPS] Mon1: 30.7 fps (captured 308 in 10026ms, rate-limited=0)
+[SIPSorcery] Stats: m0:87098, m1:87099
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon1: 30.1 fps (captured 301 in 10016ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10016ms, rate-limited=0)
+[SIPSorcery] Stats: m0:87750, m1:87750
+[Capture FPS] Mon1: 31.2 fps (captured 313 in 10026ms, rate-limited=0)
+[Capture FPS] Mon0: 29.9 fps (captured 300 in 10026ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:88405, m1:88405
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10003ms, rate-limited=0)
+[Capture FPS] Mon1: 31.4 fps (captured 314 in 10003ms, rate-limited=0)
+[SIPSorcery] Stats: m0:89065, m1:89064
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10021ms, rate-limited=0)
+[Capture FPS] Mon1: 29.9 fps (captured 300 in 10021ms, rate-limited=0)
+[SIPSorcery] Stats: m0:89721, m1:89720
+[Capture FPS] Mon0: 30.2 fps (captured 303 in 10017ms, rate-limited=0)
+[Capture FPS] Mon1: 31.3 fps (captured 314 in 10017ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:90379, m1:90379
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10005ms, rate-limited=0)
+[Capture FPS] Mon1: 30.0 fps (captured 300 in 10005ms, rate-limited=0)
+[SIPSorcery] Stats: m0:91028, m1:91028
+[Capture FPS] Mon1: 30.6 fps (captured 307 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.3 fps (captured 304 in 10025ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:91685, m1:91684
+[Capture FPS] Mon1: 31.3 fps (captured 313 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:92340, m1:92342
+[Capture FPS] Mon1: 30.3 fps (captured 303 in 10008ms, rate-limited=0)
+[Capture FPS] Mon0: 30.9 fps (captured 309 in 10008ms, rate-limited=0)
+[SIPSorcery] Stats: m0:93005, m1:93004
+[Capture FPS] Mon1: 30.4 fps (captured 305 in 10019ms, rate-limited=0)
+[Capture FPS] Mon0: 29.9 fps (captured 300 in 10019ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:93660, m1:93660
+[Capture FPS] Mon0: 29.9 fps (captured 300 in 10020ms, rate-limited=0)
+[Capture FPS] Mon1: 31.2 fps (captured 313 in 10020ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:94316, m1:94316
+[Capture FPS] Mon1: 31.1 fps (captured 312 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10025ms, rate-limited=0)
+[SIPSorcery] Stats: m0:94969, m1:94969
+[Capture FPS] Mon1: 31.2 fps (captured 313 in 10025ms, rate-limited=0)
+[Capture FPS] Mon0: 30.5 fps (captured 306 in 10025ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:95626, m1:95627
+[Capture FPS] Mon0: 30.3 fps (captured 303 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 30.8 fps (captured 308 in 10016ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:96282, m1:96282
+[Capture FPS] Mon1: 30.6 fps (captured 307 in 10024ms, rate-limited=0)
+[Capture FPS] Mon0: 30.0 fps (captured 301 in 10024ms, rate-limited=0)
+[SIPSorcery] Stats: m0:96937, m1:96937
+[Capture FPS] Mon1: 30.4 fps (captured 304 in 10008ms, rate-limited=0)
+[Capture FPS] Mon0: 30.2 fps (captured 302 in 10008ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:97596, m1:97596
+[Capture FPS] Mon0: 30.0 fps (captured 300 in 10002ms, rate-limited=0)
+[Capture FPS] Mon1: 28.7 fps (captured 287 in 10002ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:98252, m1:98253
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10005ms, rate-limited=0)
+[Capture FPS] Mon1: 26.9 fps (captured 269 in 10005ms, rate-limited=0)
+[SIPSorcery] Stats: m0:98908, m1:98908
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10016ms, rate-limited=0)
+[Capture FPS] Mon1: 28.1 fps (captured 281 in 10016ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:99562, m1:99564
+[Capture FPS] Mon1: 28.7 fps (captured 288 in 10020ms, rate-limited=0)
+[Capture FPS] Mon0: 30.1 fps (captured 302 in 10020ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:100220, m1:100221
+[Capture FPS] Mon0: 30.1 fps (captured 301 in 10014ms, rate-limited=0)
+[Capture FPS] Mon1: 25.0 fps (captured 250 in 10014ms, rate-limited=0)
+[SIPSorcery] Stats: m0:100876, m1:100876
+[Capture FPS] Mon0: 30.0 fps (captured 301 in 10024ms, rate-limited=0)
+[Capture FPS] Mon1: 28.8 fps (captured 289 in 10024ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:101528, m1:101528
+[Capture FPS] Mon1: 28.7 fps (captured 288 in 10029ms, rate-limited=0)
+[Capture FPS] Mon0: 30.4 fps (captured 305 in 10029ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:102188, m1:102188
+[Capture FPS] Mon0: 30.4 fps (captured 304 in 10001ms, rate-limited=0)
+[Capture FPS] Mon1: 27.1 fps (captured 271 in 10001ms, rate-limited=0)
+[KeepAlive] Missed pong #1, 3.1s since last response
+[KeepAlive] Missed pong #2, 5.1s since last response
+[KeepAlive] Missed pong #3, 7.1s since last response
+[KeepAlive] Client not responding for 7.1s - closing connection
+[SIPSorcery] Stats: m0:102852, m1:102854
+[Capture FPS] Mon0: 30.6 fps (captured 306 in 10013ms, rate-limited=0)
+[Capture FPS] Mon1: 27.2 fps (captured 272 in 10013ms, rate-limited=0)
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Stats: m0:103518, m1:103518
+[Protocol] Client fde1c8c0-dd1d-4ca9-b145-895e19700e44 error: An internal WebSocket error occurred. Please see the innerException, if present, for more details.
+[Protocol] InnerException: The I/O operation has been aborted because of either a thread exit or an application request.
+[Protocol] StackTrace:    at System.Net.WebSockets.WebSocketBase.ThrowIfConvertibleException(String methodName, Exception exception, CancellationToken cancellationToken, Boolean aborted)
+   at System.Net.WebSockets.WebSocketBase.ReceiveAsyncCore(ArraySegment`1 buffer, CancellationToken cancellationToken)
+   at RemotePlayServer.Protocol.PhaseProtocolHandler.RunPhase3Async() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Protocol\PhaseProtocolHandler.cs:line 1204
+   at RemotePlayServer.Protocol.PhaseProtocolHandler.HandleAsync() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Protocol\PhaseProtocolHandler.cs:line 155
+[Protocol] Phase changed to: Disconnecting
+[SIPSorcery] Stopping...
+[AmfNativeWrapper] Disposed
+[AmfNativeWrapper] Disposed
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[MultimediaTimer] Timer resolution restored
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[2026-01-07 19:17:59.616] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY2, \\.\DISPLAY1
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] ✓ Scale and Layout restored.
+[Guard] Step 2: Restoring monitor modes...
+[Guard] Monitor modes restored.
+[Guard] Step 3: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client fde1c8c0-dd1d-4ca9-b145-895e19700e44 disconnected
