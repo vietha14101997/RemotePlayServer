@@ -2110,6 +2110,10 @@ namespace RemotePlayServer.Protocol
                     DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(15));
                     Console.WriteLine("[Protocol] Display settings restored.");
                     _displayModified = false;
+
+                    // Reset monitor count to force VDD setup on next session
+                    // Without this, reconnecting with same monitor count would skip VDD setup
+                    DisplayConfig.MonitorCount = 1;
                 }
                 catch (Exception ex)
                 {
