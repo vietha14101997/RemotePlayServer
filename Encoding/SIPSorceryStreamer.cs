@@ -36,6 +36,12 @@ public class SIPSorceryStreamer : IDisposable
     private volatile bool _running;
     private volatile bool _disposed;
     private volatile bool _connected;
+    private volatile bool _isPaused;
+
+    /// <summary>
+    /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
+    /// </summary>
+    public bool IsPaused => _isPaused;
 
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
@@ -605,7 +611,7 @@ public class SIPSorceryStreamer : IDisposable
     /// </summary>
     public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height)
     {
-        if (!_running || _disposed || !_connected) return;
+        if (!_running || _disposed || !_connected || _isPaused) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
 
         var track = _tracks[monitorIndex];
@@ -635,7 +641,7 @@ public class SIPSorceryStreamer : IDisposable
 
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
     {
-        if (!_running || _disposed || !_connected) return;
+        if (!_running || _disposed || !_connected || _isPaused) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
 
         var track = _tracks[monitorIndex];
@@ -1195,6 +1201,39 @@ public class SIPSorceryStreamer : IDisposable
         if (!_running && _pc == null) return;
         Console.WriteLine("[SIPSorcery] Stopping...");
         CloseConnection();
+    }
+
+    /// <summary>
+    /// Pause streaming - stop encoding but keep connection alive.
+    /// Client can resume without reconnecting.
+    /// </summary>
+    public void Pause()
+    {
+        if (_isPaused)
+        {
+            Console.WriteLine("[SIPSorcery] Already paused");
+            return;
+        }
+        _isPaused = true;
+        Console.WriteLine("[SIPSorcery] Streaming paused (connection maintained)");
+    }
+
+    /// <summary>
+    /// Resume streaming - restart encoding.
+    /// Should request keyframe for immediate visual update.
+    /// </summary>
+    public void Resume()
+    {
+        if (!_isPaused)
+        {
+            Console.WriteLine("[SIPSorcery] Already running (not paused)");
+            return;
+        }
+        _isPaused = false;
+        Console.WriteLine("[SIPSorcery] Streaming resumed");
+
+        // Request keyframe on all tracks for immediate visual update
+        RequestKeyframe(-1);
     }
 
     public void Dispose()

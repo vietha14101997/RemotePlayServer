@@ -1238,6 +1238,22 @@ namespace RemotePlayServer.Protocol
                         break;
                     }
 
+                    // Handle pause_streaming - stop capture/encode but keep connection
+                    if (msgType == "pause_streaming")
+                    {
+                        Console.WriteLine("[Protocol] Received pause_streaming");
+                        _streamer?.Pause();
+                        continue;
+                    }
+
+                    // Handle resume_streaming - restart capture/encode
+                    if (msgType == "resume_streaming")
+                    {
+                        Console.WriteLine("[Protocol] Received resume_streaming");
+                        _streamer?.Resume();
+                        continue;
+                    }
+
                     // Handle late ICE candidates
                     if (msgType == "candidate")
                     {

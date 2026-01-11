@@ -427,6 +427,24 @@ namespace RemotePlayServer.Protocol
     }
 
     /// <summary>
+    /// Client -> Server: Pause streaming (stop capture/encode but keep connection).
+    /// Used when client goes back to menu during streaming.
+    /// </summary>
+    public class PauseStreamingMessage : ProtocolMessage
+    {
+        public override string Type => "pause_streaming";
+    }
+
+    /// <summary>
+    /// Client -> Server: Resume streaming (restart capture/encode).
+    /// Used when client returns from menu to continue streaming.
+    /// </summary>
+    public class ResumeStreamingMessage : ProtocolMessage
+    {
+        public override string Type => "resume_streaming";
+    }
+
+    /// <summary>
     /// Client -> Server: Update streaming config during Phase 3.
     /// Allows dynamic FPS and Bitrate changes without reconnection.
     /// Bitrate is TOTAL for all monitors combined.
