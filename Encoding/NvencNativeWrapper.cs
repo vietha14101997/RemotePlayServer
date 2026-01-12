@@ -72,6 +72,9 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     private static extern int NvencSetBitrate(IntPtr handle, int bitrateKbps);
 
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencSetFps(IntPtr handle, int fps);
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int NvencCreateEncoderBgra(
         out IntPtr outHandle,
         IntPtr d3d11Device,
@@ -111,6 +114,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     public int Width => _width;
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
+    public int CurrentFps => _fps;
 
     /// <summary>
     /// NVENC supports BGRA input directly (no NV12 conversion needed)
@@ -365,6 +369,36 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[NvencNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Dynamically change encoder FPS
+    /// </summary>
+    public bool SetFps(int fps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (fps <= 0) return false;
+
+        try
+        {
+            int result = NvencSetFps(_handle, fps);
+            if (result == NVENC_WRAPPER_OK)
+            {
+                _fps = fps;
+                Console.WriteLine($"[NvencNativeWrapper] FPS changed to {fps}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"[NvencNativeWrapper] SetFps failed: {GetLastError()}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[NvencNativeWrapper] SetFps exception: {ex.Message}");
             return false;
         }
     }

@@ -32,6 +32,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
     public int Width => _width;
     public int Height => _height;
     public int CurrentBitrateKbps => _encoder?.CurrentBitrateKbps ?? _bitrate;
+    public int CurrentFps => _fps;
 
     /// <summary>
     /// The currently active video codec (H264 or H265)
@@ -213,6 +214,18 @@ public class LibAvEncoderAdapter : ITextureEncoder
             _bitrate = bitrateKbps;
         }
         return result;
+    }
+
+    /// <summary>
+    /// Dynamically change encoder FPS.
+    /// NOTE: LibAv encoder doesn't reliably support runtime FPS changes.
+    /// This method returns false to indicate the feature is not supported.
+    /// </summary>
+    public bool SetFps(int fps)
+    {
+        // LibAv encoder doesn't support runtime FPS changes without re-initialization
+        Console.WriteLine($"[LibAvEncoderAdapter] Runtime FPS change not supported (requested: {fps}fps)");
+        return false;
     }
 
     private void Cleanup()

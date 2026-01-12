@@ -445,6 +445,36 @@ namespace RemotePlayServer.Protocol
     }
 
     /// <summary>
+    /// Client -> Server: Pause a specific monitor's streaming.
+    /// Stops encoding for that monitor but keeps connection alive.
+    /// </summary>
+    public class PauseMonitorMessage : ProtocolMessage
+    {
+        public override string Type => "pause_monitor";
+
+        /// <summary>
+        /// Index of the monitor to pause (0-based).
+        /// </summary>
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+    }
+
+    /// <summary>
+    /// Client -> Server: Resume a specific monitor's streaming.
+    /// Restarts encoding for that monitor and requests keyframe.
+    /// </summary>
+    public class ResumeMonitorMessage : ProtocolMessage
+    {
+        public override string Type => "resume_monitor";
+
+        /// <summary>
+        /// Index of the monitor to resume (0-based).
+        /// </summary>
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+    }
+
+    /// <summary>
     /// Client -> Server: Update streaming config during Phase 3.
     /// Allows dynamic FPS and Bitrate changes without reconnection.
     /// Bitrate is TOTAL for all monitors combined.

@@ -71,6 +71,9 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int QsvSetBitrate(IntPtr handle, int bitrateKbps);
 
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvSetFps(IntPtr handle, int fps);
+
     #endregion
 
     #region Fields
@@ -93,6 +96,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public int Width => _width;
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
+    public int CurrentFps => _fps;
 
     #endregion
 
@@ -236,6 +240,19 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
         // Attempting to change bitrate mid-stream can cause "incompatible video parameters" errors
         // Return false to let the adaptive bitrate controller know this encoder doesn't support it
         Console.WriteLine($"[QsvNativeWrapper] Runtime bitrate change not supported (requested: {bitrateKbps}kbps)");
+        return false;
+    }
+
+    /// <summary>
+    /// Dynamically change encoder FPS.
+    /// NOTE: QSV (Intel Media Foundation) doesn't reliably support runtime FPS changes.
+    /// This method returns false to indicate the feature is not supported.
+    /// </summary>
+    public bool SetFps(int fps)
+    {
+        // QSV encoder through Media Foundation doesn't reliably support runtime FPS changes
+        // Return false to let the caller know this encoder doesn't support it
+        Console.WriteLine($"[QsvNativeWrapper] Runtime FPS change not supported (requested: {fps}fps)");
         return false;
     }
 

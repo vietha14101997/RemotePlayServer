@@ -1254,6 +1254,46 @@ namespace RemotePlayServer.Protocol
                         continue;
                     }
 
+                    // Handle pause_monitor - pause a specific monitor (stops both capture and encode)
+                    if (msgType == "pause_monitor")
+                    {
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                            {
+                                int monitorIndex = mi.GetInt32();
+                                Console.WriteLine($"[Protocol] Received pause_monitor: index={monitorIndex}");
+                                // Pause capture (stops DXGI frame acquisition)
+                                _capture?.PauseMonitor(monitorIndex);
+                                // Pause encode (blocks any leftover frames from being encoded)
+                                _streamer?.PauseMonitor(monitorIndex);
+                            }
+                        }
+                        catch { }
+                        continue;
+                    }
+
+                    // Handle resume_monitor - resume a specific monitor
+                    if (msgType == "resume_monitor")
+                    {
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                            {
+                                int monitorIndex = mi.GetInt32();
+                                Console.WriteLine($"[Protocol] Received resume_monitor: index={monitorIndex}");
+                                // Resume capture (resumes DXGI frame acquisition)
+                                _capture?.ResumeMonitor(monitorIndex);
+                                // Resume encode (allows encoding and sends keyframe)
+                                _streamer?.ResumeMonitor(monitorIndex);
+                            }
+                        }
+                        catch { }
+                        continue;
+                    }
+
                     // Handle late ICE candidates
                     if (msgType == "candidate")
                     {
@@ -1402,6 +1442,12 @@ namespace RemotePlayServer.Protocol
                                 var (success, appliedFps, appliedBitrate, message) = _streamer.UpdateConfig(
                                     updateMsg.Fps,
                                     updateMsg.BitrateKbps);
+
+                                // Also update capture FPS if FPS was changed
+                                if (updateMsg.Fps.HasValue && _capture != null)
+                                {
+                                    _capture.SetTargetFps(updateMsg.Fps.Value);
+                                }
 
                                 // Send acknowledgment
                                 var ack = new ConfigUpdatedMessage

@@ -526,6 +526,55 @@ AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
     return AMF_WRAPPER_OK;
 }
 
+// Dynamically change encoder FPS
+AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
+    if (!handle) {
+        g_lastError = "Invalid handle";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    if (fps <= 0) {
+        g_lastError = "Invalid FPS";
+        return AMF_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<AmfEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return AMF_WRAPPER_NOT_INITIALIZED;
+    }
+
+    std::lock_guard<std::mutex> lock(ctx->encodeMutex);
+
+    AMF_RESULT res;
+
+    // Update frame rate
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
+    if (res != AMF_OK) {
+        g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
+        return AMF_WRAPPER_FAIL;
+    }
+
+    // Update GOP size (IDR every 2 seconds at new FPS)
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
+    if (res != AMF_OK) {
+        // Non-fatal - FPS still changed
+        LogDebug("[AmfSetFps] IDR_PERIOD update failed: %d", res);
+    }
+
+    // Force IDR on next frame to apply new FPS immediately
+    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+    if (res != AMF_OK) {
+        // Non-fatal - FPS still changed
+        LogDebug("[AmfSetFps] Force IDR failed: %d", res);
+    }
+
+    ctx->fps = fps;
+    LogDebug("[AmfSetFps] FPS changed to %d", fps);
+
+    return AMF_WRAPPER_OK;
+}
+
 // Create encoder with BGRA input support (no NV12 conversion needed)
 // AMF internally converts BGRA to NV12 in hardware when submitting
 AMFWRAPPER_API int AmfCreateEncoderBgra(

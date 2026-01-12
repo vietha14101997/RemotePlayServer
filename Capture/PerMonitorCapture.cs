@@ -57,7 +57,8 @@ internal static class MultimediaTimer
 public sealed class PerMonitorCapture : IDisposable
 {
     public readonly int MonitorCount;
-    public readonly int TargetFps;
+    private volatile int _targetFps;
+    public int TargetFps => _targetFps;
     public readonly List<MonitorInfo> Monitors = new();
 
     public class MonitorInfo
@@ -94,6 +95,9 @@ public sealed class PerMonitorCapture : IDisposable
         public DateTime LastAccessLostTime;
         public int AccessLostCount;
         public bool RecreatingDuplication;
+
+        // Per-monitor pause state
+        public volatile bool Paused;
     }
     
     private volatile bool _running;
@@ -138,6 +142,41 @@ public sealed class PerMonitorCapture : IDisposable
     /// Expose first monitor's device for backward compatibility
     /// </summary>
     public ID3D11Device Device => Monitors.Count > 0 ? Monitors[0].Device! : throw new InvalidOperationException("No monitors");
+
+    /// <summary>
+    /// Pause capture for a specific monitor.
+    /// Paused monitors skip frame acquisition and don't fire events.
+    /// </summary>
+    public void PauseMonitor(int monitorIndex)
+    {
+        if (monitorIndex >= 0 && monitorIndex < Monitors.Count)
+        {
+            Monitors[monitorIndex].Paused = true;
+            Console.WriteLine($"[PerMonitorCapture] Monitor {monitorIndex}: PAUSED");
+        }
+    }
+
+    /// <summary>
+    /// Resume capture for a specific monitor.
+    /// </summary>
+    public void ResumeMonitor(int monitorIndex)
+    {
+        if (monitorIndex >= 0 && monitorIndex < Monitors.Count)
+        {
+            Monitors[monitorIndex].Paused = false;
+            Console.WriteLine($"[PerMonitorCapture] Monitor {monitorIndex}: RESUMED");
+        }
+    }
+
+    /// <summary>
+    /// Check if a monitor is paused.
+    /// </summary>
+    public bool IsMonitorPaused(int monitorIndex)
+    {
+        if (monitorIndex >= 0 && monitorIndex < Monitors.Count)
+            return Monitors[monitorIndex].Paused;
+        return false;
+    }
 
     /// <summary>
     /// Recreate Desktop Duplication for a monitor after ACCESS_LOST error.
@@ -202,7 +241,7 @@ public sealed class PerMonitorCapture : IDisposable
             throw new ArgumentException("At least one monitor required");
 
         MonitorCount = monitors.Count;
-        TargetFps = Math.Clamp(targetFps, 10, 60);
+        _targetFps = Math.Clamp(targetFps, 10, 60);
         _preferredGpu = preferredGpu;
 
         Console.WriteLine($"[PerMonitorCapture] Initializing {MonitorCount} monitors @ {TargetFps}fps (PARALLEL MODE - separate D3D11 devices)");
@@ -399,13 +438,24 @@ public sealed class PerMonitorCapture : IDisposable
     }
 
     /// <summary>
+    /// Dynamically change the target FPS during capture.
+    /// The change takes effect immediately on all capture threads.
+    /// </summary>
+    /// <param name="fps">New target FPS (will be clamped to 10-60 range)</param>
+    public void SetTargetFps(int fps)
+    {
+        int newFps = Math.Clamp(fps, 10, 60);
+        int oldFps = _targetFps;
+        _targetFps = newFps;
+        Console.WriteLine($"[PerMonitorCapture] Target FPS changed: {oldFps} → {newFps}");
+    }
+
+    /// <summary>
     /// Capture loop for a single monitor - runs in its own thread with its own D3D11 device
     /// Uses barrier synchronization to ensure all monitors capture at the same moment.
     /// </summary>
     private void CaptureLoopForMonitor(MonitorInfo mon)
     {
-        int frameTimeMs = 1000 / TargetFps;
-
         // With MultimediaTimer (1ms resolution), Sleep is now precise enough for all FPS
         // Keep 3ms spin buffer for sub-millisecond precision at frame boundaries
         const int sleepThresholdMs = 3;
@@ -418,6 +468,8 @@ public sealed class PerMonitorCapture : IDisposable
         while (mon.Running && _running)
         {
             long loopStart = sw.ElapsedMilliseconds;
+            // Calculate frame time dynamically to support runtime FPS changes
+            int frameTimeMs = 1000 / _targetFps;
             try
             {
                 // FRAME SYNC: Wait for all monitors to be ready before capturing
@@ -457,6 +509,9 @@ public sealed class PerMonitorCapture : IDisposable
                 }
 
                 if (mon.Duplication == null) goto Pacing;
+
+                // PAUSE CHECK: Skip frame acquisition entirely when monitor is paused
+                if (mon.Paused) goto Pacing;
 
                 // RATE LIMITING CHECK (BEFORE acquiring frame)
                 // Rate limiting controls SENDING, not ACQUIRING - always try to get the latest frame

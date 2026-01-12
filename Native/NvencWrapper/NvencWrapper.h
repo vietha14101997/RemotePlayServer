@@ -105,6 +105,14 @@ NVENCWRAPPER_API const char* NvencGetLastError();
 NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps);
 
 /// <summary>
+/// Dynamically change encoder FPS without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="fps">New target FPS</param>
+/// <returns>NVENC_WRAPPER_OK on success</returns>
+NVENCWRAPPER_API int NvencSetFps(NvencEncoderHandle handle, int fps);
+
+/// <summary>
 /// Create an NVENC encoder instance that accepts BGRA input directly.
 /// This eliminates the need for CPU/GPU color conversion, NVENC handles it internally.
 /// </summary>

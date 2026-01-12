@@ -43,9 +43,22 @@ public interface ITextureEncoder : IDisposable
     bool SetBitrate(int bitrateKbps);
 
     /// <summary>
+    /// Dynamically change encoder FPS without reinitialization.
+    /// Used for runtime FPS adjustments.
+    /// </summary>
+    /// <param name="fps">New target FPS.</param>
+    /// <returns>True if FPS was changed successfully, false if not supported or failed.</returns>
+    bool SetFps(int fps);
+
+    /// <summary>
     /// Get current target bitrate.
     /// </summary>
     int CurrentBitrateKbps { get; }
+
+    /// <summary>
+    /// Get current target FPS.
+    /// </summary>
+    int CurrentFps { get; }
 
     /// <summary>
     /// True if this encoder supports BGRA input directly (no NV12 conversion needed).

@@ -120,6 +120,14 @@ AMFWRAPPER_API const char* AmfGetLastError();
 AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps);
 
 /// <summary>
+/// Dynamically change encoder FPS without reinitialization
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="fps">New target FPS</param>
+/// <returns>AMF_WRAPPER_OK on success</returns>
+AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps);
+
+/// <summary>
 /// Create an AMF encoder instance with BGRA input support.
 /// AMF internally converts BGRA to NV12 in hardware - no CPU/shader conversion needed.
 /// </summary>

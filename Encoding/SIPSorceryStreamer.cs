@@ -20,8 +20,8 @@ namespace RemotePlayServer.Encoding;
 public class SIPSorceryStreamer : IDisposable
 {
     private readonly int _monitorCount;
-    private readonly int _fps;
-    private readonly int _bitrateKbps;
+    private int _fps;
+    private int _bitrateKbps;
     private readonly VideoCodec _negotiatedCodec;
     private ID3D11Device? _sharedDevice;
 
@@ -38,10 +38,22 @@ public class SIPSorceryStreamer : IDisposable
     private volatile bool _connected;
     private volatile bool _isPaused;
 
+    // Per-monitor pause state (allows pausing individual monitors)
+    private volatile bool[] _monitorPaused = Array.Empty<bool>();
+
     /// <summary>
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
     /// </summary>
     public bool IsPaused => _isPaused;
+
+    /// <summary>
+    /// Check if a specific monitor is paused.
+    /// </summary>
+    public bool IsMonitorPaused(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length) return false;
+        return _monitorPaused[monitorIndex];
+    }
 
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
@@ -207,6 +219,9 @@ public class SIPSorceryStreamer : IDisposable
 
             Console.WriteLine($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8})");
         }
+
+        // Initialize per-monitor pause state (all monitors active initially)
+        _monitorPaused = new bool[dimensions.Count];
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>
@@ -613,6 +628,8 @@ public class SIPSorceryStreamer : IDisposable
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
+        // Check per-monitor pause
+        if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
 
         var track = _tracks[monitorIndex];
         if (track.Encoder == null) return;
@@ -642,6 +659,8 @@ public class SIPSorceryStreamer : IDisposable
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
+        // Check per-monitor pause
+        if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
 
         var track = _tracks[monitorIndex];
@@ -929,15 +948,47 @@ public class SIPSorceryStreamer : IDisposable
         int appliedBitrate = _bitrateKbps;
         bool anySuccess = false;
 
-        // FPS change - currently only tracked, actual encoder FPS change would require restart
-        if (fps.HasValue && fps.Value != _fps)
+        // FPS change - apply to all encoders
+        if (fps.HasValue && fps.Value != _fps && fps.Value > 0)
         {
-            // Note: Most hardware encoders don't support runtime FPS changes
-            // This logs the request but actual change would require encoder restart
-            Console.WriteLine($"[SIPSorcery] FPS change requested: {_fps} → {fps.Value} (note: may require reconnect)");
-            appliedFps = fps.Value;
-            messages.Add($"FPS target: {fps.Value}");
-            anySuccess = true;  // Acknowledged even if not immediately applied
+            Console.WriteLine($"[SIPSorcery] FPS update: {_fps} → {fps.Value}");
+
+            lock (_lock)
+            {
+                int successCount = 0;
+                foreach (var track in _tracks)
+                {
+                    if (track.Encoder != null)
+                    {
+                        if (track.Encoder.SetFps(fps.Value))
+                        {
+                            successCount++;
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} FPS → {fps.Value}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SIPSorcery] Track {track.Index} SetFps failed (encoder may not support runtime change)");
+                        }
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    _fps = fps.Value;
+                    appliedFps = fps.Value;
+                    messages.Add($"FPS: {fps.Value} ({successCount}/{_tracks.Count} encoders updated)");
+                    anySuccess = true;
+                }
+                else if (_tracks.Count > 0)
+                {
+                    // Even if encoder doesn't support FPS change, update the internal state
+                    // so capture rate can be adjusted
+                    _fps = fps.Value;
+                    appliedFps = fps.Value;
+                    messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
+                    anySuccess = true;
+                }
+            }
         }
 
         // Bitrate change - apply to all encoders
@@ -1234,6 +1285,51 @@ public class SIPSorceryStreamer : IDisposable
 
         // Request keyframe on all tracks for immediate visual update
         RequestKeyframe(-1);
+    }
+
+    /// <summary>
+    /// Pause a specific monitor's streaming.
+    /// Stops encoding for that monitor but keeps connection alive.
+    /// </summary>
+    /// <param name="monitorIndex">Index of the monitor to pause (0-based)</param>
+    public void PauseMonitor(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length)
+        {
+            Console.WriteLine($"[SIPSorcery] PauseMonitor: Invalid index {monitorIndex}");
+            return;
+        }
+        if (_monitorPaused[monitorIndex])
+        {
+            Console.WriteLine($"[SIPSorcery] Monitor {monitorIndex} already paused");
+            return;
+        }
+        _monitorPaused[monitorIndex] = true;
+        Console.WriteLine($"[SIPSorcery] Monitor {monitorIndex} paused");
+    }
+
+    /// <summary>
+    /// Resume a specific monitor's streaming.
+    /// Restarts encoding for that monitor and requests keyframe.
+    /// </summary>
+    /// <param name="monitorIndex">Index of the monitor to resume (0-based)</param>
+    public void ResumeMonitor(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length)
+        {
+            Console.WriteLine($"[SIPSorcery] ResumeMonitor: Invalid index {monitorIndex}");
+            return;
+        }
+        if (!_monitorPaused[monitorIndex])
+        {
+            Console.WriteLine($"[SIPSorcery] Monitor {monitorIndex} already running");
+            return;
+        }
+        _monitorPaused[monitorIndex] = false;
+        Console.WriteLine($"[SIPSorcery] Monitor {monitorIndex} resumed");
+
+        // Request keyframe for immediate visual update
+        RequestKeyframe(monitorIndex);
     }
 
     public void Dispose()

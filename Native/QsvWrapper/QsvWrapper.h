@@ -104,6 +104,15 @@ QSVWRAPPER_API const char* QsvGetLastError();
 /// <returns>QSV_WRAPPER_OK on success</returns>
 QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps);
 
+/// <summary>
+/// Dynamically change encoder FPS without reinitialization
+/// NOTE: QSV does not support runtime FPS changes, this always returns QSV_WRAPPER_FAIL
+/// </summary>
+/// <param name="handle">Encoder handle</param>
+/// <param name="fps">New target FPS</param>
+/// <returns>QSV_WRAPPER_FAIL (not supported)</returns>
+QSVWRAPPER_API int QsvSetFps(QsvEncoderHandle handle, int fps);
+
 #ifdef __cplusplus
 }
 #endif

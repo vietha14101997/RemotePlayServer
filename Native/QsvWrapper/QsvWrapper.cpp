@@ -626,6 +626,17 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
     return QSV_WRAPPER_OK;
 }
 
+// Dynamically change encoder FPS - NOT SUPPORTED by QSV/Media Foundation
+QSVWRAPPER_API int QsvSetFps(QsvEncoderHandle handle, int fps) {
+    (void)handle;  // Unused
+    (void)fps;     // Unused
+
+    g_lastError = "Runtime FPS change not supported by QSV encoder";
+    LogDebug("[QsvSetFps] FPS change not supported (requested: %d)", fps);
+
+    return QSV_WRAPPER_FAIL;
+}
+
 // Get last error
 QSVWRAPPER_API const char* QsvGetLastError() {
     return g_lastError.c_str();

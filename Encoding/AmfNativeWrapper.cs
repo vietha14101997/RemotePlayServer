@@ -80,6 +80,9 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     private static extern int AmfSetBitrate(IntPtr handle, int bitrateKbps);
 
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfSetFps(IntPtr handle, int fps);
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int AmfCreateEncoderBgra(
         out IntPtr outHandle,
         IntPtr d3d11Device,
@@ -119,6 +122,7 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     public int Width => _width;
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
+    public int CurrentFps => _fps;
 
     /// <summary>
     /// AMF supports BGRA input directly (internal color conversion)
@@ -311,6 +315,37 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
         catch (Exception ex)
         {
             Console.WriteLine($"[AmfNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Dynamically change encoder FPS
+    /// </summary>
+    public bool SetFps(int fps)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (fps <= 0) return false;
+
+        try
+        {
+            int result = AmfSetFps(_handle, fps);
+            if (result == AMF_WRAPPER_OK)
+            {
+                _fps = fps;
+                Console.WriteLine($"[AmfNativeWrapper] FPS changed to {fps}");
+                return true;
+            }
+            else
+            {
+                string error = GetLastError();
+                Console.WriteLine($"[AmfNativeWrapper] SetFps failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AmfNativeWrapper] SetFps exception: {ex.Message}");
             return false;
         }
     }
