@@ -6,8 +6,8 @@
 [USB] Not detected. Enable USB Tethering on phone for USB streaming.
 [TextScale] Registry DPI for \\.\DISPLAY2: 120
 [Guard] Saved original text scale for \\.\DISPLAY2: 125%
-[TextScale] Actual DPI for \\.\DISPLAY1: 120
-[Guard] Saved original text scale for \\.\DISPLAY1: 125%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] Saved DPI snapshot for 8 monitors
 [Guard] Snapshot captured.
 === Monitors ===
@@ -43,8 +43,8 @@ Data: {"ip":"192.168.1.8","port":"8288"}
   [WiFi] 192.168.1.8:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 615e6cc9-a292-4f9c-92cc-5f5125040bf6, protocol=v2, transport=WiFi
-[Protocol] Client 615e6cc9-a292-4f9c-92cc-5f5125040bf6 connected from 192.168.1.8 (v2 protocol, transport=WiFi)
+[Signal] Client connected dd49490f-a962-4a4c-8b69-8837db2c2672, protocol=v2, transport=WiFi
+[Protocol] Client dd49490f-a962-4a4c-8b69-8837db2c2672 connected from 192.168.1.8 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 8573157376 bytes = 8176 MB
@@ -71,17 +71,20 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 668MB in 2013ms = 2783.7 Mbps
+[Protocol] Download test complete: sent 716MB in 2027ms = 2963.1 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
-[Protocol] WaitForSpeedTest received: type=speedtest_result, len=112
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=114
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 2772.7Mbps, 0.0ms
-[Protocol] ✓ Received speedtest_result from client: 2772.7Mbps, 0.0ms ping
+[Protocol] speedtest_result parsed: 2949.4Mbps, 0.0ms
+[Protocol] ✓ Received speedtest_result from client: 2949.4Mbps, 0.0ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1440x810@60fps, bitrate=40000kbps, codec=H264, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
+[Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: ping...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
@@ -130,7 +133,7 @@ Server is running. Press ENTER to exit.
 [Protocol] ICE legacy format message
 [Protocol] ICE RX: ping...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2767880005275445703 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6697891543927549920 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 0 pending ICE candidates
@@ -138,37 +141,37 @@ Server is running. Press ENTER to exit.
 [Protocol] Parsed H264 PT from offer: 109
 [SIPSorcery] Processing offer for 1 monitors
 [SIPSorcery] Offer H264 pt=103, fmtp=level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 33:3D:2F:CA:E0:16:F0:22:4A:89:8A:08:8A:3E:60:CF:2A:98:D5:A9:B0:18:D3:26:D7:20:F3:DC:47:D6:2D:5D
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 5E:97:5A:23:5A:B7:AF:FB:8F:84:64:42:5B:33:49:C2:D4:1B:82:76:BC:B6:76:B9:1D:C5:D3:8A:AB:69:B5:12
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1440x810 (device=839CDE36)
+[SIPSorcery] Added track 0: 1440x810 (device=80700427)
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
 [SIPSorcery] Local ICE: 1922050716 1 udp 2113940223 2402:800:610d:eab:4cd7...
-[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 51668 typ ...
+[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 53644 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 92:5F:96:64:9B:21:2A:CA:5C:C3:15:9E:E5:22:1C:F5:06:51:D7:EA:82:D3:1E:B1:E9:4C:83:03:6D:F6:3B:66
+[SIPSorcery] SDP: a=fingerprint:sha-256 36:BA:AB:E2:EC:7F:CE:BE:62:03:EF:08:F1:A1:5B:83:BF:6C:69:0F:0C:61:59:4A:FA:00:52:CF:42:DF:7D:0F
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1233 bytes
+[SIPSorcery] Answer ready, 1235 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 109
 [Protocol] SDP kept: a=rtpmap:109 H264/90000
 [Protocol] SDP kept: a=fmtp:109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1233 to 677 bytes
+[Protocol] Filtered SDP from 1235 to 679 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 26604 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
-[Protocol] Sent single answer, len=679 bytes
-[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 51668 typ ...
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:96372125 1 udp 21139...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 38912 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0\r\nm=video 9 UDP/TLS/RTP/SAV...
+[Protocol] Sent single answer, len=681 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 53644 typ ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:3605130281 1 udp 211...
 [Protocol] ICE message type: candidate
-[Cluster Signal] Attempting to resolve mDNS: '4440d632-010b-4f75-b5f3-e3b681cb2294.local'
+[Cluster Signal] Attempting to resolve mDNS: 'beaf6cda-46d8-4560-96b4-8a7e60f30905.local'
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
-[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 51668 ty...
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 53644 ty...
 [GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
 [SIPSorcery] Detected GPU vendor: AMD
 [SIPSorcery] Creating AMF encoder for AMD GPU
@@ -182,26 +185,26 @@ Server is running. Press ENTER to exit.
 [PerMonitorCapture] Started 1 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
 [GpuTextureScaler] Monitor 0: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 0 (device=1E6839CDFD0)
+[TextureResizer] Created GPU scaler for monitor 0 (device=1B780700590)
 [GpuTextureScaler] Monitor 0: Output texture 1440x810
-[SIPSorcery] Track 0 frame #0: 102462B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 first frame: VideoStreamList.Count=1, rtpStep=17678
-[SIPSorcery] VideoStream[0]: SSRC=56379709
-[SIPSorcery] Track 0 frame #1: 140420B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #2: 93609B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #3: 71149B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #4: 60969B, NAL types=[7,8,5], key=True
-[Cluster Signal] mDNS resolved '4440d632-010b-4f75-b5f3-e3b681cb2294.local' -> 192.168.1.8 after 1 attempt(s)
-[SIPSorcery] Added remote ICE: candidate:96372125 1 udp 2113937151 192.168.1.8 51...
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:51170606 1 udp 21139...
+[SIPSorcery] Track 0 frame #0: 109181B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=1, rtpStep=41952
+[SIPSorcery] VideoStream[0]: SSRC=1230088770
+[SIPSorcery] Track 0 frame #1: 146215B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #2: 99566B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #3: 70874B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #4: 64233B, NAL types=[7,8,5], key=True
+[Cluster Signal] mDNS resolved 'beaf6cda-46d8-4560-96b4-8a7e60f30905.local' -> 192.168.1.8 after 1 attempt(s)
+[SIPSorcery] Added remote ICE: candidate:3605130281 1 udp 2113937151 192.168.1.8 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:3495142554 1 udp 211...
 [Protocol] ICE message type: candidate
-[Cluster Signal] Attempting to resolve mDNS: '6130fad0-8ff7-4c94-a47b-048bbabc2d6f.local'
-[Cluster Signal] mDNS resolve attempt 1/2 failed for '6130fad0-8ff7-4c94-a47b-048bbabc2d6f.local': One or more errors occurred. (No such host is known.)
-[Cluster Signal] mDNS resolve attempt 2/2 failed for '6130fad0-8ff7-4c94-a47b-048bbabc2d6f.local': One or more errors occurred. (No such host is known.)
-[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '6130fad0-8ff7-4c94-a47b-048bbabc2d6f.local'
-[Cluster Signal] mDNS fallback: '6130fad0-8ff7-4c94-a47b-048bbabc2d6f.local' -> 192.168.1.8 (using remote IP)
-[Cluster Signal] Rewritten candidate: candidate:51170606 1 udp 2113939711 192.168.1.8 51666 typ host generation 0 ufrag HsDW network-cost 999
-[SIPSorcery] Added remote ICE: candidate:51170606 1 udp 2113939711 192.168.1.8 51...
+[Cluster Signal] Attempting to resolve mDNS: '0bec60f6-a6c5-4e50-9823-cd9eedc42af7.local'
+[Cluster Signal] mDNS resolve attempt 1/2 failed for '0bec60f6-a6c5-4e50-9823-cd9eedc42af7.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] mDNS resolve attempt 2/2 failed for '0bec60f6-a6c5-4e50-9823-cd9eedc42af7.local': One or more errors occurred. (No such host is known.)
+[Cluster Signal] All mDNS resolve attempts failed, will use fallback for '0bec60f6-a6c5-4e50-9823-cd9eedc42af7.local'
+[Cluster Signal] mDNS fallback: '0bec60f6-a6c5-4e50-9823-cd9eedc42af7.local' -> 192.168.1.8 (using remote IP)
+[Cluster Signal] Rewritten candidate: candidate:3495142554 1 udp 2113939711 192.168.1.8 53642 typ host generation 0 ufrag XpAA network-cost 999
+[SIPSorcery] Added remote ICE: candidate:3495142554 1 udp 2113939711 192.168.1.8 ...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
@@ -214,155 +217,14 @@ Server is running. Press ENTER to exit.
 [Protocol] Capture thread already running, skipping start
 [Protocol] Cursor tracking started
 [KeepAlive] Server-side keep-alive started (5s interval)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=3, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=4, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=5, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=6, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=7, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=8, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=9, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=10, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=11, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=12, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=13, hotspot=(0,0)
 [SIPSorcery] Stats: m0:618
-[Capture FPS] Mon0: 29.7 fps (captured 297 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=14, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=15, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=16, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=17, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=18, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=19, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=20, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=21, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=22, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=23, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=24, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=25, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=26, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=27, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=28, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=29, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=30, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=31, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=32, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=33, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=34, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=35, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=36, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=37, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=38, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=39, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=40, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=41, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=42, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=43, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=44, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=45, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=46, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=47, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=48, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=49, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=50, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=51, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=52, hotspot=(6,0)
-[SIPSorcery] Stats: m0:1243
-[Capture FPS] Mon0: 50.5 fps (captured 505 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=53, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=54, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=55, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=56, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=57, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=58, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=59, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=60, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=61, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=62, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=63, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=64, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=65, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=66, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=67, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=68, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=69, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=70, hotspot=(0,0)
+[Capture FPS] Mon0: 25.6 fps (captured 256 in 10008ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1242
+[Capture FPS] Mon0: 44.5 fps (captured 445 in 10000ms, rate-limited=0)
 [SIPSorcery] Stats: m0:1868
-[Capture FPS] Mon0: 45.5 fps (captured 455 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=71, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=72, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=73, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=74, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=75, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=76, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=77, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=78, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=79, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=80, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=81, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=82, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=83, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=84, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=85, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=86, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=87, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=88, hotspot=(0,0)
-[SIPSorcery] Stats: m0:2493
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=89, hotspot=(11,4)
-[Capture FPS] Mon0: 55.8 fps (captured 558 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=90, hotspot=(0,0)
-[SIPSorcery] Stats: m0:3118
-[Capture FPS] Mon0: 17.0 fps (captured 170 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=91, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=92, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=93, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=94, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=95, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=96, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=97, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=98, hotspot=(0,0)
-[SIPSorcery] Stats: m0:3743
-[Capture FPS] Mon0: 18.2 fps (captured 182 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=99, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=100, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=101, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=102, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=103, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=104, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=105, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=106, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=107, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=108, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=109, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=110, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=111, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=112, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=113, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=114, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=115, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=116, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=117, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=118, hotspot=(6,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=119, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=120, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=121, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=122, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=123, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=124, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=125, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=126, hotspot=(4,11)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=127, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=128, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=129, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=1, id=130, hotspot=(8,9)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=131, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=132, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=133, hotspot=(0,0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=134, hotspot=(11,4)
-[SIPSorcery] Stats: m0:4368
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=135, hotspot=(0,0)
-[Capture FPS] Mon0: 40.4 fps (captured 404 in 10000ms, rate-limited=0)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=136, hotspot=(11,4)
-[Cursor DXGI] Sent cursor image: 32x32, type=2, id=137, hotspot=(0,0)
+[Capture FPS] Mon0: 38.0 fps (captured 380 in 10000ms, rate-limited=0)
+[SIPSorcery] Stats: m0:2492
+[Capture FPS] Mon0: 43.7 fps (captured 437 in 10000ms, rate-limited=0)
 [Protocol] Cursor tracking stopped
 [Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
@@ -397,7 +259,13 @@ Device disabled successfully.
 [Guard] Restoring original state before exit...
 [Guard] Step 1: Restoring Scale and Layout (DPI)...
 [Guard] Restoring Scale and Layout (DPI)...
-[Guard] ✓ Scale and Layout restored.
+[Guard] Restoring DPI to 0% (logPixels=0)
+[DpiScaling] Setting 0% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 100%
+[DpiScaling] Monitor 1: current=125%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 100%
+[Guard] ✓ Scale and Layout restored via API.
 [Guard] Step 2: Restoring monitor modes...
 [Guard] Monitor modes restored.
 [Guard] Step 3: Restoring taskbar flag...
@@ -407,4 +275,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client 615e6cc9-a292-4f9c-92cc-5f5125040bf6 disconnected
+[Protocol] Client dd49490f-a962-4a4c-8b69-8837db2c2672 disconnected

@@ -359,8 +359,33 @@ static class DisplayGuard
             if (snap.DpiSnapshot != null && snap.DpiSnapshot.Count > 0)
             {
                 Console.WriteLine("[Guard] Restoring Scale and Layout (DPI)...");
-                DpiPerMonitorUtil.Restore(snap.DpiSnapshot);
-                Console.WriteLine("[Guard] ✓ Scale and Layout restored.");
+
+                // Convert DpiValue (logPixels) to percentage: 96=100%, 120=125%, 144=150%
+                var firstDpi = snap.DpiSnapshot.FirstOrDefault(s => s.DpiValue.HasValue);
+                if (firstDpi.DpiValue.HasValue)
+                {
+                    int percent = firstDpi.DpiValue.Value * 100 / 96;
+                    Console.WriteLine($"[Guard] Restoring DPI to {percent}% (logPixels={firstDpi.DpiValue.Value})");
+
+                    // Use DpiScalingHelper API which applies immediately (not just registry write)
+                    bool success = DpiScalingHelper.SetAllMonitorsDpiScaling((uint)percent);
+
+                    if (success)
+                    {
+                        Console.WriteLine("[Guard] ✓ Scale and Layout restored via API.");
+                    }
+                    else
+                    {
+                        // Fallback to registry method if API fails
+                        Console.WriteLine("[Guard] API failed, falling back to registry method...");
+                        DpiPerMonitorUtil.Restore(snap.DpiSnapshot);
+                        Console.WriteLine("[Guard] ✓ Scale and Layout restored via registry.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("[Guard] No valid DpiValue in snapshot, skipping.");
+                }
             }
             else
             {
