@@ -2281,6 +2281,11 @@ namespace RemotePlayServer.Protocol
         [DllImport("gdi32.dll")]
         private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int cx, int cy);
 
+        [DllImport("gdi32.dll")]
+        private static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int wDest, int hDest, IntPtr hdcSrc, int xSrc, int ySrc, uint rop);
+
+        private const uint SRCCOPY = 0x00CC0020;
+
         [DllImport("user32.dll")]
         private static extern bool DrawIconEx(IntPtr hdc, int xLeft, int yTop, IntPtr hIcon, int cxWidth, int cyWidth, uint istepIfAniCur, IntPtr hbrFlickerFreeDraw, uint diFlags);
 
@@ -2465,210 +2470,73 @@ namespace RemotePlayServer.Protocol
                     if (!GetIconInfo(hCopy, out var iconInfo))
                         return null;
 
-                    try
+                    int hotspotX = iconInfo.xHotspot;
+                    int hotspotY = iconInfo.yHotspot;
+
+                    // Clean up bitmaps from GetIconInfo immediately
+                    if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
+                    if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
+
+                    // Use System.Drawing.Icon with Graphics.DrawIcon for reliable cursor rendering
+                    // This handles cursor mask/color blitting better than ToBitmap()
+                    using (var icon = System.Drawing.Icon.FromHandle(hCopy))
                     {
-                        // Get size from mask bitmap (always present)
-                        if (iconInfo.hbmMask == IntPtr.Zero) return null;
+                        int width = icon.Width;
+                        int height = icon.Height;
 
-                        if (GetObject(iconInfo.hbmMask, Marshal.SizeOf<BITMAP>(), out var maskBmp) == 0)
-                            return null;
-
-                        int width = maskBmp.bmWidth;
-                        // For monochrome cursors, mask height is doubled (AND + XOR masks)
-                        int height = iconInfo.hbmColor != IntPtr.Zero ? maskBmp.bmHeight : maskBmp.bmHeight / 2;
-
-                        if (width <= 0 || height <= 0 || width > 256 || height > 256)
-                            return null;
-
-                        bool isMonochrome = iconInfo.hbmColor == IntPtr.Zero;
-                        int pixelCount = width * height;
-                        int dataSize = pixelCount * 4;
-
-                        // Create a memory DC
-                        var hdcScreen = CreateCompatibleDC(IntPtr.Zero);
-                        if (hdcScreen == IntPtr.Zero) return null;
-
-                        try
+                        // Create bitmap and draw icon onto it
+                        using (var bitmap = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
                         {
-                            // Create a 32-bit DIB section for rendering
-                            var bmi = new BITMAPINFO
+                            using (var g = System.Drawing.Graphics.FromImage(bitmap))
                             {
-                                bmiHeader = new BITMAPINFOHEADER
-                                {
-                                    biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
-                                    biWidth = width,
-                                    biHeight = -height, // Top-down DIB
-                                    biPlanes = 1,
-                                    biBitCount = 32,
-                                    biCompression = BI_RGB
-                                },
-                                bmiColors = new RGBQUAD[256]
-                            };
-
-                            var hDib = CreateDIBSection(hdcScreen, ref bmi, DIB_RGB_COLORS, out IntPtr pBits, IntPtr.Zero, 0);
-                            if (hDib == IntPtr.Zero || pBits == IntPtr.Zero)
-                            {
-                                Console.WriteLine("[Cursor] CreateDIBSection failed");
-                                return null;
+                                g.Clear(System.Drawing.Color.Transparent);
+                                g.DrawIcon(icon, 0, 0);
                             }
+                            
+                            Console.WriteLine($"[Cursor] DrawIcon: {width}x{height}, format={bitmap.PixelFormat}");
+
+                            var rect = new System.Drawing.Rectangle(0, 0, width, height);
+                            var bmpData = bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, 
+                                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
                             try
                             {
-                                var hdcMem = CreateCompatibleDC(hdcScreen);
-                                if (hdcMem == IntPtr.Zero)
+                                int stride = Math.Abs(bmpData.Stride);
+                                byte[] rgbaData = new byte[width * height * 4];
+
+                                for (int y = 0; y < height; y++)
                                 {
-                                    Console.WriteLine("[Cursor] CreateCompatibleDC failed");
-                                    return null;
+                                    int srcRow = y * stride;
+                                    int dstRow = (height - 1 - y) * width * 4; // Flip for Unity
+
+                                    for (int x = 0; x < width; x++)
+                                    {
+                                        int srcOffset = srcRow + x * 4;
+                                        int dstOffset = dstRow + x * 4;
+
+                                        byte b = Marshal.ReadByte(bmpData.Scan0, srcOffset);
+                                        byte g = Marshal.ReadByte(bmpData.Scan0, srcOffset + 1);
+                                        byte r = Marshal.ReadByte(bmpData.Scan0, srcOffset + 2);
+                                        byte a = Marshal.ReadByte(bmpData.Scan0, srcOffset + 3);
+
+                                        rgbaData[dstOffset] = r;
+                                        rgbaData[dstOffset + 1] = g;
+                                        rgbaData[dstOffset + 2] = b;
+                                        rgbaData[dstOffset + 3] = a;
+                                    }
                                 }
 
-                                try
-                                {
-                                    var hOldBmp = SelectObject(hdcMem, hDib);
+                                Console.WriteLine($"[Cursor] Captured cursor: {width}x{height}, hotspot=({hotspotX},{hotspotY})");
 
-                                    // === DUAL-PASS RENDERING ===
-                                    // Pass 1: Render on BLACK background
-                                    byte[] blackBg = new byte[dataSize];
-                                    // DIB is zero-initialized, so already black
-                                    // But let's be explicit
-                                    Marshal.Copy(blackBg, 0, pBits, dataSize);
-
-                                    if (!DrawIconEx(hdcMem, 0, 0, hCopy, width, height, 0, IntPtr.Zero, DI_NORMAL))
-                                    {
-                                        Console.WriteLine("[Cursor] DrawIconEx (black) failed");
-                                        SelectObject(hdcMem, hOldBmp);
-                                        return null;
-                                    }
-                                    Marshal.Copy(pBits, blackBg, 0, dataSize);
-
-                                    // Pass 2: Render on WHITE background
-                                    byte[] whiteBg = new byte[dataSize];
-                                    for (int i = 0; i < dataSize; i++) whiteBg[i] = 255;
-                                    Marshal.Copy(whiteBg, 0, pBits, dataSize);
-
-                                    if (!DrawIconEx(hdcMem, 0, 0, hCopy, width, height, 0, IntPtr.Zero, DI_NORMAL))
-                                    {
-                                        Console.WriteLine("[Cursor] DrawIconEx (white) failed");
-                                        SelectObject(hdcMem, hOldBmp);
-                                        return null;
-                                    }
-                                    Marshal.Copy(pBits, whiteBg, 0, dataSize);
-
-                                    SelectObject(hdcMem, hOldBmp);
-
-                                    // === COMPUTE ALPHA AND COLOR ===
-                                    // Using dual-pass technique to properly handle XOR cursors:
-                                    // - If pixel same on both backgrounds → opaque pixel with that color
-                                    // - If pixel differs → XOR region, use white with calculated alpha
-                                    byte[] rgbaData = new byte[dataSize];
-
-                                    for (int i = 0; i < pixelCount; i++)
-                                    {
-                                        int offset = i * 4;
-
-                                        // BGRA format from DIB
-                                        byte bBlack = blackBg[offset];
-                                        byte gBlack = blackBg[offset + 1];
-                                        byte rBlack = blackBg[offset + 2];
-
-                                        byte bWhite = whiteBg[offset];
-                                        byte gWhite = whiteBg[offset + 1];
-                                        byte rWhite = whiteBg[offset + 2];
-
-                                        // Calculate differences
-                                        int diffR = Math.Abs(rWhite - rBlack);
-                                        int diffG = Math.Abs(gWhite - gBlack);
-                                        int diffB = Math.Abs(bWhite - bBlack);
-                                        int maxDiff = Math.Max(Math.Max(diffR, diffG), diffB);
-
-                                        byte r, g, b, alpha;
-
-                                        if (maxDiff == 0)
-                                        {
-                                            // Same color on both backgrounds = opaque pixel
-                                            // The pixel completely covers the background
-                                            r = rBlack;
-                                            g = gBlack;
-                                            b = bBlack;
-                                            alpha = 255; // Always opaque when no difference
-                                        }
-                                        else if (maxDiff == 255)
-                                        {
-                                            // Full difference - either transparent or XOR
-                                            if (rBlack == 0 && gBlack == 0 && bBlack == 0)
-                                            {
-                                                // Black bg stays black, white bg stays white
-                                                // This is a fully transparent pixel
-                                                r = g = b = alpha = 0;
-                                            }
-                                            else
-                                            {
-                                                // XOR/invert cursor (like IBeam)
-                                                // blackBg shows white, whiteBg shows black
-                                                // Use white for visibility on dark backgrounds
-                                                r = g = b = 255;
-                                                alpha = 255;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // Partial transparency (anti-aliased edge)
-                                            // Alpha = how much the cursor covers the background
-                                            // maxDiff = how much background shows through
-                                            r = rBlack;
-                                            g = gBlack;
-                                            b = bBlack;
-                                            alpha = (byte)(255 - maxDiff);
-
-                                            // Very transparent pixels should be fully transparent
-                                            if (alpha < 32)
-                                            {
-                                                alpha = 0;
-                                            }
-                                        }
-
-                                        // Write RGBA
-                                        rgbaData[offset] = r;
-                                        rgbaData[offset + 1] = g;
-                                        rgbaData[offset + 2] = b;
-                                        rgbaData[offset + 3] = alpha;
-                                    }
-
-                                    // Unity Texture2D expects bottom-up, we have top-down
-                                    // Flip vertically
-                                    byte[] flippedData = new byte[dataSize];
-                                    int rowSize = width * 4;
-                                    for (int y = 0; y < height; y++)
-                                    {
-                                        int srcRow = y * rowSize;
-                                        int dstRow = (height - 1 - y) * rowSize;
-                                        Array.Copy(rgbaData, srcRow, flippedData, dstRow, rowSize);
-                                    }
-
-                                    Console.WriteLine($"[Cursor] Captured cursor: {width}x{height}, mono={isMonochrome}, hotspot=({iconInfo.xHotspot},{iconInfo.yHotspot})");
-
-                                    var resultData = (flippedData, width, height, iconInfo.xHotspot, iconInfo.yHotspot);
-                                    _cursorImageCache[hCursor] = resultData;
-                                    return resultData;
-                                }
-                                finally
-                                {
-                                    DeleteDC(hdcMem);
-                                }
+                                var resultData = (rgbaData, width, height, hotspotX, hotspotY);
+                                _cursorImageCache[hCursor] = resultData;
+                                return resultData;
                             }
                             finally
                             {
-                                DeleteObject(hDib);
+                                bitmap.UnlockBits(bmpData);
                             }
                         }
-                        finally
-                        {
-                            DeleteDC(hdcScreen);
-                        }
-                    }
-                    finally
-                    {
-                        if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
-                        if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
                     }
                 }
                 finally
@@ -2690,6 +2558,10 @@ namespace RemotePlayServer.Protocol
         {
             _cursorCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
             var ct = _cursorCts.Token;
+
+            // Clear cache at start to ensure fresh cursors each session
+            _cursorImageCache.Clear();
+            _sentCursorIds.Clear();
 
             return Task.Run(async () =>
             {
@@ -2718,6 +2590,18 @@ namespace RemotePlayServer.Protocol
                             if (captured.HasValue)
                             {
                                 var (rgbaData, width, height, hotspotX, hotspotY) = captured.Value;
+                                
+                                // Validate data size matches declared dimensions
+                                int expectedSize = width * height * 4;
+                                if (rgbaData.Length != expectedSize)
+                                {
+                                    Console.WriteLine($"[Cursor] WARNING: Size mismatch! Expected {expectedSize} bytes for {width}x{height}, got {rgbaData.Length}");
+                                    // Resize array to match expected size
+                                    var fixedData = new byte[expectedSize];
+                                    Array.Copy(rgbaData, fixedData, Math.Min(rgbaData.Length, expectedSize));
+                                    rgbaData = fixedData;
+                                }
+                                
                                 var base64 = Convert.ToBase64String(rgbaData);
                                 var imgMsg = new CursorImageMessage
                                 {
@@ -2732,6 +2616,7 @@ namespace RemotePlayServer.Protocol
                                 await SendMessageAsync(imgMsg);
                                 _sentCursorIds.Add(cursorId);
                                 Console.WriteLine($"[Cursor] Sent cursor image: {width}x{height}, type={cursorType}, id={cursorId}, rgbaLen={rgbaData.Length}, base64Len={base64.Length}");
+                                Console.WriteLine($"[Cursor] Base64 sample: {base64.Substring(0, Math.Min(40, base64.Length))}...{base64.Substring(Math.Max(0, base64.Length - 20))}");
                             }
                         }
 
