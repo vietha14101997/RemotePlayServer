@@ -99,9 +99,26 @@ static class DisplayGuard
                 Console.WriteLine($"[Guard] Saved original text scale for {mon.name}: {originalPercent}%");
             }
 
-            // 3c) Scale and Layout (DPI) snapshot
-            snap.DpiSnapshot = DpiPerMonitorUtil.SnapshotAll();
-            Console.WriteLine($"[Guard] Saved DPI snapshot for {snap.DpiSnapshot.Count} monitors");
+            // 3c) Scale and Layout (DPI) snapshot - use API instead of registry
+            // DpiPerMonitorUtil.SnapshotAll() reads ALL monitors from registry (including disconnected)
+            // DpiScalingHelper.GetAllMonitorsDpiInfo() gets actual DPI for currently active monitors
+            var dpiInfoList = DpiScalingHelper.GetAllMonitorsDpiInfo();
+            snap.DpiSnapshot = new List<DpiPerMonitorUtil.PerMonDpi>();
+            foreach (var (adapterId, sourceId, info) in dpiInfoList)
+            {
+                if (info.IsValid)
+                {
+                    // Convert percentage to logPixels: 100% = 96, 125% = 120, 150% = 144
+                    int logPixels = (int)(info.Current * 96 / 100);
+                    snap.DpiSnapshot.Add(new DpiPerMonitorUtil.PerMonDpi
+                    {
+                        SubKey = $"LUID_{adapterId.LowPart}_{adapterId.HighPart}_Source_{sourceId}",
+                        DpiValue = logPixels
+                    });
+                    Console.WriteLine($"[Guard] DPI snapshot: Source {sourceId} = {info.Current}% (logPixels={logPixels})");
+                }
+            }
+            Console.WriteLine($"[Guard] Saved DPI snapshot for {snap.DpiSnapshot.Count} active monitors (via API)");
 
             // 4) VDD PNP instance & trạng thái
             var vddId = FindPnpInstanceIdByNameContains(DriverNameContains);
