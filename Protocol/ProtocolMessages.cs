@@ -517,6 +517,31 @@ namespace RemotePlayServer.Protocol
         public string Message { get; set; } = "";
     }
 
+    // ==================== Cursor Types ====================
+
+    /// <summary>
+    /// Cursor type enum matching Windows system cursors.
+    /// </summary>
+    public enum CursorType
+    {
+        Unknown = 0,
+        Arrow = 1,       // IDC_ARROW (32512)
+        IBeam = 2,       // IDC_IBEAM (32513) - text selection
+        Wait = 3,        // IDC_WAIT (32514) - hourglass/loading
+        Cross = 4,       // IDC_CROSS (32515) - crosshair
+        SizeNWSE = 5,    // IDC_SIZENWSE (32642) - diagonal resize NW-SE
+        SizeNESW = 6,    // IDC_SIZENESW (32643) - diagonal resize NE-SW
+        SizeWE = 7,      // IDC_SIZEWE (32644) - horizontal resize
+        SizeNS = 8,      // IDC_SIZENS (32645) - vertical resize
+        SizeAll = 9,     // IDC_SIZEALL (32646) - move cursor
+        No = 10,         // IDC_NO (32648) - not allowed
+        Hand = 11,       // IDC_HAND (32649) - pointing hand (links)
+        AppStarting = 12,// IDC_APPSTARTING (32650) - arrow + hourglass
+        Help = 13,       // IDC_HELP (32651) - arrow + question mark
+        UpArrow = 14,    // IDC_UPARROW (32516) - up arrow
+        Custom = 99      // Application-specific custom cursor
+    }
+
     /// <summary>
     /// Server -> Client: Cursor position update.
     /// Sent when cursor moves to a different position or monitor.
@@ -548,6 +573,70 @@ namespace RemotePlayServer.Protocol
         /// </summary>
         [JsonPropertyName("visible")]
         public bool Visible { get; set; }
+
+        /// <summary>
+        /// Cursor type enum value.
+        /// </summary>
+        [JsonPropertyName("cursorType")]
+        public int CursorTypeValue { get; set; } = (int)CursorType.Arrow;
+
+        /// <summary>
+        /// Unique cursor ID (hCursor handle as Int64).
+        /// Client uses this to look up cached cursor texture.
+        /// </summary>
+        [JsonPropertyName("cursorId")]
+        public long CursorId { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Server -> Client: Cursor image data.
+    /// Sent when cursor changes to a type not yet cached by client.
+    /// </summary>
+    public class CursorImageMessage : ProtocolMessage
+    {
+        public override string Type => "cursor_image";
+
+        /// <summary>
+        /// Unique cursor ID (hCursor handle as Int64).
+        /// </summary>
+        [JsonPropertyName("cursorId")]
+        public long CursorId { get; set; }
+
+        /// <summary>
+        /// Cursor type enum value.
+        /// </summary>
+        [JsonPropertyName("cursorType")]
+        public int CursorTypeValue { get; set; }
+
+        /// <summary>
+        /// Image width in pixels.
+        /// </summary>
+        [JsonPropertyName("width")]
+        public int Width { get; set; }
+
+        /// <summary>
+        /// Image height in pixels.
+        /// </summary>
+        [JsonPropertyName("height")]
+        public int Height { get; set; }
+
+        /// <summary>
+        /// Hotspot X offset in pixels from top-left.
+        /// </summary>
+        [JsonPropertyName("hotspotX")]
+        public int HotspotX { get; set; }
+
+        /// <summary>
+        /// Hotspot Y offset in pixels from top-left.
+        /// </summary>
+        [JsonPropertyName("hotspotY")]
+        public int HotspotY { get; set; }
+
+        /// <summary>
+        /// Base64-encoded PNG image data.
+        /// </summary>
+        [JsonPropertyName("imageBase64")]
+        public string ImageBase64 { get; set; } = "";
     }
 
     // ==================== Adaptive FPS Messages ====================

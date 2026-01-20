@@ -89,6 +89,16 @@ namespace RemotePlayServer.Protocol
         private float _lastCursorU = -1f;
         private float _lastCursorV = -1f;
         private bool _lastCursorVisible = false;
+        private IntPtr _lastCursorHandle = IntPtr.Zero;
+        private CursorType _lastCursorType = CursorType.Unknown;
+
+        // Cursor image caching - track which cursor IDs have been sent to client
+        private readonly HashSet<long> _sentCursorIds = new();
+        private readonly Dictionary<IntPtr, (byte[] pngData, int width, int height, int hotspotX, int hotspotY)> _cursorImageCache = new();
+
+        // System cursor handles mapping (loaded once)
+        private static Dictionary<IntPtr, CursorType>? _systemCursorMap;
+        private static readonly object _cursorMapLock = new();
 
         // Server-side keep-alive for early disconnect detection
         private System.Timers.Timer? _keepAliveTimer;
@@ -2216,6 +2226,126 @@ namespace RemotePlayServer.Protocol
 
         private const int CURSOR_SHOWING = 0x00000001;
 
+        // System cursor resource IDs
+        private const int IDC_ARROW = 32512;
+        private const int IDC_IBEAM = 32513;
+        private const int IDC_WAIT = 32514;
+        private const int IDC_CROSS = 32515;
+        private const int IDC_UPARROW = 32516;
+        private const int IDC_SIZENWSE = 32642;
+        private const int IDC_SIZENESW = 32643;
+        private const int IDC_SIZEWE = 32644;
+        private const int IDC_SIZENS = 32645;
+        private const int IDC_SIZEALL = 32646;
+        private const int IDC_NO = 32648;
+        private const int IDC_HAND = 32649;
+        private const int IDC_APPSTARTING = 32650;
+        private const int IDC_HELP = 32651;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetIconInfo(IntPtr hIcon, out ICONINFO piconinfo);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CopyIcon(IntPtr hIcon);
+
+        [DllImport("user32.dll")]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetObject(IntPtr hgdiobj, int cbBuffer, out BITMAP lpvObject);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetBitmapBits(IntPtr hbmp, int cbBuffer, byte[] lpvBits);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetDIBits(IntPtr hdc, IntPtr hbmp, uint start, uint cLines, byte[] lpvBits, ref BITMAPINFO lpbmi, uint usage);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO pbmi, uint usage, out IntPtr ppvBits, IntPtr hSection, uint offset);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int cx, int cy);
+
+        [DllImport("user32.dll")]
+        private static extern bool DrawIconEx(IntPtr hdc, int xLeft, int yTop, IntPtr hIcon, int cxWidth, int cyWidth, uint istepIfAniCur, IntPtr hbrFlickerFreeDraw, uint diFlags);
+
+        private const uint DI_MASK = 0x0001;
+        private const uint DI_IMAGE = 0x0002;
+        private const uint DI_NORMAL = DI_MASK | DI_IMAGE;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ICONINFO
+        {
+            public bool fIcon;
+            public int xHotspot;
+            public int yHotspot;
+            public IntPtr hbmMask;
+            public IntPtr hbmColor;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BITMAP
+        {
+            public int bmType;
+            public int bmWidth;
+            public int bmHeight;
+            public int bmWidthBytes;
+            public ushort bmPlanes;
+            public ushort bmBitsPixel;
+            public IntPtr bmBits;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BITMAPINFOHEADER
+        {
+            public uint biSize;
+            public int biWidth;
+            public int biHeight;
+            public ushort biPlanes;
+            public ushort biBitCount;
+            public uint biCompression;
+            public uint biSizeImage;
+            public int biXPelsPerMeter;
+            public int biYPelsPerMeter;
+            public uint biClrUsed;
+            public uint biClrImportant;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RGBQUAD
+        {
+            public byte rgbBlue;
+            public byte rgbGreen;
+            public byte rgbRed;
+            public byte rgbReserved;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BITMAPINFO
+        {
+            public BITMAPINFOHEADER bmiHeader;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public RGBQUAD[] bmiColors;
+        }
+
+        private const uint DIB_RGB_COLORS = 0;
+        private const uint BI_RGB = 0;
+
         /// <summary>
         /// Refresh monitor rects from DXGI for cursor position tracking.
         /// </summary>
@@ -2257,7 +2387,304 @@ namespace RemotePlayServer.Protocol
         #region Cursor Tracking
 
         /// <summary>
-        /// Start cursor tracking task that sends position updates to client.
+        /// Initialize system cursor handle mapping (called once).
+        /// </summary>
+        private static void InitializeSystemCursorMap()
+        {
+            lock (_cursorMapLock)
+            {
+                if (_systemCursorMap != null) return;
+
+                _systemCursorMap = new Dictionary<IntPtr, CursorType>();
+
+                var mappings = new[]
+                {
+                    (IDC_ARROW, CursorType.Arrow),
+                    (IDC_IBEAM, CursorType.IBeam),
+                    (IDC_WAIT, CursorType.Wait),
+                    (IDC_CROSS, CursorType.Cross),
+                    (IDC_UPARROW, CursorType.UpArrow),
+                    (IDC_SIZENWSE, CursorType.SizeNWSE),
+                    (IDC_SIZENESW, CursorType.SizeNESW),
+                    (IDC_SIZEWE, CursorType.SizeWE),
+                    (IDC_SIZENS, CursorType.SizeNS),
+                    (IDC_SIZEALL, CursorType.SizeAll),
+                    (IDC_NO, CursorType.No),
+                    (IDC_HAND, CursorType.Hand),
+                    (IDC_APPSTARTING, CursorType.AppStarting),
+                    (IDC_HELP, CursorType.Help)
+                };
+
+                foreach (var (id, type) in mappings)
+                {
+                    var handle = LoadCursor(IntPtr.Zero, id);
+                    if (handle != IntPtr.Zero)
+                        _systemCursorMap[handle] = type;
+                }
+
+                Console.WriteLine($"[Cursor] Initialized {_systemCursorMap.Count} system cursor mappings");
+            }
+        }
+
+        /// <summary>
+        /// Get cursor type from handle by comparing with system cursors.
+        /// </summary>
+        private static CursorType GetCursorType(IntPtr hCursor)
+        {
+            InitializeSystemCursorMap();
+
+            if (hCursor == IntPtr.Zero)
+                return CursorType.Unknown;
+
+            if (_systemCursorMap!.TryGetValue(hCursor, out var cursorType))
+                return cursorType;
+
+            return CursorType.Custom;
+        }
+
+        /// <summary>
+        /// Capture cursor bitmap using dual-pass DrawIconEx for accurate alpha and color.
+        /// Renders cursor on both black and white backgrounds to compute correct transparency.
+        /// </summary>
+        private (byte[] pngData, int width, int height, int hotspotX, int hotspotY)? CaptureCursorBitmap(IntPtr hCursor)
+        {
+            if (hCursor == IntPtr.Zero) return null;
+
+            // Check cache first
+            if (_cursorImageCache.TryGetValue(hCursor, out var cached))
+                return cached;
+
+            try
+            {
+                // Copy cursor to avoid issues with shared handles
+                var hCopy = CopyIcon(hCursor);
+                if (hCopy == IntPtr.Zero) return null;
+
+                try
+                {
+                    if (!GetIconInfo(hCopy, out var iconInfo))
+                        return null;
+
+                    try
+                    {
+                        // Get size from mask bitmap (always present)
+                        if (iconInfo.hbmMask == IntPtr.Zero) return null;
+
+                        if (GetObject(iconInfo.hbmMask, Marshal.SizeOf<BITMAP>(), out var maskBmp) == 0)
+                            return null;
+
+                        int width = maskBmp.bmWidth;
+                        // For monochrome cursors, mask height is doubled (AND + XOR masks)
+                        int height = iconInfo.hbmColor != IntPtr.Zero ? maskBmp.bmHeight : maskBmp.bmHeight / 2;
+
+                        if (width <= 0 || height <= 0 || width > 256 || height > 256)
+                            return null;
+
+                        bool isMonochrome = iconInfo.hbmColor == IntPtr.Zero;
+                        int pixelCount = width * height;
+                        int dataSize = pixelCount * 4;
+
+                        // Create a memory DC
+                        var hdcScreen = CreateCompatibleDC(IntPtr.Zero);
+                        if (hdcScreen == IntPtr.Zero) return null;
+
+                        try
+                        {
+                            // Create a 32-bit DIB section for rendering
+                            var bmi = new BITMAPINFO
+                            {
+                                bmiHeader = new BITMAPINFOHEADER
+                                {
+                                    biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
+                                    biWidth = width,
+                                    biHeight = -height, // Top-down DIB
+                                    biPlanes = 1,
+                                    biBitCount = 32,
+                                    biCompression = BI_RGB
+                                },
+                                bmiColors = new RGBQUAD[256]
+                            };
+
+                            var hDib = CreateDIBSection(hdcScreen, ref bmi, DIB_RGB_COLORS, out IntPtr pBits, IntPtr.Zero, 0);
+                            if (hDib == IntPtr.Zero || pBits == IntPtr.Zero)
+                            {
+                                Console.WriteLine("[Cursor] CreateDIBSection failed");
+                                return null;
+                            }
+
+                            try
+                            {
+                                var hdcMem = CreateCompatibleDC(hdcScreen);
+                                if (hdcMem == IntPtr.Zero)
+                                {
+                                    Console.WriteLine("[Cursor] CreateCompatibleDC failed");
+                                    return null;
+                                }
+
+                                try
+                                {
+                                    var hOldBmp = SelectObject(hdcMem, hDib);
+
+                                    // === DUAL-PASS RENDERING ===
+                                    // Pass 1: Render on BLACK background
+                                    byte[] blackBg = new byte[dataSize];
+                                    // DIB is zero-initialized, so already black
+                                    // But let's be explicit
+                                    Marshal.Copy(blackBg, 0, pBits, dataSize);
+
+                                    if (!DrawIconEx(hdcMem, 0, 0, hCopy, width, height, 0, IntPtr.Zero, DI_NORMAL))
+                                    {
+                                        Console.WriteLine("[Cursor] DrawIconEx (black) failed");
+                                        SelectObject(hdcMem, hOldBmp);
+                                        return null;
+                                    }
+                                    Marshal.Copy(pBits, blackBg, 0, dataSize);
+
+                                    // Pass 2: Render on WHITE background
+                                    byte[] whiteBg = new byte[dataSize];
+                                    for (int i = 0; i < dataSize; i++) whiteBg[i] = 255;
+                                    Marshal.Copy(whiteBg, 0, pBits, dataSize);
+
+                                    if (!DrawIconEx(hdcMem, 0, 0, hCopy, width, height, 0, IntPtr.Zero, DI_NORMAL))
+                                    {
+                                        Console.WriteLine("[Cursor] DrawIconEx (white) failed");
+                                        SelectObject(hdcMem, hOldBmp);
+                                        return null;
+                                    }
+                                    Marshal.Copy(pBits, whiteBg, 0, dataSize);
+
+                                    SelectObject(hdcMem, hOldBmp);
+
+                                    // === COMPUTE ALPHA AND COLOR ===
+                                    // Using dual-pass technique to properly handle XOR cursors:
+                                    // - If pixel same on both backgrounds → opaque pixel with that color
+                                    // - If pixel differs → XOR region, use white with calculated alpha
+                                    byte[] rgbaData = new byte[dataSize];
+
+                                    for (int i = 0; i < pixelCount; i++)
+                                    {
+                                        int offset = i * 4;
+
+                                        // BGRA format from DIB
+                                        byte bBlack = blackBg[offset];
+                                        byte gBlack = blackBg[offset + 1];
+                                        byte rBlack = blackBg[offset + 2];
+
+                                        byte bWhite = whiteBg[offset];
+                                        byte gWhite = whiteBg[offset + 1];
+                                        byte rWhite = whiteBg[offset + 2];
+
+                                        // Calculate differences
+                                        int diffR = Math.Abs(rWhite - rBlack);
+                                        int diffG = Math.Abs(gWhite - gBlack);
+                                        int diffB = Math.Abs(bWhite - bBlack);
+                                        int maxDiff = Math.Max(Math.Max(diffR, diffG), diffB);
+
+                                        byte r, g, b, alpha;
+
+                                        if (maxDiff == 0)
+                                        {
+                                            // Same color on both backgrounds = opaque pixel
+                                            // The pixel completely covers the background
+                                            r = rBlack;
+                                            g = gBlack;
+                                            b = bBlack;
+                                            alpha = 255; // Always opaque when no difference
+                                        }
+                                        else if (maxDiff == 255)
+                                        {
+                                            // Full difference - either transparent or XOR
+                                            if (rBlack == 0 && gBlack == 0 && bBlack == 0)
+                                            {
+                                                // Black bg stays black, white bg stays white
+                                                // This is a fully transparent pixel
+                                                r = g = b = alpha = 0;
+                                            }
+                                            else
+                                            {
+                                                // XOR/invert cursor (like IBeam)
+                                                // blackBg shows white, whiteBg shows black
+                                                // Use white for visibility on dark backgrounds
+                                                r = g = b = 255;
+                                                alpha = 255;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Partial transparency (anti-aliased edge)
+                                            // Alpha = how much the cursor covers the background
+                                            // maxDiff = how much background shows through
+                                            r = rBlack;
+                                            g = gBlack;
+                                            b = bBlack;
+                                            alpha = (byte)(255 - maxDiff);
+
+                                            // Very transparent pixels should be fully transparent
+                                            if (alpha < 32)
+                                            {
+                                                alpha = 0;
+                                            }
+                                        }
+
+                                        // Write RGBA
+                                        rgbaData[offset] = r;
+                                        rgbaData[offset + 1] = g;
+                                        rgbaData[offset + 2] = b;
+                                        rgbaData[offset + 3] = alpha;
+                                    }
+
+                                    // Unity Texture2D expects bottom-up, we have top-down
+                                    // Flip vertically
+                                    byte[] flippedData = new byte[dataSize];
+                                    int rowSize = width * 4;
+                                    for (int y = 0; y < height; y++)
+                                    {
+                                        int srcRow = y * rowSize;
+                                        int dstRow = (height - 1 - y) * rowSize;
+                                        Array.Copy(rgbaData, srcRow, flippedData, dstRow, rowSize);
+                                    }
+
+                                    Console.WriteLine($"[Cursor] Captured cursor: {width}x{height}, mono={isMonochrome}, hotspot=({iconInfo.xHotspot},{iconInfo.yHotspot})");
+
+                                    var resultData = (flippedData, width, height, iconInfo.xHotspot, iconInfo.yHotspot);
+                                    _cursorImageCache[hCursor] = resultData;
+                                    return resultData;
+                                }
+                                finally
+                                {
+                                    DeleteDC(hdcMem);
+                                }
+                            }
+                            finally
+                            {
+                                DeleteObject(hDib);
+                            }
+                        }
+                        finally
+                        {
+                            DeleteDC(hdcScreen);
+                        }
+                    }
+                    finally
+                    {
+                        if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
+                        if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
+                    }
+                }
+                finally
+                {
+                    DestroyIcon(hCopy);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Cursor] Failed to capture cursor bitmap: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Start cursor tracking task that sends position and image updates to client.
         /// </summary>
         private Task StartCursorTrackingTask()
         {
@@ -2273,26 +2700,58 @@ namespace RemotePlayServer.Protocol
                 {
                     try
                     {
-                        var (monitorIndex, u, v, visible) = GetCursorPosition();
+                        var (monitorIndex, u, v, visible, hCursor, cursorType) = GetCursorPositionAndState();
+                        long cursorId = hCursor.ToInt64();
 
-                        // Check if cursor changed significantly
-                        bool changed = monitorIndex != _lastCursorMonitor ||
-                                       visible != _lastCursorVisible ||
-                                       (visible && (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD));
+                        // Check if cursor handle changed (need to potentially send new image)
+                        bool cursorChanged = hCursor != _lastCursorHandle;
 
-                        if (changed)
+                        // Check if position changed significantly
+                        bool positionChanged = monitorIndex != _lastCursorMonitor ||
+                                               visible != _lastCursorVisible ||
+                                               (visible && (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD));
+
+                        // Send cursor image if this is a new cursor we haven't sent yet
+                        if (cursorChanged && visible && hCursor != IntPtr.Zero && !_sentCursorIds.Contains(cursorId))
+                        {
+                            var captured = CaptureCursorBitmap(hCursor);
+                            if (captured.HasValue)
+                            {
+                                var (rgbaData, width, height, hotspotX, hotspotY) = captured.Value;
+                                var base64 = Convert.ToBase64String(rgbaData);
+                                var imgMsg = new CursorImageMessage
+                                {
+                                    CursorId = cursorId,
+                                    CursorTypeValue = (int)cursorType,
+                                    Width = width,
+                                    Height = height,
+                                    HotspotX = hotspotX,
+                                    HotspotY = hotspotY,
+                                    ImageBase64 = base64
+                                };
+                                await SendMessageAsync(imgMsg);
+                                _sentCursorIds.Add(cursorId);
+                                Console.WriteLine($"[Cursor] Sent cursor image: {width}x{height}, type={cursorType}, id={cursorId}, rgbaLen={rgbaData.Length}, base64Len={base64.Length}");
+                            }
+                        }
+
+                        if (positionChanged || cursorChanged)
                         {
                             _lastCursorMonitor = monitorIndex;
                             _lastCursorU = u;
                             _lastCursorV = v;
                             _lastCursorVisible = visible;
+                            _lastCursorHandle = hCursor;
+                            _lastCursorType = cursorType;
 
                             var msg = new CursorPositionMessage
                             {
                                 MonitorIndex = monitorIndex,
                                 U = u,
                                 V = v,
-                                Visible = visible
+                                Visible = visible,
+                                CursorTypeValue = (int)cursorType,
+                                CursorId = cursorId
                             };
                             await SendMessageAsync(msg);
                         }
@@ -2306,24 +2765,25 @@ namespace RemotePlayServer.Protocol
         }
 
         /// <summary>
-        /// Get current cursor position in UV coordinates relative to a monitor.
+        /// Get current cursor position, handle, and type.
         /// </summary>
-        private (int monitorIndex, float u, float v, bool visible) GetCursorPosition()
+        private (int monitorIndex, float u, float v, bool visible, IntPtr hCursor, CursorType cursorType) GetCursorPositionAndState()
         {
             var ci = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
             if (!GetCursorInfo(ref ci))
-                return (-1, 0, 0, false);
+                return (-1, 0, 0, false, IntPtr.Zero, CursorType.Unknown);
 
             bool visible = (ci.flags & CURSOR_SHOWING) != 0 && ci.hCursor != IntPtr.Zero;
             if (!visible)
-                return (-1, 0, 0, false);
+                return (-1, 0, 0, false, IntPtr.Zero, CursorType.Unknown);
 
             int cursorX = ci.ptScreenPos.X;
             int cursorY = ci.ptScreenPos.Y;
+            CursorType cursorType = GetCursorType(ci.hCursor);
 
             // Find which monitor the cursor is on using _monitorRects
             if (_monitorRects.Count == 0)
-                return (-1, 0, 0, false);
+                return (-1, 0, 0, false, ci.hCursor, cursorType);
 
             for (int i = 0; i < _monitorRects.Count; i++)
             {
@@ -2334,19 +2794,21 @@ namespace RemotePlayServer.Protocol
                     // Cursor is on this monitor - calculate UV (0-1)
                     float u = (float)(cursorX - rect.x) / rect.w;
                     float v = (float)(cursorY - rect.y) / rect.h;
-                    return (i, u, v, true);
+                    return (i, u, v, true, ci.hCursor, cursorType);
                 }
             }
 
-            return (-1, 0, 0, false);
+            return (-1, 0, 0, false, ci.hCursor, cursorType);
         }
 
         /// <summary>
-        /// Stop cursor tracking task.
+        /// Stop cursor tracking task and clear sent cursor cache.
         /// </summary>
         private void StopCursorTracking()
         {
             try { _cursorCts?.Cancel(); } catch { }
+            _sentCursorIds.Clear();
+            _cursorImageCache.Clear();
         }
 
         #endregion
