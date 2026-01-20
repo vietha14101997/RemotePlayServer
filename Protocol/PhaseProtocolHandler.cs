@@ -83,22 +83,15 @@ namespace RemotePlayServer.Protocol
         // Monitor rects for cursor tracking (x, y, w, h) - populated when monitors are refreshed
         private List<(int x, int y, int w, int h)> _monitorRects = new();
 
-        // Cursor tracking
+        // Cursor tracking (DXGI Desktop Duplication)
         private CancellationTokenSource? _cursorCts;
         private int _lastCursorMonitor = -1;
         private float _lastCursorU = -1f;
         private float _lastCursorV = -1f;
         private bool _lastCursorVisible = false;
-        private IntPtr _lastCursorHandle = IntPtr.Zero;
-        private CursorType _lastCursorType = CursorType.Unknown;
 
-        // Cursor image caching - track which cursor IDs have been sent to client
+        // Cursor image caching - track which cursor shape IDs have been sent to client
         private readonly HashSet<long> _sentCursorIds = new();
-        private readonly Dictionary<IntPtr, (byte[] pngData, int width, int height, int hotspotX, int hotspotY)> _cursorImageCache = new();
-
-        // System cursor handles mapping (loaded once)
-        private static Dictionary<IntPtr, CursorType>? _systemCursorMap;
-        private static readonly object _cursorMapLock = new();
 
         // Server-side keep-alive for early disconnect detection
         private System.Timers.Timer? _keepAliveTimer;
@@ -579,6 +572,9 @@ namespace RemotePlayServer.Protocol
                         preferredGpu: config.PreferGpu);
                 }
                 _capture = _sharedCapture;
+
+                // Subscribe to DXGI cursor updates from PerMonitorCapture
+                _capture.OnCursorUpdate += HandleDxgiCursorUpdate;
             }
 
             // Initialize TCS for waiting on all connections
@@ -2211,146 +2207,6 @@ namespace RemotePlayServer.Protocol
         [DllImport("combase.dll")]
         private static extern int RoInitialize(uint initType);
 
-        // Cursor P/Invoke
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT { public int X; public int Y; }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct CURSORINFO
-        {
-            public int cbSize;
-            public int flags;
-            public IntPtr hCursor;
-            public POINT ptScreenPos;
-        }
-
-        private const int CURSOR_SHOWING = 0x00000001;
-
-        // System cursor resource IDs
-        private const int IDC_ARROW = 32512;
-        private const int IDC_IBEAM = 32513;
-        private const int IDC_WAIT = 32514;
-        private const int IDC_CROSS = 32515;
-        private const int IDC_UPARROW = 32516;
-        private const int IDC_SIZENWSE = 32642;
-        private const int IDC_SIZENESW = 32643;
-        private const int IDC_SIZEWE = 32644;
-        private const int IDC_SIZENS = 32645;
-        private const int IDC_SIZEALL = 32646;
-        private const int IDC_NO = 32648;
-        private const int IDC_HAND = 32649;
-        private const int IDC_APPSTARTING = 32650;
-        private const int IDC_HELP = 32651;
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetIconInfo(IntPtr hIcon, out ICONINFO piconinfo);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr CopyIcon(IntPtr hIcon);
-
-        [DllImport("user32.dll")]
-        private static extern bool DestroyIcon(IntPtr hIcon);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-
-        [DllImport("gdi32.dll")]
-        private static extern int GetObject(IntPtr hgdiobj, int cbBuffer, out BITMAP lpvObject);
-
-        [DllImport("gdi32.dll")]
-        private static extern int GetBitmapBits(IntPtr hbmp, int cbBuffer, byte[] lpvBits);
-
-        [DllImport("gdi32.dll")]
-        private static extern int GetDIBits(IntPtr hdc, IntPtr hbmp, uint start, uint cLines, byte[] lpvBits, ref BITMAPINFO lpbmi, uint usage);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteDC(IntPtr hdc);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO pbmi, uint usage, out IntPtr ppvBits, IntPtr hSection, uint offset);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int cx, int cy);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int wDest, int hDest, IntPtr hdcSrc, int xSrc, int ySrc, uint rop);
-
-        private const uint SRCCOPY = 0x00CC0020;
-
-        [DllImport("user32.dll")]
-        private static extern bool DrawIconEx(IntPtr hdc, int xLeft, int yTop, IntPtr hIcon, int cxWidth, int cyWidth, uint istepIfAniCur, IntPtr hbrFlickerFreeDraw, uint diFlags);
-
-        private const uint DI_MASK = 0x0001;
-        private const uint DI_IMAGE = 0x0002;
-        private const uint DI_NORMAL = DI_MASK | DI_IMAGE;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct ICONINFO
-        {
-            public bool fIcon;
-            public int xHotspot;
-            public int yHotspot;
-            public IntPtr hbmMask;
-            public IntPtr hbmColor;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BITMAP
-        {
-            public int bmType;
-            public int bmWidth;
-            public int bmHeight;
-            public int bmWidthBytes;
-            public ushort bmPlanes;
-            public ushort bmBitsPixel;
-            public IntPtr bmBits;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BITMAPINFOHEADER
-        {
-            public uint biSize;
-            public int biWidth;
-            public int biHeight;
-            public ushort biPlanes;
-            public ushort biBitCount;
-            public uint biCompression;
-            public uint biSizeImage;
-            public int biXPelsPerMeter;
-            public int biYPelsPerMeter;
-            public uint biClrUsed;
-            public uint biClrImportant;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RGBQUAD
-        {
-            public byte rgbBlue;
-            public byte rgbGreen;
-            public byte rgbRed;
-            public byte rgbReserved;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BITMAPINFO
-        {
-            public BITMAPINFOHEADER bmiHeader;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
-            public RGBQUAD[] bmiColors;
-        }
-
-        private const uint DIB_RGB_COLORS = 0;
-        private const uint BI_RGB = 0;
-
         /// <summary>
         /// Refresh monitor rects from DXGI for cursor position tracking.
         /// </summary>
@@ -2384,175 +2240,242 @@ namespace RemotePlayServer.Protocol
             }
         }
 
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorInfo(ref CURSORINFO pci);
-
         #endregion
 
-        #region Cursor Tracking
+        #region Cursor Tracking (DXGI Desktop Duplication)
+
+        #region DXGI Cursor Conversion Helpers
 
         /// <summary>
-        /// Initialize system cursor handle mapping (called once).
+        /// DXGI Pointer Shape Types
         /// </summary>
-        private static void InitializeSystemCursorMap()
-        {
-            lock (_cursorMapLock)
-            {
-                if (_systemCursorMap != null) return;
-
-                _systemCursorMap = new Dictionary<IntPtr, CursorType>();
-
-                var mappings = new[]
-                {
-                    (IDC_ARROW, CursorType.Arrow),
-                    (IDC_IBEAM, CursorType.IBeam),
-                    (IDC_WAIT, CursorType.Wait),
-                    (IDC_CROSS, CursorType.Cross),
-                    (IDC_UPARROW, CursorType.UpArrow),
-                    (IDC_SIZENWSE, CursorType.SizeNWSE),
-                    (IDC_SIZENESW, CursorType.SizeNESW),
-                    (IDC_SIZEWE, CursorType.SizeWE),
-                    (IDC_SIZENS, CursorType.SizeNS),
-                    (IDC_SIZEALL, CursorType.SizeAll),
-                    (IDC_NO, CursorType.No),
-                    (IDC_HAND, CursorType.Hand),
-                    (IDC_APPSTARTING, CursorType.AppStarting),
-                    (IDC_HELP, CursorType.Help)
-                };
-
-                foreach (var (id, type) in mappings)
-                {
-                    var handle = LoadCursor(IntPtr.Zero, id);
-                    if (handle != IntPtr.Zero)
-                        _systemCursorMap[handle] = type;
-                }
-
-                Console.WriteLine($"[Cursor] Initialized {_systemCursorMap.Count} system cursor mappings");
-            }
-        }
+        private const int DXGI_POINTER_SHAPE_TYPE_MONOCHROME = 1;
+        private const int DXGI_POINTER_SHAPE_TYPE_COLOR = 2;
+        private const int DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR = 4;
 
         /// <summary>
-        /// Get cursor type from handle by comparing with system cursors.
+        /// Convert DXGI cursor buffer to RGBA32 format for Unity.
+        /// Handles Monochrome, Color, and MaskedColor cursor types.
         /// </summary>
-        private static CursorType GetCursorType(IntPtr hCursor)
+        private (byte[] rgbaData, int width, int height, int hotspotX, int hotspotY)? ConvertDxgiCursorToRgba(
+            byte[] buffer, Vortice.DXGI.OutduplPointerShapeInfo shapeInfo)
         {
-            InitializeSystemCursorMap();
-
-            if (hCursor == IntPtr.Zero)
-                return CursorType.Unknown;
-
-            if (_systemCursorMap!.TryGetValue(hCursor, out var cursorType))
-                return cursorType;
-
-            return CursorType.Custom;
-        }
-
-        /// <summary>
-        /// Capture cursor bitmap using dual-pass DrawIconEx for accurate alpha and color.
-        /// Renders cursor on both black and white backgrounds to compute correct transparency.
-        /// </summary>
-        private (byte[] pngData, int width, int height, int hotspotX, int hotspotY)? CaptureCursorBitmap(IntPtr hCursor)
-        {
-            if (hCursor == IntPtr.Zero) return null;
-
-            // Check cache first
-            if (_cursorImageCache.TryGetValue(hCursor, out var cached))
-                return cached;
+            int width = (int)shapeInfo.Width;
+            int height = (int)shapeInfo.Height;
+            int pitch = (int)shapeInfo.Pitch;
+            int hotspotX = shapeInfo.HotSpot.X;
+            int hotspotY = shapeInfo.HotSpot.Y;
+            uint type = shapeInfo.Type;
 
             try
             {
-                // Copy cursor to avoid issues with shared handles
-                var hCopy = CopyIcon(hCursor);
-                if (hCopy == IntPtr.Zero) return null;
+                byte[] rgbaData;
 
-                try
+                switch (type)
                 {
-                    if (!GetIconInfo(hCopy, out var iconInfo))
+                    case DXGI_POINTER_SHAPE_TYPE_MONOCHROME:
+                        rgbaData = ConvertMonochromeCursorToRgba(buffer, width, height, pitch);
+                        // Monochrome cursor height is doubled (AND mask + XOR mask)
+                        height /= 2;
+                        break;
+
+                    case DXGI_POINTER_SHAPE_TYPE_COLOR:
+                    case DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR:
+                        rgbaData = ConvertBgraCursorToRgba(buffer, width, height, pitch, type == DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR);
+                        break;
+
+                    default:
+                        Console.WriteLine($"[Cursor DXGI] Unknown cursor type: {type}");
                         return null;
-
-                    int hotspotX = iconInfo.xHotspot;
-                    int hotspotY = iconInfo.yHotspot;
-
-                    // Clean up bitmaps from GetIconInfo immediately
-                    if (iconInfo.hbmColor != IntPtr.Zero) DeleteObject(iconInfo.hbmColor);
-                    if (iconInfo.hbmMask != IntPtr.Zero) DeleteObject(iconInfo.hbmMask);
-
-                    // Use System.Drawing.Icon with Graphics.DrawIcon for reliable cursor rendering
-                    // This handles cursor mask/color blitting better than ToBitmap()
-                    using (var icon = System.Drawing.Icon.FromHandle(hCopy))
-                    {
-                        int width = icon.Width;
-                        int height = icon.Height;
-
-                        // Create bitmap and draw icon onto it
-                        using (var bitmap = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
-                        {
-                            using (var g = System.Drawing.Graphics.FromImage(bitmap))
-                            {
-                                g.Clear(System.Drawing.Color.Transparent);
-                                g.DrawIcon(icon, 0, 0);
-                            }
-                            
-                            Console.WriteLine($"[Cursor] DrawIcon: {width}x{height}, format={bitmap.PixelFormat}");
-
-                            var rect = new System.Drawing.Rectangle(0, 0, width, height);
-                            var bmpData = bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, 
-                                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-                            try
-                            {
-                                int stride = Math.Abs(bmpData.Stride);
-                                byte[] rgbaData = new byte[width * height * 4];
-
-                                for (int y = 0; y < height; y++)
-                                {
-                                    int srcRow = y * stride;
-                                    int dstRow = (height - 1 - y) * width * 4; // Flip for Unity
-
-                                    for (int x = 0; x < width; x++)
-                                    {
-                                        int srcOffset = srcRow + x * 4;
-                                        int dstOffset = dstRow + x * 4;
-
-                                        byte b = Marshal.ReadByte(bmpData.Scan0, srcOffset);
-                                        byte g = Marshal.ReadByte(bmpData.Scan0, srcOffset + 1);
-                                        byte r = Marshal.ReadByte(bmpData.Scan0, srcOffset + 2);
-                                        byte a = Marshal.ReadByte(bmpData.Scan0, srcOffset + 3);
-
-                                        rgbaData[dstOffset] = r;
-                                        rgbaData[dstOffset + 1] = g;
-                                        rgbaData[dstOffset + 2] = b;
-                                        rgbaData[dstOffset + 3] = a;
-                                    }
-                                }
-
-                                Console.WriteLine($"[Cursor] Captured cursor: {width}x{height}, hotspot=({hotspotX},{hotspotY})");
-
-                                var resultData = (rgbaData, width, height, hotspotX, hotspotY);
-                                _cursorImageCache[hCursor] = resultData;
-                                return resultData;
-                            }
-                            finally
-                            {
-                                bitmap.UnlockBits(bmpData);
-                            }
-                        }
-                    }
                 }
-                finally
-                {
-                    DestroyIcon(hCopy);
-                }
+
+                return (rgbaData, width, height, hotspotX, hotspotY);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Cursor] Failed to capture cursor bitmap: {ex.Message}");
+                Console.WriteLine($"[Cursor DXGI] Failed to convert cursor: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
+        /// Convert Monochrome cursor (1bpp AND/XOR masks) to RGBA32.
+        /// </summary>
+        private byte[] ConvertMonochromeCursorToRgba(byte[] buffer, int width, int height, int pitch)
+        {
+            // Monochrome cursor has doubled height: AND mask on top, XOR mask on bottom
+            int actualHeight = height / 2;
+            byte[] rgbaData = new byte[width * actualHeight * 4];
+
+            // Calculate bytes per row (1 bit per pixel, aligned to pitch)
+            int bytesPerRow = pitch;
+
+            // Validate buffer size: need enough for both AND and XOR masks
+            int expectedBufferSize = bytesPerRow * height;
+            if (buffer.Length < expectedBufferSize)
+            {
+                Console.WriteLine($"[Cursor Mono] Buffer too small: {buffer.Length} < {expectedBufferSize} (pitch={pitch}, height={height})");
+                return rgbaData;
+            }
+
+            for (int y = 0; y < actualHeight; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int byteIndex = x / 8;
+                    int bitIndex = 7 - (x % 8);
+
+                    // AND mask (top half)
+                    int andRowOffset = y * bytesPerRow;
+                    int andOffset = andRowOffset + byteIndex;
+                    if (andOffset >= buffer.Length) continue;
+                    byte andByte = buffer[andOffset];
+                    int andBit = (andByte >> bitIndex) & 1;
+
+                    // XOR mask (bottom half)
+                    int xorRowOffset = (actualHeight + y) * bytesPerRow;
+                    int xorOffset = xorRowOffset + byteIndex;
+                    if (xorOffset >= buffer.Length) continue;
+                    byte xorByte = buffer[xorOffset];
+                    int xorBit = (xorByte >> bitIndex) & 1;
+
+                    // Calculate RGBA based on AND/XOR combination
+                    // AND=0, XOR=0 -> Black, opaque
+                    // AND=0, XOR=1 -> White, opaque
+                    // AND=1, XOR=0 -> Transparent
+                    // AND=1, XOR=1 -> Inverse (we'll render as gray to show it)
+                    byte r, g, b, a;
+
+                    if (andBit == 0)
+                    {
+                        // Opaque pixel
+                        a = 255;
+                        if (xorBit == 0)
+                        {
+                            r = g = b = 0; // Black
+                        }
+                        else
+                        {
+                            r = g = b = 255; // White
+                        }
+                    }
+                    else
+                    {
+                        if (xorBit == 0)
+                        {
+                            // Transparent
+                            r = g = b = a = 0;
+                        }
+                        else
+                        {
+                            // Inverse pixel - render as semi-transparent gray
+                            r = g = b = 128;
+                            a = 180;
+                        }
+                    }
+
+                    // Output RGBA - NO FLIP, keep original Windows row order
+                    // Each client (Unity/Web) will handle Y orientation if needed
+                    int dstOffset = (y * width + x) * 4;
+                    rgbaData[dstOffset] = r;
+                    rgbaData[dstOffset + 1] = g;
+                    rgbaData[dstOffset + 2] = b;
+                    rgbaData[dstOffset + 3] = a;
+                }
+            }
+
+            return rgbaData;
+        }
+
+        /// <summary>
+        /// Convert BGRA cursor (32bpp) to RGBA32.
+        /// Keeps original Windows row order (row 0 = top).
+        /// Unity client will flip when loading into Texture2D if needed.
+        /// </summary>
+        private byte[] ConvertBgraCursorToRgba(byte[] buffer, int width, int height, int pitch, bool isMaskedColor)
+        {
+            byte[] rgbaData = new byte[width * height * 4];
+
+            // Validate buffer size
+            int expectedBufferSize = pitch * height;
+            if (buffer.Length < expectedBufferSize)
+            {
+                Console.WriteLine($"[Cursor BGRA] Buffer too small: {buffer.Length} < {expectedBufferSize} (pitch={pitch}, height={height})");
+                // Fill with transparent pixels
+                return rgbaData;
+            }
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int srcOffset = y * pitch + x * 4;
+
+                    // Bounds check
+                    if (srcOffset + 3 >= buffer.Length)
+                    {
+                        continue;
+                    }
+
+                    // BGRA format
+                    byte b = buffer[srcOffset];
+                    byte g = buffer[srcOffset + 1];
+                    byte r = buffer[srcOffset + 2];
+                    byte a = buffer[srcOffset + 3];
+
+                    // For masked color, alpha is binary (0 or 0xFF)
+                    // 0x00 = use cursor color directly
+                    // 0xFF = XOR with background (we render as semi-transparent)
+                    if (isMaskedColor && a == 0xFF)
+                    {
+                        // XOR pixel - render with reduced opacity to show it
+                        a = 200;
+                    }
+
+                    // Output RGBA - NO FLIP, keep original Windows row order (row 0 = top)
+                    // Web clients can use directly, Unity clients flip when loading
+                    int dstOffset = (y * width + x) * 4;
+                    rgbaData[dstOffset] = r;
+                    rgbaData[dstOffset + 1] = g;
+                    rgbaData[dstOffset + 2] = b;
+                    rgbaData[dstOffset + 3] = a;
+                }
+            }
+
+            return rgbaData;
+        }
+
+        #endregion
+
+        // DXGI Cursor state tracking
+        private long _lastDxgiCursorShapeId = -1;
+        private readonly object _dxgiCursorLock = new();
+        private byte[]? _pendingDxgiCursorBuffer;
+        private Vortice.DXGI.OutduplPointerShapeInfo? _pendingDxgiCursorShapeInfo;
+        private Vortice.DXGI.OutduplPointerPosition? _pendingDxgiCursorPosition;
+        private long _pendingDxgiCursorShapeId;
+        private int _pendingDxgiCursorMonitorIndex = -1;
+
+        /// <summary>
+        /// Handle cursor update from PerMonitorCapture DXGI Desktop Duplication.
+        /// Called from capture thread - stores data for processing in cursor tracking task.
+        /// </summary>
+        private void HandleDxgiCursorUpdate(int monitorIndex, byte[] buffer, Vortice.DXGI.OutduplPointerShapeInfo shapeInfo,
+            Vortice.DXGI.OutduplPointerPosition position, long shapeId)
+        {
+            lock (_dxgiCursorLock)
+            {
+                _pendingDxgiCursorBuffer = buffer;
+                _pendingDxgiCursorShapeInfo = shapeInfo;
+                _pendingDxgiCursorPosition = position;
+                _pendingDxgiCursorShapeId = shapeId;
+                _pendingDxgiCursorMonitorIndex = monitorIndex;
+            }
+        }
+
+        /// <summary>
         /// Start cursor tracking task that sends position and image updates to client.
+        /// Uses DXGI Desktop Duplication cursor data from PerMonitorCapture instead of GDI+.
         /// </summary>
         private Task StartCursorTrackingTask()
         {
@@ -2560,8 +2483,8 @@ namespace RemotePlayServer.Protocol
             var ct = _cursorCts.Token;
 
             // Clear cache at start to ensure fresh cursors each session
-            _cursorImageCache.Clear();
             _sentCursorIds.Clear();
+            _lastDxgiCursorShapeId = -1;
 
             return Task.Run(async () =>
             {
@@ -2572,41 +2495,84 @@ namespace RemotePlayServer.Protocol
                 {
                     try
                     {
-                        var (monitorIndex, u, v, visible, hCursor, cursorType) = GetCursorPositionAndState();
-                        long cursorId = hCursor.ToInt64();
+                        // Get cursor data from DXGI Desktop Duplication (thread-safe copy)
+                        byte[]? cursorBuffer;
+                        Vortice.DXGI.OutduplPointerShapeInfo? shapeInfo;
+                        Vortice.DXGI.OutduplPointerPosition? position;
+                        long shapeId;
+                        int monitorIndex;
 
-                        // Check if cursor handle changed (need to potentially send new image)
-                        bool cursorChanged = hCursor != _lastCursorHandle;
+                        lock (_dxgiCursorLock)
+                        {
+                            cursorBuffer = _pendingDxgiCursorBuffer;
+                            shapeInfo = _pendingDxgiCursorShapeInfo;
+                            position = _pendingDxgiCursorPosition;
+                            shapeId = _pendingDxgiCursorShapeId;
+                            monitorIndex = _pendingDxgiCursorMonitorIndex;
+                        }
+
+                        // Wait for DXGI data before processing
+                        if (cursorBuffer == null || !shapeInfo.HasValue || !position.HasValue || monitorIndex < 0)
+                        {
+                            await Task.Delay(POLL_INTERVAL_MS, ct);
+                            continue;
+                        }
+
+                        // DXGI Visible flag is only true when cursor was updated in current frame
+                        // When cursor is stationary, this flag is false - but cursor should still be shown
+                        // So we always consider cursor visible (DXGI always has a cursor to show)
+                        // The cursor is only truly hidden when app explicitly hides it (which we can't detect reliably)
+                        bool visible = true; // Always visible - cursor overlay stays on
+
+                        // Calculate UV coordinates from screen position
+                        // DXGI cursor Position is in DESKTOP coordinates (absolute)
+                        // We need to subtract monitor origin to get relative position
+                        // Always calculate UV (even when not visible) to have good position data
+                        float u = _lastCursorU, v = _lastCursorV;
+                        if (monitorIndex < _monitorRects.Count)
+                        {
+                            var rect = _monitorRects[monitorIndex];
+                            // Subtract monitor origin to get relative position
+                            int relX = position.Value.Position.X - rect.x;
+                            int relY = position.Value.Position.Y - rect.y;
+                            u = (float)relX / rect.w;
+                            v = (float)relY / rect.h;
+                            // Clamp to valid range
+                            u = Math.Clamp(u, 0f, 1f);
+                            v = Math.Clamp(v, 0f, 1f);
+                        }
+
+                        // Check if cursor shape changed (need to send new image)
+                        bool shapeChanged = shapeId != _lastDxgiCursorShapeId;
 
                         // Check if position changed significantly
                         bool positionChanged = monitorIndex != _lastCursorMonitor ||
                                                visible != _lastCursorVisible ||
-                                               (visible && (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD));
+                                               (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD);
 
-                        // Send cursor image if this is a new cursor we haven't sent yet
-                        if (cursorChanged && visible && hCursor != IntPtr.Zero && !_sentCursorIds.Contains(cursorId))
+                        // Send cursor image if shape changed and we haven't sent it yet
+                        if (shapeChanged && visible && !_sentCursorIds.Contains(shapeId))
                         {
-                            var captured = CaptureCursorBitmap(hCursor);
-                            if (captured.HasValue)
+                            var converted = ConvertDxgiCursorToRgba(cursorBuffer, shapeInfo.Value);
+                            if (converted.HasValue)
                             {
-                                var (rgbaData, width, height, hotspotX, hotspotY) = captured.Value;
-                                
+                                var (rgbaData, width, height, hotspotX, hotspotY) = converted.Value;
+
                                 // Validate data size matches declared dimensions
                                 int expectedSize = width * height * 4;
                                 if (rgbaData.Length != expectedSize)
                                 {
-                                    Console.WriteLine($"[Cursor] WARNING: Size mismatch! Expected {expectedSize} bytes for {width}x{height}, got {rgbaData.Length}");
-                                    // Resize array to match expected size
+                                    Console.WriteLine($"[Cursor DXGI] WARNING: Size mismatch! Expected {expectedSize} bytes for {width}x{height}, got {rgbaData.Length}");
                                     var fixedData = new byte[expectedSize];
                                     Array.Copy(rgbaData, fixedData, Math.Min(rgbaData.Length, expectedSize));
                                     rgbaData = fixedData;
                                 }
-                                
+
                                 var base64 = Convert.ToBase64String(rgbaData);
                                 var imgMsg = new CursorImageMessage
                                 {
-                                    CursorId = cursorId,
-                                    CursorTypeValue = (int)cursorType,
+                                    CursorId = shapeId,
+                                    CursorTypeValue = (int)shapeInfo.Value.Type,
                                     Width = width,
                                     Height = height,
                                     HotspotX = hotspotX,
@@ -2614,20 +2580,17 @@ namespace RemotePlayServer.Protocol
                                     ImageBase64 = base64
                                 };
                                 await SendMessageAsync(imgMsg);
-                                _sentCursorIds.Add(cursorId);
-                                Console.WriteLine($"[Cursor] Sent cursor image: {width}x{height}, type={cursorType}, id={cursorId}, rgbaLen={rgbaData.Length}, base64Len={base64.Length}");
-                                Console.WriteLine($"[Cursor] Base64 sample: {base64.Substring(0, Math.Min(40, base64.Length))}...{base64.Substring(Math.Max(0, base64.Length - 20))}");
+                                _sentCursorIds.Add(shapeId);
                             }
                         }
 
-                        if (positionChanged || cursorChanged)
+                        if (positionChanged || shapeChanged)
                         {
                             _lastCursorMonitor = monitorIndex;
                             _lastCursorU = u;
                             _lastCursorV = v;
                             _lastCursorVisible = visible;
-                            _lastCursorHandle = hCursor;
-                            _lastCursorType = cursorType;
+                            _lastDxgiCursorShapeId = shapeId;
 
                             var msg = new CursorPositionMessage
                             {
@@ -2635,8 +2598,8 @@ namespace RemotePlayServer.Protocol
                                 U = u,
                                 V = v,
                                 Visible = visible,
-                                CursorTypeValue = (int)cursorType,
-                                CursorId = cursorId
+                                CursorTypeValue = (int)shapeInfo.Value.Type,
+                                CursorId = shapeId
                             };
                             await SendMessageAsync(msg);
                         }
@@ -2644,46 +2607,12 @@ namespace RemotePlayServer.Protocol
                         await Task.Delay(POLL_INTERVAL_MS, ct);
                     }
                     catch (OperationCanceledException) { break; }
-                    catch { /* Ignore cursor errors */ }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Cursor DXGI] Error: {ex.Message}");
+                    }
                 }
             }, ct);
-        }
-
-        /// <summary>
-        /// Get current cursor position, handle, and type.
-        /// </summary>
-        private (int monitorIndex, float u, float v, bool visible, IntPtr hCursor, CursorType cursorType) GetCursorPositionAndState()
-        {
-            var ci = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
-            if (!GetCursorInfo(ref ci))
-                return (-1, 0, 0, false, IntPtr.Zero, CursorType.Unknown);
-
-            bool visible = (ci.flags & CURSOR_SHOWING) != 0 && ci.hCursor != IntPtr.Zero;
-            if (!visible)
-                return (-1, 0, 0, false, IntPtr.Zero, CursorType.Unknown);
-
-            int cursorX = ci.ptScreenPos.X;
-            int cursorY = ci.ptScreenPos.Y;
-            CursorType cursorType = GetCursorType(ci.hCursor);
-
-            // Find which monitor the cursor is on using _monitorRects
-            if (_monitorRects.Count == 0)
-                return (-1, 0, 0, false, ci.hCursor, cursorType);
-
-            for (int i = 0; i < _monitorRects.Count; i++)
-            {
-                var rect = _monitorRects[i];
-                if (cursorX >= rect.x && cursorX < rect.x + rect.w &&
-                    cursorY >= rect.y && cursorY < rect.y + rect.h)
-                {
-                    // Cursor is on this monitor - calculate UV (0-1)
-                    float u = (float)(cursorX - rect.x) / rect.w;
-                    float v = (float)(cursorY - rect.y) / rect.h;
-                    return (i, u, v, true, ci.hCursor, cursorType);
-                }
-            }
-
-            return (-1, 0, 0, false, ci.hCursor, cursorType);
         }
 
         /// <summary>
@@ -2693,7 +2622,6 @@ namespace RemotePlayServer.Protocol
         {
             try { _cursorCts?.Cancel(); } catch { }
             _sentCursorIds.Clear();
-            _cursorImageCache.Clear();
         }
 
         #endregion

@@ -98,6 +98,12 @@ public sealed class PerMonitorCapture : IDisposable
 
         // Per-monitor pause state
         public volatile bool Paused;
+
+        // DXGI Cursor capture state
+        public byte[]? LastCursorBuffer;
+        public OutduplPointerShapeInfo? LastCursorShapeInfo;
+        public long LastCursorShapeId; // Unique ID for cursor shape (incremented on shape change)
+        public OutduplPointerPosition LastCursorPosition; // Cached position (updated only when Visible=true)
     }
     
     private volatile bool _running;
@@ -125,8 +131,16 @@ public sealed class PerMonitorCapture : IDisposable
     /// Set this after encoder initialization if encoder supports BGRA input.
     /// </summary>
     public bool UseBgraMode { get; set; } = false;
-    
-    // public event Action<int, byte[], int, int, long>? OnMonitorNV12Bytes; // UNUSED
+
+    /// <summary>
+    /// Callback for cursor updates from DXGI Desktop Duplication.
+    /// Parameters: monitorIndex, cursorBuffer (raw pixel data), shapeInfo (dimensions, type, hotspot), position (screen coords, visibility), shapeId (unique ID)
+    /// Only fired when cursor is visible. shapeId changes when cursor shape changes.
+    /// </summary>
+    public event Action<int, byte[], OutduplPointerShapeInfo, OutduplPointerPosition, long>? OnCursorUpdate;
+
+    // Global cursor shape ID counter (shared across all monitors)
+    private long _cursorShapeIdCounter;
 
     /// <summary>
     /// Get D3D11 device for a specific monitor (for encoder initialization)
@@ -551,6 +565,75 @@ public sealed class PerMonitorCapture : IDisposable
                         }
 
                         mon.Context?.CopyResource(mon.LastFrame!, texture);
+
+                        // ===== DXGI Cursor Capture =====
+                        // Capture cursor from Desktop Duplication API (more accurate than GDI+)
+                        try
+                        {
+                            if (mon.Duplication != null)
+                            {
+                                // Check if cursor shape changed (PointerShapeBufferSize > 0)
+                                // Only fetch shape when cursor is visible
+                                if (frameInfo.PointerPosition.Visible && frameInfo.PointerShapeBufferSize > 0)
+                                {
+                                    // Cursor shape changed - fetch new shape
+                                    var cursorBuffer = new byte[frameInfo.PointerShapeBufferSize];
+                                    var handle = GCHandle.Alloc(cursorBuffer, GCHandleType.Pinned);
+                                    try
+                                    {
+                                        var shapeResult = mon.Duplication.GetFramePointerShape(
+                                            frameInfo.PointerShapeBufferSize,
+                                            handle.AddrOfPinnedObject(),
+                                            out var bufferSizeRequired,
+                                            out var shapeInfo
+                                        );
+
+                                        if (shapeResult.Success)
+                                        {
+                                            mon.LastCursorBuffer = cursorBuffer;
+                                            mon.LastCursorShapeInfo = shapeInfo;
+                                            mon.LastCursorShapeId = Interlocked.Increment(ref _cursorShapeIdCounter);
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        handle.Free();
+                                    }
+                                }
+
+                                // Cache cursor position only when Visible=true (cursor was updated this frame)
+                                // When cursor is stationary, DXGI sets Visible=false and position may be (0,0)
+                                if (frameInfo.PointerPosition.Visible)
+                                {
+                                    // Create cached position with Visible=true (we always show cursor)
+                                    mon.LastCursorPosition = new OutduplPointerPosition
+                                    {
+                                        Position = frameInfo.PointerPosition.Position,
+                                        Visible = true
+                                    };
+                                }
+
+                                // Fire cursor update event with cached shape and cached position
+                                // Use cached position to avoid (0,0) when cursor is stationary
+                                // Only fire when we have a valid cached position (Visible=true after first cursor move)
+                                if (mon.LastCursorBuffer != null && mon.LastCursorShapeInfo.HasValue && mon.LastCursorPosition.Visible)
+                                {
+                                    OnCursorUpdate?.Invoke(
+                                        mon.Index,
+                                        mon.LastCursorBuffer,
+                                        mon.LastCursorShapeInfo.Value,
+                                        mon.LastCursorPosition,  // Cached position (always Visible=true)
+                                        mon.LastCursorShapeId
+                                    );
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Cursor capture failure should not affect frame capture
+                            // Log but continue (this can happen during desktop transitions)
+                            System.Diagnostics.Debug.WriteLine($"[Cursor] Monitor {mon.Index}: {ex.Message}");
+                        }
 
                         // Only convert and send if rate limiting allows
                         if (canSendFrame)

@@ -620,6 +620,35 @@
       opacity: 1;
     }
 
+    /* ==================== Cursor Overlay ==================== */
+    /* Similar to Unity WorldPanelCursor.cs - cursor rendered on top of video */
+    .cursor-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .cursor-element {
+      position: absolute;
+      /* Origin at top-left corner (cursor tip), like Unity quad mesh */
+      transform-origin: 0 0;
+      /* Disable smoothing for crisp cursor at any size */
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      pointer-events: none;
+      /* Default hidden until positioned */
+      display: none;
+    }
+
+    .cursor-element.visible {
+      display: block;
+    }
+
     /* VR Button in header */
     .btn-vr {
       background: var(--accent-purple);
@@ -697,7 +726,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Host</label>
-              <input type="text" id="host" value="192.168.0.102" placeholder="IP or hostname" />
+              <input type="text" id="host" value="192.168.1.8" placeholder="IP or hostname" />
             </div>
             <div class="form-group" style="flex: 0.4;">
               <label>Port</label>
@@ -918,7 +947,98 @@
       jitter: 0,                 // RFC 3550 smoothed jitter
       avgPing: 0,                // Average ping from samples
       minPing: Infinity,         // Minimum ping observed
-      maxPing: 0                 // Maximum ping observed
+      maxPing: 0,                // Maximum ping observed
+
+      // ==================== Cursor State ====================
+      // Similar to Unity WorldPanelCursor.cs
+      cursorElements: [],        // DOM elements for cursor per monitor
+      cursorVisible: [],         // Visibility state per monitor
+      cursorU: [],               // UV.x [0..1] per monitor
+      cursorV: [],               // UV.y [0..1] per monitor
+      currentCursorId: [],       // Active cursorId per monitor
+      pendingCursorId: [],       // Pending cursorId waiting for cursor_image
+    };
+
+    // ==================== Cursor Cache ====================
+    // Static cache for all cursor textures received from server
+    // Similar to Unity's static Dictionary<long, CursorCacheEntry>
+    const cursorCache = {
+      entries: new Map(),       // Map<cursorId, CursorCacheEntry>
+      maxSize: 100,             // LRU eviction limit
+
+      // CursorCacheEntry structure:
+      // { imageUrl: string, width: number, height: number, hotspotX: number, hotspotY: number, lastUsed: number }
+
+      /**
+       * Cache a cursor image received from server.
+       * Similar to Unity's WorldPanelCursor.CacheCursor()
+       */
+      set(cursorId, imageUrl, width, height, hotspotX, hotspotY) {
+        // LRU eviction if cache exceeds limit
+        if (this.entries.size >= this.maxSize && !this.entries.has(cursorId)) {
+          // Find and remove oldest entry
+          let oldestId = null;
+          let oldestTime = Infinity;
+          for (const [id, entry] of this.entries) {
+            if (entry.lastUsed < oldestTime) {
+              oldestTime = entry.lastUsed;
+              oldestId = id;
+            }
+          }
+          if (oldestId !== null) {
+            // Revoke blob URL to free memory
+            const oldEntry = this.entries.get(oldestId);
+            if (oldEntry && oldEntry.imageUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(oldEntry.imageUrl);
+            }
+            this.entries.delete(oldestId);
+          }
+        }
+
+        this.entries.set(cursorId, {
+          imageUrl,
+          width,
+          height,
+          hotspotX,
+          hotspotY,
+          lastUsed: Date.now()
+        });
+      },
+
+      /**
+       * Check if cursor is in cache.
+       * Similar to Unity's WorldPanelCursor.HasCursor()
+       */
+      has(cursorId) {
+        return this.entries.has(cursorId);
+      },
+
+      /**
+       * Get cursor from cache, updating lastUsed time.
+       * Similar to Unity's WorldPanelCursor.TryGetCursor()
+       */
+      get(cursorId) {
+        const entry = this.entries.get(cursorId);
+        if (entry) {
+          entry.lastUsed = Date.now();
+          return entry;
+        }
+        return null;
+      },
+
+      /**
+       * Clear all cached cursors.
+       * Similar to Unity's WorldPanelCursor.ClearCache()
+       */
+      clear() {
+        for (const entry of this.entries.values()) {
+          if (entry.imageUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(entry.imageUrl);
+          }
+        }
+        this.entries.clear();
+        log('[Cursor] Cache cleared', 'info');
+      }
     };
 
     // ============================================
@@ -1225,11 +1345,300 @@
         case 'frameTiming':
           handleFrameTiming(msg);
           break;
+        case 'cursor_position':
+          handleCursorPosition(msg);
+          break;
+        case 'cursor_image':
+          handleCursorImage(msg);
+          break;
         case 'error':
           log(`Error [Phase ${msg.phase}]: ${msg.code} - ${msg.message}`, 'error');
           break;
       }
     }
+
+    // ==================== Cursor Handlers ====================
+    // Similar to Unity WorldPanelCursor.cs cursor handling
+
+    /**
+     * Handle cursor_position message from server.
+     * Message format: { type: "cursor_position", u: float, v: float, visible: bool, cursorType: int, cursorId: long }
+     *
+     * Similar to Unity's WorldPanelCursor.SetUV() and SetCursorById()
+     */
+    function handleCursorPosition(msg) {
+      const monitorIndex = msg.monitorIndex || 0;
+      const u = msg.u;         // UV.x in [0..1]
+      const v = msg.v;         // UV.y in [0..1]
+      const visible = msg.visible;
+      const cursorId = msg.cursorId;
+
+      // Debug: Log visibility changes
+      const prevVisible = state.cursorVisible[monitorIndex];
+      if (prevVisible !== visible) {
+        log(`[Cursor] Visibility changed: ${prevVisible} → ${visible} (monitor ${monitorIndex})`, visible ? 'info' : 'warn');
+      }
+
+      // Debug: Log cursorId changes
+      const prevCursorId = state.currentCursorId[monitorIndex];
+      if (cursorId !== undefined && cursorId !== prevCursorId) {
+        const inCache = cursorCache.has(cursorId);
+        log(`[Cursor] ID changed: ${prevCursorId} → ${cursorId} (inCache: ${inCache})`, 'info');
+      }
+
+      // Store state
+      state.cursorU[monitorIndex] = u;
+      state.cursorV[monitorIndex] = v;
+      state.cursorVisible[monitorIndex] = visible;
+
+      // Get or create cursor element for this monitor
+      let cursorEl = state.cursorElements[monitorIndex];
+      if (!cursorEl) {
+        cursorEl = createCursorElement(monitorIndex);
+        state.cursorElements[monitorIndex] = cursorEl;
+      }
+
+      // Handle visibility change
+      if (!visible) {
+        cursorEl.classList.remove('visible');
+        return;
+      }
+
+      // Set cursor by ID from cache (similar to Unity's SetCursorById)
+      // Only switch cursor if the new one is already in cache (prevents flickering)
+      if (cursorId !== undefined && cursorId !== state.currentCursorId[monitorIndex]) {
+        // Check if cursor is in cache before switching
+        if (cursorCache.has(cursorId)) {
+          state.currentCursorId[monitorIndex] = cursorId;
+          applyCursorTexture(monitorIndex, cursorId);
+        } else {
+          // Store pending cursor ID - will be applied when cursor_image arrives
+          state.pendingCursorId = state.pendingCursorId || [];
+          state.pendingCursorId[monitorIndex] = cursorId;
+        }
+      }
+
+      // Only show cursor if we have a valid image (src is set)
+      // This prevents showing empty/broken cursor before cursor_image arrives
+      if (cursorEl.src && cursorEl.src !== '') {
+        cursorEl.classList.add('visible');
+      }
+
+      // Update cursor position (convert UV to pixel position)
+      updateCursorPosition(monitorIndex, u, v);
+    }
+
+    /**
+     * Handle cursor_image message from server.
+     * Message format: { type: "cursor_image", cursorId: long, width: int, height: int, hotspotX: int, hotspotY: int, imageBase64: string }
+     *
+     * Similar to Unity's WorldPanelCursor.CacheCursor()
+     */
+    function handleCursorImage(msg) {
+      const cursorId = msg.cursorId;
+      const width = msg.width;
+      const height = msg.height;
+      const hotspotX = msg.hotspotX;
+      const hotspotY = msg.hotspotY;
+      const imageBase64 = msg.imageBase64;
+
+      // Decode base64 to blob URL
+      try {
+        const binaryStr = atob(imageBase64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        // Create blob (RGBA raw data → PNG via canvas)
+        // NOTE: Server flips Y for Unity, so web client needs to flip back
+        // OR we can modify server to not flip for web clients
+        // For now, let's try WITHOUT flipping to debug the issue
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        const imageData = ctx.createImageData(width, height);
+        imageData.data.set(bytes);
+        ctx.putImageData(imageData, 0, 0);
+
+        // Use hotspot as-is from server (no flip adjustment)
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            cursorCache.set(cursorId, imageUrl, width, height, hotspotX, hotspotY);
+            log(`[Cursor] Cached cursor ${cursorId} (${width}x${height}, hotspot: ${hotspotX},${hotspotY})`, 'info');
+
+            // Apply to any monitors waiting for this cursor (pending or current)
+            if (state.pendingCursorId) {
+              state.pendingCursorId.forEach((pendingId, monitorIndex) => {
+                if (pendingId === cursorId) {
+                  // Apply the pending cursor now that it's available
+                  state.currentCursorId[monitorIndex] = cursorId;
+                  state.pendingCursorId[monitorIndex] = null;
+                  applyCursorTexture(monitorIndex, cursorId);
+                  // Make cursor visible now that we have an image
+                  const cursorEl = state.cursorElements[monitorIndex];
+                  if (cursorEl && state.cursorVisible[monitorIndex]) {
+                    cursorEl.classList.add('visible');
+                  }
+                }
+              });
+            }
+            // Also check currentCursorId for monitors that were waiting
+            state.currentCursorId.forEach((id, monitorIndex) => {
+              if (id === cursorId) {
+                applyCursorTexture(monitorIndex, cursorId);
+                // Make cursor visible now that we have an image
+                const cursorEl = state.cursorElements[monitorIndex];
+                if (cursorEl && state.cursorVisible[monitorIndex]) {
+                  cursorEl.classList.add('visible');
+                }
+              }
+            });
+          }
+        }, 'image/png');
+
+      } catch (e) {
+        log(`[Cursor] Failed to decode cursor image: ${e.message}`, 'error');
+      }
+    }
+
+    /**
+     * Create cursor DOM element for a monitor.
+     * Similar to Unity's WorldPanelCursor mesh setup with top-left pivot.
+     */
+    function createCursorElement(monitorIndex) {
+      const container = $(`container${monitorIndex}`);
+      if (!container) return null;
+
+      // Create overlay container if not exists
+      let overlay = container.querySelector('.cursor-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'cursor-overlay';
+        container.appendChild(overlay);
+      }
+
+      // Create cursor image element
+      const cursorEl = document.createElement('img');
+      cursorEl.className = 'cursor-element';
+      cursorEl.id = `cursor${monitorIndex}`;
+      cursorEl.draggable = false;
+      cursorEl.alt = '';
+      overlay.appendChild(cursorEl);
+
+      return cursorEl;
+    }
+
+    /**
+     * Apply cursor texture from cache.
+     * Similar to Unity's WorldPanelCursor.ApplyCursorTexture()
+     */
+    function applyCursorTexture(monitorIndex, cursorId) {
+      const cursorEl = state.cursorElements[monitorIndex];
+      if (!cursorEl) return;
+
+      const entry = cursorCache.get(cursorId);
+      if (entry) {
+        cursorEl.src = entry.imageUrl;
+        // Store hotspot data on element for position calculation
+        cursorEl.dataset.hotspotX = entry.hotspotX;
+        cursorEl.dataset.hotspotY = entry.hotspotY;
+        cursorEl.dataset.width = entry.width;
+        cursorEl.dataset.height = entry.height;
+      }
+      // If cursor not in cache yet, wait for cursor_image message
+    }
+
+    /**
+     * Update cursor position based on UV coordinates.
+     * Similar to Unity's WorldPanelCursor.ApplyPoseFromUV()
+     *
+     * UV coordinates: (0,0) = top-left, (1,1) = bottom-right
+     * Cursor is positioned with its HOTSPOT at the UV position (tip of arrow).
+     */
+    function updateCursorPosition(monitorIndex, u, v) {
+      const cursorEl = state.cursorElements[monitorIndex];
+      if (!cursorEl) return;
+
+      const video = state.videoElements[monitorIndex];
+      if (!video) return;
+
+      // Get video display size (respecting object-fit: contain)
+      const containerRect = video.parentElement.getBoundingClientRect();
+
+      // Calculate actual video render area (accounting for letterboxing/pillarboxing)
+      const videoWidth = video.videoWidth || 1920;
+      const videoHeight = video.videoHeight || 1080;
+      const videoAspect = videoWidth / videoHeight;
+      const containerAspect = containerRect.width / containerRect.height;
+
+      let renderWidth, renderHeight, offsetX, offsetY;
+
+      if (containerAspect > videoAspect) {
+        // Pillarboxing (bars on sides)
+        renderHeight = containerRect.height;
+        renderWidth = renderHeight * videoAspect;
+        offsetX = (containerRect.width - renderWidth) / 2;
+        offsetY = 0;
+      } else {
+        // Letterboxing (bars on top/bottom)
+        renderWidth = containerRect.width;
+        renderHeight = renderWidth / videoAspect;
+        offsetX = 0;
+        offsetY = (containerRect.height - renderHeight) / 2;
+      }
+
+      // Calculate scale factor: display size / video resolution
+      // Cursor needs to be scaled to match the video display scale
+      const scaleX = renderWidth / videoWidth;
+      const scaleY = renderHeight / videoHeight;
+      const scale = Math.min(scaleX, scaleY); // Use uniform scale
+
+      // Convert UV to pixel position within video render area
+      // Server sends UV based on Windows screen coordinates:
+      // u = cursorX / screenWidth, v = cursorY / screenHeight
+      // Where (0,0) is top-left (same as web coordinates)
+      const pixelX = offsetX + (u * renderWidth);
+      const pixelY = offsetY + (v * renderHeight);
+
+      // Get cursor dimensions and hotspot (in original cursor pixels)
+      const cursorWidth = parseInt(cursorEl.dataset.width) || 32;
+      const cursorHeight = parseInt(cursorEl.dataset.height) || 32;
+      const hotspotX = parseInt(cursorEl.dataset.hotspotX) || 0;
+      const hotspotY = parseInt(cursorEl.dataset.hotspotY) || 0;
+
+      // Scale cursor size to match video display scale
+      const scaledWidth = cursorWidth * scale;
+      const scaledHeight = cursorHeight * scale;
+      cursorEl.style.width = `${scaledWidth}px`;
+      cursorEl.style.height = `${scaledHeight}px`;
+
+      // Scale hotspot offset too
+      const scaledHotspotX = hotspotX * scale;
+      const scaledHotspotY = hotspotY * scale;
+
+      // Position cursor so hotspot is at UV position
+      // (left, top) = (pixelX - scaledHotspotX, pixelY - scaledHotspotY)
+      cursorEl.style.left = `${pixelX - scaledHotspotX}px`;
+      cursorEl.style.top = `${pixelY - scaledHotspotY}px`;
+    }
+
+    /**
+     * Update all cursor positions (call on window resize or video resize)
+     */
+    function updateAllCursorPositions() {
+      for (let i = 0; i < state.monitorCount; i++) {
+        if (state.cursorVisible[i]) {
+          updateCursorPosition(i, state.cursorU[i], state.cursorV[i]);
+        }
+      }
+    }
+
+    // Update cursor positions on window resize
+    window.addEventListener('resize', updateAllCursorPositions);
 
     function handleLegacyMessage(text) {
       // answer:N:sdp
@@ -1491,6 +1900,15 @@
       state.perMonitorStats = Array(count).fill(null).map(() => ({
         lastBytes: 0, lastFrames: 0, fps: 0, bitrate: 0, rtt: 0
       }));
+
+      // Init cursor state for each monitor
+      // Similar to Unity WorldPanelCursor initial state
+      state.cursorElements = new Array(count).fill(null);
+      state.cursorVisible = new Array(count).fill(false);
+      state.cursorU = new Array(count).fill(0.5);
+      state.cursorV = new Array(count).fill(0.5);
+      state.currentCursorId = new Array(count).fill(0);
+      state.pendingCursorId = new Array(count).fill(null);
     }
 
     /**
@@ -1869,6 +2287,15 @@
       state.avgPing = 0;
       state.minPing = Infinity;
       state.maxPing = 0;
+
+      // Reset cursor state
+      state.cursorElements = [];
+      state.cursorVisible = [];
+      state.cursorU = [];
+      state.cursorV = [];
+      state.currentCursorId = [];
+      state.pendingCursorId = [];
+      // Note: Keep cursorCache intact for reconnection (like Unity's static cache)
 
       // Reset UI
       setPhase(0);
