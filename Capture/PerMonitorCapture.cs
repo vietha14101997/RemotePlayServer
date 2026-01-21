@@ -113,6 +113,18 @@ public sealed class PerMonitorCapture : IDisposable
     private Barrier? _captureBarrier;
     private long _syncedTimestamp; // Shared timestamp for all monitors in a frame (use Interlocked for access)
 
+    // Track which monitor currently has the cursor (shared across all capture threads)
+    // When a monitor reports Visible=true, it becomes the active cursor monitor
+    // Only the active cursor monitor fires cursor events (prevents duplicate events)
+    private volatile int _activeCursorMonitor = -1;
+
+    // Global cursor shape (shared across all monitors - cursor looks the same on all monitors)
+    // This is needed because cursor shape is only reported by the monitor where shape changed
+    private byte[]? _globalCursorBuffer;
+    private OutduplPointerShapeInfo? _globalCursorShapeInfo;
+    private long _globalCursorShapeId;
+    private readonly object _globalCursorLock = new();
+
     /// <summary>
     /// Callback for each monitor's NV12 texture frame.
     /// Parameters: monitorIndex, nv12Texture, width, height, timestamp
@@ -573,10 +585,10 @@ public sealed class PerMonitorCapture : IDisposable
                             if (mon.Duplication != null)
                             {
                                 // Check if cursor shape changed (PointerShapeBufferSize > 0)
-                                // Only fetch shape when cursor is visible
+                                // Cursor shape is GLOBAL - same cursor on all monitors
                                 if (frameInfo.PointerPosition.Visible && frameInfo.PointerShapeBufferSize > 0)
                                 {
-                                    // Cursor shape changed - fetch new shape
+                                    // Cursor shape changed - fetch new shape and store globally
                                     var cursorBuffer = new byte[frameInfo.PointerShapeBufferSize];
                                     var handle = GCHandle.Alloc(cursorBuffer, GCHandleType.Pinned);
                                     try
@@ -590,9 +602,13 @@ public sealed class PerMonitorCapture : IDisposable
 
                                         if (shapeResult.Success)
                                         {
-                                            mon.LastCursorBuffer = cursorBuffer;
-                                            mon.LastCursorShapeInfo = shapeInfo;
-                                            mon.LastCursorShapeId = Interlocked.Increment(ref _cursorShapeIdCounter);
+                                            // Store cursor shape globally (shared across all monitors)
+                                            lock (_globalCursorLock)
+                                            {
+                                                _globalCursorBuffer = cursorBuffer;
+                                                _globalCursorShapeInfo = shapeInfo;
+                                                _globalCursorShapeId = Interlocked.Increment(ref _cursorShapeIdCounter);
+                                            }
                                         }
                                     }
                                     finally
@@ -601,11 +617,18 @@ public sealed class PerMonitorCapture : IDisposable
                                     }
                                 }
 
-                                // Cache cursor position only when Visible=true (cursor was updated this frame)
-                                // When cursor is stationary, DXGI sets Visible=false and position may be (0,0)
+                                // DXGI PointerPosition.Visible meaning:
+                                // - Visible=true: cursor MOVED on this monitor this frame, position is valid
+                                // - Visible=false: no cursor movement on this monitor this frame
+                                //
+                                // Strategy: Use _activeCursorMonitor to track which monitor has the cursor
+                                // When Visible=true, this monitor becomes the active cursor monitor
+                                // Only the active monitor fires cursor events (with cached position)
+
                                 if (frameInfo.PointerPosition.Visible)
                                 {
-                                    // Create cached position with Visible=true (we always show cursor)
+                                    // Cursor moved on this monitor - this is now the active cursor monitor
+                                    _activeCursorMonitor = mon.Index;
                                     mon.LastCursorPosition = new OutduplPointerPosition
                                     {
                                         Position = frameInfo.PointerPosition.Position,
@@ -613,17 +636,29 @@ public sealed class PerMonitorCapture : IDisposable
                                     };
                                 }
 
-                                // Fire cursor update event with cached shape and cached position
-                                // Use cached position to avoid (0,0) when cursor is stationary
-                                // Only fire when we have a valid cached position (Visible=true after first cursor move)
-                                if (mon.LastCursorBuffer != null && mon.LastCursorShapeInfo.HasValue && mon.LastCursorPosition.Visible)
+                                // Fire cursor update event only if this is the active cursor monitor
+                                // Use GLOBAL cursor shape (shared across monitors)
+                                byte[]? cursorBuf;
+                                OutduplPointerShapeInfo? shapeInf;
+                                long shapeIdCopy;
+                                lock (_globalCursorLock)
+                                {
+                                    cursorBuf = _globalCursorBuffer;
+                                    shapeInf = _globalCursorShapeInfo;
+                                    shapeIdCopy = _globalCursorShapeId;
+                                }
+
+                                if (_activeCursorMonitor == mon.Index &&
+                                    cursorBuf != null &&
+                                    shapeInf.HasValue &&
+                                    mon.LastCursorPosition.Visible)
                                 {
                                     OnCursorUpdate?.Invoke(
                                         mon.Index,
-                                        mon.LastCursorBuffer,
-                                        mon.LastCursorShapeInfo.Value,
-                                        mon.LastCursorPosition,  // Cached position (always Visible=true)
-                                        mon.LastCursorShapeId
+                                        cursorBuf,
+                                        shapeInf.Value,
+                                        mon.LastCursorPosition,
+                                        shapeIdCopy
                                     );
                                 }
                             }

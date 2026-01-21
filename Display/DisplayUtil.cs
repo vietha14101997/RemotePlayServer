@@ -187,6 +187,61 @@ static class DisplayUtil
         return ret == DISP_CHANGE_SUCCESSFUL;
     }
 
+    /// <summary>
+    /// Set resolution và position cho một \\.\DISPLAYx
+    /// Position cho phép đặt monitor ở vị trí cụ thể trong desktop topology
+    /// </summary>
+    public static bool SetResolutionAndPosition(string deviceName, int w, int h, int hz, int posX, int posY)
+    {
+        const int CDS_NORESET = 0x10000000;
+
+        var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+        if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+        {
+            Console.WriteLine($"[DisplayUtil] SetResolutionAndPosition: EnumDisplaySettingsEx failed for {deviceName}");
+            return false;
+        }
+
+        // Log current position before change
+        Console.WriteLine($"[DisplayUtil] {deviceName} current position: ({dm.dmPositionX},{dm.dmPositionY})");
+
+        dm.dmFields = DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+        dm.dmPositionX = posX;
+        dm.dmPositionY = posY;
+        dm.dmPelsWidth = w;
+        dm.dmPelsHeight = h;
+        dm.dmDisplayFrequency = hz;
+
+        // First call with CDS_NORESET to queue the change
+        int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+        if (ret != DISP_CHANGE_SUCCESSFUL)
+        {
+            Console.WriteLine($"[DisplayUtil] SetResolutionAndPosition FAILED for {deviceName}: error code {ret}");
+            return false;
+        }
+        Console.WriteLine($"[DisplayUtil] SetResolutionAndPosition QUEUED for {deviceName}: ({posX},{posY}) {w}x{h}@{hz}Hz");
+        return true;
+    }
+
+    /// <summary>
+    /// Apply all pending display changes (call after SetResolutionAndPosition for each monitor)
+    /// </summary>
+    public static bool ApplyDisplayChanges()
+    {
+        // Pass null for both device name and DEVMODE to apply all pending changes
+        int ret = ChangeDisplaySettingsExNull(null, IntPtr.Zero, IntPtr.Zero, 0, IntPtr.Zero);
+        if (ret == DISP_CHANGE_SUCCESSFUL)
+        {
+            Console.WriteLine($"[DisplayUtil] ApplyDisplayChanges: SUCCESS");
+            return true;
+        }
+        Console.WriteLine($"[DisplayUtil] ApplyDisplayChanges: FAILED with code {ret}");
+        return false;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi, EntryPoint = "ChangeDisplaySettingsExA")]
+    private static extern int ChangeDisplaySettingsExNull(string? lpszDeviceName, IntPtr lpDevMode, IntPtr hwnd, int dwflags, IntPtr lParam);
+
     static bool IsLikelyVirtualByStrings(string deviceString, string deviceId)
     {
         var s = (deviceString ?? "").ToLowerInvariant();

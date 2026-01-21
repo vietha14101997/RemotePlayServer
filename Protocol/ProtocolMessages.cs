@@ -829,7 +829,10 @@ namespace RemotePlayServer.Protocol
         {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
+            WriteIndented = false,
+            // CRITICAL: Prevent escaping of '+' in base64 strings
+            // Default encoder escapes '+' to '\u002B' which corrupts base64 data
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         /// <summary>

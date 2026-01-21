@@ -2209,6 +2209,7 @@ namespace RemotePlayServer.Protocol
 
         /// <summary>
         /// Refresh monitor rects from DXGI for cursor position tracking.
+        /// Uses the same monitor order as _monitors to ensure index consistency with PerMonitorCapture.
         /// </summary>
         private void RefreshMonitorRects()
         {
@@ -2216,6 +2217,9 @@ namespace RemotePlayServer.Protocol
             try
             {
                 using var factory = Vortice.DXGI.DXGI.CreateDXGIFactory1<Vortice.DXGI.IDXGIFactory1>();
+
+                // Build a lookup table of HMON -> DesktopCoordinates
+                var hmonToRect = new Dictionary<IntPtr, (int x, int y, int w, int h)>();
                 for (uint ai = 0; ; ai++)
                 {
                     if (factory.EnumAdapters1(ai, out Vortice.DXGI.IDXGIAdapter1 adapter).Failure) break;
@@ -2228,11 +2232,32 @@ namespace RemotePlayServer.Protocol
                             {
                                 var desc = output.Description;
                                 var rect = desc.DesktopCoordinates;
-                                _monitorRects.Add((rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top));
+                                hmonToRect[desc.Monitor] = (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
                             }
                         }
                     }
                 }
+
+                // Populate _monitorRects in the same order as _monitors
+                // This ensures index consistency with PerMonitorCapture which uses the same _monitors list
+                for (int i = 0; i < _monitors.Count; i++)
+                {
+                    var mon = _monitors[i];
+                    if (hmonToRect.TryGetValue(mon.hmon, out var rect))
+                    {
+                        _monitorRects.Add(rect);
+                        Console.WriteLine($"[Protocol] Monitor {i} ({mon.name}): rect=({rect.x},{rect.y}) {rect.w}x{rect.h}");
+                    }
+                    else
+                    {
+                        // Monitor not found in DXGI - use fallback from stored dimensions
+                        // Position unknown, assume (0,0) - cursor tracking may be inaccurate
+                        Console.WriteLine($"[Protocol] Warning: Monitor {i} ({mon.name}) not found in DXGI outputs, using fallback rect (0,0) {mon.width}x{mon.height}");
+                        _monitorRects.Add((0, 0, mon.width, mon.height));
+                    }
+                }
+
+                Console.WriteLine($"[Protocol] Refreshed {_monitorRects.Count} monitor rects for cursor tracking (from {hmonToRect.Count} DXGI outputs)");
             }
             catch (Exception ex)
             {
@@ -2267,6 +2292,16 @@ namespace RemotePlayServer.Protocol
             int hotspotY = shapeInfo.HotSpot.Y;
             uint type = shapeInfo.Type;
 
+            // Debug logging for cursor dimensions
+            string typeName = type switch
+            {
+                DXGI_POINTER_SHAPE_TYPE_MONOCHROME => "MONOCHROME",
+                DXGI_POINTER_SHAPE_TYPE_COLOR => "COLOR",
+                DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR => "MASKED_COLOR",
+                _ => $"UNKNOWN({type})"
+            };
+            Console.WriteLine($"[Cursor DXGI] Converting: type={typeName}, size={width}x{height}, pitch={pitch}, buffer={buffer.Length} bytes, hotspot=({hotspotX},{hotspotY})");
+
             try
             {
                 byte[] rgbaData;
@@ -2277,11 +2312,13 @@ namespace RemotePlayServer.Protocol
                         rgbaData = ConvertMonochromeCursorToRgba(buffer, width, height, pitch);
                         // Monochrome cursor height is doubled (AND mask + XOR mask)
                         height /= 2;
+                        Console.WriteLine($"[Cursor DXGI] Monochrome output: {width}x{height} ({rgbaData.Length} bytes)");
                         break;
 
                     case DXGI_POINTER_SHAPE_TYPE_COLOR:
                     case DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR:
                         rgbaData = ConvertBgraCursorToRgba(buffer, width, height, pitch, type == DXGI_POINTER_SHAPE_TYPE_MASKED_COLOR);
+                        Console.WriteLine($"[Cursor DXGI] BGRA output: {width}x{height} ({rgbaData.Length} bytes, expected={width * height * 4})");
                         break;
 
                     default:
@@ -2396,13 +2433,42 @@ namespace RemotePlayServer.Protocol
         {
             byte[] rgbaData = new byte[width * height * 4];
 
-            // Validate buffer size
+            // Validate and auto-correct pitch if needed
+            int expectedPitchMin = width * 4; // Minimum pitch for BGRA (32bpp)
             int expectedBufferSize = pitch * height;
+
+            // Auto-detect pitch from buffer size if reported pitch seems wrong
+            if (buffer.Length != expectedBufferSize && height > 0)
+            {
+                int detectedPitch = buffer.Length / height;
+                if (detectedPitch >= expectedPitchMin && (buffer.Length % height) == 0)
+                {
+                    Console.WriteLine($"[Cursor BGRA] Auto-correcting pitch: {pitch} -> {detectedPitch} (buffer={buffer.Length}, height={height})");
+                    pitch = detectedPitch;
+                    expectedBufferSize = pitch * height;
+                }
+            }
+
+            // Debug: Log pitch vs expected
+            if (pitch != expectedPitchMin)
+            {
+                Console.WriteLine($"[Cursor BGRA] Pitch info: pitch={pitch}, width*4={expectedPitchMin} (padding={pitch - expectedPitchMin} bytes/row)");
+            }
+
             if (buffer.Length < expectedBufferSize)
             {
                 Console.WriteLine($"[Cursor BGRA] Buffer too small: {buffer.Length} < {expectedBufferSize} (pitch={pitch}, height={height})");
-                // Fill with transparent pixels
-                return rgbaData;
+                // Try with minimum pitch as fallback
+                if (buffer.Length >= expectedPitchMin * height)
+                {
+                    Console.WriteLine($"[Cursor BGRA] Fallback to min pitch: {expectedPitchMin}");
+                    pitch = expectedPitchMin;
+                }
+                else
+                {
+                    // Fill with transparent pixels
+                    return rgbaData;
+                }
             }
 
             for (int y = 0; y < height; y++)
@@ -2423,13 +2489,22 @@ namespace RemotePlayServer.Protocol
                     byte r = buffer[srcOffset + 2];
                     byte a = buffer[srcOffset + 3];
 
-                    // For masked color, alpha is binary (0 or 0xFF)
-                    // 0x00 = use cursor color directly
+                    // For masked color cursors, alpha has special meaning:
+                    // 0x00 = use cursor color directly (OPAQUE, not transparent!)
                     // 0xFF = XOR with background (we render as semi-transparent)
-                    if (isMaskedColor && a == 0xFF)
+                    if (isMaskedColor)
                     {
-                        // XOR pixel - render with reduced opacity to show it
-                        a = 200;
+                        if (a == 0x00)
+                        {
+                            // Opaque pixel - use cursor color directly
+                            a = 255;
+                        }
+                        else if (a == 0xFF)
+                        {
+                            // XOR pixel - render with reduced opacity to show it
+                            a = 200;
+                        }
+                        // Other alpha values: keep as-is (shouldn't happen for MASKED_COLOR)
                     }
 
                     // Output RGBA - NO FLIP, keep original Windows row order (row 0 = top)
@@ -2456,6 +2531,9 @@ namespace RemotePlayServer.Protocol
         private long _pendingDxgiCursorShapeId;
         private int _pendingDxgiCursorMonitorIndex = -1;
 
+        // Track last cursor monitor for debug logging (reduce spam)
+        private int _debugLastCursorMonitor = -1;
+
         /// <summary>
         /// Handle cursor update from PerMonitorCapture DXGI Desktop Duplication.
         /// Called from capture thread - stores data for processing in cursor tracking task.
@@ -2463,6 +2541,13 @@ namespace RemotePlayServer.Protocol
         private void HandleDxgiCursorUpdate(int monitorIndex, byte[] buffer, Vortice.DXGI.OutduplPointerShapeInfo shapeInfo,
             Vortice.DXGI.OutduplPointerPosition position, long shapeId)
         {
+            // Debug: Log when cursor events arrive from different monitor
+            if (monitorIndex != _debugLastCursorMonitor)
+            {
+                Console.WriteLine($"[Cursor DXGI] Receiving cursor from monitor {monitorIndex} (pos: {position.Position.X},{position.Position.Y}, visible: {position.Visible})");
+                _debugLastCursorMonitor = monitorIndex;
+            }
+
             lock (_dxgiCursorLock)
             {
                 _pendingDxgiCursorBuffer = buffer;
@@ -2525,18 +2610,16 @@ namespace RemotePlayServer.Protocol
                         bool visible = true; // Always visible - cursor overlay stays on
 
                         // Calculate UV coordinates from screen position
-                        // DXGI cursor Position is in DESKTOP coordinates (absolute)
-                        // We need to subtract monitor origin to get relative position
-                        // Always calculate UV (even when not visible) to have good position data
+                        // DXGI cursor Position is RELATIVE to the monitor (not desktop coordinates!)
+                        // Each output's Desktop Duplication reports cursor position relative to that output
+                        // So we do NOT subtract monitor origin - just normalize to 0-1 range
                         float u = _lastCursorU, v = _lastCursorV;
                         if (monitorIndex < _monitorRects.Count)
                         {
                             var rect = _monitorRects[monitorIndex];
-                            // Subtract monitor origin to get relative position
-                            int relX = position.Value.Position.X - rect.x;
-                            int relY = position.Value.Position.Y - rect.y;
-                            u = (float)relX / rect.w;
-                            v = (float)relY / rect.h;
+                            // Position is already relative to monitor - just normalize
+                            u = (float)position.Value.Position.X / rect.w;
+                            v = (float)position.Value.Position.Y / rect.h;
                             // Clamp to valid range
                             u = Math.Clamp(u, 0f, 1f);
                             v = Math.Clamp(v, 0f, 1f);
@@ -2550,6 +2633,12 @@ namespace RemotePlayServer.Protocol
                                                visible != _lastCursorVisible ||
                                                (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD);
 
+                        // Debug: Log when cursor changes monitor
+                        if (monitorIndex != _lastCursorMonitor && _lastCursorMonitor >= 0)
+                        {
+                            Console.WriteLine($"[Cursor] Monitor changed: {_lastCursorMonitor} -> {monitorIndex} (pos: {position.Value.Position.X},{position.Value.Position.Y})");
+                        }
+
                         // Send cursor image if shape changed and we haven't sent it yet
                         if (shapeChanged && visible && !_sentCursorIds.Contains(shapeId))
                         {
@@ -2558,17 +2647,29 @@ namespace RemotePlayServer.Protocol
                             {
                                 var (rgbaData, width, height, hotspotX, hotspotY) = converted.Value;
 
-                                // Validate data size matches declared dimensions
+                                // CRITICAL: Force exact size to prevent client distortion
+                                // Client expects exactly width*height*4 bytes of RGBA data
                                 int expectedSize = width * height * 4;
                                 if (rgbaData.Length != expectedSize)
                                 {
-                                    Console.WriteLine($"[Cursor DXGI] WARNING: Size mismatch! Expected {expectedSize} bytes for {width}x{height}, got {rgbaData.Length}");
+                                    Console.WriteLine($"[Cursor DXGI] FIXING size mismatch: {rgbaData.Length} -> {expectedSize} for {width}x{height}");
                                     var fixedData = new byte[expectedSize];
                                     Array.Copy(rgbaData, fixedData, Math.Min(rgbaData.Length, expectedSize));
                                     rgbaData = fixedData;
                                 }
 
+                                // Double-check before sending
+                                Console.WriteLine($"[Cursor DXGI] Sending: {width}x{height}, {rgbaData.Length} bytes (expected={expectedSize})");
+
                                 var base64 = Convert.ToBase64String(rgbaData);
+
+                                // CRITICAL: Log base64 length to compare with client
+                                // 4096 bytes should encode to exactly 5464 chars
+                                int expectedBase64Len = ((rgbaData.Length + 2) / 3) * 4;
+                                var b64Start = base64.Length >= 40 ? base64.Substring(0, 40) : base64;
+                                var b64End = base64.Length >= 20 ? base64.Substring(base64.Length - 20) : "";
+                                Console.WriteLine($"[Cursor DXGI] Base64: {base64.Length} chars (expected={expectedBase64Len}), start={b64Start}...end={b64End}");
+
                                 var imgMsg = new CursorImageMessage
                                 {
                                     CursorId = shapeId,

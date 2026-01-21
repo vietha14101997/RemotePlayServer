@@ -845,12 +845,34 @@ static class StartupSteps
         int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
         int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
 
+        // Calculate positions for virtual monitors (extend to the right of primary)
+        // First, get the current position of the primary physical monitor
+        int primaryX = 0, primaryY = 0;
+        if (physicalMonitors.Count > 0)
+        {
+            var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(physicalMonitors[0].name);
+            if (ok)
+            {
+                primaryX = px;
+                primaryY = py;
+            }
+        }
+
         // Set VDD virtual monitors to SAME resolution as primary physical monitor
+        // Position them to the right of the primary (and previous virtual monitors)
+        int currentX = primaryX + targetWidth; // Start right after primary
         foreach (var mon in virtualMonitors)
         {
-            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz (match primary)");
-            DisplayUtil.ForceResolution(mon.name, targetWidth, targetHeight, targetRefresh);
-            Thread.Sleep(300);
+            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at position ({currentX}, {primaryY})");
+            DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, primaryY);
+            currentX += targetWidth; // Next virtual monitor goes further right
+        }
+
+        // Apply all display changes at once
+        if (virtualMonitors.Count > 0)
+        {
+            DisplayUtil.ApplyDisplayChanges();
+            Thread.Sleep(500);
         }
 
         // Restore original resolution for physical monitors (VDD enabling may have changed them)
@@ -880,7 +902,7 @@ static class StartupSteps
         }
 
         // In kết quả
-        Console.WriteLine("[Display] ✓ 3-monitor system configured:");
+        Console.WriteLine("[Display] ✓ Multi-monitor system configured:");
         mons = WgcInterop.ListMonitorsDXGI();
         foreach (var mon in mons)
         {
@@ -888,7 +910,7 @@ static class StartupSteps
             // Use saved physical monitor names for accurate detection
             string type = _physicalMonitorNames.Contains(mon.name) ? "PHYSICAL" : "VIRTUAL";
             bool isPrimary = DisplayUtil.IsPrimary(mon.name);
-            Console.WriteLine($"[Display]   • {mon.name} {w}x{h} [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
+            Console.WriteLine($"[Display]   • {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
         
         // Set Windows Scale and Layout to 125% (system-wide) for better readability in VR

@@ -1451,14 +1451,14 @@
         }
 
         // Create blob (RGBA raw data → PNG via canvas)
-        // NOTE: Server flips Y for Unity, so web client needs to flip back
-        // OR we can modify server to not flip for web clients
-        // For now, let's try WITHOUT flipping to debug the issue
+        // Server sends data in Windows row order (top-to-bottom)
+        // Canvas 2D also uses top-to-bottom - NO FLIP needed
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
 
+        // Load raw RGBA data directly - coordinate systems match
         const imageData = ctx.createImageData(width, height);
         imageData.data.set(bytes);
         ctx.putImageData(imageData, 0, 0);
