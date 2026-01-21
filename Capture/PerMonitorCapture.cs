@@ -663,11 +663,10 @@ public sealed class PerMonitorCapture : IDisposable
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             // Cursor capture failure should not affect frame capture
-                            // Log but continue (this can happen during desktop transitions)
-                            System.Diagnostics.Debug.WriteLine($"[Cursor] Monitor {mon.Index}: {ex.Message}");
+                            // Continue (this can happen during desktop transitions)
                         }
 
                         // Only convert and send if rate limiting allows

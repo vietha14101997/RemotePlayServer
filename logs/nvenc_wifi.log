@@ -41,8 +41,8 @@ Data: {"ip":"192.168.1.41","port":"8288"}
   [WiFi] 192.168.1.41:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected fef79cbb-f0ee-4008-be38-76c5bf7e95d4, protocol=v2, transport=WiFi
-[Protocol] Client fef79cbb-f0ee-4008-be38-76c5bf7e95d4 connected from 192.168.1.41 (v2 protocol, transport=WiFi)
+[Signal] Client connected 614bcbd9-684c-4820-9370-8bc5cb2ca1f1, protocol=v2, transport=WiFi
+[Protocol] Client 614bcbd9-684c-4820-9370-8bc5cb2ca1f1 connected from 192.168.1.41 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
@@ -71,25 +71,26 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 40MB in 2144ms = 156.5 Mbps
+[Protocol] Download test complete: sent 40MB in 2143ms = 156.6 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 138.8Mbps, 16.0ms
-[Protocol] ✓ Received speedtest_result from client: 138.8Mbps, 16.0ms ping
+[Protocol] speedtest_result parsed: 138.8Mbps, 15.3ms
+[Protocol] ✓ Received speedtest_result from client: 138.8Mbps, 15.3ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1440x810@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1768971930910...
-[Protocol] WaitForProceed received: ping:1768971932943...
-[Protocol] WaitForProceed received: ping:1768971934962...
+[Protocol] WaitForProceed received: ping:1768972579197...
+[Protocol] WaitForProceed received: ping:1768972581232...
+[Protocol] WaitForProceed received: ping:1768972583263...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
 [Protocol] Phase changed to: Phase2_ApplyConfig
 [Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: ping:1768972585287...
 [Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1440,"h":810},"refreshRate":60,"bitrateKbps"...
 [Protocol] Received display config: 2x1440x810@60fps
 [Protocol] Applying new display config: 2 monitors @ 60fps (keeping native resolution)
@@ -128,16 +129,16 @@ Scan complete.
 
 [Display] Setting up 3-monitor system...
 [Display] Physical monitors: 1, Virtual monitors: 1
-[Display] Setting \\.\DISPLAY50 [VIRTUAL] -> 1920x1080@60Hz at position (1920, 0)
-[DisplayUtil] \\.\DISPLAY50 current position: (1920,0)
-[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY50: (1920,0) 1920x1080@60Hz
+[Display] Setting \\.\DISPLAY51 [VIRTUAL] -> 1920x1080@60Hz at position (1920, 0)
+[DisplayUtil] \\.\DISPLAY51 current position: (1920,0)
+[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY51: (1920,0) 1920x1080@60Hz
 [DisplayUtil] ApplyDisplayChanges: SUCCESS
 [Display] Keeping \\.\DISPLAY1 [PHYSICAL] at 1920x1080
 [Display] Setting \\.\DISPLAY1 as PRIMARY display
 [Display] ✓ \\.\DISPLAY1 set as primary
 [Display] ✓ Multi-monitor system configured:
 [Display]   • \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
-[Display]   • \\.\DISPLAY50 1920x1080 at (1920,0) [VIRTUAL]
+[Display]   • \\.\DISPLAY51 1920x1080 at (1920,0) [VIRTUAL]
 [Display] Setting Windows Scale and Layout to 125%...
 [DpiScaling] Setting 125% for 2 monitor(s)...
 [DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
@@ -146,14 +147,14 @@ Scan complete.
 [DpiScaling] Already at 125%
 [Display] ✓ Scale and Layout set to 125%
 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
-[Protocol] Monitor 1 (\\.\DISPLAY50): rect=(1920,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY51): rect=(1920,0) 1920x1080
 [Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
 [Protocol] Available monitors: 2, using: 2
 [PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY50 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY51 1920x1080 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=7500kbps per encoder (total=15000kbps)
 [SIPSorcery] Created: 2 monitors, 60fps, 7500kbps, codec=H264
@@ -166,95 +167,86 @@ Scan complete.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1768971936995...
+[Protocol] ICE RX: ping:1768972587443...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1768971939028...
+[Protocol] ICE RX: ping:1768972589588...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1768971941050...
+[Protocol] ICE RX: ping:1768972591611...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1768971943082...
+[Protocol] ICE RX: ping:1768972593627...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1768971945117...
+[Protocol] ICE RX: ping:1768972596091...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2306035327 1 udp 2122063615 19...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4076166466 1 udp 2122262783 24...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"31684007 1 udp 2122197247 2402...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1405561240 1 udp 2122131711 24...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2306035327 1 udp 2122063615 19...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4076166466 1 udp 2122262783 24...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"31684007 1 udp 2122197247 2402...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1405561240 1 udp 2122131711 24...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 8092980095133149564 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6604238283153576942 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 8 pending ICE candidates
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
 [Protocol] Monitor 0 native=1920x1080 -> encoder=1440x810
 [Protocol] Monitor 1 native=1920x1080 -> encoder=1440x810
 [Protocol] Parsed H264 PT from offer: 123
 [SIPSorcery] Processing offer for 2 monitors
 [SIPSorcery] Offer H264 pt=123, fmtp=implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 C8:A0:2A:B3:39:D5:5E:55:E3:40:FB:74:F5:73:D4:4E:6A:E2:9F:8C:F1:95:1B:62:2C:AB:0F:79:12:8A:F7:82
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 69:AE:30:DA:F3:4D:C9:CA:01:5F:39:2C:58:60:00:6D:C8:72:7D:A6:10:F8:02:98:FA:63:88:C0:CD:6F:C4:40
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 C8:A0:2A:B3:39:D5:5E:55:E3:40:FB:74:F5:73:D4:4E:6A:E2:9F:8C:F1:95:1B:62:2C:AB:0F:79:12:8A:F7:82
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 69:AE:30:DA:F3:4D:C9:CA:01:5F:39:2C:58:60:00:6D:C8:72:7D:A6:10:F8:02:98:FA:63:88:C0:CD:6F:C4:40
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1440x810 (device=76BE349C)
-[SIPSorcery] Added track 1: 1440x810 (device=0E42F4DD)
+[SIPSorcery] Added track 0: 1440x810 (device=9C55231E)
+[SIPSorcery] Added track 1: 1440x810 (device=9BB3373E)
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] Local ICE: 3562064952 1 udp 2113940223 2402:800:6d62:a46e:534...
 [SIPSorcery] Local ICE: 4245639716 1 udp 2113940223 2402:800:6d62:a46e:41d...
 [SIPSorcery] Local ICE: 345992707 1 udp 2113940223 2402:800:6d62:a46e:5169...
-[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 63658 typ ...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 59172 typ ...
 [SIPSorcery] Signaling state: stable
 [SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)
-[SIPSorcery] SDP: a=fingerprint:sha-256 50:B1:AF:A6:0C:D6:B4:51:D6:55:CF:90:CE:5F:B6:C7:38:92:E8:75:8F:52:BC:26:E3:FE:73:FC:5E:67:C9:EB
+[SIPSorcery] SDP: a=fingerprint:sha-256 77:09:FE:B9:5D:93:6D:61:D9:71:44:EB:36:D8:37:1A:07:CC:49:9A:5B:27:6E:53:B6:B0:23:37:FC:4C:AC:D5
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 50:B1:AF:A6:0C:D6:B4:51:D6:55:CF:90:CE:5F:B6:C7:38:92:E8:75:8F:52:BC:26:E3:FE:73:FC:5E:67:C9:EB
+[SIPSorcery] SDP: a=fingerprint:sha-256 77:09:FE:B9:5D:93:6D:61:D9:71:44:EB:36:D8:37:1A:07:CC:49:9A:5B:27:6E:53:B6:B0:23:37:FC:4C:AC:D5
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 2268 bytes
+[SIPSorcery] Answer ready, 2269 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
 [Protocol] SDP kept: a=rtpmap:123 H264/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123
 [Protocol] SDP kept: a=rtpmap:123 H264/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=NvCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e033
-[Protocol] Filtered SDP from 2268 to 1260 bytes
+[Protocol] Filtered SDP from 2269 to 1261 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 90363 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
-[Protocol] Sent single answer, len=1292 bytes
-[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 63658 typ ...
-[Protocol] Applying 8 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:2306035327 1 udp 2122063615 192.168.1.41...
-[Protocol] Applied pending ICE: 2306035327 1 udp 2122063615 192.168.1.41 52350 typ...
-[SIPSorcery] Added remote ICE: candidate:4076166466 1 udp 2122262783 2402:800:6d6...
-[Protocol] Applied pending ICE: 4076166466 1 udp 2122262783 2402:800:6d62:a46e:41d...
-[SIPSorcery] Added remote ICE: candidate:31684007 1 udp 2122197247 2402:800:6d62:...
-[Protocol] Applied pending ICE: 31684007 1 udp 2122197247 2402:800:6d62:a46e:5169:...
-[SIPSorcery] Added remote ICE: candidate:1405561240 1 udp 2122131711 2402:800:6d6...
-[Protocol] Applied pending ICE: 1405561240 1 udp 2122131711 2402:800:6d62:a46e:534...
-[SIPSorcery] Added remote ICE: candidate:2306035327 1 udp 2122063615 192.168.1.41...
-[Protocol] Applied pending ICE: 2306035327 1 udp 2122063615 192.168.1.41 52354 typ...
-[SIPSorcery] Added remote ICE: candidate:4076166466 1 udp 2122262783 2402:800:6d6...
-[Protocol] Applied pending ICE: 4076166466 1 udp 2122262783 2402:800:6d62:a46e:41d...
-[SIPSorcery] Added remote ICE: candidate:31684007 1 udp 2122197247 2402:800:6d62:...
-[Protocol] Applied pending ICE: 31684007 1 udp 2122197247 2402:800:6d62:a46e:5169:...
-[SIPSorcery] Added remote ICE: candidate:1405561240 1 udp 2122131711 2402:800:6d6...
-[Protocol] Applied pending ICE: 1405561240 1 udp 2122131711 2402:800:6d62:a46e:534...
-[Protocol] ICE RX: ping:1768971947636...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 31687 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1293 bytes
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 59172 typ ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3036811389 1 udp 2122063615 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3036811389 1 udp 2122063615 192.168.1.41...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3464758080 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3464758080 1 udp 2122262783 2402:800:6d6...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1032989605 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1032989605 1 udp 2122197247 2402:800:6d6...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1874229146 1 udp 2122131711 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1874229146 1 udp 2122131711 2402:800:6d6...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3036811389 1 udp 2122063615 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3036811389 1 udp 2122063615 192.168.1.41...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3464758080 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:3464758080 1 udp 2122262783 2402:800:6d6...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1032989605 1 udp 2122197247 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1032989605 1 udp 2122197247 2402:800:6d6...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1874229146 1 udp 2122131711 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1874229146 1 udp 2122131711 2402:800:6d6...
+[Protocol] ICE RX: ping:1768972598154...
 [Protocol] ICE legacy format message
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 63658 ty...
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 59172 ty...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
@@ -275,9 +267,9 @@ Scan complete.
 [SIPSorcery] Track 1: Nvenc encoder initialized (BGRA mode - no color conversion)
 [Protocol] All 2 tracks ready, sending ice_ready
 [Protocol] Phase 3: All monitors connected!
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
 [Protocol] Phase changed to: Phase3_Streaming
 [Protocol] Phase 3: Starting stream...
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
 [Protocol] Starting early capture to prevent browser track timeout...
 [Protocol] Capture thread already running, skipping start
 [Protocol] Cursor tracking started
@@ -289,32 +281,49 @@ Scan complete.
 [PerMonitorCapture] Monitor 1: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
 [Cursor DXGI] Receiving cursor from monitor 0 (pos: 960,540, visible: True)
 [GpuTextureScaler] Monitor 1: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 1 (device=3250E42F7F8)
-[GpuTextureScaler] Monitor 1: Output texture 1440x810
-[GpuTextureScaler] Monitor 0: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 0 (device=2E476BE3678)
-[GpuTextureScaler] Monitor 0: Output texture 1440x810
+[TextureResizer] Created GPU scaler for monitor 1 (device=2569BB33568)
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[GpuTextureScaler] Monitor 1: Output texture 1440x810
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Track 1 frame #0: 99622B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 1 first frame: VideoStreamList.Count=2, rtpStep=29456
-[SIPSorcery] VideoStream[0]: SSRC=1640717750
-[SIPSorcery] VideoStream[1]: SSRC=678338329
-[SIPSorcery] Track 0 frame #0: 38455B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 first frame: VideoStreamList.Count=2, rtpStep=29487
-[SIPSorcery] VideoStream[0]: SSRC=1640717750
-[SIPSorcery] VideoStream[1]: SSRC=678338329
+[GpuTextureScaler] Monitor 0: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 0 (device=2569C552148)
+[GpuTextureScaler] Monitor 0: Output texture 1440x810
+[SIPSorcery] Track 1 frame #0: 99620B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 first frame: VideoStreamList.Count=2, rtpStep=23237
+[SIPSorcery] VideoStream[0]: SSRC=1907977118
+[SIPSorcery] VideoStream[1]: SSRC=1530824864
+[SIPSorcery] Track 0 frame #0: 39424B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=2, rtpStep=23284
+[SIPSorcery] VideoStream[0]: SSRC=1907977118
+[SIPSorcery] VideoStream[1]: SSRC=1530824864
 [AdaptiveBitrate] Initialized: target=7500kbps, range=[2000-15000]kbps, warmup=15000ms
-[SIPSorcery] Track 0 frame #1: 17121B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 1 frame #1: 18136B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #2: 16847B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 1 frame #2: 18136B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 1 frame #3: 18136B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #3: 16847B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 1 frame #4: 18136B, NAL types=[7,8,5], key=True
-[SIPSorcery] Track 0 frame #4: 16847B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #1: 18141B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #1: 19088B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #2: 15695B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #2: 18141B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #3: 16732B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #3: 18141B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 0 frame #4: 16732B, NAL types=[7,8,5], key=True
+[SIPSorcery] Track 1 frame #4: 18141B, NAL types=[7,8,5], key=True
+[Protocol] Phase3 RX: type=start_streaming, len=26
+[Pipeline] Mon0: Server sent 311, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m0: 4.8fps, dropped=0
+[Pipeline] Mon1: Server sent 311, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m1: 4.8fps, dropped=0
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Pipeline] Mon0: Server sent 497, Client received 1 (loss=99.8%)
+[SIPSorcery] FPS feedback m0: 10.1fps, dropped=0
+[Pipeline] Mon1: Server sent 497, Client received 1 (loss=99.8%)
+[SIPSorcery] FPS feedback m1: 10.1fps, dropped=0
+[SIPSorcery] Stats: m0:608, m1:607
+[Capture FPS] Mon0: 59.4 fps (captured 595 in 10011ms, rate-limited=0)
+[Capture FPS] Mon1: 0.1 fps (captured 1 in 10010ms, rate-limited=0)
+[SIPSorcery] Stats: m0:1228, m1:1228
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 59.7 fps (captured 597 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -323,58 +332,27 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Protocol] Phase3 RX: type=start_streaming, len=26
-[Protocol] Phase3 RX: type=request_keyframe, len=27
-[Pipeline] Mon0: Server sent 314, Client received 1 (loss=99.7%)
-[SIPSorcery] FPS feedback m0: 4.2fps, dropped=0
-[Pipeline] Mon1: Server sent 313, Client received 1 (loss=99.7%)
-[SIPSorcery] FPS feedback m1: 4.2fps, dropped=0
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Pipeline] Mon0: Server sent 500, Client received 1 (loss=99.8%)
-[SIPSorcery] FPS feedback m0: 10.0fps, dropped=0
-[Pipeline] Mon1: Server sent 500, Client received 1 (loss=99.8%)
-[SIPSorcery] FPS feedback m1: 10.0fps, dropped=0
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:603, m1:603
-[Capture FPS] Mon0: 60.2 fps (captured 603 in 10010ms, rate-limited=0)
-[Capture FPS] Mon1: 0.5 fps (captured 5 in 10009ms, rate-limited=0)
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:1228, m1:1228
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Capture FPS] Mon0: 61.8 fps (captured 618 in 10000ms, rate-limited=0)
-[Capture FPS] Mon1: 0.3 fps (captured 3 in 10000ms, rate-limited=0)
-[Protocol] Phase3 RX: type=request_keyframe, len=27
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [SIPSorcery] Stats: m0:1853, m1:1853
-[Capture FPS] Mon0: 61.5 fps (captured 615 in 10000ms, rate-limited=0)
-[Capture FPS] Mon1: 0.4 fps (captured 4 in 10000ms, rate-limited=0)
+[Capture FPS] Mon1: 0.3 fps (captured 3 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 62.4 fps (captured 624 in 10000ms, rate-limited=0)
+[SIPSorcery] Stats: m0:2478, m1:2478
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 60.0 fps (captured 600 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:3103, m1:3103
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 60.0 fps (captured 600 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:3728, m1:3728
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 60.0 fps (captured 600 in 10000ms, rate-limited=0)
+[SIPSorcery] Stats: m0:4353, m1:4353
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 60.0 fps (captured 600 in 10000ms, rate-limited=0)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Stats: m0:4978, m1:4978
+[Capture FPS] Mon1: 0.0 fps (captured 0 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 60.0 fps (captured 600 in 10000ms, rate-limited=0)
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(4,11)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -383,6 +361,22 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 64,574, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 64,574)
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1881,448, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1881,448)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -391,18 +385,30 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Receiving cursor from monitor 1 (pos: 2,566, visible: True)
-[Cursor] Monitor changed: 0 -> 1 (pos: 2,566)
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 45,434, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 45,434)
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1918,471, visible: True)
-[Cursor] Monitor changed: 1 -> 0 (pos: 1918,471)
+[SIPSorcery] Stats: m0:5604, m1:5604
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1894,517, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1894,517)
+[Capture FPS] Mon1: 26.3 fps (captured 263 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 61.0 fps (captured 610 in 10000ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:2479, m1:2478
-[Capture FPS] Mon0: 61.3 fps (captured 613 in 10000ms, rate-limited=0)
-[Capture FPS] Mon1: 19.4 fps (captured 194 in 10000ms, rate-limited=0)
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 13,534, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 13,534)
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1919,643, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1919,643)
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 7,758, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 15,761)
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1911,819, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1911,819)
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -411,25 +417,77 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(4,11)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQu9AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQQ3AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(4,11)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQQ3AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:3103, m1:3103
-[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(16,16)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(4,11)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQQ3AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
 [Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Capture FPS] Mon1: 3.3 fps (captured 33 in 10001ms, rate-limited=0)
-[Capture FPS] Mon0: 60.6 fps (captured 606 in 10001ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[SIPSorcery] Stats: m0:6227, m1:6227
+[Capture FPS] Mon0: 59.0 fps (captured 591 in 10015ms, rate-limited=0)
+[Capture FPS] Mon1: 14.8 fps (captured 148 in 10015ms, rate-limited=0)
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 1365,0, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 1365,0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1764,580, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1764,580)
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -439,9 +497,6 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:3729, m1:3728
-[Capture FPS] Mon1: 1.7 fps (captured 17 in 10000ms, rate-limited=0)
-[Capture FPS] Mon0: 61.9 fps (captured 619 in 10000ms, rate-limited=0)
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -454,26 +509,6 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
-[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
-[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
-[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:4354, m1:4353
-[Capture FPS] Mon1: 0.7 fps (captured 7 in 10000ms, rate-limited=0)
-[Capture FPS] Mon0: 62.5 fps (captured 625 in 10000ms, rate-limited=0)
 [Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
@@ -482,9 +517,204 @@ Scan complete.
 [Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
 [Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
 [Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
-[SIPSorcery] Stats: m0:4977, m1:4977
-[Capture FPS] Mon1: 0.3 fps (captured 3 in 10004ms, rate-limited=0)
-[Capture FPS] Mon0: 61.9 fps (captured 619 in 10004ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[SIPSorcery] Stats: m0:6852, m1:6851
+[Capture FPS] Mon1: 9.0 fps (captured 90 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 54.0 fps (captured 540 in 10000ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 1,568, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 1,568)
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[SIPSorcery] Stats: m0:7477, m1:7476
+[Capture FPS] Mon1: 6.8 fps (captured 68 in 10000ms, rate-limited=0)
+[Capture FPS] Mon0: 61.6 fps (captured 616 in 10000ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(16,16)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1914,454, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1914,454)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQu9AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 1 (pos: 12,564, visible: True)
+[Cursor] Monitor changed: 0 -> 1 (pos: 36,557)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[SIPSorcery] Stats: m0:8098, m1:8098
+[Capture FPS] Mon1: 37.6 fps (captured 376 in 10012ms, rate-limited=0)
+[Capture FPS] Mon0: 60.1 fps (captured 602 in 10012ms, rate-limited=0)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=MONOCHROME, size=32x64, pitch=4, buffer=256 bytes, hotspot=(8,9)
+[Cursor DXGI] Monochrome output: 32x32 (4096 bytes)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(6,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAAAAAAAAAAFBgxUDQ4cvQwN...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Receiving cursor from monitor 0 (pos: 1844,475, visible: True)
+[Cursor] Monitor changed: 1 -> 0 (pos: 1844,475)
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(11,4)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAAAAAAAAAAAAAAAAEENwABC70AAQu9AAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
+[Cursor DXGI] Converting: type=COLOR, size=32x32, pitch=128, buffer=4096 bytes, hotspot=(0,0)
+[Cursor DXGI] BGRA output: 32x32 (4096 bytes, expected=4096)
+[Cursor DXGI] Sending: 32x32, 4096 bytes (expected=4096)
+[Cursor DXGI] Base64: 5464 chars (expected=5464), start=AAAM5wABBDcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...end=AAAAAAAAAAAAAAAAAA==
 [Protocol] Phase3 RX: type=stop_streaming, len=25
 [Protocol] Received stop_streaming
 [Protocol] Cursor tracking stopped
@@ -508,8 +738,16 @@ Scan complete.
 [Guard] Attempting to disable VDD...
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[2026-01-21 12:18:55.841] UNOBSERVED TASK EXCEPTION:
+System.AggregateException: A Task's exception(s) were not observed either by Waiting on the Task or accessing its Exception property. As a result, the unobserved exception was rethrown by the finalizer thread. (The I/O operation has been aborted because of either a thread exit or an application request.)
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Threading.Tasks.ValueTask`1.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+   --- End of inner exception stack trace ---
+
+
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY50
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY51
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
@@ -537,4 +775,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client fef79cbb-f0ee-4008-be38-76c5bf7e95d4 disconnected
+[Protocol] Client 614bcbd9-684c-4820-9370-8bc5cb2ca1f1 disconnected
