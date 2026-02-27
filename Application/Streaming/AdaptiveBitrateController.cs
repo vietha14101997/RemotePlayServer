@@ -37,6 +37,12 @@ namespace RemotePlayServer.Application.Streaming
         private double _ewmaRtt;
         private const double EWMA_ALPHA = 0.3; // Smoothing factor (0.0-1.0, higher = more responsive)
 
+        // WiFi mode - faster adjustments and recovery
+        public bool IsWiFiMode { get; set; }
+        private const int WIFI_ADJUSTMENT_COOLDOWN_MS = 1500;  // Faster response on WiFi
+        private const int WIFI_RECOVERY_DELAY_MS = 5000;       // Recover sooner on WiFi
+        private const int WIFI_RECOVERY_COOLDOWN_MS = 3000;    // Recover more frequently
+
         // Rate limiting for adjustments
         private DateTime _lastAdjustmentTime = DateTime.MinValue;
         private const int ADJUSTMENT_COOLDOWN_MS = 2000; // 2 second cooldown between adjustments
@@ -97,9 +103,10 @@ namespace RemotePlayServer.Application.Streaming
             // Update EWMA values
             UpdateEwma(feedback);
 
-            // Check cooldown
+            // Check cooldown (faster on WiFi for quicker response)
+            int cooldownMs = IsWiFiMode ? WIFI_ADJUSTMENT_COOLDOWN_MS : ADJUSTMENT_COOLDOWN_MS;
             var timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
-            if (timeSinceLastAdjustment < ADJUSTMENT_COOLDOWN_MS)
+            if (timeSinceLastAdjustment < cooldownMs)
             {
                 return new BitrateDecision
                 {
@@ -285,9 +292,11 @@ namespace RemotePlayServer.Application.Streaming
             double timeSinceLastIssue = (DateTime.UtcNow - _lastNetworkIssueTime).TotalMilliseconds;
             double timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
 
+            int recoveryDelayMs = IsWiFiMode ? WIFI_RECOVERY_DELAY_MS : RECOVERY_DELAY_MS;
+            int recoveryCooldownMs = IsWiFiMode ? WIFI_RECOVERY_COOLDOWN_MS : RECOVERY_COOLDOWN_MS;
             if (current < InitialBitrateKbps &&
-                timeSinceLastIssue > RECOVERY_DELAY_MS &&
-                timeSinceLastAdjustment > RECOVERY_COOLDOWN_MS &&
+                timeSinceLastIssue > recoveryDelayMs &&
+                timeSinceLastAdjustment > recoveryCooldownMs &&
                 !hasNetworkIssue)
             {
                 // Gradually recover toward initial bitrate

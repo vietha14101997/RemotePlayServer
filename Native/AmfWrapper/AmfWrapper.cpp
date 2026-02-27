@@ -44,7 +44,7 @@ static void ConfigureAmfEncoder(amf::AMFComponentPtr& encoder, int fps, int bitr
     encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps / 2);  // 0.5s GOP for WiFi resilience
     encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);

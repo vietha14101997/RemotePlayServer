@@ -84,6 +84,7 @@ public class SIPSorceryStreamer : IDisposable
         public uint RtpTimestamp;
         public bool TimestampInitialized;
         public volatile bool ForceNextKeyframe;
+        public int KeyframeBurstRemaining; // Send N consecutive keyframes for WiFi resilience
 
         public void Dispose()
         {
@@ -641,11 +642,11 @@ public class SIPSorceryStreamer : IDisposable
         {
             try
             {
-                // Force keyframe for first 5 frames
-                // Also force if explicitly requested
+                // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
-                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe;
+                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
+                if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
                 // Encode BGRA directly - no staging texture or copy needed
                 track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
@@ -695,11 +696,11 @@ public class SIPSorceryStreamer : IDisposable
 
                 device.ImmediateContext.CopyResource(track.StagingNV12, nv12Texture);
 
-                // Force keyframe for first 5 frames (AMF has output delay/buffering)
-                // Also force if explicitly requested
+                // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
-                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe;
+                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
+                if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
                 track.Encoder.EncodeTexture(track.StagingNV12, forceKeyframe: forceIdr);
                 Interlocked.Increment(ref track.EncodedFrames);
@@ -849,6 +850,22 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
+    public void RequestKeyframeBurst(int monitorIndex = -1, int count = 3)
+    {
+        lock (_lock)
+        {
+            if (monitorIndex == -1)
+            {
+                foreach (var t in _tracks) t.KeyframeBurstRemaining = count;
+            }
+            else if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
+            {
+                _tracks[monitorIndex].KeyframeBurstRemaining = count;
+            }
+        }
+        Logger.Info($"[SIPSorcery] Keyframe burst: monitor={monitorIndex}, count={count}");
+    }
+
     public void ProcessFpsFeedback(int monitorIndex, float effectiveFps, int droppedFrames, long clientTotalFrames)
     {
         // Get server's sent frame count for this monitor
@@ -937,6 +954,8 @@ public class SIPSorceryStreamer : IDisposable
     /// Reset adaptive bitrate controller to initial state.
     /// </summary>
     public void ResetBitrateController() => _bitrateController.Reset();
+
+    public void SetWiFiMode(bool isWiFi) => _bitrateController.IsWiFiMode = isWiFi;
 
     /// <summary>
     /// Dynamically update streaming configuration during Phase 3.

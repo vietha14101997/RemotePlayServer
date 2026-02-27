@@ -101,7 +101,7 @@ static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitra
     encodeConfig.rcParams.maxBitRate = bitrate * 1200;
     encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps;
     encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
-    encodeConfig.gopLength = fps * 2;
+    encodeConfig.gopLength = fps / 2;  // 0.5s GOP for WiFi resilience
     encodeConfig.frameIntervalP = 1;
     encodeConfig.encodeCodecConfig.h264Config.idrPeriod = encodeConfig.gopLength;
     encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;

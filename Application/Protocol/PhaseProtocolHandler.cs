@@ -1360,6 +1360,25 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+                    // Handle keyframe burst request (send N consecutive I-frames for WiFi resilience)
+                    if (msgType == "request_keyframe_burst")
+                    {
+                        int monitorIndex = -1;
+                        int count = 3;
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                                monitorIndex = mi.GetInt32();
+                            if (json.RootElement.TryGetProperty("count", out var c))
+                                count = c.GetInt32();
+                        }
+                        catch { }
+
+                        _streamer?.RequestKeyframeBurst(monitorIndex, Math.Clamp(count, 1, 5));
+                        continue;
+                    }
+
                     // Handle skip_to_live request from client (for latency recovery)
                     // Client sends this when it detects accumulated delay > threshold
                     // Supports optional "monitor" field for per-monitor sync
@@ -1431,6 +1450,13 @@ namespace RemotePlayServer.Application.Protocol
                             var feedback = ProtocolMessageParser.Parse<QualityFeedbackMessage>(text);
                             if (feedback != null && _streamer != null)
                             {
+                                // Proactive keyframe burst on significant packet loss
+                                if (feedback.PacketLossRate > 0.02f)
+                                    _streamer.RequestKeyframeBurst(-1, 3);
+
+                                // WiFi-aware adaptive bitrate
+                                _streamer.SetWiFiMode(feedback.IsWiFi);
+
                                 var bitrateResult = _streamer.ProcessQualityFeedback(feedback);
                                 if (bitrateResult != null)
                                 {

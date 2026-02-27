@@ -445,10 +445,9 @@ public unsafe class LibAvEncoder : IDisposable
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        // Infinite GOP - rely on hardware scene change detection (adaptive_i) and on-demand keyframes
-        // Setting very large value instead of 0 (0 = all I-frames in FFmpeg)
-        // Hardware encoders with adaptive_i will insert IDR on scene changes automatically
-        _codecCtx->gop_size = 10000; // ~2.7 minutes at 60fps - effectively infinite
+        // 1s GOP - periodic I-frames for WiFi resilience
+        // Short enough to recover quickly from packet loss, long enough to avoid bandwidth waste
+        _codecCtx->gop_size = _fps;  // 1 second GOP
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
 

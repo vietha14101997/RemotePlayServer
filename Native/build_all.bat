@@ -6,11 +6,22 @@ echo  Native Encoder Wrappers - Build All
 echo ======================================
 echo.
 
-:: Find MSBuild via vswhere
-for /f "tokens=*" %%i in ('"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "MSBuild\**\Bin\MSBuild.exe" 2^>nul') do set "MSB=%%i"
+:: Find MSBuild - check PATH first (Developer Command Prompt), then vswhere
+set "MSB="
+where MSBuild.exe >nul 2>nul
+if %errorlevel%==0 (
+    for /f "tokens=*" %%i in ('where MSBuild.exe') do (
+        if not defined MSB set "MSB=%%i"
+    )
+)
 
-if "%MSB%"=="" (
-    echo ERROR: MSBuild not found. Please install Visual Studio 2019 or later.
+:: Fallback: Find via vswhere
+if not defined MSB (
+    for /f "tokens=*" %%i in ('"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe" 2^>nul') do set "MSB=%%i"
+)
+
+if not defined MSB (
+    echo ERROR: MSBuild not found. Please run from Developer Command Prompt or install Visual Studio 2019+.
     pause
     exit /b 1
 )
