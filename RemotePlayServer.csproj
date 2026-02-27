@@ -6,6 +6,14 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   
+  <!-- Exclude test project from main compilation -->
+  <ItemGroup>
+    <Compile Remove="RemotePlayServer.Tests\**" />
+    <Content Remove="RemotePlayServer.Tests\**" />
+    <EmbeddedResource Remove="RemotePlayServer.Tests\**" />
+    <None Remove="RemotePlayServer.Tests\**" />
+  </ItemGroup>
+
   <!-- Copy FFmpeg DLLs from bin folder to output -->
   <ItemGroup>
     <None Include="bin\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="bin" />
