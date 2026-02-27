@@ -857,9 +857,11 @@ namespace RemotePlayServer.Application.Protocol
                 // Process offer with all dimensions at once
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
 
-                // CRITICAL: Filter SDP answer to only include selected codec
-                // libdatachannel includes ALL codecs from offer, but browser picks FIRST in m= line
-                var filteredSdp = FilterSdpForCodec(answerSdp, h264PayloadType);
+                // Fix m-line order: SIPSorcery may reorder (audio before video) breaking strict WebRTC
+                var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);
+
+                // Filter SDP answer to only include selected codec
+                var filteredSdp = FilterSdpForCodec(reorderedSdp, h264PayloadType);
                 Logger.Info($"[Protocol] Filtered SDP from {answerSdp.Length} to {filteredSdp.Length} bytes");
 
                 // Extract embedded ICE candidates from filtered SDP
@@ -922,8 +924,118 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
-        /// Filter SDP to only include the specified payload type.
-        /// This is critical for WebRTC - browser uses FIRST codec in m= line.
+        /// Reorder answer SDP m-sections to match the offer's m-line order.
+        /// SIPSorcery may reorder m-lines (e.g., putting audio before video) which causes
+        /// "m-line order mismatch" errors in strict WebRTC implementations like Unity.WebRTC.
+        /// Also remaps mid values to match the expected positions.
+        /// </summary>
+        private string ReorderAnswerToMatchOffer(string answerSdp, string offerSdp)
+        {
+            if (string.IsNullOrEmpty(answerSdp) || string.IsNullOrEmpty(offerSdp))
+                return answerSdp;
+
+            // Parse offer m-line types in order (e.g., ["m=video", "m=video", "m=audio"])
+            var offerMTypes = new List<string>();
+            foreach (var line in offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (line.StartsWith("m="))
+                    offerMTypes.Add(line.Split(' ')[0]);
+            }
+
+            // Parse answer into session header + m-line sections
+            var answerLines = answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var sessionLines = new List<string>();
+            var sections = new List<(string type, List<string> lines)>();
+            List<string>? currentLines = null;
+            string? currentType = null;
+
+            foreach (var line in answerLines)
+            {
+                if (line.StartsWith("m="))
+                {
+                    if (currentLines != null)
+                        sections.Add((currentType!, currentLines));
+                    currentType = line.Split(' ')[0];
+                    currentLines = new List<string> { line };
+                }
+                else if (currentLines != null)
+                {
+                    currentLines.Add(line);
+                }
+                else
+                {
+                    sessionLines.Add(line);
+                }
+            }
+            if (currentLines != null)
+                sections.Add((currentType!, currentLines));
+
+            // Verify section count matches
+            if (offerMTypes.Count != sections.Count)
+            {
+                Logger.Info($"[Protocol] Cannot reorder: offer has {offerMTypes.Count} m-sections, answer has {sections.Count}");
+                return answerSdp;
+            }
+
+            // Check if already in correct order
+            var answerMTypes = sections.Select(s => s.type).ToList();
+            if (offerMTypes.SequenceEqual(answerMTypes))
+                return answerSdp;
+
+            // Group answer sections by media type for matching
+            var answerByType = new Dictionary<string, Queue<(string type, List<string> lines)>>();
+            foreach (var section in sections)
+            {
+                if (!answerByType.ContainsKey(section.type))
+                    answerByType[section.type] = new Queue<(string, List<string>)>();
+                answerByType[section.type].Enqueue(section);
+            }
+
+            // Reorder: for each offer m-type, pick next unused answer section of same type
+            var reordered = new List<(string type, List<string> lines)>();
+            int midIndex = 0;
+            foreach (var offerType in offerMTypes)
+            {
+                if (answerByType.TryGetValue(offerType, out var queue) && queue.Count > 0)
+                {
+                    var section = queue.Dequeue();
+                    // Remap mid value to match position index
+                    var newMid = midIndex.ToString();
+                    for (int j = 0; j < section.lines.Count; j++)
+                    {
+                        if (section.lines[j].StartsWith("a=mid:"))
+                            section.lines[j] = $"a=mid:{newMid}";
+                    }
+                    reordered.Add(section);
+                }
+                midIndex++;
+            }
+
+            // Update BUNDLE group in session header
+            var bundleMids = string.Join(" ", Enumerable.Range(0, reordered.Count));
+            for (int i = 0; i < sessionLines.Count; i++)
+            {
+                if (sessionLines[i].StartsWith("a=group:BUNDLE"))
+                    sessionLines[i] = $"a=group:BUNDLE {bundleMids}";
+            }
+
+            // Rebuild SDP
+            var result = new List<string>(sessionLines);
+            foreach (var (_, lines) in reordered)
+                result.AddRange(lines);
+
+            var newSdp = string.Join("\r\n", result);
+            if (!newSdp.EndsWith("\r\n")) newSdp += "\r\n";
+
+            Logger.Info($"[Protocol] Reordered answer m-lines: [{string.Join(", ", answerMTypes)}] -> [{string.Join(", ", reordered.Select(r => r.type))}]");
+            return newSdp;
+        }
+
+        /// <summary>
+        /// Filter SDP to only include H264 codec per m=video section.
+        /// Three-pass: 1) build PT→codec map, 2) rewrite each section with its actual H264 PT,
+        /// 3) inject missing rtpmap/fmtp for video sections SIPSorcery didn't generate.
+        /// SIPSorcery assigns different PTs per monitor track (96, 97, ...).
         /// </summary>
         private string FilterSdpForCodec(string sdp, int payloadType)
         {
@@ -931,34 +1043,95 @@ namespace RemotePlayServer.Application.Protocol
                 return sdp;
 
             var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            // Pass 1: Build PT → codec map from all rtpmap lines
+            var ptCodecMap = new Dictionary<int, string>();
+            foreach (var line in lines)
+            {
+                if (!line.StartsWith("a=rtpmap:")) continue;
+                var pt = ExtractPayloadTypeFromLine(line);
+                if (pt < 0) continue;
+                // "a=rtpmap:96 H264/90000" → codec = "H264"
+                var colonIdx = line.IndexOf(':');
+                var rest = line.Substring(colonIdx + 1);
+                var spaceIdx = rest.IndexOf(' ');
+                if (spaceIdx > 0)
+                {
+                    var codecPart = rest.Substring(spaceIdx + 1);
+                    var slashIdx = codecPart.IndexOf('/');
+                    ptCodecMap[pt] = slashIdx > 0 ? codecPart.Substring(0, slashIdx) : codecPart;
+                }
+            }
+
+            // Pass 2: Filter SDP, using actual H264 PT per m=video section
+            // Audio sections must preserve all codec attributes (rtpmap/fmtp/rtcp-fb)
             var filtered = new List<string>();
-            var ptStr = payloadType.ToString();
+            int currentSectionPt = payloadType; // fallback to offer PT
+            bool isAudioSection = false;
 
             foreach (var line in lines)
             {
-                // Replace m=video line to only include our PT
-                // Original: m=video 9 UDP/TLS/RTP/SAVP 39 41 43 96 103 107 109 ...
-                // Fixed:    m=video 9 UDP/TLS/RTP/SAVPF 109
                 if (line.StartsWith("m=video"))
                 {
+                    isAudioSection = false;
                     var parts = line.Split(' ');
-                    if (parts.Length >= 3)
+                    if (parts.Length >= 4)
                     {
-                        // Keep port and protocol, replace with single PT
-                        // Fix: Only add F if ending with exactly "SAVP" (not already "SAVPF")
+                        // Find the H264 PT among PTs listed in this m=video line
+                        int h264Pt = -1;
+                        for (int i = 3; i < parts.Length; i++)
+                        {
+                            if (int.TryParse(parts[i], out var pt) &&
+                                ptCodecMap.TryGetValue(pt, out var codec) &&
+                                codec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                            {
+                                h264Pt = pt;
+                                break;
+                            }
+                        }
+
+                        // Fallback: if no H264 found in map, use first PT from line
+                        if (h264Pt < 0 && int.TryParse(parts[3], out var firstPt))
+                            h264Pt = firstPt;
+                        if (h264Pt < 0)
+                            h264Pt = payloadType;
+
+                        currentSectionPt = h264Pt;
                         var protocol = parts[2].EndsWith("/SAVP") ? parts[2] + "F" : parts[2];
-                        var newLine = $"m=video {parts[1]} {protocol} {ptStr}";
+                        var newLine = $"m=video {parts[1]} {protocol} {currentSectionPt}";
                         filtered.Add(newLine);
-                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine}");
+                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine} (H264 PT={currentSectionPt})");
                         continue;
                     }
                 }
 
-                // Keep only rtpmap and fmtp for our PT (and rtx if paired)
+                if (line.StartsWith("m=audio"))
+                {
+                    isAudioSection = true;
+                    filtered.Add(line);
+                    continue;
+                }
+
+                // Reset on any other m= section (e.g., m=application)
+                if (line.StartsWith("m=") && !line.StartsWith("m=video") && !line.StartsWith("m=audio"))
+                {
+                    isAudioSection = false;
+                    filtered.Add(line);
+                    continue;
+                }
+
+                // Audio sections: keep ALL attributes (rtpmap, fmtp, rtcp-fb, etc.)
+                if (isAudioSection)
+                {
+                    filtered.Add(line);
+                    continue;
+                }
+
+                // Keep only rtpmap for current section's H264 PT
                 if (line.StartsWith("a=rtpmap:"))
                 {
                     var pt = ExtractPayloadTypeFromLine(line);
-                    if (pt == payloadType || pt == payloadType + 1) // Keep main PT and possibly RTX
+                    if (pt == currentSectionPt)
                     {
                         filtered.Add(line);
                         Logger.Info($"[Protocol] SDP kept: {line}");
@@ -969,11 +1142,9 @@ namespace RemotePlayServer.Application.Protocol
                 if (line.StartsWith("a=fmtp:"))
                 {
                     var pt = ExtractPayloadTypeFromLine(line);
-                    if (pt == payloadType || pt == payloadType + 1)
+                    if (pt == currentSectionPt)
                     {
-                        // CRITICAL: Update profile-level-id to match AMF encoder output
-                        // AMF outputs: SPS header 67 42 04 28 = profile_idc=0x42, constraint=0x04, level=0x28 (4.0)
-                        // Browser offered 42e01f (level 3.1) but encoder outputs 420428 (level 4.0)
+                        // Update profile-level-id to match AMF encoder output
                         var fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
                                             .Replace("profile-level-id=42001f", "profile-level-id=420428");
                         filtered.Add(fixedLine);
@@ -982,11 +1153,10 @@ namespace RemotePlayServer.Application.Protocol
                     continue;
                 }
 
-                // Skip rtcp-fb lines for other codecs
                 if (line.StartsWith("a=rtcp-fb:"))
                 {
                     var pt = ExtractPayloadTypeFromLine(line);
-                    if (pt == payloadType || pt == payloadType + 1)
+                    if (pt == currentSectionPt)
                     {
                         filtered.Add(line);
                     }
@@ -995,6 +1165,87 @@ namespace RemotePlayServer.Application.Protocol
 
                 // Keep all other lines (session-level, ICE, DTLS, etc.)
                 filtered.Add(line);
+            }
+
+            // Pass 3: Inject missing rtpmap/fmtp for video sections
+            // SIPSorcery may only generate codec attributes for the last video track
+            string? h264RtpmapSuffix = null; // e.g., "H264/90000"
+            string? h264FmtpSuffix = null;   // e.g., "packetization-mode=1;..."
+            foreach (var line in filtered)
+            {
+                if (h264RtpmapSuffix == null && line.StartsWith("a=rtpmap:") && line.Contains("H264"))
+                {
+                    var spIdx = line.IndexOf(' ');
+                    if (spIdx > 0) h264RtpmapSuffix = line.Substring(spIdx + 1);
+                }
+                if (h264FmtpSuffix == null && line.StartsWith("a=fmtp:"))
+                {
+                    var spIdx = line.IndexOf(' ');
+                    if (spIdx > 0) h264FmtpSuffix = line.Substring(spIdx + 1);
+                }
+            }
+
+            if (h264RtpmapSuffix != null)
+            {
+                // Identify video sections missing rtpmap and inject after a=mid: line
+                var final = new List<string>();
+                int vidPt = -1;
+                bool injected = false;
+
+                // First: scan each section to know which need injection
+                var sectionNeedsInjection = new Dictionary<int, bool>();
+                int scanPt = -1;
+                bool scanHas = false;
+                foreach (var line in filtered)
+                {
+                    if (line.StartsWith("m=video"))
+                    {
+                        if (scanPt >= 0) sectionNeedsInjection[scanPt] = !scanHas;
+                        var parts = line.Split(' ');
+                        scanPt = parts.Length >= 4 && int.TryParse(parts[3], out var p) ? p : -1;
+                        scanHas = false;
+                    }
+                    else if (line.StartsWith("m="))
+                    {
+                        if (scanPt >= 0) sectionNeedsInjection[scanPt] = !scanHas;
+                        scanPt = -1;
+                    }
+                    else if (line.StartsWith("a=rtpmap:") && scanPt >= 0)
+                    {
+                        scanHas = true;
+                    }
+                }
+                if (scanPt >= 0) sectionNeedsInjection[scanPt] = !scanHas;
+
+                // Second: rebuild with injections after a=mid: in sections that need it
+                vidPt = -1;
+                foreach (var line in filtered)
+                {
+                    if (line.StartsWith("m=video"))
+                    {
+                        var parts = line.Split(' ');
+                        vidPt = parts.Length >= 4 && int.TryParse(parts[3], out var p) ? p : -1;
+                        injected = false;
+                    }
+                    else if (line.StartsWith("m="))
+                    {
+                        vidPt = -1;
+                    }
+
+                    final.Add(line);
+
+                    // Inject after a=mid: line for sections that need it
+                    if (!injected && vidPt >= 0 && line.StartsWith("a=mid:")
+                        && sectionNeedsInjection.TryGetValue(vidPt, out var needs) && needs)
+                    {
+                        final.Add($"a=rtpmap:{vidPt} {h264RtpmapSuffix}");
+                        if (h264FmtpSuffix != null)
+                            final.Add($"a=fmtp:{vidPt} {h264FmtpSuffix}");
+                        Logger.Info($"[Protocol] Injected missing codec attrs for PT {vidPt}");
+                        injected = true;
+                    }
+                }
+                filtered = final;
             }
 
             var result = string.Join("\r\n", filtered);

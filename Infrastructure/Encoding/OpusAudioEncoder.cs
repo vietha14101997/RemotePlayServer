@@ -15,10 +15,10 @@ public sealed class OpusAudioEncoder : IDisposable
 {
     public const int SAMPLE_RATE = 48000;
     public const int CHANNELS = 2;
-    public const int FRAME_DURATION_MS = 20;
-    public const int SAMPLES_PER_FRAME = SAMPLE_RATE * FRAME_DURATION_MS / 1000; // 960
-    public const int BYTES_PER_FRAME = SAMPLES_PER_FRAME * CHANNELS * 2;          // 3840 (16-bit stereo)
-    public const uint RTP_DURATION_PER_FRAME = (uint)(SAMPLE_RATE * FRAME_DURATION_MS / 1000); // 960
+    public const int FRAME_DURATION_MS = 10;
+    public const int SAMPLES_PER_FRAME = SAMPLE_RATE * FRAME_DURATION_MS / 1000; // 480
+    public const int BYTES_PER_FRAME = SAMPLES_PER_FRAME * CHANNELS * 2;          // 1920 (16-bit stereo)
+    public const uint RTP_DURATION_PER_FRAME = (uint)(SAMPLE_RATE * FRAME_DURATION_MS / 1000); // 480
 
     private readonly IOpusEncoder _encoder;
     private readonly byte[] _frameBuffer;

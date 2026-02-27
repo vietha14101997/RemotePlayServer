@@ -49,6 +49,8 @@ public class SIPSorceryStreamer : IDisposable
     private DesktopAudioCapture? _audioCapture;
     private OpusAudioEncoder? _opusEncoder;
     private volatile bool _audioEnabled;
+    private bool _hasAudioTrack;
+    private long _audioPacketsSent;
 
     /// <summary>
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
@@ -148,7 +150,7 @@ public class SIPSorceryStreamer : IDisposable
     /// <summary>
     /// Process single SDP offer (with N m= sections), create N tracks, return single answer.
     /// </summary>
-    public async Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
+    public Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
     {
         if (_running)
         {
@@ -251,10 +253,12 @@ public class SIPSorceryStreamer : IDisposable
                 streamStatus: MediaStreamStatusEnum.SendOnly);
 
             _pc.addTrack(audioTrack);
+            _hasAudioTrack = true;
             Logger.Info("[SIPSorcery] Added audio track (Opus 48kHz stereo)");
         }
         else
         {
+            _hasAudioTrack = false;
             Logger.Info("[SIPSorcery] Client offer has no m=audio, skipping audio track");
         }
 
@@ -336,29 +340,36 @@ public class SIPSorceryStreamer : IDisposable
         // Set remote offer and create answer
         var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
         _pc.setRemoteDescription(offer);
+        Logger.Info($"[SIPSorcery] After setRemoteDescription: signalingState={_pc.signalingState}");
+
         var answer = _pc.createAnswer(null);
-        await _pc.setLocalDescription(answer);
+        Logger.Info($"[SIPSorcery] After createAnswer: signalingState={_pc.signalingState}, answer.type={answer.type}");
+
+        // DO NOT call setLocalDescription(answer) — SIPSorcery 8.x signalingState is broken
+        // (shows "closed" after setRemoteDescription), so setLocalDescription misinterprets
+        // the answer as an offer, setting state to "have_local_offer" and corrupting DTLS config.
+        // createAnswer() already configures DTLS internals correctly.
 
         _running = true;
 
         // Start stats logging
         _ = Task.Run(LogStatsAsync);
 
-        // Fix SDP for browser compatibility (SAVPF)
         var answerSdp = answer.sdp ?? "";
+
+        // RFC 5763: Answerer MUST use "active" or "passive", NOT "actpass".
+        // When signalingState works correctly (Android), SIPSorcery generates "active" natively.
+        // When signalingState is broken (Unity Editor), it falls back to "actpass" which
+        // libwebrtc rejects. Fix: replace with "active" for RFC compliance.
+        if (answerSdp.Contains("a=setup:actpass"))
+        {
+            answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
+            Logger.Info("[SIPSorcery] SDP: fixed actpass -> active in answer (RFC 5763)");
+        }
+
         if (!answerSdp.Contains("SAVPF"))
             answerSdp = answerSdp.Replace("SAVP", "SAVPF");
         answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
-
-        // DTLS setup role: Keep SIPSorcery's default "setup:active"
-        // SIPSorcery internally acts as DTLS client when IceRole is active.
-        // Changing SDP text without changing internal behavior causes mismatch.
-        // Let SIPSorcery initiate DTLS handshake as active party.
-        // NOTE: RFC 5763 recommends answerer use "active" for parallel handshake.
-        if (answerSdp.Contains("a=setup:active"))
-        {
-            Logger.Info("[SIPSorcery] DTLS setup: keeping active (SIPSorcery will initiate handshake)");
-        }
 
         // Log DTLS-critical SDP attributes for debugging
         foreach (var line in answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
@@ -368,7 +379,7 @@ public class SIPSorceryStreamer : IDisposable
         }
 
         Logger.Info($"[SIPSorcery] Answer ready, {answerSdp.Length} bytes");
-        return answerSdp;
+        return Task.FromResult(answerSdp);
     }
 
     public void AddIceCandidate(string candidate, string? mid = null)
@@ -426,8 +437,13 @@ public class SIPSorceryStreamer : IDisposable
     /// </summary>
     private void InitializeAudio()
     {
-        // Only init if we added an audio track
-        if (_pc == null) return;
+        // Only init if we added an audio track during SDP negotiation
+        if (_pc == null || !_hasAudioTrack)
+        {
+            if (!_hasAudioTrack)
+                Logger.Info("[SIPSorcery] Audio pipeline skipped (no audio track negotiated)");
+            return;
+        }
 
         try
         {
@@ -450,6 +466,7 @@ public class SIPSorceryStreamer : IDisposable
                     var packet = new byte[opusLength];
                     Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
                     _pc.SendAudio(rtpDuration, packet);
+                    Interlocked.Increment(ref _audioPacketsSent);
                 }
                 catch (Exception ex)
                 {
@@ -1159,7 +1176,9 @@ public class SIPSorceryStreamer : IDisposable
             lock (_lock)
             {
                 var stats = string.Join(", ", _tracks.Select(t => $"m{t.Index}:{t.SentFrames}"));
-                Logger.Info($"[SIPSorcery] Stats: {stats}");
+                var audioPkts = Interlocked.Read(ref _audioPacketsSent);
+                var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts" : "";
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
             }
         }
     }

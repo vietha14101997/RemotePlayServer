@@ -58,8 +58,12 @@ public sealed class DesktopAudioCapture : IDisposable
         _running = true;
         _lastDataTimeTicks = Environment.TickCount64;
 
-        // Silence watchdog: check every 20ms, send silence if no data for 30ms
-        _silenceTimer = new Timer(SilenceWatchdog, null, 20, 20);
+        // Silence watchdog: check every 20ms, send silence if no data for 500ms.
+        // 500ms threshold prevents false triggers when WASAPI callbacks are delayed
+        // by CPU-intensive video encoding (AMF + capture + GPU scaling).
+        // Too-low threshold (e.g. 30ms) causes silence injection mid-frame,
+        // producing distorted audio and >50 Opus packets/sec (growing jitter buffer delay).
+        _silenceTimer = new Timer(SilenceWatchdog, null, 100, 20);
 
         Logger.Info($"[AudioCapture] Started: {_sampleRate}Hz, {_channels}ch");
     }
@@ -179,11 +183,11 @@ public sealed class DesktopAudioCapture : IDisposable
         if (!_running || _paused || _disposed) return;
 
         long elapsed = Environment.TickCount64 - _lastDataTimeTicks;
-        if (elapsed < 30) return; // Only send silence if no data for 30ms
+        if (elapsed < 500) return; // Only send silence if no data for 500ms (system truly silent)
 
-        // Generate 20ms of silence (PCM16)
-        // 20ms at 48000Hz, 2ch, 16-bit = 960 samples * 2ch * 2 bytes = 3840 bytes
-        int samplesPerFrame = _sampleRate * 20 / 1000;
+        // Generate 10ms of silence (PCM16) — matches Opus 10ms frame duration
+        // 10ms at 48000Hz, 2ch, 16-bit = 480 samples * 2ch * 2 bytes = 1920 bytes
+        int samplesPerFrame = _sampleRate * 10 / 1000;
         int bytesPerFrame = samplesPerFrame * _channels * 2; // 16-bit = 2 bytes
         var silence = new byte[bytesPerFrame]; // All zeros = silence
 
