@@ -19,6 +19,8 @@ public sealed class DesktopAudioCapture : IDisposable
     private volatile bool _disposed;
     private Timer? _silenceTimer;
     private long _lastDataTimeTicks;
+    private volatile bool _silenceActive;
+    private long _lastSilenceFrameTicks;
 
     // Output format: always 16-bit PCM at the device's native sample rate
     private int _sampleRate;
@@ -58,12 +60,12 @@ public sealed class DesktopAudioCapture : IDisposable
         _running = true;
         _lastDataTimeTicks = Environment.TickCount64;
 
-        // Silence watchdog: check every 20ms, send silence if no data for 500ms.
-        // 500ms threshold prevents false triggers when WASAPI callbacks are delayed
-        // by CPU-intensive video encoding (AMF + capture + GPU scaling).
-        // Too-low threshold (e.g. 30ms) causes silence injection mid-frame,
-        // producing distorted audio and >50 Opus packets/sec (growing jitter buffer delay).
-        _silenceTimer = new Timer(SilenceWatchdog, null, 100, 20);
+        // Silence watchdog: fires every 10ms (matching Opus frame duration).
+        // Uses 100ms detection threshold before entering silence mode — safe from
+        // WASAPI callback delays caused by CPU-intensive video encoding (30ms was too low,
+        // 500ms caused RTP timestamp drift during silence periods).
+        // Once in silence mode, generates continuous 10ms frames at real-time rate.
+        _silenceTimer = new Timer(SilenceWatchdog, null, 100, 10);
 
         Logger.Info($"[AudioCapture] Started: {_sampleRate}Hz, {_channels}ch");
     }
@@ -96,6 +98,7 @@ public sealed class DesktopAudioCapture : IDisposable
     public void Resume()
     {
         _paused = false;
+        _silenceActive = false;
         _lastDataTimeTicks = Environment.TickCount64;
     }
 
@@ -119,6 +122,7 @@ public sealed class DesktopAudioCapture : IDisposable
         if (!_running || _paused || e.BytesRecorded == 0) return;
 
         _lastDataTimeTicks = Environment.TickCount64;
+        _silenceActive = false;
 
         var waveFormat = _capture!.WaveFormat;
 
@@ -175,23 +179,58 @@ public sealed class DesktopAudioCapture : IDisposable
     }
 
     /// <summary>
-    /// Send silence when WASAPI loopback has no data (no system audio playing).
-    /// This keeps RTP timestamps progressing so the client doesn't think the stream died.
+    /// Continuous silence frame generator to keep RTP timestamps advancing at real-time rate.
+    /// Three phases:
+    /// 1. Detection: Wait 100ms after last WASAPI data (avoids false triggers from CPU-delayed callbacks)
+    /// 2. Catch-up: On first entering silence mode, batch-send missed frames for the detection gap
+    /// 3. Generation: Send one 10ms frame per timer tick to maintain real-time RTP clock rate
+    ///
+    /// Previous bug: sent only 1 frame per 500ms → RTP clock ran 50x slower during silence,
+    /// causing progressive audio drift after silence→sound transitions.
     /// </summary>
     private void SilenceWatchdog(object? state)
     {
         if (!_running || _paused || _disposed) return;
 
-        long elapsed = Environment.TickCount64 - _lastDataTimeTicks;
-        if (elapsed < 500) return; // Only send silence if no data for 500ms (system truly silent)
+        long now = Environment.TickCount64;
+        long elapsed = now - _lastDataTimeTicks;
 
-        // Generate 10ms of silence (PCM16) — matches Opus 10ms frame duration
-        // 10ms at 48000Hz, 2ch, 16-bit = 480 samples * 2ch * 2 bytes = 1920 bytes
+        // Phase 1: Detection — 100ms threshold avoids false triggers during WASAPI callback delays
+        // caused by CPU-intensive video encoding (AMF + capture + GPU scaling).
+        // 30ms was too low (caused mid-frame silence injection), 500ms was too high (caused drift).
+        if (elapsed < 100)
+        {
+            _silenceActive = false;
+            return;
+        }
+
+        // Silence frame: 10ms of zeros matching Opus frame duration
         int samplesPerFrame = _sampleRate * 10 / 1000;
-        int bytesPerFrame = samplesPerFrame * _channels * 2; // 16-bit = 2 bytes
-        var silence = new byte[bytesPerFrame]; // All zeros = silence
+        int bytesPerFrame = samplesPerFrame * _channels * 2;
+        var silence = new byte[bytesPerFrame];
 
-        _lastDataTimeTicks = Environment.TickCount64;
-        OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+        // Phase 2: Catch-up — first time entering silence mode, send missed frames
+        // to cover the 100ms detection gap and keep RTP timestamps accurate
+        if (!_silenceActive)
+        {
+            _silenceActive = true;
+            int missedFrames = (int)(elapsed / 10);
+            for (int i = 0; i < missedFrames; i++)
+                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+            _lastSilenceFrameTicks = now;
+            return;
+        }
+
+        // Phase 3: Continuous generation — one 10ms frame per timer tick = real-time rate
+        long sinceLast = now - _lastSilenceFrameTicks;
+        if (sinceLast >= 8) // Allow slight timer jitter (timer resolution ~10-16ms on Windows)
+        {
+            OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+            _lastSilenceFrameTicks = now;
+
+            // Drift compensation: if timer was late, send extra frame to catch up
+            if (sinceLast >= 18)
+                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+        }
     }
 }
