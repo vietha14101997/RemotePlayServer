@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using RemotePlayServer.Configuration;
@@ -15,40 +17,125 @@ namespace RemotePlayServer.Infrastructure.Display;
 /// <summary>
 /// Manages Virtual Display Driver (VDD) setup, multi-monitor configuration,
 /// DPI scaling, and display topology for the streaming server.
+/// Uses named pipe IPC (fast path) with pnputil fallback (slow path).
 /// </summary>
 static class VirtualDisplayManager
 {
     const string DRIVER_NAME = "Virtual Display Driver";
     const string MONITOR_NAME = "Virtual Desktop Monitor";
+    const string VDD_PIPE_NAME = "MTTVirtualDisplayPipe";
 
     static int TARGET_TOTAL_MONITORS => DisplayConfig.MonitorCount;
     static int MONITOR_REFRESH => DisplayConfig.RefreshRate;
 
-    // Store original physical monitor names and resolutions before VDD is enabled
+    // Physical monitor state (populated during setup)
     private static readonly HashSet<string> _physicalMonitorNames = new();
     private static readonly List<(string name, int width, int height, int refreshRate)> _originalPhysicalMonitors = new();
 
-    // Store original DPI settings
+    // Original DPI settings for restore on shutdown
     private static List<(DpiScalingHelper.LUID adapterId, uint sourceId, DpiScalingHelper.DpiScalingInfo info)>? _originalDpiSettings;
 
-    /// <summary>
-    /// Access to physical monitor names (used by SignalServer for display type detection)
-    /// </summary>
+    // Cached adapter instance ID (doesn't change between runs)
+    private static string? _cachedAdapterId;
+
     internal static IReadOnlySet<string> PhysicalMonitorNames => _physicalMonitorNames;
+
+    // ================================================================
+    // Public API
+    // ================================================================
 
     public static int CountPhysicalMonitors()
     {
-        int physicalCount = 0;
-        var monitors = WgcInterop.ListMonitorsDXGI();
-        foreach (var mon in monitors)
+        int count = 0;
+        foreach (var mon in WgcInterop.ListMonitorsDXGI())
         {
             if (!DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
             {
-                physicalCount++;
+                count++;
                 Console.WriteLine($"[VDD] Physical monitor found: {mon.name} ({mon.width}x{mon.height})");
             }
         }
-        return physicalCount;
+        return count;
+    }
+
+    public static void RestoreDpiSettings()
+    {
+        if (_originalDpiSettings == null || _originalDpiSettings.Count == 0) return;
+
+        Console.WriteLine("[Display] Restoring original Windows Scale and Layout...");
+        bool allSuccess = true;
+        foreach (var (adapterId, sourceId, info) in _originalDpiSettings)
+        {
+            if (info.IsValid)
+            {
+                Console.WriteLine($"[Display] Restoring Monitor {sourceId} to {info.Current}%");
+                if (!DpiScalingHelper.SetDpiScaling(adapterId, sourceId, info.Current))
+                {
+                    allSuccess = false;
+                    Console.WriteLine($"[Display] Failed to restore Monitor {sourceId}");
+                }
+            }
+        }
+        Console.WriteLine(allSuccess
+            ? "[Display] All monitors restored to original scale."
+            : "[Display] Some monitors failed to restore.");
+    }
+
+    /// <summary>
+    /// Main entry point: configure VDD monitor count and resolution.
+    /// Fast path: named pipe SETDISPLAYCOUNT (~0.5s).
+    /// Slow path: pnputil disable/enable fallback (~5s).
+    /// </summary>
+    public static void EnsureVddResolutionThenToggleDriver(
+        string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
+    {
+        // Step 1: Snapshot physical monitors (uses IsVirtualDisplay, no disable needed)
+        SnapshotPhysicalMonitors();
+
+        int physicalCount = _physicalMonitorNames.Count;
+        int virtualNeeded = Math.Max(0, TARGET_TOTAL_MONITORS - physicalCount);
+        Console.WriteLine($"[VDD] Physical: {physicalCount}, Virtual needed: {virtualNeeded} (target: {TARGET_TOTAL_MONITORS})");
+
+        if (virtualNeeded == 0)
+        {
+            Console.WriteLine("[VDD] No virtual monitors needed.");
+            return;
+        }
+
+        // Step 2: Ensure resolution exists in XML (needed by both paths)
+        try
+        {
+            var primary = _originalPhysicalMonitors.FirstOrDefault();
+            int resW = primary.width > 0 ? primary.width : 1920;
+            int resH = primary.height > 0 ? primary.height : 1080;
+            int resHz = primary.refreshRate > 0 ? primary.refreshRate : 60;
+            EnsureResolutionInVddXml(settingsPath, resW, resH, resHz);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD] XML resolution edit failed: {ex.Message}");
+        }
+
+        // Step 3: Try fast path — named pipe IPC
+        if (TrySetDisplayCountViaPipe(virtualNeeded))
+        {
+            Console.WriteLine("[VDD] Display count set via pipe, waiting for monitors...");
+            WaitForMonitorCount(TARGET_TOTAL_MONITORS, timeoutMs: 5000);
+            TryExtendDesktop();
+            return;
+        }
+
+        // Step 4: Slow path — XML edit + pnputil disable/enable
+        Console.WriteLine("[VDD] Pipe unavailable, using pnputil fallback...");
+        try
+        {
+            SetVddMonitorCount(settingsPath, virtualNeeded);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD] XML count edit failed: {ex.Message}");
+        }
+        ToggleVddViaPnputil();
     }
 
     public static void SetVddMonitorCount(string settingsPath, int count)
@@ -71,201 +158,306 @@ static class VirtualDisplayManager
 
         var countElement = monitorsElement.Element("count");
         if (countElement == null)
-        {
-            countElement = new XElement("count", count);
-            monitorsElement.Add(countElement);
-        }
+            monitorsElement.Add(new XElement("count", count));
         else
-        {
             countElement.Value = count.ToString();
-        }
 
         doc.Save(settingsPath);
         Console.WriteLine($"[VDD] Set monitor count to {count} in {settingsPath}");
     }
 
-    public static void RestoreDpiSettings()
+    public static void EnsureExtendDesktopWithVirtual()
     {
-        if (_originalDpiSettings == null || _originalDpiSettings.Count == 0) return;
+        Console.WriteLine("[Display] Setting up multi-monitor system...");
 
-        Console.WriteLine("[Display] Restoring original Windows Scale and Layout...");
-        bool allSuccess = true;
-        foreach (var (adapterId, sourceId, info) in _originalDpiSettings)
+        var mons = WgcInterop.ListMonitorsDXGI();
+        if (mons.Count == 0)
         {
-            if (info.IsValid)
+            Console.WriteLine("[Display] No monitors detected!");
+            return;
+        }
+
+        var physicalMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
+        var virtualMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
+
+        foreach (var mon in mons)
+        {
+            if (_physicalMonitorNames.Contains(mon.name))
+                physicalMonitors.Add(mon);
+            else
+                virtualMonitors.Add(mon);
+        }
+
+        Console.WriteLine($"[Display] Physical: {physicalMonitors.Count}, Virtual: {virtualMonitors.Count}");
+
+        var primaryOriginal = _originalPhysicalMonitors.FirstOrDefault();
+        int targetWidth = primaryOriginal.width > 0 ? primaryOriginal.width : 1920;
+        int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
+        int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
+
+        int primaryX = 0, primaryY = 0;
+        if (physicalMonitors.Count > 0)
+        {
+            var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(physicalMonitors[0].name);
+            if (ok) { primaryX = px; primaryY = py; }
+        }
+
+        int currentX = primaryX + targetWidth;
+        foreach (var mon in virtualMonitors)
+        {
+            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, {primaryY})");
+            DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, primaryY);
+            currentX += targetWidth;
+        }
+
+        if (virtualMonitors.Count > 0)
+        {
+            DisplayUtil.ApplyDisplayChanges();
+            Thread.Sleep(500);
+        }
+
+        foreach (var mon in physicalMonitors)
+        {
+            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+            if (original.name != null && (mon.width != original.width || mon.height != original.height))
             {
-                Console.WriteLine($"[Display] Restoring Monitor {sourceId} to {info.Current}%");
-                if (!DpiScalingHelper.SetDpiScaling(adapterId, sourceId, info.Current))
-                {
-                    allSuccess = false;
-                    Console.WriteLine($"[Display] Failed to restore Monitor {sourceId}");
-                }
+                Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to {original.width}x{original.height}@{original.refreshRate}Hz");
+                DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
+                Thread.Sleep(300);
             }
         }
 
-        if (allSuccess)
-            Console.WriteLine("[Display] All monitors restored to original scale.");
+        Thread.Sleep(500);
+
+        if (physicalMonitors.Count > 0)
+        {
+            Console.WriteLine($"[Display] Setting {physicalMonitors[0].name} as PRIMARY");
+            SetAsPrimaryDisplay(physicalMonitors[0].name);
+        }
+
+        // Log final layout
+        Console.WriteLine("[Display] Multi-monitor system configured:");
+        mons = WgcInterop.ListMonitorsDXGI();
+        foreach (var mon in mons)
+        {
+            var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(mon.name);
+            string type = _physicalMonitorNames.Contains(mon.name) ? "PHYSICAL" : "VIRTUAL";
+            bool isPrimary = DisplayUtil.IsPrimary(mon.name);
+            Console.WriteLine($"[Display]   {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
+        }
+
+        // Set DPI scaling
+        Console.WriteLine("[Display] Setting Windows Scale and Layout to 125%...");
+        _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
+        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
+            Console.WriteLine("[Display] Scale and Layout set to 125%");
         else
-            Console.WriteLine("[Display] Some monitors failed to restore.");
+            Console.WriteLine("[Display] Failed to set Scale and Layout");
     }
 
-    public static void EnsureVddResolutionThenToggleDriver(
-        string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
+    // ================================================================
+    // Named Pipe IPC (fast path)
+    // ================================================================
+
+    /// <summary>
+    /// Send SETDISPLAYCOUNT command via VDD named pipe.
+    /// The driver updates XML monitor count and reloads automatically.
+    /// Protocol: UTF-16LE text over \\.\pipe\MTTVirtualDisplayPipe
+    /// </summary>
+    static bool TrySetDisplayCountViaPipe(int count)
     {
         try
         {
-            var adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
-            if (string.IsNullOrWhiteSpace(adapterId))
-                adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
+            using var pipe = new NamedPipeClientStream(".", VDD_PIPE_NAME, PipeDirection.InOut);
+            pipe.Connect(2000); // Fast fail if pipe doesn't exist
 
-            if (!string.IsNullOrWhiteSpace(adapterId) && !IsDeviceDisabled(adapterId))
+            string command = $"SETDISPLAYCOUNT{count}";
+            byte[] cmdBytes = System.Text.Encoding.Unicode.GetBytes(command);
+            pipe.Write(cmdBytes, 0, cmdBytes.Length);
+            pipe.Flush();
+
+            Console.WriteLine($"[VDD Pipe] Sent: {command}");
+
+            // Try reading response (driver disconnects after processing)
+            try
             {
-                Console.WriteLine("[VDD] Temporarily disabling VDD to count physical monitors...");
-                RunPnputil($"/disable-device \"{adapterId}\"");
-                Thread.Sleep(1500);
+                var readTask = System.Threading.Tasks.Task.Run(() =>
+                {
+                    byte[] buf = new byte[512];
+                    int n = pipe.Read(buf, 0, buf.Length);
+                    return n > 0 ? System.Text.Encoding.Unicode.GetString(buf, 0, n).TrimEnd('\0') : "";
+                });
+                if (readTask.Wait(5000) && !string.IsNullOrEmpty(readTask.Result))
+                    Console.WriteLine($"[VDD Pipe] Response: {readTask.Result}");
             }
+            catch { /* Response is optional — command was already sent */ }
 
-            _physicalMonitorNames.Clear();
-            _originalPhysicalMonitors.Clear();
-            var monitors = WgcInterop.ListMonitorsDXGI();
-            foreach (var mon in monitors)
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            Console.WriteLine("[VDD Pipe] Not available (driver not running or old version)");
+            return false;
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"[VDD Pipe] IO error: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD Pipe] Failed: {ex.Message}");
+            return false;
+        }
+    }
+
+    // ================================================================
+    // Monitor snapshot
+    // ================================================================
+
+    /// <summary>
+    /// Classify current monitors into physical/virtual using DisplayUtil.IsVirtualDisplay().
+    /// No VDD disable needed — works whether VDD is running or not.
+    /// </summary>
+    static void SnapshotPhysicalMonitors()
+    {
+        _physicalMonitorNames.Clear();
+        _originalPhysicalMonitors.Clear();
+
+        foreach (var mon in WgcInterop.ListMonitorsDXGI())
+        {
+            if (!DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
             {
                 _physicalMonitorNames.Add(mon.name);
                 var mode = DisplayUtil.GetCurrentMode(mon.name);
                 _originalPhysicalMonitors.Add((mon.name, mode.Width, mode.Height, mode.Frequency));
-                Console.WriteLine($"[VDD] Saved physical monitor: {mon.name} ({mode.Width}x{mode.Height}@{mode.Frequency}Hz)");
+                Console.WriteLine($"[VDD] Physical monitor: {mon.name} ({mode.Width}x{mode.Height}@{mode.Frequency}Hz)");
             }
+        }
+    }
 
-            int physicalCount = _physicalMonitorNames.Count;
-            Console.WriteLine($"[VDD] Physical monitors detected: {physicalCount}");
-
-            int virtualNeeded = Math.Max(0, TARGET_TOTAL_MONITORS - physicalCount);
-            Console.WriteLine($"[VDD] Virtual monitors needed: {virtualNeeded} (target total: {TARGET_TOTAL_MONITORS})");
-
-            if (virtualNeeded == 0)
+    /// <summary>
+    /// Poll DXGI until expected monitor count appears (or timeout).
+    /// Much faster than blind Thread.Sleep — returns as soon as monitors are ready.
+    /// </summary>
+    static bool WaitForMonitorCount(int expectedTotal, int timeoutMs = 5000)
+    {
+        var sw = Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < timeoutMs)
+        {
+            var mons = WgcInterop.ListMonitorsDXGI();
+            if (mons.Count >= expectedTotal)
             {
-                Console.WriteLine("[VDD] No virtual monitors needed - you already have 3+ physical monitors.");
+                Console.WriteLine($"[VDD] {mons.Count} monitors detected ({sw.ElapsedMilliseconds}ms)");
+                return true;
+            }
+            Thread.Sleep(200);
+        }
+        var final = WgcInterop.ListMonitorsDXGI();
+        Console.WriteLine($"[VDD] Timeout: {final.Count}/{expectedTotal} monitors after {timeoutMs}ms");
+        return false;
+    }
+
+    // ================================================================
+    // Pnputil fallback (slow path)
+    // ================================================================
+
+    /// <summary>
+    /// Legacy approach: disable VDD → re-enable → wait.
+    /// Used when named pipe is unavailable (old VDD version or driver disabled).
+    /// </summary>
+    static void ToggleVddViaPnputil()
+    {
+        try
+        {
+            var adapterId = FindAdapterId();
+            if (string.IsNullOrWhiteSpace(adapterId))
+            {
+                Console.WriteLine("[VDD] Adapter not found. Check if driver is installed.");
                 return;
             }
 
-            SetVddMonitorCount(settingsPath, virtualNeeded);
-
-            var primaryMon = _originalPhysicalMonitors.FirstOrDefault();
-            int resW = primaryMon.width > 0 ? primaryMon.width : 1920;
-            int resH = primaryMon.height > 0 ? primaryMon.height : 1080;
-            int resHz = primaryMon.refreshRate > 0 ? primaryMon.refreshRate : 60;
-            EnsureResolutionInVddXml(settingsPath, resW, resH, resHz);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("[VDD] XML edit failed: " + ex.Message);
-        }
-
-        try
-        {
-            var adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
-            if (string.IsNullOrWhiteSpace(adapterId))
-                adapterId = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
-
-            if (!string.IsNullOrWhiteSpace(adapterId))
+            // Disable if currently enabled (force config reload)
+            if (!IsDeviceDisabled(adapterId))
             {
-                RunPnputil("/scan-devices"); Thread.Sleep(500);
+                Console.WriteLine("[VDD] Disabling VDD for config reload...");
+                RunPnputil($"/disable-device \"{adapterId}\"");
+                Thread.Sleep(1000);
+            }
 
-                var result = RunPnputil($"/enable-device \"{adapterId}\"");
+            // Enable with fallback chain
+            RunPnputil("/scan-devices");
+            Thread.Sleep(300);
 
-                if (result.Contains("Failed") || result.Contains("not connected"))
+            var result = RunPnputil($"/enable-device \"{adapterId}\"");
+            if (result.Contains("Failed") || result.Contains("not connected"))
+            {
+                Console.WriteLine("[VDD] pnputil failed, trying fallbacks...");
+                if (!TryEnableWithDevcon(adapterId) && !TryEnableWithSetupAPI(adapterId))
                 {
-                    Console.WriteLine("[VDD] pnputil failed, trying devcon...");
-
-                    if (TryEnableWithDevcon(adapterId))
-                    {
-                        Console.WriteLine("[VDD] Device enabled via devcon");
-                    }
-                    else
-                    {
-                        Console.WriteLine("[VDD] Trying SetupAPI EnableDevice...");
-                        if (TryEnableWithSetupAPI(adapterId))
-                        {
-                            Console.WriteLine("[VDD] Device enabled via SetupAPI");
-                        }
-                        else
-                        {
-                            Console.WriteLine("[VDD] Could not enable VDD automatically.");
-                            Console.WriteLine("[VDD] Please enable manually: Device Manager -> Display adapters -> Virtual Display Driver -> Enable device");
-                        }
-                    }
+                    Console.WriteLine("[VDD] Could not enable VDD. Please enable manually in Device Manager.");
+                    return;
                 }
-
-                RunPnputil("/scan-devices");
-                Thread.Sleep(2000);
-            }
-            else
-            {
-                Console.WriteLine("[VDD] Adapter not found. Check if the driver is installed under Display adapters.");
             }
 
+            // Wait for monitors to appear (poll instead of blind sleep)
+            WaitForMonitorCount(TARGET_TOTAL_MONITORS, 4000);
+
+            // Enable individual monitor devices if needed
             for (int i = 0; i < TARGET_TOTAL_MONITORS; i++)
             {
                 var monitorId = FindDeviceInstanceIdByNameAndClass(MONITOR_NAME, "Monitors");
                 if (!string.IsNullOrWhiteSpace(monitorId) && IsDeviceDisabled(monitorId))
                 {
                     RunPnputil($"/enable-device \"{monitorId}\"");
-                    Thread.Sleep(500);
+                    Thread.Sleep(300);
                 }
             }
-            RunPnputil("/scan-devices");
 
             TryExtendDesktop();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("[VDD] Toggle/enable via pnputil failed: " + ex.Message);
-            Console.WriteLine("      Please enable manually in Device Manager if needed.");
+            Console.WriteLine($"[VDD] pnputil fallback failed: {ex.Message}");
         }
     }
 
-    static void EnsureResolutionInVddXml(string path, int w, int h, int hz)
+    /// <summary>
+    /// Find VDD adapter instance ID (cached after first lookup).
+    /// </summary>
+    static string FindAdapterId()
     {
-        if (!File.Exists(path)) { Console.WriteLine("[VDD] File not found: " + path); return; }
-        var doc = XDocument.Load(path, LoadOptions.PreserveWhitespace);
-        var root = doc.Root ?? new XElement("vdd_settings");
-        var resRoot = root.Element("resolutions") ?? new XElement("resolutions");
-        if (root.Element("resolutions") == null) root.Add(resRoot);
+        if (_cachedAdapterId != null) return _cachedAdapterId;
 
-        bool exists = resRoot.Elements("resolution")
-            .Any(r => (int?)r.Element("width") == w && (int?)r.Element("height") == h && (int?)r.Element("refresh_rate") == hz);
-        if (!exists)
-        {
-            resRoot.Add(new XElement("resolution",
-                new XElement("width", w),
-                new XElement("height", h),
-                new XElement("refresh_rate", hz)));
-            doc.Save(path);
-            Console.WriteLine($"[VDD] Added resolution {w}x{h}@{hz} to {path}");
-        }
-        else Console.WriteLine("[VDD] Resolution already present.");
+        var id = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, "Display adapters");
+        if (string.IsNullOrWhiteSpace(id))
+            id = FindDeviceInstanceIdByNameAndClass(DRIVER_NAME, null);
+
+        _cachedAdapterId = id ?? "";
+        return _cachedAdapterId;
     }
 
-    // ---- Device helpers ----
+    // ================================================================
+    // Device helpers (pnputil text parsing)
+    // ================================================================
 
     static string FindDeviceInstanceIdByNameAndClass(string nameContains, string? className)
     {
-        var txtAll = RunAndRead("pnputil", "/enum-devices");
-        string found = ParseForInstanceIdBlock(txtAll, nameContains, className);
+        var txt = RunAndRead("pnputil", "/enum-devices");
+        string found = ParseForInstanceIdBlock(txt, nameContains, className);
         if (!string.IsNullOrWhiteSpace(found)) return found;
 
-        var txt = RunAndRead("pnputil", "/enum-devices /connected");
+        txt = RunAndRead("pnputil", "/enum-devices /connected");
         return ParseForInstanceIdBlock(txt, nameContains, className);
     }
 
     static string ParseForInstanceIdBlock(string txt, string nameContains, string? className)
     {
         if (string.IsNullOrEmpty(txt)) return "";
-        string found = "";
         foreach (var raw in txt.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries))
         {
             var blk = raw.Trim();
-            if (!string.IsNullOrEmpty(className) && blk.IndexOf("Class Name:", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (!string.IsNullOrEmpty(className))
             {
                 var iCls = blk.IndexOf("Class Name:", StringComparison.OrdinalIgnoreCase);
                 if (iCls >= 0)
@@ -279,15 +471,10 @@ static class VirtualDisplayManager
             foreach (var line in blk.Split('\n'))
             {
                 var i = line.IndexOf("Instance ID:", StringComparison.OrdinalIgnoreCase);
-                if (i >= 0)
-                {
-                    found = line.Substring(i + 12).Trim();
-                    break;
-                }
+                if (i >= 0) return line.Substring(i + 12).Trim();
             }
-            if (!string.IsNullOrWhiteSpace(found)) break;
         }
-        return found;
+        return "";
     }
 
     static bool IsDeviceDisabled(string instanceId)
@@ -295,9 +482,10 @@ static class VirtualDisplayManager
         var txt = RunAndRead("pnputil", "/enum-devices");
         var i = txt.IndexOf(instanceId, StringComparison.OrdinalIgnoreCase);
         if (i < 0) return false;
-        var around = txt.Substring(Math.Max(0, i - 200), Math.Min(600, txt.Length - Math.Max(0, i - 200)));
-        return around.IndexOf("Status: Disabled", StringComparison.OrdinalIgnoreCase) >= 0
-            || around.IndexOf("Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
+        var start = Math.Max(0, i - 200);
+        var len = Math.Min(600, txt.Length - start);
+        var around = txt.Substring(start, len);
+        return around.IndexOf("Status: Disabled", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     static bool TryEnableWithDevcon(string instanceId)
@@ -328,7 +516,6 @@ static class VirtualDisplayManager
             Console.WriteLine($"[VDD] Using devcon: {devconPath}");
             var result = RunAndRead(devconPath, $"enable \"@{instanceId}\"");
             Console.WriteLine($"[devcon] {result}");
-
             return result.Contains("enabled") || result.Contains("1 device");
         }
         catch (Exception ex)
@@ -356,20 +543,18 @@ static class VirtualDisplayManager
             using var p = Process.Start(psi);
             if (p == null) return false;
 
-            var output = p.StandardOutput.ReadToEnd();
             var error = p.StandardError.ReadToEnd();
             p.WaitForExit(10000);
 
             if (!string.IsNullOrWhiteSpace(error) && error.Contains("Generic failure"))
             {
-                Console.WriteLine("[VDD] SetupAPI: Generic failure (driver may need restart)");
+                Console.WriteLine("[VDD] SetupAPI: Generic failure");
                 return false;
             }
 
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
             var checkResult = RunAndRead("powershell.exe",
                 $"-Command \"(Get-PnpDevice -InstanceId '{instanceId}').Status\"");
-
             return checkResult.Contains("OK") || checkResult.Contains("Started");
         }
         catch (Exception ex)
@@ -378,6 +563,35 @@ static class VirtualDisplayManager
             return false;
         }
     }
+
+    // ================================================================
+    // XML helpers
+    // ================================================================
+
+    static void EnsureResolutionInVddXml(string path, int w, int h, int hz)
+    {
+        if (!File.Exists(path)) { Console.WriteLine("[VDD] File not found: " + path); return; }
+        var doc = XDocument.Load(path, LoadOptions.PreserveWhitespace);
+        var root = doc.Root ?? new XElement("vdd_settings");
+        var resRoot = root.Element("resolutions") ?? new XElement("resolutions");
+        if (root.Element("resolutions") == null) root.Add(resRoot);
+
+        bool exists = resRoot.Elements("resolution")
+            .Any(r => (int?)r.Element("width") == w && (int?)r.Element("height") == h && (int?)r.Element("refresh_rate") == hz);
+        if (!exists)
+        {
+            resRoot.Add(new XElement("resolution",
+                new XElement("width", w),
+                new XElement("height", h),
+                new XElement("refresh_rate", hz)));
+            doc.Save(path);
+            Console.WriteLine($"[VDD] Added resolution {w}x{h}@{hz}");
+        }
+    }
+
+    // ================================================================
+    // Process helpers
+    // ================================================================
 
     static string RunAndRead(string exe, string args)
     {
@@ -425,112 +639,14 @@ static class VirtualDisplayManager
                 UseShellExecute = false,
                 CreateNoWindow = true
             });
-            Thread.Sleep(800);
+            Thread.Sleep(500);
         }
         catch { }
     }
 
-    public static void EnsureExtendDesktopWithVirtual()
-    {
-        Console.WriteLine("[Display] Setting up 3-monitor system...");
-
-        var mons = WgcInterop.ListMonitorsDXGI();
-        if (mons.Count == 0)
-        {
-            Console.WriteLine("[Display] No monitors detected!");
-            return;
-        }
-
-        var physicalMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
-        var virtualMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
-
-        foreach (var mon in mons)
-        {
-            if (_physicalMonitorNames.Contains(mon.name))
-                physicalMonitors.Add(mon);
-            else
-                virtualMonitors.Add(mon);
-        }
-
-        Console.WriteLine($"[Display] Physical monitors: {physicalMonitors.Count}, Virtual monitors: {virtualMonitors.Count}");
-
-        var primaryOriginal = _originalPhysicalMonitors.FirstOrDefault();
-        int targetWidth = primaryOriginal.width > 0 ? primaryOriginal.width : 1920;
-        int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
-        int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
-
-        int primaryX = 0, primaryY = 0;
-        if (physicalMonitors.Count > 0)
-        {
-            var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(physicalMonitors[0].name);
-            if (ok)
-            {
-                primaryX = px;
-                primaryY = py;
-            }
-        }
-
-        int currentX = primaryX + targetWidth;
-        foreach (var mon in virtualMonitors)
-        {
-            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at position ({currentX}, {primaryY})");
-            DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, primaryY);
-            currentX += targetWidth;
-        }
-
-        if (virtualMonitors.Count > 0)
-        {
-            DisplayUtil.ApplyDisplayChanges();
-            Thread.Sleep(500);
-        }
-
-        foreach (var mon in physicalMonitors)
-        {
-            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
-            if (original.name != null && (mon.width != original.width || mon.height != original.height))
-            {
-                Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to original {original.width}x{original.height}@{original.refreshRate}Hz");
-                DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
-                Thread.Sleep(300);
-            }
-            else
-            {
-                Console.WriteLine($"[Display] Keeping {mon.name} [PHYSICAL] at {mon.width}x{mon.height}");
-            }
-        }
-
-        Thread.Sleep(1000);
-
-        if (physicalMonitors.Count > 0)
-        {
-            var primaryMon = physicalMonitors[0];
-            Console.WriteLine($"[Display] Setting {primaryMon.name} as PRIMARY display");
-            SetAsPrimaryDisplay(primaryMon.name);
-        }
-
-        Console.WriteLine("[Display] Multi-monitor system configured:");
-        mons = WgcInterop.ListMonitorsDXGI();
-        foreach (var mon in mons)
-        {
-            var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(mon.name);
-            string type = _physicalMonitorNames.Contains(mon.name) ? "PHYSICAL" : "VIRTUAL";
-            bool isPrimary = DisplayUtil.IsPrimary(mon.name);
-            Console.WriteLine($"[Display]   {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
-        }
-
-        Console.WriteLine("[Display] Setting Windows Scale and Layout to 125%...");
-
-        _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
-
-        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
-        {
-            Console.WriteLine("[Display] Scale and Layout set to 125%");
-        }
-        else
-        {
-            Console.WriteLine("[Display] Failed to set Scale and Layout");
-        }
-    }
+    // ================================================================
+    // Display helpers
+    // ================================================================
 
     static void SetAsPrimaryDisplay(string deviceName)
     {
@@ -544,7 +660,8 @@ static class VirtualDisplayManager
             dm.dmPositionX = 0;
             dm.dmPositionY = 0;
 
-            int result = ChangeDisplaySettingsExA(deviceName, ref dm, IntPtr.Zero, CDS_SET_PRIMARY | CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+            int result = ChangeDisplaySettingsExA(deviceName, ref dm, IntPtr.Zero,
+                CDS_SET_PRIMARY | CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
             if (result == 0)
             {
                 var dmApply = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
@@ -562,7 +679,10 @@ static class VirtualDisplayManager
         }
     }
 
+    // ================================================================
     // P/Invoke
+    // ================================================================
+
     const int DM_POSITION = 0x00000020;
     const uint CDS_UPDATEREGISTRY = 0x00000001;
     const uint CDS_NORESET = 0x10000000;
