@@ -7,7 +7,6 @@
 #include <mutex>
 #include <atomic>
 #include <vector>
-#include <fstream>
 
 // Windows and Media Foundation headers
 #include <windows.h>
@@ -32,26 +31,6 @@
 #pragma comment(lib, "strmiids.lib")
 #pragma comment(lib, "wmcodecdspuuid.lib")
 
-// Debug logging
-static std::ofstream g_logFile;
-static std::mutex g_logMutex;
-
-static void LogDebug(const char* format, ...) {
-    std::lock_guard<std::mutex> lock(g_logMutex);
-    if (!g_logFile.is_open()) {
-        g_logFile.open("logs/qsv_debug.log", std::ios::out | std::ios::trunc);
-    }
-    if (g_logFile.is_open()) {
-        char buffer[1024];
-        va_list args;
-        va_start(args, format);
-        vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
-        g_logFile << buffer << std::endl;
-        g_logFile.flush();
-    }
-}
-
 // Thread-safe error message
 static thread_local std::string g_lastError;
 
@@ -59,7 +38,6 @@ static thread_local std::string g_lastError;
 #define CHECK_HR(hr, msg) \
     if (FAILED(hr)) { \
         g_lastError = std::string(msg) + ": " + std::to_string(hr); \
-        LogDebug("[QsvWrapper] %s", g_lastError.c_str()); \
         return QSV_WRAPPER_FAIL; \
     }
 
@@ -70,6 +48,19 @@ void SafeRelease(T** ppT) {
         (*ppT)->Release();
         *ppT = nullptr;
     }
+}
+
+// Detect keyframe by scanning for SPS (NAL type 7) or IDR (NAL type 5)
+static int DetectKeyframe(const uint8_t* data, size_t size) {
+    for (size_t i = 0; i + 4 < size; i++) {
+        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+            int nalType = data[i+4] & 0x1F;
+            if (nalType == 7 || nalType == 5) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 // Encoder context structure
@@ -83,6 +74,9 @@ struct QsvEncoderContext {
     ID3D11Device* d3dDevice = nullptr;
     ID3D11DeviceContext* d3dContext = nullptr;
     ID3D11Texture2D* stagingTexture = nullptr;
+
+    // Cached ICodecAPI to avoid repeated QueryInterface
+    ICodecAPI* codecApi = nullptr;
 
     // Encoder settings
     int width = 0;
@@ -110,7 +104,6 @@ static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* de
     IMFActivate** ppActivate = nullptr;
     UINT32 count = 0;
 
-    // Enumerate hardware H.264 encoders
     MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Video, MFVideoFormat_NV12 };
     MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Video, MFVideoFormat_H264 };
 
@@ -128,37 +121,22 @@ static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* de
         return E_FAIL;
     }
 
-    // Try to find Intel QSV encoder (or any hardware encoder)
     bool found = false;
     for (UINT32 i = 0; i < count && !found; i++) {
-        WCHAR* friendlyName = nullptr;
-        UINT32 nameLen = 0;
-        ppActivate[i]->GetAllocatedString(MFT_FRIENDLY_NAME_Attribute, &friendlyName, &nameLen);
-
-        LogDebug("[QsvWrapper] Found encoder: %ls", friendlyName ? friendlyName : L"Unknown");
-
-        // Try to activate this encoder
         hr = ppActivate[i]->ActivateObject(IID_PPV_ARGS(ppEncoder));
         if (SUCCEEDED(hr)) {
-            // Set D3D11 device manager for hardware acceleration
             if (deviceManager) {
                 hr = (*ppEncoder)->ProcessMessage(MFT_MESSAGE_SET_D3D_MANAGER, (ULONG_PTR)deviceManager);
                 if (FAILED(hr)) {
-                    LogDebug("[QsvWrapper] Failed to set D3D manager for %ls", friendlyName);
                     (*ppEncoder)->Release();
                     *ppEncoder = nullptr;
-                }
-                else {
+                } else {
                     found = true;
-                    LogDebug("[QsvWrapper] Using encoder: %ls", friendlyName);
                 }
-            }
-            else {
+            } else {
                 found = true;
             }
         }
-
-        if (friendlyName) CoTaskMemFree(friendlyName);
     }
 
     // Cleanup
@@ -172,7 +150,6 @@ static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* de
 
 // Check QSV availability
 QSVWRAPPER_API int QsvIsAvailable() {
-    // Check if Intel integrated graphics is present
     IDXGIFactory1* factory = nullptr;
     HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
     if (FAILED(hr)) return 0;
@@ -182,8 +159,6 @@ QSVWRAPPER_API int QsvIsAvailable() {
     for (UINT i = 0; factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND; i++) {
         DXGI_ADAPTER_DESC1 desc;
         adapter->GetDesc1(&desc);
-
-        // Intel vendor ID
         if (desc.VendorId == 0x8086) {
             foundIntel = true;
             adapter->Release();
@@ -195,7 +170,6 @@ QSVWRAPPER_API int QsvIsAvailable() {
 
     if (!foundIntel) return 0;
 
-    // Also check if MF hardware encoder is available
     hr = MFStartup(MF_VERSION);
     if (FAILED(hr)) return 0;
 
@@ -243,7 +217,6 @@ QSVWRAPPER_API int QsvCreateEncoder(
 
     HRESULT hr;
 
-    // Initialize Media Foundation
     hr = MFStartup(MF_VERSION);
     if (FAILED(hr)) {
         g_lastError = "MFStartup failed";
@@ -289,7 +262,6 @@ QSVWRAPPER_API int QsvCreateEncoder(
     hr = MFSetAttributeSize(outputType, MF_MT_FRAME_SIZE, width, height);
     hr = MFSetAttributeRatio(outputType, MF_MT_FRAME_RATE, fps, 1);
     hr = outputType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-    // Baseline profile for WebRTC compatibility
     hr = outputType->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_Base);
     hr = outputType->SetUINT32(MF_MT_MPEG2_LEVEL, eAVEncH264VLevel4);
 
@@ -312,29 +284,23 @@ QSVWRAPPER_API int QsvCreateEncoder(
     SafeRelease(&inputType);
     CHECK_HR(hr, "SetInputType failed");
 
-    // Configure encoder for low latency
-    ICodecAPI* codecApi = nullptr;
-    hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&codecApi));
+    // Cache ICodecAPI and configure for low latency
+    hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&ctx->codecApi));
     if (SUCCEEDED(hr)) {
         VARIANT var;
         VariantInit(&var);
 
-        // Low latency mode
         var.vt = VT_BOOL;
         var.boolVal = VARIANT_TRUE;
-        codecApi->SetValue(&CODECAPI_AVLowLatencyMode, &var);
+        ctx->codecApi->SetValue(&CODECAPI_AVLowLatencyMode, &var);
 
-        // CBR rate control
         var.vt = VT_UI4;
         var.ulVal = eAVEncCommonRateControlMode_CBR;
-        codecApi->SetValue(&CODECAPI_AVEncCommonRateControlMode, &var);
+        ctx->codecApi->SetValue(&CODECAPI_AVEncCommonRateControlMode, &var);
 
-        // GOP size (2 seconds)
         var.vt = VT_UI4;
         var.ulVal = fps * 2;
-        codecApi->SetValue(&CODECAPI_AVEncMPVGOPSize, &var);
-
-        codecApi->Release();
+        ctx->codecApi->SetValue(&CODECAPI_AVEncMPVGOPSize, &var);
     }
 
     // Start encoder
@@ -358,11 +324,9 @@ QSVWRAPPER_API int QsvCreateEncoder(
     hr = d3d11Device->CreateTexture2D(&texDesc, nullptr, &ctx->stagingTexture);
     CHECK_HR(hr, "CreateTexture2D staging failed");
 
-    ctx->outputBuffer.resize(width * height * 2);  // Max output size
+    ctx->outputBuffer.resize(width * height * 2);
     ctx->initialized = true;
     *outHandle = ctx;
-
-    LogDebug("[QsvWrapper] Encoder created: %dx%d @ %dfps, %dkbps", width, height, fps, bitrate);
 
     return QSV_WRAPPER_OK;
 }
@@ -425,22 +389,17 @@ QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv
 
     // Set sample timestamp
     LONGLONG sampleTime = ctx->pts;
-    ctx->pts += 10000000 / ctx->fps;  // 100ns units
+    ctx->pts += 10000000 / ctx->fps;
     inputSample->SetSampleTime(sampleTime);
     inputSample->SetSampleDuration(10000000 / ctx->fps);
 
-    // Force keyframe if requested
-    if (forceKeyframe) {
-        ICodecAPI* codecApi = nullptr;
-        hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&codecApi));
-        if (SUCCEEDED(hr)) {
-            VARIANT var;
-            VariantInit(&var);
-            var.vt = VT_UI4;
-            var.ulVal = 1;
-            codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
-            codecApi->Release();
-        }
+    // Force keyframe if requested (use cached codecApi)
+    if (forceKeyframe && ctx->codecApi) {
+        VARIANT var;
+        VariantInit(&var);
+        var.vt = VT_UI4;
+        var.ulVal = 1;
+        ctx->codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
     }
 
     // Process input
@@ -456,7 +415,6 @@ QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv
     MFT_OUTPUT_DATA_BUFFER outputData = {};
     DWORD status = 0;
 
-    // Create output sample
     IMFSample* outputSample = nullptr;
     IMFMediaBuffer* outputBuffer = nullptr;
 
@@ -475,25 +433,13 @@ QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv
     hr = ctx->encoder->ProcessOutput(0, 1, &outputData, &status);
 
     if (SUCCEEDED(hr)) {
-        // Get encoded data
         BYTE* data = nullptr;
         DWORD dataLen = 0;
         hr = outputBuffer->Lock(&data, nullptr, &dataLen);
 
         if (SUCCEEDED(hr) && dataLen > 0) {
-            // Check for keyframe (SPS or IDR NAL)
-            int isKeyFrame = 0;
-            for (DWORD i = 0; i + 4 < dataLen; i++) {
-                if (data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1) {
-                    int nalType = data[i + 4] & 0x1F;
-                    if (nalType == 7 || nalType == 5) {
-                        isKeyFrame = 1;
-                        break;
-                    }
-                }
-            }
+            int isKeyFrame = DetectKeyframe(data, dataLen);
 
-            // Fire callback
             if (ctx->callback) {
                 ctx->callback(data, dataLen, sampleTime, isKeyFrame, ctx->userData);
             }
@@ -523,7 +469,6 @@ QSVWRAPPER_API int QsvFlush(QsvEncoderHandle handle) {
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
-    // Send drain command
     ctx->encoder->ProcessMessage(MFT_MESSAGE_COMMAND_DRAIN, 0);
 
     return QSV_WRAPPER_OK;
@@ -544,6 +489,12 @@ QSVWRAPPER_API int QsvDestroyEncoder(QsvEncoderHandle handle) {
             ctx->encoder->ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
             ctx->encoder->Release();
             ctx->encoder = nullptr;
+        }
+
+        // Release cached ICodecAPI
+        if (ctx->codecApi) {
+            ctx->codecApi->Release();
+            ctx->codecApi = nullptr;
         }
 
         SafeRelease(&ctx->stagingTexture);
@@ -586,11 +537,8 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
-    HRESULT hr;
-    ICodecAPI* codecApi = nullptr;
-    hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&codecApi));
-    if (FAILED(hr)) {
-        g_lastError = "Failed to get ICodecAPI";
+    if (!ctx->codecApi) {
+        g_lastError = "ICodecAPI not available";
         return QSV_WRAPPER_FAIL;
     }
 
@@ -600,14 +548,11 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
     // Set new mean bitrate (in bits/s)
     var.vt = VT_UI4;
     var.ulVal = bitrateKbps * 1000;
-    hr = codecApi->SetValue(&CODECAPI_AVEncCommonMeanBitRate, &var);
+    HRESULT hr = ctx->codecApi->SetValue(&CODECAPI_AVEncCommonMeanBitRate, &var);
     if (FAILED(hr)) {
-        // Log but continue - some encoders may not support dynamic bitrate
-        LogDebug("[QsvSetBitrate] CODECAPI_AVEncCommonMeanBitRate failed: 0x%08X, trying MaxBitRate", hr);
         // Try max bitrate as fallback
-        hr = codecApi->SetValue(&CODECAPI_AVEncCommonMaxBitRate, &var);
+        hr = ctx->codecApi->SetValue(&CODECAPI_AVEncCommonMaxBitRate, &var);
         if (FAILED(hr)) {
-            codecApi->Release();
             g_lastError = "SetValue bitrate failed: " + std::to_string(hr);
             return QSV_WRAPPER_FAIL;
         }
@@ -616,24 +561,19 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
     // Force keyframe after bitrate change
     var.vt = VT_UI4;
     var.ulVal = 1;
-    codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
-
-    codecApi->Release();
+    ctx->codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
 
     ctx->bitrate = bitrateKbps;
-    LogDebug("[QsvSetBitrate] Bitrate changed to %d kbps", bitrateKbps);
 
     return QSV_WRAPPER_OK;
 }
 
 // Dynamically change encoder FPS - NOT SUPPORTED by QSV/Media Foundation
 QSVWRAPPER_API int QsvSetFps(QsvEncoderHandle handle, int fps) {
-    (void)handle;  // Unused
-    (void)fps;     // Unused
+    (void)handle;
+    (void)fps;
 
     g_lastError = "Runtime FPS change not supported by QSV encoder";
-    LogDebug("[QsvSetFps] FPS change not supported (requested: %d)", fps);
-
     return QSV_WRAPPER_FAIL;
 }
 

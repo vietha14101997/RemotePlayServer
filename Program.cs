@@ -12,25 +12,17 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
-using QRCoder;
-using RemotePlayServer.Encoding;
-using RemotePlayServer.Utils;
-using SIPSorcery.Net;
+using RemotePlayServer.Configuration;
+using RemotePlayServer.Infrastructure.Capture;
+using RemotePlayServer.Infrastructure.Display;
+using RemotePlayServer.Infrastructure.Network;
+using RemotePlayServer.Infrastructure.Hardware;
+using RemotePlayServer.Infrastructure;
+using RemotePlayServer.Application.Protocol;
+using RemotePlayServer.Server;
 
 #if WINDOWS
 using Microsoft.Win32;
-
-/// <summary>
-/// User-configurable display settings
-/// </summary>
-static class DisplayConfig
-{
-    public static int MonitorCount = 3;
-    public static int MonitorWidth = 1366;
-    public static int MonitorHeight = 768;
-    public static int RefreshRate = 60;
-    public static int StreamFps = 30;
-}
 
 partial class Program
 {
@@ -367,8 +359,6 @@ static class StartupSteps
     
     // Use DisplayConfig values instead of constants
     static int TARGET_TOTAL_MONITORS => DisplayConfig.MonitorCount;
-    static int MONITOR_WIDTH => DisplayConfig.MonitorWidth;
-    static int MONITOR_HEIGHT => DisplayConfig.MonitorHeight;
     static int MONITOR_REFRESH => DisplayConfig.RefreshRate;
 
     /// <summary>
@@ -1049,8 +1039,8 @@ public class SignalAndRestServer
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                 try
                 {
-                    var hwInfo = await RemotePlayServer.Utils.HardwareInfoGatherer.GetHardwareInfoAsync();
-                    var encoderInfo = RemotePlayServer.Utils.HardwareInfoGatherer.GetEncoderInfo();
+                    var hwInfo = await HardwareInfoGatherer.GetHardwareInfoAsync();
+                    var encoderInfo = HardwareInfoGatherer.GetEncoderInfo();
                     var monsNow = WgcInterop.ListMonitorsDXGI();
                     _monitors = monsNow.Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
 
@@ -1197,7 +1187,7 @@ public class SignalAndRestServer
                 // V2 Protocol only: 3-phase connection (hardware discovery, config, streaming)
                 _ = Task.Run(async () =>
                 {
-                    var handler = new RemotePlayServer.Protocol.PhaseProtocolHandler(
+                    var handler = new PhaseProtocolHandler(
                         clientId, wsCtx.WebSocket, remoteIp, CancellationToken.None, isUsbTransport);
                     await handler.HandleAsync();
                 });
@@ -1269,13 +1259,6 @@ public class SignalAndRestServer
 
     static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
 
-    // V1 protocol handlers removed - using V2 protocol only (PhaseProtocolHandler)
-
-    #region REMOVED_V1_HANDLERS
-    // HandleClusterClient and HandleMultiTrackClient have been removed.
-    // Use V2 protocol via PhaseProtocolHandler instead.
-    #endregion
-
     public static async Task ForceCleanupResources()
     {
         // Force cleanup any remaining threads and resources
@@ -1310,171 +1293,4 @@ public class SignalAndRestServer
     }
 }
 
-static class InputInjector
-{
-    public static System.Action<string>? OnLog;
-    [StructLayout(LayoutKind.Sequential)]
-    struct INPUT { public int type; public INPUTUNION U; }
-    [StructLayout(LayoutKind.Explicit)]
-    struct INPUTUNION
-    {
-        [FieldOffset(0)] public MOUSEINPUT mi;
-        [FieldOffset(0)] public KEYBDINPUT ki;
-    }
-    [StructLayout(LayoutKind.Sequential)]
-    struct MOUSEINPUT { public int dx, dy, mouseData, dwFlags, time; public IntPtr dwExtraInfo; }
-    [StructLayout(LayoutKind.Sequential)]
-    struct KEYBDINPUT { public ushort wVk; public ushort wScan; public int dwFlags; public int time; public IntPtr dwExtraInfo; }
-
-    const int INPUT_MOUSE = 0, INPUT_KEYBOARD = 1;
-    const int MOUSEEVENTF_LEFTDOWN = 0x0002;
-    const int MOUSEEVENTF_LEFTUP = 0x0004;
-    const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
-    const int MOUSEEVENTF_RIGHTUP = 0x0010;
-    const int MOUSEEVENTF_WHEEL = 0x0800;
-    const int MOUSEEVENTF_HWHEEL = 0x01000;
-    const int KEYEVENTF_KEYUP = 0x0002;
-    const int KEYEVENTF_UNICODE = 0x0004;
-
-    [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
-    [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
-
-    public static void Text(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return;
-        var list = new System.Collections.Generic.List<INPUT>();
-        foreach (var ch in s)
-        {
-            // gửi UNICODE down
-            list.Add(new INPUT
-            {
-                type = INPUT_KEYBOARD,
-                U = new INPUTUNION
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = 0,                // VK = 0 khi dùng UNICODE
-                        wScan = (ushort)ch,             // mã unicode
-                        dwFlags = KEYEVENTF_UNICODE,
-                        time = 0,
-                        dwExtraInfo = IntPtr.Zero
-                    }
-                }
-            });
-            // gửi UNICODE up
-            list.Add(new INPUT
-            {
-                type = INPUT_KEYBOARD,
-                U = new INPUTUNION
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = 0,
-                        wScan = (ushort)ch,
-                        dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
-                        time = 0,
-                        dwExtraInfo = IntPtr.Zero
-                    }
-                }
-            });
-        }
-        OnLog?.Invoke($"Text \"{s}\"");
-        SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
-    }
-
-    public static void Wheel(int delta, bool horizontal = false)
-    {
-        var inp = new INPUT
-        {
-            type = INPUT_MOUSE,
-            U = new INPUTUNION
-            {
-                mi = new MOUSEINPUT
-                {
-                    dx = 0,
-                    dy = 0,
-                    mouseData = delta,
-                    dwFlags = horizontal ? MOUSEEVENTF_HWHEEL : MOUSEEVENTF_WHEEL,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            }
-        };
-        OnLog?.Invoke($"Wheel {(horizontal ? "H" : "V")} delta={delta}");
-        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
-    }
-
-    public static void MoveAbsolute(int px, int py) { OnLog?.Invoke($"SetCursorPos x={px} y={py}"); SetCursorPos(px, py); }
-
-    public static void Click(bool down, bool right = false)
-    {
-        var inp = new INPUT
-        {
-            type = INPUT_MOUSE,
-            U = new INPUTUNION
-            {
-                mi = new MOUSEINPUT
-                {
-                    dx = 0,
-                    dy = 0,
-                    mouseData = 0,
-                    dwFlags = right
-                        ? (down ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP)
-                        : (down ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP),
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            }
-        };
-        OnLog?.Invoke($"Click {(right ? "R" : "L")} {(down ? "DOWN" : "UP")}");
-        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
-    }
-
-    public static void Key(ushort vk, bool down)
-    {
-        OnLog?.Invoke($"Key vk=0x{vk:X2} {(down ? "DOWN" : "UP")}");
-        var inp = new INPUT
-        {
-            type = INPUT_KEYBOARD,
-            U = new INPUTUNION
-            {
-                ki = new KEYBDINPUT
-                {
-                    wVk = vk,
-                    wScan = 0,
-                    dwFlags = down ? 0 : KEYEVENTF_KEYUP,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            }
-        };
-        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
-    }
-
-}
-
-/// <summary>
-/// Utility để tạo QRCode và in ra console
-/// </summary>
-static class QRCodeUtil
-{
-    public static void PrintQRCodeToConsole(string data)
-    {
-        try
-        {
-            using var qrGenerator = new QRCodeGenerator();
-            using var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.L);
-            using var qrCode = new AsciiQRCode(qrCodeData);
-            
-            // Sử dụng Unicode blocks cho QR đẹp hơn trên console
-            var qrString = qrCode.GetGraphicSmall();
-            Console.WriteLine(qrString);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[QRCode] Failed to generate: {ex.Message}");
-            Console.WriteLine($"[QRCode] Raw data: {data}");
-        }
-    }
-}
 #endif
