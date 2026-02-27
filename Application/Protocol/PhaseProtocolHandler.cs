@@ -21,6 +21,7 @@ using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Application.Streaming;
+using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Protocol
 {
@@ -549,7 +550,7 @@ namespace RemotePlayServer.Application.Protocol
                 // Apply VDD topology changes (only adds/removes virtual monitors, doesn't change resolution)
                 await Task.Run(() =>
                 {
-                    StartupSteps.EnsureVddResolutionThenToggleDriver();
+                    VirtualDisplayManager.EnsureVddResolutionThenToggleDriver();
                     Thread.Sleep(2000);
                 });
 
@@ -557,7 +558,7 @@ namespace RemotePlayServer.Application.Protocol
 
                 await Task.Run(() =>
                 {
-                    StartupSteps.EnsureExtendDesktopWithVirtual();
+                    VirtualDisplayManager.EnsureExtendDesktopWithVirtual();
                     Thread.Sleep(1000);
                 });
 
@@ -1123,9 +1124,9 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
-            // Resolve mDNS if needed (reuse Program.cs logic)
-            candidate = Program.MaybeResolveMdnsCandidateAsync(candidate).Result;
-            candidate = Program.MaybeReplaceMdnsWithRemoteIp(candidate, _remoteIp);
+            // Resolve mDNS if needed
+            candidate = MdnsHelper.MaybeResolveMdnsCandidateAsync(candidate).Result;
+            candidate = MdnsHelper.MaybeReplaceMdnsWithRemoteIp(candidate, _remoteIp);
 
             lock (_iceLock)
             {
