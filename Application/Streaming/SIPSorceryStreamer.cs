@@ -10,6 +10,7 @@ using SIPSorceryMedia.Abstractions;
 using Vortice.Direct3D11;
 using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
+using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
@@ -43,6 +44,11 @@ public class SIPSorceryStreamer : IDisposable
 
     // Per-monitor pause state (allows pausing individual monitors)
     private volatile bool[] _monitorPaused = Array.Empty<bool>();
+
+    // Audio pipeline
+    private DesktopAudioCapture? _audioCapture;
+    private OpusAudioEncoder? _opusEncoder;
+    private volatile bool _audioEnabled;
 
     /// <summary>
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
@@ -227,6 +233,31 @@ public class SIPSorceryStreamer : IDisposable
         // Initialize per-monitor pause state (all monitors active initially)
         _monitorPaused = new bool[dimensions.Count];
 
+        // Add audio track if client's offer includes m=audio
+        if (offerSdp.Contains("m=audio"))
+        {
+            var opusFormat = new SDPAudioVideoMediaFormat(
+                SDPMediaTypesEnum.audio,
+                id: 111,
+                name: "opus",
+                clockRate: 48000,
+                channels: 2,
+                fmtp: "minptime=10;useinbandfec=1");
+
+            var audioTrack = new MediaStreamTrack(
+                SDPMediaTypesEnum.audio,
+                isRemote: false,
+                capabilities: new List<SDPAudioVideoMediaFormat> { opusFormat },
+                streamStatus: MediaStreamStatusEnum.SendOnly);
+
+            _pc.addTrack(audioTrack);
+            Logger.Info("[SIPSorcery] Added audio track (Opus 48kHz stereo)");
+        }
+        else
+        {
+            Logger.Info("[SIPSorcery] Client offer has no m=audio, skipping audio track");
+        }
+
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>
         {
@@ -272,6 +303,7 @@ public class SIPSorceryStreamer : IDisposable
                 Logger.Info("[SIPSorcery] DTLS CONNECTED - initializing encoders now");
                 _connected = true;
                 InitializeEncoders();
+                InitializeAudio();
                 OnAllTracksReady?.Invoke();
             }
             else if (state == RTCPeerConnectionState.failed)
@@ -385,6 +417,60 @@ public class SIPSorceryStreamer : IDisposable
                 // Try to initialize encoder with fallback chain
                 track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
             }
+        }
+    }
+
+    /// <summary>
+    /// Initialize audio capture and encoding pipeline.
+    /// Non-fatal: if audio init fails, video streaming continues.
+    /// </summary>
+    private void InitializeAudio()
+    {
+        // Only init if we added an audio track
+        if (_pc == null) return;
+
+        try
+        {
+            _audioCapture = new DesktopAudioCapture();
+            _opusEncoder = new OpusAudioEncoder();
+
+            // Wire: capture -> encoder -> RTP send
+            _audioCapture.OnAudioData += (pcm, length, sampleRate, channels) =>
+            {
+                if (_isPaused || !_connected || !_running) return;
+                _opusEncoder.EncodePcm(pcm, length, sampleRate, channels);
+            };
+
+            _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration) =>
+            {
+                if (!_connected || !_running || _pc == null) return;
+                try
+                {
+                    // Copy to exact-size buffer for SendAudio
+                    var packet = new byte[opusLength];
+                    Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
+                    _pc.SendAudio(rtpDuration, packet);
+                }
+                catch (Exception ex)
+                {
+                    // Log sparingly to avoid spam
+                    if (Environment.TickCount64 % 5000 < 20)
+                        Logger.Error($"[SIPSorcery] Audio send error: {ex.Message}");
+                }
+            };
+
+            _audioCapture.Start();
+            _audioEnabled = true;
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Audio init failed (non-fatal, video continues): {ex.Message}");
+            _audioEnabled = false;
+            try { _opusEncoder?.Dispose(); } catch { }
+            try { _audioCapture?.Dispose(); } catch { }
+            _opusEncoder = null;
+            _audioCapture = null;
         }
     }
 
@@ -1255,6 +1341,14 @@ public class SIPSorceryStreamer : IDisposable
         _running = false;
         _connected = false;
 
+        // Stop audio pipeline
+        _audioEnabled = false;
+        try { _audioCapture?.Stop(); } catch { }
+        try { _opusEncoder?.Dispose(); } catch { }
+        try { _audioCapture?.Dispose(); } catch { }
+        _audioCapture = null;
+        _opusEncoder = null;
+
         lock (_lock)
         {
             foreach (var track in _tracks)
@@ -1288,6 +1382,7 @@ public class SIPSorceryStreamer : IDisposable
             return;
         }
         _isPaused = true;
+        _audioCapture?.Pause();
         Logger.Info("[SIPSorcery] Streaming paused (connection maintained)");
     }
 
@@ -1303,6 +1398,7 @@ public class SIPSorceryStreamer : IDisposable
             return;
         }
         _isPaused = false;
+        _audioCapture?.Resume();
         Logger.Info("[SIPSorcery] Streaming resumed");
 
         // Request keyframe on all tracks for immediate visual update

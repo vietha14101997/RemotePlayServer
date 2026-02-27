@@ -38,6 +38,9 @@
     <PackageReference Include="SIPSorceryMedia.Encoders" Version="8.0.7" />
     <PackageReference Include="SIPSorceryMedia.FFmpeg" Version="8.0.12" />
 
+    <!-- Audio capture (WASAPI loopback) -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+
     <!-- DirectX for GPU capture/encoding -->
     <PackageReference Include="Vortice.Direct3D11" Version="3.6.2" />
     <PackageReference Include="Vortice.DXGI" Version="3.6.2" />
