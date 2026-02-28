@@ -766,7 +766,7 @@ namespace RemotePlayServer.Infrastructure.Hardware
 
                 var codec = FFmpeg.AutoGen.ffmpeg.avcodec_find_encoder_by_name(encoderName);
                 bool available = codec != null;
-                Logger.Error($"[HardwareInfo] HEVC encoder '{encoderName}': {(available ? "available" : "not found")}");
+                Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': {(available ? "available" : "not found")}");
                 return available;
             }
             catch (DllNotFoundException ex)
