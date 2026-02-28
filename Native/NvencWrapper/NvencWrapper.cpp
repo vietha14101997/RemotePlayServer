@@ -101,9 +101,13 @@ static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitra
     encodeConfig.rcParams.maxBitRate = bitrate * 1200;
     encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps;
     encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
-    encodeConfig.gopLength = fps / 2;  // 0.5s GOP for WiFi resilience
+    // INFINITE GOP: only produce keyframes when explicitly requested via forceKeyframe=1.
+    // Previous fps/2 (30 frames @ 60fps) caused 2 simultaneous keyframe bursts every 500ms,
+    // saturating WiFi and consistently dropping Track 1's packets (Track 0 sent first = wins).
+    // With infinite GOP, our C# code controls keyframe timing with per-track staggering.
+    encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
     encodeConfig.frameIntervalP = 1;
-    encodeConfig.encodeCodecConfig.h264Config.idrPeriod = encodeConfig.gopLength;
+    encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
     encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
     encodeConfig.profileGUID = NV_ENC_H264_PROFILE_MAIN_GUID;
 }

@@ -41,6 +41,7 @@ public class SIPSorceryStreamer : IDisposable
     private volatile bool _disposed;
     private volatile bool _connected;
     private volatile bool _isPaused;
+    private volatile bool _phase3Active; // false during early capture → frames dropped to prevent WiFi congestion
 
     // Per-monitor pause state (allows pausing individual monitors)
     private volatile bool[] _monitorPaused = Array.Empty<bool>();
@@ -102,6 +103,8 @@ public class SIPSorceryStreamer : IDisposable
         public bool TimestampInitialized;
         public volatile bool ForceNextKeyframe;
         public int KeyframeBurstRemaining; // Send N consecutive keyframes for WiFi resilience
+        public long LastKeyframeRequestTicks; // Throttle: last time a keyframe was requested for this track
+        public int KeyframeStaggerCountdown; // Frames to wait before forcing keyframe (stagger between tracks)
 
         // Shared-clock sync: capture-time-based RTP (replaces encoder-PTS-based)
         public uint LastAbsoluteRtp;
@@ -484,6 +487,8 @@ public class SIPSorceryStreamer : IDisposable
             _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
             {
                 if (!_connected || !_running || _pc == null) return;
+                // Don't send audio during early capture — contributes to WiFi congestion
+                if (!_phase3Active) return;
                 try
                 {
                     // Copy to exact-size buffer for SendAudio
@@ -774,6 +779,9 @@ public class SIPSorceryStreamer : IDisposable
     public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
+        // During early capture (before Phase 3), drop frames to prevent WiFi congestion.
+        // Capture hardware stays warm but no encoding/sending — saves bandwidth for ICE/DTLS.
+        if (!_phase3Active) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         // Check per-monitor pause
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
@@ -790,6 +798,14 @@ public class SIPSorceryStreamer : IDisposable
             {
                 // Store capture timestamp for use in OnEncodedData callback
                 track.PendingCaptureTimestampMs = captureTimestampMs;
+
+                // Stagger countdown: decrement and trigger keyframe when it reaches 0
+                if (track.KeyframeStaggerCountdown > 0)
+                {
+                    track.KeyframeStaggerCountdown--;
+                    if (track.KeyframeStaggerCountdown == 0)
+                        track.ForceNextKeyframe = true;
+                }
 
                 // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
@@ -813,6 +829,8 @@ public class SIPSorceryStreamer : IDisposable
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
+        // During early capture (before Phase 3), drop frames to prevent WiFi congestion
+        if (!_phase3Active) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         // Check per-monitor pause
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
@@ -849,6 +867,14 @@ public class SIPSorceryStreamer : IDisposable
                 }
 
                 device.ImmediateContext.CopyResource(track.StagingNV12, nv12Texture);
+
+                // Stagger countdown: decrement and trigger keyframe when it reaches 0
+                if (track.KeyframeStaggerCountdown > 0)
+                {
+                    track.KeyframeStaggerCountdown--;
+                    if (track.KeyframeStaggerCountdown == 0)
+                        track.ForceNextKeyframe = true;
+                }
 
                 // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
@@ -1094,17 +1120,50 @@ public class SIPSorceryStreamer : IDisposable
         return types;
     }
 
-    public void RequestKeyframe(int monitorIndex = -1)
+    /// <summary>
+    /// Request keyframe for a track (or all tracks if monitorIndex == -1).
+    /// When force=false, rate-limited to 1 request per second per track to prevent
+    /// keyframe storms that cause WiFi congestion.
+    /// When requesting ALL tracks (monitorIndex == -1), keyframes are staggered:
+    /// Track 0 gets immediate keyframe, Track N gets it after N*10 frames (~167ms @ 60fps).
+    /// This prevents simultaneous keyframe bursts that saturate WiFi and drop Track 1's packets.
+    /// Internal callers (Resume, ResumeMonitor) should use force=true.
+    /// </summary>
+    public void RequestKeyframe(int monitorIndex = -1, bool force = false)
     {
+        const long MinIntervalMs = 1000;
+        const int StaggerFramesPerTrack = 10; // ~167ms @ 60fps between track keyframes
+        long now = Environment.TickCount64;
         lock (_lock)
         {
             if (monitorIndex == -1)
             {
-                foreach (var t in _tracks) t.ForceNextKeyframe = true;
+                // Stagger: Track 0 immediate, Track 1 after 10 frames, Track 2 after 20, etc.
+                for (int i = 0; i < _tracks.Count; i++)
+                {
+                    var t = _tracks[i];
+                    if (force || now - t.LastKeyframeRequestTicks >= MinIntervalMs)
+                    {
+                        if (i == 0)
+                        {
+                            t.ForceNextKeyframe = true;
+                        }
+                        else
+                        {
+                            t.KeyframeStaggerCountdown = i * StaggerFramesPerTrack;
+                        }
+                        t.LastKeyframeRequestTicks = now;
+                    }
+                }
             }
             else if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
             {
-                _tracks[monitorIndex].ForceNextKeyframe = true;
+                var t = _tracks[monitorIndex];
+                if (force || now - t.LastKeyframeRequestTicks >= MinIntervalMs)
+                {
+                    t.ForceNextKeyframe = true;
+                    t.LastKeyframeRequestTicks = now;
+                }
             }
         }
     }
@@ -1590,7 +1649,9 @@ public class SIPSorceryStreamer : IDisposable
                 track.LastPts100ns = -1;
             }
         }
-        Logger.Info("[SIPSorcery] Sync state reset (fresh time origin for Phase 3)");
+        // Enable frame sending — early capture frames were dropped to prevent WiFi congestion
+        _phase3Active = true;
+        Logger.Info("[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)");
     }
 
     public void Pause()
@@ -1620,8 +1681,8 @@ public class SIPSorceryStreamer : IDisposable
         _audioCapture?.Resume();
         Logger.Info("[SIPSorcery] Streaming resumed");
 
-        // Request keyframe on all tracks for immediate visual update
-        RequestKeyframe(-1);
+        // Request keyframe on all tracks for immediate visual update (bypass throttle)
+        RequestKeyframe(-1, force: true);
     }
 
     /// <summary>
@@ -1665,8 +1726,8 @@ public class SIPSorceryStreamer : IDisposable
         _monitorPaused[monitorIndex] = false;
         Logger.Info($"[SIPSorcery] Monitor {monitorIndex} resumed");
 
-        // Request keyframe for immediate visual update
-        RequestKeyframe(monitorIndex);
+        // Request keyframe for immediate visual update (bypass throttle)
+        RequestKeyframe(monitorIndex, force: true);
     }
 
     public void Dispose()
