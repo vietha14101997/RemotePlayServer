@@ -50,6 +50,7 @@ public class SIPSorceryStreamer : IDisposable
     private DesktopAudioCapture? _audioCapture;
     private OpusAudioEncoder? _opusEncoder;
     private bool _hasAudioTrack;
+    private RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
@@ -150,6 +151,28 @@ public class SIPSorceryStreamer : IDisposable
 
     public bool IsConnected => _connected;
     public int MonitorCount => _monitorCount;
+
+    /// <summary>
+    /// Pre-warm DTLS/BouncyCastle crypto at server startup.
+    /// First RTCPeerConnection triggers lazy cert generation + RNG init (~2-5s).
+    /// Without this, the first client DTLS handshake times out.
+    /// </summary>
+    public static void PreWarmDtls()
+    {
+        try
+        {
+            Logger.Info("[SIPSorcery] Pre-warming DTLS crypto...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var warmupPc = new RTCPeerConnection(null);
+            warmupPc.close();
+            sw.Stop();
+            Logger.Info($"[SIPSorcery] DTLS pre-warm done in {sw.ElapsedMilliseconds}ms");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] DTLS pre-warm failed: {ex.Message}");
+        }
+    }
 
     public SIPSorceryStreamer(int monitorCount, int fps, int kbps, ID3D11Device? device = null, VideoCodec codec = VideoCodec.H264)
     {
@@ -275,32 +298,22 @@ public class SIPSorceryStreamer : IDisposable
         // Initialize per-monitor pause state (all monitors active initially)
         _monitorPaused = new bool[dimensions.Count];
 
-        // Add audio track if client's offer includes m=audio
-        if (offerSdp.Contains("m=audio"))
+        // Receive client-created DataChannel for low-latency audio.
+        // Client creates DC "audio" (libwebrtc manages SCTP), server just receives and sends Opus via it.
+        // Opus frames sent as binary messages: [type(1)][timestamp(8)][opus_data]
+        _pc.ondatachannel += (dc) =>
         {
-            var opusFormat = new SDPAudioVideoMediaFormat(
-                SDPMediaTypesEnum.audio,
-                id: 111,
-                name: "opus",
-                clockRate: 48000,
-                channels: 2,
-                fmtp: "minptime=10;useinbandfec=1");
-
-            var audioTrack = new MediaStreamTrack(
-                SDPMediaTypesEnum.audio,
-                isRemote: false,
-                capabilities: new List<SDPAudioVideoMediaFormat> { opusFormat },
-                streamStatus: MediaStreamStatusEnum.SendOnly);
-
-            _pc.addTrack(audioTrack);
-            _hasAudioTrack = true;
-            Logger.Info("[SIPSorcery] Added audio track (Opus 48kHz stereo)");
-        }
-        else
-        {
-            _hasAudioTrack = false;
-            Logger.Info("[SIPSorcery] Client offer has no m=audio, skipping audio track");
-        }
+            Logger.Info($"[SIPSorcery] DataChannel received: label={dc.label}, id={dc.id}");
+            if (dc.label == "audio")
+            {
+                _audioDc = dc;
+                _audioDc.onopen += () => Logger.Info("[SIPSorcery] Audio DataChannel opened");
+                _audioDc.onclose += () => { Logger.Info("[SIPSorcery] Audio DataChannel closed"); _audioDc = null; };
+                Logger.Info("[SIPSorcery] Audio DataChannel wired for sending");
+            }
+        };
+        _hasAudioTrack = true;
+        Logger.Info("[SIPSorcery] Waiting for client audio DataChannel");
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>
@@ -504,31 +517,39 @@ public class SIPSorceryStreamer : IDisposable
                 if (!_phase3Active) return;
                 try
                 {
-                    // Copy to exact-size buffer for SendAudio
-                    var packet = new byte[opusLength];
-                    Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-
-                    // First frame: use wallclock-based step to anchor A/V sync offset
-                    // relative to video's shared _streamStartMs.
-                    // All subsequent frames: fixed 480-sample increment (standard for
-                    // constant-frame-duration codecs like Opus). The audio hardware clock
-                    // IS 48kHz, so sample-counting is inherently more accurate than
-                    // wallclock measurement which suffers from WASAPI burst delivery jitter.
-                    uint audioStep;
-                    lock (_audioSyncLock)
+                    // DataChannel path: send Opus frame as binary message
+                    // Format: [type(1)][timestamp(8)][opus_data]
+                    // Client decodes with Concentus + OnAudioFilterRead (~20ms latency)
+                    if (_audioDc?.readyState == RTCDataChannelState.open)
                     {
-                        if (!_audioClockInitialized && timestampMs > 0)
-                            audioStep = CalculateAudioRtpStep(timestampMs);
-                        else
-                            audioStep = rtpDuration; // Always 480 (10ms at 48kHz)
+                        var msg = new byte[1 + 8 + opusLength];
+                        msg[0] = 0x01; // Audio frame type
+                        BitConverter.TryWriteBytes(msg.AsSpan(1, 8), timestampMs);
+                        Buffer.BlockCopy(opusData, 0, msg, 9, opusLength);
+                        _audioDc.send(msg);
+                        Interlocked.Increment(ref _audioPacketsSent);
                     }
+                    else
+                    {
+                        // RTP fallback: used when DataChannel not yet open
+                        var packet = new byte[opusLength];
+                        Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
 
-                    _pc.SendAudio(audioStep, packet);
-                    Interlocked.Increment(ref _audioPacketsSent);
+                        uint audioStep;
+                        lock (_audioSyncLock)
+                        {
+                            if (!_audioClockInitialized && timestampMs > 0)
+                                audioStep = CalculateAudioRtpStep(timestampMs);
+                            else
+                                audioStep = rtpDuration;
+                        }
+
+                        _pc.SendAudio(audioStep, packet);
+                        Interlocked.Increment(ref _audioPacketsSent);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    // Log sparingly to avoid spam
                     if (Environment.TickCount64 % 5000 < 20)
                         Logger.Error($"[SIPSorcery] Audio send error: {ex.Message}");
                 }
@@ -536,7 +557,7 @@ public class SIPSorceryStreamer : IDisposable
 
             _audioCapture.Start();
 
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP)");
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)");
         }
         catch (Exception ex)
         {
@@ -1670,6 +1691,9 @@ public class SIPSorceryStreamer : IDisposable
             _tracks.Clear();
             _pendingDevices.Clear();
         }
+
+        try { _audioDc?.close(); } catch { }
+        _audioDc = null;
 
         _pc?.close();
         _pc = null;

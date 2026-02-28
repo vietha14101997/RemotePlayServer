@@ -12,6 +12,7 @@ using RemotePlayServer.Infrastructure;
 using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Server;
+using RemotePlayServer.Application.Streaming;
 
 #if WINDOWS
 partial class Program
@@ -168,6 +169,10 @@ partial class Program
         InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
 
         await server.StartAsync();
+
+        // Pre-warm DTLS/BouncyCastle crypto before first client connects.
+        // Without this, the first DTLS handshake is too slow and client times out.
+        SIPSorceryStreamer.PreWarmDtls();
 
         var preferredIP = NetUtil.GetPreferredLocalIP();
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
