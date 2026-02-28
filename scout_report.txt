@@ -1,0 +1,210 @@
+REMOTEPLAYSERVER PROJECT SCOUT REPORT
+Date: 2026-02-28
+
+================================================================================
+1. PROJECT STRUCTURE
+================================================================================
+
+Tech Stack:
+- C# .NET 9.0 Windows-specific
+- WebRTC via SIPSorcery 8.0.23
+- GPU encoders: NVIDIA NVENC, AMD AMF, Intel QSV
+- Audio: WASAPI loopback + Opus encoding
+- Video: DXGI Desktop Duplication, FFmpeg libavcodec
+
+================================================================================
+2. KEY STREAMING COMPONENTS
+================================================================================
+
+CAPTURE (Per-Monitor Parallel):
+- File: Infrastructure/Capture/PerMonitorCapture.cs
+- Each monitor: own D3D11 device + capture thread
+- Sync: Barrier primitive (<1 microsecond sync)
+- Timestamp: Millisecond precision (barrier post-phase)
+
+ENCODE (Per-Track GPU Acceleration):
+- File: Application/Streaming/SIPSorceryStreamer.cs
+- Encoders: NVENC (BGRA zero-copy), AMF, QSV, FFmpeg fallback
+- RTP Timestamp: Calculated from FFmpeg encoder PTS (100ns precision)
+  Formula: RTP_step = 90000 * (pts_delta_100ns) / 10_000_000
+
+AUDIO (WASAPI + Opus):
+- File: DesktopAudioCapture.cs + OpusAudioEncoder.cs
+- Capture: WASAPI loopback, PCM16 output
+- Silence Watchdog: 3-phase generation (detect 100ms, catch-up, generate 10ms)
+- Encoding: Opus 48kHz stereo, 10ms frames (480 samples), 128kbps
+
+================================================================================
+3. SYNCHRONIZATION MECHANISMS
+================================================================================
+
+Video-Video Sync (Multi-Monitor):
+- Barrier primitive (PerMonitorCapture.cs:414)
+- All monitors wait at barrier before capturing
+- Post-phase sets shared _syncedTimestamp (once, atomically)
+- Result: <1 microsecond clock drift
+
+RTP Timestamps:
+- Video: Derived from FFmpeg encoder PTS
+  - Per-track: LastPts100ns, RtpTimestamp
+  - Validation: Reject deltas outside 0-500ms
+- Audio: Fixed 480 ticks per 10ms frame (48kHz clock)
+
+Audio-Video Sync:
+- Independent RTP streams using 90kHz reference
+- RTCP Sender Reports carry timestamp mapping
+- Client handles A/V sync (WebRTC standard)
+- No server-side A/V sync measurement
+
+================================================================================
+4. TIMING PRECISION
+================================================================================
+
+Frame Capture Sync: <1 microsecond (Barrier)
+Capture Timestamp: Millisecond (UTC time)
+Encoder PTS: 100 nanoseconds (FFmpeg)
+RTP Video: 90kHz ticks (calculated from PTS)
+RTP Audio: 48kHz ticks (fixed 480/frame)
+Silence Detection: 100ms threshold
+Silence Generation: 10ms intervals
+
+================================================================================
+5. MULTI-TRACK STREAMING
+================================================================================
+
+SDP Negotiation:
+- Client offers N m=video sections
+- Server creates N MediaStreamTrack objects
+- Optional audio track if m=audio in offer
+
+Track Sending:
+- Track 0: _pc.SendVideo(rtpStep, nalData)
+- Track N: VideoStreamList[N].SendVideo(rtpStep, nalData)
+- Audio: _pc.SendAudio(rtpDuration, opusData)
+
+Video Codec: H.264 (constrained baseline, profile-level-id=42e01f)
+Audio Codec: Opus 48kHz stereo
+
+================================================================================
+6. CRITICAL ALGORITHMS
+================================================================================
+
+Barrier Synchronization (PerMonitorCapture.cs:414-420):
+- All monitors signal at barrier
+- Barrier waits for ALL signals
+- Post-phase sets _syncedTimestamp (once)
+- All threads resume with identical timestamp
+
+RTP Timestamp Calculation (SIPSorceryStreamer.cs:888-914):
+- delta = current_pts - last_pts
+- if delta in [0, 500ms]:
+    rtp_step = 90000 * delta / 10_000_000
+- else:
+    rtp_step = fallback
+
+Silence Watchdog (DesktopAudioCapture.cs:191-235):
+- Phase 1: Wait 100ms after last audio
+- Phase 2: Generate missed frames (catch-up)
+- Phase 3: Generate 10ms frames continuously
+
+================================================================================
+7. ENCODER SELECTION
+================================================================================
+
+Order of Preference:
+1. NVIDIA GPU: NVENC (with BGRA mode if available)
+2. AMD GPU: AMF
+3. Intel GPU: QSV (Media Foundation) or FFmpeg QSV
+4. Unknown: Try NVENC -> AMF -> QSV -> FFmpeg
+5. Final: FFmpeg software (x264)
+
+Each encoder falls back to NV12 mode if BGRA fails.
+
+================================================================================
+8. FILE MANIFEST
+================================================================================
+
+Core Streaming:
+- SIPSorceryStreamer.cs (1479 lines)
+  - ProcessOfferAsync(): WebRTC negotiation
+  - InitializeEncoders(): Encoder creation
+  - OnEncodedData(): RTP sending
+  - CalculateRtpStep(): Timestamp calculation
+  
+- PerMonitorCapture.cs (700+ lines)
+  - CaptureLoopForMonitor(): Per-monitor thread
+  - Barrier synchronization
+  - Cursor tracking
+  
+- AdaptiveBitrateController.cs (400+ lines)
+  - EWMA-based bitrate adjustment
+  - Quality feedback processing
+
+Audio/Video Encoding:
+- DesktopAudioCapture.cs (237 lines)
+  - WASAPI loopback + silence generation
+  
+- OpusAudioEncoder.cs (144 lines)
+  - Opus 48kHz encoding
+  - 10ms frame accumulation
+  
+- LibAvEncoder.cs (500+ lines)
+  - FFmpeg hardware/software encoding
+  - D3D11VA support
+  
+- NvencNativeWrapper.cs, AmfNativeWrapper.cs, QsvNativeWrapper.cs
+  - GPU encoder APIs
+
+Protocol:
+- PhaseProtocolHandler.cs (3000+ lines)
+  - 3-phase state machine
+  
+- SignalServer.cs (311 lines)
+  - HTTP/WebSocket server
+  
+- ProtocolMessages.cs (700+ lines)
+  - Message definitions
+
+Hardware:
+- GpuVendorDetector.cs (200+ lines)
+- HardwareInfoGatherer.cs (200+ lines)
+
+Display/Capture:
+- GpuColorConverter.cs, GpuTextureScaler.cs
+- DxgiCapture.cs, WgcCapture.cs
+
+================================================================================
+9. 3-PHASE PROTOCOL
+================================================================================
+
+Phase 1: Hardware Discovery
+- Server sends hardware info
+- Client responds with capabilities
+- Speed test runs
+- Client waits for proceed
+
+Phase 2: Configuration & ICE Exchange
+- Client sends display config
+- Server creates capture system
+- SDP offer/answer exchanged
+- ICE candidates exchanged
+
+Phase 3: Streaming
+- Capture starts
+- Encoders initialized
+- Audio capture starts
+- Frames streamed via RTP
+
+================================================================================
+10. UNRESOLVED QUESTIONS
+================================================================================
+
+1. Is encoder PTS from FFmpeg wrapper or hardware?
+2. How does client report frame loss metrics?
+3. Any low-latency tuning available?
+4. When are H.265/VP9/VP8 used vs H.264?
+5. Is cursor update timestamped independently?
+6. Cross-network sync/jitter compensation?
+7. Server-side A/V sync measurement?
+
+================================================================================

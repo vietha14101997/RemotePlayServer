@@ -51,6 +51,7 @@ public class SIPSorceryStreamer : IDisposable
     private volatile bool _audioEnabled;
     private bool _hasAudioTrack;
     private long _audioPacketsSent;
+    private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
     /// <summary>
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
@@ -65,6 +66,14 @@ public class SIPSorceryStreamer : IDisposable
         if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length) return false;
         return _monitorPaused[monitorIndex];
     }
+
+    // Shared reference clock for A/V sync: set on first frame (audio or video)
+    private long _streamStartMs = -1;
+
+    // Audio sync: last absolute audio RTP timestamp (protected by _audioSyncLock)
+    private readonly object _audioSyncLock = new();
+    private uint _lastAbsoluteAudioRtp;
+    private bool _audioClockInitialized;
 
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
@@ -93,6 +102,21 @@ public class SIPSorceryStreamer : IDisposable
         public bool TimestampInitialized;
         public volatile bool ForceNextKeyframe;
         public int KeyframeBurstRemaining; // Send N consecutive keyframes for WiFi resilience
+
+        // Shared-clock sync: capture-time-based RTP (replaces encoder-PTS-based)
+        public uint LastAbsoluteRtp;
+        public bool CaptureClockInitialized;
+        // Store capture timestamp for use in OnEncodedData callback
+        public long PendingCaptureTimestampMs;
+
+        // Per-track lock for encoding: allows parallel NVENC sessions across tracks
+        // (shared _lock was serializing all encoding, causing track delay accumulation)
+        public readonly object EncodeLock = new();
+
+        // Diagnostic: per-track encode latency
+        public long LastEncodeStartTicks;
+        public long EncodeLatencySum;
+        public long EncodeLatencyCount;
 
         public void Dispose()
         {
@@ -451,13 +475,13 @@ public class SIPSorceryStreamer : IDisposable
             _opusEncoder = new OpusAudioEncoder();
 
             // Wire: capture -> encoder -> RTP send
-            _audioCapture.OnAudioData += (pcm, length, sampleRate, channels) =>
+            _audioCapture.OnAudioData += (pcm, length, sampleRate, channels, timestampMs) =>
             {
                 if (_isPaused || !_connected || !_running) return;
-                _opusEncoder.EncodePcm(pcm, length, sampleRate, channels);
+                _opusEncoder.EncodePcm(pcm, length, sampleRate, channels, timestampMs);
             };
 
-            _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration) =>
+            _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
             {
                 if (!_connected || !_running || _pc == null) return;
                 try
@@ -465,7 +489,23 @@ public class SIPSorceryStreamer : IDisposable
                     // Copy to exact-size buffer for SendAudio
                     var packet = new byte[opusLength];
                     Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-                    _pc.SendAudio(rtpDuration, packet);
+
+                    // First frame: use wallclock-based step to anchor A/V sync offset
+                    // relative to video's shared _streamStartMs.
+                    // All subsequent frames: fixed 480-sample increment (standard for
+                    // constant-frame-duration codecs like Opus). The audio hardware clock
+                    // IS 48kHz, so sample-counting is inherently more accurate than
+                    // wallclock measurement which suffers from WASAPI burst delivery jitter.
+                    uint audioStep;
+                    lock (_audioSyncLock)
+                    {
+                        if (!_audioClockInitialized && timestampMs > 0)
+                            audioStep = CalculateAudioRtpStep(timestampMs);
+                        else
+                            audioStep = rtpDuration; // Always 480 (10ms at 48kHz)
+                    }
+
+                    _pc.SendAudio(audioStep, packet);
                     Interlocked.Increment(ref _audioPacketsSent);
                 }
                 catch (Exception ex)
@@ -731,7 +771,7 @@ public class SIPSorceryStreamer : IDisposable
     /// <summary>
     /// Push BGRA texture directly (for NVENC BGRA mode - no color conversion)
     /// </summary>
-    public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height)
+    public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
@@ -741,10 +781,16 @@ public class SIPSorceryStreamer : IDisposable
         var track = _tracks[monitorIndex];
         if (track.Encoder == null) return;
 
-        lock (_lock)
+        // Per-track lock: allows parallel NVENC encoding across tracks.
+        // Previously used shared _lock which serialized all encoding,
+        // causing the second track to accumulate transport delay on the client.
+        lock (track.EncodeLock)
         {
             try
             {
+                // Store capture timestamp for use in OnEncodedData callback
+                track.PendingCaptureTimestampMs = captureTimestampMs;
+
                 // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
                 bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
@@ -752,6 +798,7 @@ public class SIPSorceryStreamer : IDisposable
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
                 // Encode BGRA directly - no staging texture or copy needed
+                track.LastEncodeStartTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                 track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
                 Interlocked.Increment(ref track.EncodedFrames);
             }
@@ -763,22 +810,26 @@ public class SIPSorceryStreamer : IDisposable
         }
     }
 
-    public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height)
+    public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
+        if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         // Check per-monitor pause
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
-        if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
 
         var track = _tracks[monitorIndex];
         if (track.Encoder == null) return;
 
-        lock (_lock)
+        // Per-track lock: allows parallel encoding across tracks
+        lock (track.EncodeLock)
         {
             try
             {
                 var device = track.Device ?? _sharedDevice;
                 if (device == null) return;
+
+                // Store capture timestamp for use in OnEncodedData callback
+                track.PendingCaptureTimestampMs = captureTimestampMs;
 
                 if (track.StagingNV12 == null)
                 {
@@ -805,6 +856,7 @@ public class SIPSorceryStreamer : IDisposable
                 track.ForceNextKeyframe = false;
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
+                track.LastEncodeStartTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                 track.Encoder.EncodeTexture(track.StagingNV12, forceKeyframe: forceIdr);
                 Interlocked.Increment(ref track.EncodedFrames);
             }
@@ -821,6 +873,16 @@ public class SIPSorceryStreamer : IDisposable
         if (!_running || _pc == null || !_connected) return;
         if (_pc.connectionState != RTCPeerConnectionState.connected) return;
 
+        // Track encode latency for diagnostics
+        long encodeStartTicks = track.LastEncodeStartTicks;
+        if (encodeStartTicks > 0)
+        {
+            long encodeEndTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+            long latencyUs = (encodeEndTicks - encodeStartTicks) * 1_000_000L / System.Diagnostics.Stopwatch.Frequency;
+            Interlocked.Add(ref track.EncodeLatencySum, latencyUs);
+            Interlocked.Increment(ref track.EncodeLatencyCount);
+        }
+
         try
         {
             // Convert to Annex B if needed and strip AUD
@@ -829,7 +891,20 @@ public class SIPSorceryStreamer : IDisposable
                 au = TryConvertAvccToAnnexB(au);
             au = StripLeadingAud(au);
 
-            uint rtpStep = CalculateRtpStep(track, pts100ns);
+            // Use capture timestamp if available, fall back to encoder PTS
+            long captureMs = track.PendingCaptureTimestampMs;
+            uint rtpStep = captureMs > 0
+                ? CalculateRtpStepFromCaptureTime(track, captureMs)
+                : CalculateRtpStep(track, pts100ns);
+
+            // Log per-track diagnostics on keyframe sends
+            if (isKeyframe)
+            {
+                long encCount = Interlocked.Read(ref track.EncodeLatencyCount);
+                long avgEncUs = encCount > 0 ? Interlocked.Read(ref track.EncodeLatencySum) / encCount : 0;
+                Logger.Info($"[SIPSorcery] Track {track.Index} KEYFRAME: rtpStep={rtpStep}, captureMs={captureMs}, " +
+                    $"avgEncLatency={avgEncUs}us, sentFrames={Interlocked.Read(ref track.SentFrames)}");
+            }
 
             // DEBUG: Log NAL types for first few frames only (avoid spam)
             long frameNum = Interlocked.Read(ref track.SentFrames);
@@ -856,19 +931,18 @@ public class SIPSorceryStreamer : IDisposable
                 }
             }
 
-            // WORKAROUND: Use default SendVideo for first track (track 0)
-            // VideoStreamList indexing may not match Unity WebRTC transceiver order
-            if (track.Index == 0)
+            // Send via VideoStreamList for ALL tracks (same code path = same latency)
+            // Previously track 0 used _pc.SendVideo() which may have different internal buffering
+            if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
             {
-                // Always use _pc.SendVideo() for track 0 - goes to first video stream
-                _pc.SendVideo(rtpStep, au);
-                Interlocked.Increment(ref track.SentFrames);
-            }
-            else if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
-            {
-                // Send to specific video stream by index for tracks 1, 2, ...
                 var videoStream = _pc.VideoStreamList[track.Index];
                 videoStream.SendVideo(rtpStep, au);
+                Interlocked.Increment(ref track.SentFrames);
+            }
+            else if (track.Index == 0)
+            {
+                // Fallback for track 0 only: use _pc.SendVideo() if VideoStreamList unavailable
+                _pc.SendVideo(rtpStep, au);
                 Interlocked.Increment(ref track.SentFrames);
             }
             else
@@ -911,6 +985,88 @@ public class SIPSorceryStreamer : IDisposable
             uint step = (uint)Math.Max(1, ClockRate * delta / 10_000_000L);
             return step;
         }
+    }
+
+    /// <summary>
+    /// Calculate RTP step from capture wallclock time instead of encoder PTS.
+    /// All tracks sharing the same _streamStartMs produce identical absolute RTP
+    /// for simultaneously-captured frames (barrier-synced), fixing multi-track desync.
+    /// Audio also uses the same _streamStartMs, fixing A/V desync.
+    /// </summary>
+    private uint CalculateRtpStepFromCaptureTime(TrackInfo track, long captureTimestampMs)
+    {
+        const int ClockRate = 90000;
+        uint fallback = (uint)Math.Max(1, ClockRate / Math.Max(1, _fps));
+
+        // Initialize shared stream start time (first frame from any track sets this)
+        if (Interlocked.Read(ref _streamStartMs) < 0)
+            Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
+
+        long startMs = Interlocked.Read(ref _streamStartMs);
+        long elapsedMs = captureTimestampMs - startMs;
+        if (elapsedMs < 0) elapsedMs = 0;
+
+        // Convert elapsed wallclock to absolute RTP timestamp (90kHz)
+        uint absoluteRtp = (uint)((long)ClockRate * elapsedMs / 1000L);
+
+        lock (track)
+        {
+            if (!track.CaptureClockInitialized)
+            {
+                track.CaptureClockInitialized = true;
+                track.LastAbsoluteRtp = absoluteRtp;
+                // First frame: return the absolute timestamp as the initial step
+                // This seeds the RTP sequence at the correct wallclock position
+                return absoluteRtp > 0 ? absoluteRtp : fallback;
+            }
+
+            // Step = difference from last sent absolute RTP
+            uint step;
+            if (absoluteRtp > track.LastAbsoluteRtp)
+            {
+                step = absoluteRtp - track.LastAbsoluteRtp;
+            }
+            else
+            {
+                // Same or older timestamp (duplicate frame, or clock wraparound)
+                step = fallback;
+            }
+
+            track.LastAbsoluteRtp = absoluteRtp;
+
+            // Clamp to reasonable range: 1 tick to 500ms worth of ticks
+            step = Math.Clamp(step, 1, (uint)(ClockRate / 2));
+            return step;
+        }
+    }
+
+    /// <summary>
+    /// Calculate the INITIAL audio RTP timestamp offset to anchor audio relative to video.
+    /// Called ONLY for the first audio frame, under _audioSyncLock.
+    /// All subsequent frames use fixed 480 increment.
+    /// This ensures audio and video RTP timestamps share the same _streamStartMs origin,
+    /// allowing the client to correctly align them via RTCP Sender Reports.
+    /// </summary>
+    /// <remarks>Caller must hold _audioSyncLock.</remarks>
+    private uint CalculateAudioRtpStep(long audioTimestampMs)
+    {
+        const int AudioClockRate = 48000;
+        const uint DefaultStep = 480; // 10ms at 48kHz
+
+        // Initialize shared stream start time (first frame from any track sets this)
+        if (Interlocked.Read(ref _streamStartMs) < 0)
+            Interlocked.CompareExchange(ref _streamStartMs, audioTimestampMs, -1);
+
+        long startMs = Interlocked.Read(ref _streamStartMs);
+        long elapsedMs = audioTimestampMs - startMs;
+        if (elapsedMs < 0) elapsedMs = 0;
+
+        // Convert elapsed wallclock to absolute audio RTP timestamp (48kHz)
+        uint absoluteRtp = (uint)((long)AudioClockRate * elapsedMs / 1000L);
+
+        _audioClockInitialized = true;
+        _lastAbsoluteAudioRtp = absoluteRtp;
+        return absoluteRtp > 0 ? absoluteRtp : DefaultStep;
     }
 
     private List<int> GetNalTypes(byte[] au)
@@ -1175,9 +1331,18 @@ public class SIPSorceryStreamer : IDisposable
 
             lock (_lock)
             {
-                var stats = string.Join(", ", _tracks.Select(t => $"m{t.Index}:{t.SentFrames}"));
+                var stats = string.Join(", ", _tracks.Select(t =>
+                {
+                    long encCount = Interlocked.Read(ref t.EncodeLatencyCount);
+                    long avgUs = encCount > 0 ? Interlocked.Read(ref t.EncodeLatencySum) / encCount : 0;
+                    return $"m{t.Index}:{t.SentFrames}f,enc={avgUs}us";
+                }));
                 var audioPkts = Interlocked.Read(ref _audioPacketsSent);
-                var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts" : "";
+                long lastInterval = _audioPacketsLastInterval;
+                long intervalPkts = audioPkts - lastInterval;
+                _audioPacketsLastInterval = audioPkts;
+                float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
+                var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
                 Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
             }
         }
@@ -1360,6 +1525,14 @@ public class SIPSorceryStreamer : IDisposable
         _running = false;
         _connected = false;
 
+        // Reset shared sync clock for next connection
+        Interlocked.Exchange(ref _streamStartMs, -1);
+        lock (_audioSyncLock)
+        {
+            _audioClockInitialized = false;
+            _lastAbsoluteAudioRtp = 0;
+        }
+
         // Stop audio pipeline
         _audioEnabled = false;
         try { _audioCapture?.Stop(); } catch { }
@@ -1393,6 +1566,33 @@ public class SIPSorceryStreamer : IDisposable
     /// Pause streaming - stop encoding but keep connection alive.
     /// Client can resume without reconnecting.
     /// </summary>
+    /// <summary>
+    /// Reset sync clocks so next frames start from a fresh time origin.
+    /// Call when Phase 3 starts to clear stale state from early capture.
+    /// This prevents the client's jitter buffer from inflating due to
+    /// RTP timestamp gaps between early-capture and real streaming.
+    /// </summary>
+    public void ResetSyncState()
+    {
+        Interlocked.Exchange(ref _streamStartMs, -1);
+        lock (_audioSyncLock)
+        {
+            _audioClockInitialized = false;
+            _lastAbsoluteAudioRtp = 0;
+        }
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+            {
+                track.CaptureClockInitialized = false;
+                track.LastAbsoluteRtp = 0;
+                track.TimestampInitialized = false;
+                track.LastPts100ns = -1;
+            }
+        }
+        Logger.Info("[SIPSorcery] Sync state reset (fresh time origin for Phase 3)");
+    }
+
     public void Pause()
     {
         if (_isPaused)

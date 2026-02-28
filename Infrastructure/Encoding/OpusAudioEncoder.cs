@@ -26,12 +26,14 @@ public sealed class OpusAudioEncoder : IDisposable
     private readonly short[] _pcmShortBuffer;
     private readonly byte[] _opusOutputBuffer;
     private bool _disposed;
+    private long _currentTimestampMs;
 
     /// <summary>
     /// Fired when an Opus packet is ready to send.
-    /// Parameters: (byte[] opusData, int opusLength, uint rtpDuration)
+    /// Parameters: (byte[] opusData, int opusLength, uint rtpDuration, long timestampMs)
+    /// timestampMs is wallclock time for A/V sync alignment.
     /// </summary>
-    public event Action<byte[], int, uint>? OnEncodedAudio;
+    public event Action<byte[], int, uint, long>? OnEncodedAudio;
 
     public OpusAudioEncoder()
     {
@@ -56,9 +58,13 @@ public sealed class OpusAudioEncoder : IDisposable
     /// <param name="length">Number of bytes in pcm16Data</param>
     /// <param name="inputSampleRate">Sample rate of input (will be skipped if != 48000)</param>
     /// <param name="inputChannels">Channel count of input</param>
-    public void EncodePcm(byte[] pcm16Data, int length, int inputSampleRate, int inputChannels)
+    public void EncodePcm(byte[] pcm16Data, int length, int inputSampleRate, int inputChannels, long timestampMs = 0)
     {
         if (_disposed || length <= 0) return;
+
+        // Capture first-sample timestamp (not last-call-wins)
+        if (_frameBufferOffset == 0)
+            _currentTimestampMs = timestampMs;
 
         // Skip if sample rate doesn't match (resample not implemented yet)
         if (inputSampleRate != SAMPLE_RATE)
@@ -124,7 +130,7 @@ public sealed class OpusAudioEncoder : IDisposable
 
             if (encodedBytes > 0)
             {
-                OnEncodedAudio?.Invoke(_opusOutputBuffer, encodedBytes, RTP_DURATION_PER_FRAME);
+                OnEncodedAudio?.Invoke(_opusOutputBuffer, encodedBytes, RTP_DURATION_PER_FRAME, _currentTimestampMs);
             }
         }
         catch (Exception ex)

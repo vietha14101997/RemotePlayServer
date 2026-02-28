@@ -1438,6 +1438,12 @@ namespace RemotePlayServer.Application.Protocol
             SetPhase(ConnectionPhase.Phase3_Streaming);
             Logger.Info("[Protocol] Phase 3: Starting stream...");
 
+            // Reset sync clocks to clear stale early-capture RTP state.
+            // Early capture sends frames before client is ready (99%+ loss),
+            // which inflates the client's jitter buffer. Fresh time origin
+            // ensures Phase 3 frames start with clean RTP timestamps.
+            _streamer?.ResetSyncState();
+
             // Send streaming_started
             var startedMsg = new StreamingStartedMessage
             {
@@ -1795,7 +1801,7 @@ namespace RemotePlayServer.Application.Protocol
                     // NV12 frame handler (standard path with color conversion)
                     _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
                     {
-                        _streamer?.PushTexture(monitorIndex, nv12Texture, w, h);
+                        _streamer?.PushTexture(monitorIndex, nv12Texture, w, h, timestamp);
 
                         if (monitorIndex == 0)
                         {
@@ -1827,7 +1833,7 @@ namespace RemotePlayServer.Application.Protocol
                         }
 
                         // Push texture (null-forgiving since textureToSend is always non-null)
-                        _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight);
+                        _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight, timestamp);
 
                         if (monitorIndex == 0)
                         {

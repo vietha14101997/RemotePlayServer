@@ -1,65 +1,60 @@
 === RemotePlayServer ===
 [System] Running as Administrator: YES
-[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-[System] Local IP: 192.168.1.13
-[Encoder] AMD AMF (Hardware)
+[System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.41
+[Encoder] NVIDIA NVENC (Hardware)
 [USB] Not detected. Enable USB Tethering on phone for USB streaming.
-[TextScale] Actual DPI for \\.\DISPLAY12: 96
-[Guard] Saved original text scale for \\.\DISPLAY12: 100%
-[TextScale] Actual DPI for \\.\DISPLAY11: 96
-[Guard] Saved original text scale for \\.\DISPLAY11: 100%
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] DPI snapshot: Source 0 = 100% (logPixels=96)
-[Guard] DPI snapshot: Source 1 = 100% (logPixels=96)
-[Guard] Saved DPI snapshot for 2 active monitors (via API)
+[Guard] Saved DPI snapshot for 1 active monitors (via API)
 [Guard] Snapshot captured.
 === Monitors ===
-  \\.\DISPLAY12: 1920x1080 [Physical]
-  \\.\DISPLAY11: 1920x1080 [Physical]
+  \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
-[HTTP] Server: 192.168.1.13:8288
+[HTTP] Server: 192.168.1.41:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.13","port":"8288"}
+Data: {"ip":"192.168.1.41","port":"8288"}
 █████████████████████████████████████
 █████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀█▀█ ▄▄  ██ █ ▄▄▄▄▄ ████
-████ █   █ ██▀ ██  ▀▄ ▀▄██ █   █ ████
-████ █▄▄▄█ █ ▀█▄ ▄█▄▀ ▀█▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█▄▀▄█▄▀ █▄▀ █▄█▄▄▄▄▄▄▄████
-████▄▄  ▀ ▄██▄▀▀▄▄█▀   █▄▄▀▄▄▀▀▄ ████
-█████▀█▄▄▄▄ ▄█▄█▀▄  ███▄ █  ▄███ ████
-████▀ ▄▄▄█▄▀ ▀█▄▀▄ ▀ ▀█▄▀▄ ▀ ▀█▄▀████
-████▄ ▄███▄▀▀ ▀▄▄▀ ▀▀ ▀  ▀ ██ ▀  ████
-████▄█▀▄▀ ▄▀ ▄▄ ▀█   █▄  ▀▄  █▄  ████
-█████ ▀▄▄▀▄▄███▀▀█▄▀ ▄██ █▀█  ▀█ ████
-█████▄██▄▄▄▄▄ █▀▄  ▀█▄▄▀ ▄▄▄ █▄  ████
-████ ▄▄▄▄▄ █▀▄▄▀▀▄▀▄█▄▀▀ █▄█ ▀▀▄█████
-████ █   █ █▀ ██▀ ▄▄█ ▄█  ▄▄▄▀▀██████
-████ █▄▄▄█ █  ███▄▄▀██ ██ ▄██▄▀▀▀████
-████▄▄▄▄▄▄▄█▄▄▄▄▄▄▄██▄▄█▄▄▄██▄▄▄█████
+████ ▄▄▄▄▄ █ ▄▄▄ █▀▄▄▄▄▄▄█ ▄▄▄▄▄ ████
+████ █   █ █ ▄▄█▄ ▀▄██▀█▀█ █   █ ████
+████ █▄▄▄█ █▄  ▀██▀▄▄  ▀ █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄█▄▀ ▀ █ ▀▄█▄▄▄▄▄▄▄████
+████▀ ▀ █▄▄█ ▀  ▀██ █▄▀█ ▄▄█▄ ▄▄ ████
+█████▀ ▀▄▄▄█▄█▀ ▀▄▄██▄▀  █▄▄▄█▀ ▀████
+█████▄██ ▀▄ ▄█▄██ ▀ ▄█▄██ ▀ ▄█▄██████
+████▀█▄█  ▄▀▄█▀▄▀▄ ▀▄█▀ █▄ █ █▀ █████
+████▄█▄▀▀ ▄▄ ▄▀█▀███ █▀█ ▀▀█ █▀█ ████
+████▀▄ █ █▄█▀▀▄ █▀█▄▄ ▄▄▄▀ ▄▄▄ ▄▄████
+████▄█████▄▄▀██▀▀█ ▀ ▀█  ▄▄▄  ▄ █████
+████ ▄▄▄▄▄ █▀▄▀▄▀▄▄▀█▄▄▄ █▄█ ▀▄▀█████
+████ █   █ █▀▄▄▄█▄██▀▄█▄▄▄▄▄ █ ▄▀████
+████ █▄▄▄█ █▀███ ▀▄▀   █ █▄█ ▀▀▀▄████
+████▄▄▄▄▄▄▄██▄██▄▄█▄█▄█▄▄▄█▄█▄███████
 █████████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 === Connection Options ===
   [USB]  Not available. Enable USB Tethering on phone
-  [WiFi] 192.168.1.13:8288 (Scan QR code above)
+  [WiFi] 192.168.1.41:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected bd1fd72c-1f81-430b-9ea0-b2a737831b27, protocol=v2, transport=WiFi
-[Protocol] Client bd1fd72c-1f81-430b-9ea0-b2a737831b27 connected from 192.168.1.12 (v2 protocol, transport=WiFi)
+[Signal] Client connected 3658122e-e386-4352-87a9-3d87cbb9bfe9, protocol=v2, transport=WiFi
+[Protocol] Client 3658122e-e386-4352-87a9-3d87cbb9bfe9 connected from 192.168.1.36 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
-[HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
-[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
-[HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
-[HardwareInfo] SetDllDirectory: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
-[HardwareInfo] FFmpeg.RootPath: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
-[HardwareInfo] Added to PATH: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
-[ERROR] [HardwareInfo] HEVC encoder 'hevc_amf': available
-[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
-[Protocol] Monitor 0 (\\.\DISPLAY12): rect=(0,0) 1920x1080
-[Protocol] Monitor 1 (\\.\DISPLAY11): rect=(1920,0) 1920x1080
-[Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
+[HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
+[HardwareInfo] SetDllDirectory: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[ERROR] [HardwareInfo] HEVC encoder 'hevc_nvenc': available
+[HardwareInfo] Encoder: NVENC, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+[Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
 [Protocol] Sent hardware info to client
 [Protocol] Waiting for hardware_info_ack...
 [Protocol] WaitForHardwareAck received: len=172, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
@@ -76,18 +71,18 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 40MB in 2073ms = 161.9 Mbps
+[Protocol] Download test complete: sent 20MB in 2323ms = 72.2 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 276.2Mbps, 16.8ms
-[Protocol] ✓ Received speedtest_result from client: 276.2Mbps, 16.8ms ping
+[Protocol] speedtest_result parsed: 198.5Mbps, 17.0ms
+[Protocol] ✓ Received speedtest_result from client: 198.5Mbps, 17.0ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1440x810@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1772210526451...
+[Protocol] WaitForProceed received: ping:1772253625893...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -96,33 +91,61 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1440,"h":810},"refreshRate":60,"bitrateKbps"...
 [Protocol] Received display config: 2x1440x810@60fps
 [Protocol] Applying new display config: 2 monitors @ 60fps (keeping native resolution)
-[VDD] Physical monitor: \\.\DISPLAY12 (1920x1080@60Hz)
-[VDD] Physical monitor: \\.\DISPLAY11 (1920x1080@60Hz)
-[VDD] Physical: 2, Virtual needed: 0 (target: 2)
-[VDD] No virtual monitors needed.
+[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+[VDD] Physical: 1, Virtual needed: 1 (target: 2)
+[VDD Pipe] Not available (driver not running or old version)
+[VDD] Pipe unavailable, using pnputil fallback...
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Disabling VDD for config reload...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[VDD] 2 monitors detected (259ms)
 [Display] Setting up multi-monitor system...
-[Display] Physical: 2, Virtual: 0
-[Display] Setting \\.\DISPLAY12 as PRIMARY
-[Display] \\.\DISPLAY12 set as primary
+[Display] Physical: 1, Virtual: 1
+[Display] Setting \\.\DISPLAY13 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
+[DisplayUtil] \\.\DISPLAY13 current position: (1920,0)
+[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY13: (1920,0) 1920x1080@60Hz
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[Display] Setting \\.\DISPLAY1 as PRIMARY
+[Display] \\.\DISPLAY1 set as primary
 [Display] Multi-monitor system configured:
-[Display]   \\.\DISPLAY12 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
-[Display]   \\.\DISPLAY11 1920x1080 at (1920,0) [PHYSICAL]
+[Display]   \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
+[Display]   \\.\DISPLAY13 1920x1080 at (1920,0) [VIRTUAL]
 [Display] Setting Windows Scale and Layout to 125%...
 [DpiScaling] Setting 125% for 2 monitor(s)...
 [DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 125%
-[DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
-[DpiScaling] ✓ Set DPI to 125%
+[DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
+[DpiScaling] Already at 125%
 [Display] Scale and Layout set to 125%
-[Protocol] Monitor 0 (\\.\DISPLAY12): rect=(0,0) 1920x1080
-[Protocol] Monitor 1 (\\.\DISPLAY11): rect=(1920,0) 1920x1080
+[Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY13): rect=(1920,0) 1920x1080
 [Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
 [Protocol] Available monitors: 2, using: 2
 [PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
-[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
-[PerMonitorCapture] Monitor 0: \\.\DISPLAY12 1920x1080 - duplication ready
-[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=AMD Radeon RX 7600)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY11 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY13 1920x1080 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=7500kbps per encoder (total=15000kbps)
 [SIPSorcery] Created: 2 monitors, 60fps, 7500kbps, codec=H264
@@ -135,126 +158,118 @@ Server is running. Press ENTER to exit.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1772210528470...
+[Protocol] ICE RX: ping:1772253627915...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772210530499...
+[Protocol] ICE RX: ping:1772253629940...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1686091552 1 udp 2122194687 19...
+[Protocol] ICE RX: ping:1772253631964...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772253633989...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772253636016...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2001849152 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4177489012 1 udp 2122129151 6....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1687337171 1 udp 2122129151 16...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"426199573 1 udp 2122063615 53....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2154964921 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2372198103 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2001849152 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1686091552 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1687337171 1 udp 2122129151 16...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4177489012 1 udp 2122129151 6....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2154964921 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"426199573 1 udp 2122063615 53....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2001849152 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2372198103 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1687337171 1 udp 2122129151 16...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1686091552 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2154964921 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4177489012 1 udp 2122129151 6....
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"426199573 1 udp 2122063615 53....
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2372198103 1 udp 2122262783 24...
-[Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 5549811808668050084 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 2732509155647815492 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 12 pending ICE candidates
+[Protocol] Cleared answer state, preserved 9 pending ICE candidates
 [Protocol] Monitor 0 native=1920x1080 -> encoder=1440x810
 [Protocol] Monitor 1 native=1920x1080 -> encoder=1440x810
 [Protocol] Parsed H264 PT from offer: 124
 [SIPSorcery] Processing offer for 2 monitors
 [SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B6:98:F8:CB:70:AA:76:0F:1A:3F:A5:2B:08:0D:75:5D:C4:F1:B2:CE:01:92:75:6E:38:AF:A9:5E:6E:C5:E8:F3
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 88:92:C7:18:E3:E4:01:62:2B:5A:CA:94:71:8F:E0:19:EA:B2:EB:7D:3A:4A:17:06:75:C8:95:D4:CF:C0:A6:E0
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B6:98:F8:CB:70:AA:76:0F:1A:3F:A5:2B:08:0D:75:5D:C4:F1:B2:CE:01:92:75:6E:38:AF:A9:5E:6E:C5:E8:F3
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 88:92:C7:18:E3:E4:01:62:2B:5A:CA:94:71:8F:E0:19:EA:B2:EB:7D:3A:4A:17:06:75:C8:95:D4:CF:C0:A6:E0
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B6:98:F8:CB:70:AA:76:0F:1A:3F:A5:2B:08:0D:75:5D:C4:F1:B2:CE:01:92:75:6E:38:AF:A9:5E:6E:C5:E8:F3
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 88:92:C7:18:E3:E4:01:62:2B:5A:CA:94:71:8F:E0:19:EA:B2:EB:7D:3A:4A:17:06:75:C8:95:D4:CF:C0:A6:E0
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1440x810 (device=838002F4)
-[SIPSorcery] Added track 1: 1440x810 (device=8398EC74)
+[SIPSorcery] Added track 0: 1440x810 (device=EAEB6272)
+[SIPSorcery] Added track 1: 1440x810 (device=EDBD2B52)
 [SIPSorcery] Added audio track (Opus 48kHz stereo)
-[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
-[SIPSorcery] Local ICE: 1198029454 1 udp 2113940223 2402:800:610d:eab:e802...
-[SIPSorcery] Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 63846 typ...
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
+[SIPSorcery] Local ICE: 821331009 1 udp 2113940223 2402:800:6d62:26bf:d976...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 65310 typ ...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 A5:F3:97:94:35:2B:E6:33:40:E3:43:D2:BB:67:DA:57:E4:BA:25:E3:39:FE:B6:5B:AD:9C:81:E6:EC:CC:32:0E
+[SIPSorcery] SDP: a=fingerprint:sha-256 83:63:BA:E1:86:CB:A9:B8:A5:89:0D:74:B3:33:37:19:5C:60:1A:97:11:88:8B:62:0B:14:C5:44:A4:CE:E1:FE
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 A5:F3:97:94:35:2B:E6:33:40:E3:43:D2:BB:67:DA:57:E4:BA:25:E3:39:FE:B6:5B:AD:9C:81:E6:EC:CC:32:0E
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 65310 ty...
+[SIPSorcery] SDP: a=fingerprint:sha-256 83:63:BA:E1:86:CB:A9:B8:A5:89:0D:74:B3:33:37:19:5C:60:1A:97:11:88:8B:62:0B:14:C5:44:A4:CE:E1:FE
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 A5:F3:97:94:35:2B:E6:33:40:E3:43:D2:BB:67:DA:57:E4:BA:25:E3:39:FE:B6:5B:AD:9C:81:E6:EC:CC:32:0E
+[SIPSorcery] SDP: a=fingerprint:sha-256 83:63:BA:E1:86:CB:A9:B8:A5:89:0D:74:B3:33:37:19:5C:60:1A:97:11:88:8B:62:0B:14:C5:44:A4:CE:E1:FE
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1784 bytes
+[SIPSorcery] Answer ready, 1783 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
 [Protocol] SDP kept: a=rtpmap:124 H264/90000
 [Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
 [Protocol] SDP kept: a=rtpmap:124 H264/90000
 [Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1784 to 1784 bytes
+[Protocol] Filtered SDP from 1783 to 1783 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 16213 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 40806 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
 [Protocol] Sent single answer, len=1845 bytes
-[Protocol] Sent extracted ICE candidate: candidate:3928909093 1 udp 2113937663 192.168.1.13 63846 typ...
-[Protocol] Applying 12 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:1686091552 1 udp 2122194687 192.168.1.12...
-[Protocol] Applied pending ICE: 1686091552 1 udp 2122194687 192.168.1.12 60472 typ...
-[SIPSorcery] Added remote ICE: candidate:4177489012 1 udp 2122129151 6.22.187.114...
-[Protocol] Applied pending ICE: 4177489012 1 udp 2122129151 6.22.187.114 47261 typ...
-[SIPSorcery] Added remote ICE: candidate:426199573 1 udp 2122063615 53.18.178.92 ...
-[Protocol] Applied pending ICE: 426199573 1 udp 2122063615 53.18.178.92 60203 typ ...
-[SIPSorcery] Added remote ICE: candidate:2372198103 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 2372198103 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Added remote ICE: candidate:1686091552 1 udp 2122194687 192.168.1.12...
-[Protocol] Applied pending ICE: 1686091552 1 udp 2122194687 192.168.1.12 37486 typ...
-[SIPSorcery] Added remote ICE: candidate:4177489012 1 udp 2122129151 6.22.187.114...
-[Protocol] Applied pending ICE: 4177489012 1 udp 2122129151 6.22.187.114 38337 typ...
-[SIPSorcery] Added remote ICE: candidate:426199573 1 udp 2122063615 53.18.178.92 ...
-[Protocol] Applied pending ICE: 426199573 1 udp 2122063615 53.18.178.92 54786 typ ...
-[SIPSorcery] Added remote ICE: candidate:2372198103 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 2372198103 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Added remote ICE: candidate:1686091552 1 udp 2122194687 192.168.1.12...
-[Protocol] Applied pending ICE: 1686091552 1 udp 2122194687 192.168.1.12 54129 typ...
-[SIPSorcery] Added remote ICE: candidate:4177489012 1 udp 2122129151 6.22.187.114...
-[Protocol] Applied pending ICE: 4177489012 1 udp 2122129151 6.22.187.114 59017 typ...
-[SIPSorcery] Added remote ICE: candidate:426199573 1 udp 2122063615 53.18.178.92 ...
-[Protocol] Applied pending ICE: 426199573 1 udp 2122063615 53.18.178.92 37780 typ ...
-[SIPSorcery] Added remote ICE: candidate:2372198103 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 2372198103 1 udp 2122262783 2402:800:610d:eab:b08a...
-[Protocol] ICE RX: ping:1772210532532...
-[Protocol] ICE legacy format message
-[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 63846 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 65310 typ ...
+[Protocol] Applying 9 pending ICE candidates
+[SIPSorcery] Added remote ICE: candidate:2001849152 1 udp 2122194687 192.168.1.36...
+[Protocol] Applied pending ICE: 2001849152 1 udp 2122194687 192.168.1.36 42388 typ...
+[SIPSorcery] Added remote ICE: candidate:1687337171 1 udp 2122129151 166.141.234....
+[Protocol] Applied pending ICE: 1687337171 1 udp 2122129151 166.141.234.101 56725 ...
+[SIPSorcery] Added remote ICE: candidate:2154964921 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 2154964921 1 udp 2122262783 2402:800:6d62:26bf:5c7...
+[SIPSorcery] Added remote ICE: candidate:2001849152 1 udp 2122194687 192.168.1.36...
+[Protocol] Applied pending ICE: 2001849152 1 udp 2122194687 192.168.1.36 59613 typ...
+[SIPSorcery] Added remote ICE: candidate:1687337171 1 udp 2122129151 166.141.234....
+[Protocol] Applied pending ICE: 1687337171 1 udp 2122129151 166.141.234.101 56444 ...
+[SIPSorcery] Added remote ICE: candidate:2154964921 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 2154964921 1 udp 2122262783 2402:800:6d62:26bf:5c7...
+[SIPSorcery] Added remote ICE: candidate:2001849152 1 udp 2122194687 192.168.1.36...
+[Protocol] Applied pending ICE: 2001849152 1 udp 2122194687 192.168.1.36 44147 typ...
+[SIPSorcery] Added remote ICE: candidate:1687337171 1 udp 2122129151 166.141.234....
+[Protocol] Applied pending ICE: 1687337171 1 udp 2122129151 166.141.234.101 58333 ...
+[SIPSorcery] Added remote ICE: candidate:2154964921 1 udp 2122262783 2402:800:6d6...
+[Protocol] Applied pending ICE: 2154964921 1 udp 2122262783 2402:800:6d62:26bf:5c7...
 [Protocol] ICE RX: {"type":"proceed","phase":3}...
 [Protocol] ICE message type: proceed
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
-[SIPSorcery] Detected GPU vendor: AMD
-[SIPSorcery] Creating AMF encoder for AMD GPU
-[AmfNativeWrapper] Initializing BGRA mode 1440x810 @ 60fps, 7500kbps
-[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
-[SIPSorcery] Track 0: Amf encoder initialized (BGRA mode - no color conversion)
-[SIPSorcery] Creating AMF encoder for AMD GPU
-[AmfNativeWrapper] Initializing BGRA mode 1440x810 @ 60fps, 7500kbps
-[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
-[SIPSorcery] Track 1: Amf encoder initialized (BGRA mode - no color conversion)
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[SIPSorcery] Detected GPU vendor: NVIDIA
+[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
+[NvencNativeWrapper] Initializing BGRA mode 1440x810 @ 60fps, 7500kbps
+[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
+[SIPSorcery] Track 0: Nvenc encoder initialized (BGRA mode - no color conversion)
+[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
+[NvencNativeWrapper] Initializing BGRA mode 1440x810 @ 60fps, 7500kbps
+[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
+[SIPSorcery] Track 1: Nvenc encoder initialized (BGRA mode - no color conversion)
 [OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
 [AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
 [AudioCapture] Started: 48000Hz, 2ch
@@ -267,71 +282,1091 @@ Server is running. Press ENTER to exit.
 [PerMonitorCapture] Started 2 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
 [PerMonitorCapture] Monitor 1: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
-[GpuTextureScaler] Monitor 1: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 1 (device=2948398EEE0)
-[GpuTextureScaler] Monitor 1: Output texture 1440x810
 [GpuTextureScaler] Monitor 0: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 0 (device=29483800060)
+[TextureResizer] Created GPU scaler for monitor 0 (device=24AEAEB6038)
 [GpuTextureScaler] Monitor 0: Output texture 1440x810
-[SIPSorcery] Track 1 first frame: VideoStreamList.Count=2, rtpStep=36400
-[SIPSorcery] VideoStream[0]: SSRC=1443780222
-[SIPSorcery] VideoStream[1]: SSRC=964041886
-[SIPSorcery] Track 0 first frame: VideoStreamList.Count=2, rtpStep=36431
-[SIPSorcery] VideoStream[0]: SSRC=1443780222
-[SIPSorcery] VideoStream[1]: SSRC=964041886
+[GpuTextureScaler] Monitor 1: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 1 (device=24AEDBD2918)
+[GpuTextureScaler] Monitor 1: Output texture 1440x810
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1500, captureMs=1772253637603, avgEncLatency=7803us, sentFrames=0
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1500, captureMs=1772253637603, avgEncLatency=6400us, sentFrames=0
+[SIPSorcery] Track 1 first frame: VideoStreamList.Count=2, rtpStep=1500
+[SIPSorcery] VideoStream[0]: SSRC=1690020783
+[SIPSorcery] VideoStream[1]: SSRC=502375536
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=2, rtpStep=1500
+[SIPSorcery] VideoStream[0]: SSRC=1690020783
+[SIPSorcery] VideoStream[1]: SSRC=502375536
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=6030, captureMs=1772253637670, avgEncLatency=4739us, sentFrames=1
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=6030, captureMs=1772253637670, avgEncLatency=4020us, sentFrames=1
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253637686, avgEncLatency=3681us, sentFrames=2
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253637686, avgEncLatency=3186us, sentFrames=2
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253637707, avgEncLatency=3128us, sentFrames=3
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253637707, avgEncLatency=2840us, sentFrames=3
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253637724, avgEncLatency=2851us, sentFrames=4
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253637724, avgEncLatency=2790us, sentFrames=4
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253638224, avgEncLatency=1799us, sentFrames=34
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253638224, avgEncLatency=1931us, sentFrames=34
 [Protocol] Phase 3: Waiting for all monitors to connect...
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
 [Protocol] Phase 3: Starting stream...
+[SIPSorcery] Sync state reset (fresh time origin for Phase 3)
 [Protocol] Capture thread already running, skipping start
 [Protocol] Cursor tracking started
 [KeepAlive] Server-side keep-alive started (5s interval)
 [AdaptiveBitrate] Initialized: target=7500kbps, range=[2000-15000]kbps, warmup=15000ms
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253638715, avgEncLatency=1759us, sentFrames=64
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253638715, avgEncLatency=1867us, sentFrames=64
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253639223, avgEncLatency=2228us, sentFrames=94
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253639223, avgEncLatency=2389us, sentFrames=94
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253639706, avgEncLatency=2916us, sentFrames=124
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253639706, avgEncLatency=3068us, sentFrames=124
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253640186, avgEncLatency=3186us, sentFrames=154
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253640186, avgEncLatency=3480us, sentFrames=154
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253640666, avgEncLatency=3336us, sentFrames=184
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253640666, avgEncLatency=3546us, sentFrames=184
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253641152, avgEncLatency=3637us, sentFrames=214
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253641152, avgEncLatency=3797us, sentFrames=214
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253641643, avgEncLatency=4004us, sentFrames=244
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253641643, avgEncLatency=4130us, sentFrames=244
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253642222, avgEncLatency=4751us, sentFrames=274
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253642222, avgEncLatency=4490us, sentFrames=274
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[Pipeline] Mon0: Server sent 318, Client received 1 (loss=99.7%)
-[SIPSorcery] FPS feedback m0: 5.4fps, dropped=0
-[Pipeline] Mon1: Server sent 319, Client received 1 (loss=99.7%)
-[SIPSorcery] FPS feedback m1: 5.4fps, dropped=0
-[SIPSorcery] Stats: m0:610, m1:610, audio:978pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253642571, avgEncLatency=4645us, sentFrames=293
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253642571, avgEncLatency=4989us, sentFrames=293
+[Pipeline] Mon0: Server sent 309, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m0: 4.8fps, dropped=0
+[Pipeline] Mon1: Server sent 309, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m1: 4.8fps, dropped=0
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253643078, avgEncLatency=4841us, sentFrames=323
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253643078, avgEncLatency=5259us, sentFrames=323
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253643619, avgEncLatency=5013us, sentFrames=353
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253643619, avgEncLatency=5572us, sentFrames=353
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253644211, avgEncLatency=5207us, sentFrames=383
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253644211, avgEncLatency=5863us, sentFrames=383
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253644785, avgEncLatency=5354us, sentFrames=413
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253644785, avgEncLatency=6114us, sentFrames=413
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253645350, avgEncLatency=5483us, sentFrames=443
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253645350, avgEncLatency=6333us, sentFrames=443
+[Pipeline] Mon0: Server sent 467, Client received 1 (loss=99.8%)
+[SIPSorcery] FPS feedback m0: 10.1fps, dropped=0
+[Pipeline] Mon1: Server sent 468, Client received 1 (loss=99.8%)
+[SIPSorcery] FPS feedback m1: 10.1fps, dropped=0
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253645920, avgEncLatency=5589us, sentFrames=473
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253645920, avgEncLatency=6534us, sentFrames=473
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253646491, avgEncLatency=5686us, sentFrames=503
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253646491, avgEncLatency=6711us, sentFrames=503
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253647057, avgEncLatency=5756us, sentFrames=533
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253647057, avgEncLatency=6868us, sentFrames=533
+[SIPSorcery] Stats: m0:538f,enc=5769us, m1:538f,enc=6890us, audio:6077pkts (607.7/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253647617, avgEncLatency=5835us, sentFrames=563
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253647617, avgEncLatency=7001us, sentFrames=563
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253648172, avgEncLatency=5895us, sentFrames=593
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253648172, avgEncLatency=7123us, sentFrames=593
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253648762, avgEncLatency=5961us, sentFrames=623
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253648762, avgEncLatency=7235us, sentFrames=623
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253649341, avgEncLatency=6017us, sentFrames=653
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253649341, avgEncLatency=7332us, sentFrames=653
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253649916, avgEncLatency=6070us, sentFrames=683
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253649916, avgEncLatency=7426us, sentFrames=683
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253650465, avgEncLatency=6108us, sentFrames=713
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253650465, avgEncLatency=7501us, sentFrames=713
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253651046, avgEncLatency=6155us, sentFrames=743
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253651046, avgEncLatency=7581us, sentFrames=743
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253651592, avgEncLatency=6188us, sentFrames=773
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253651592, avgEncLatency=7646us, sentFrames=773
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253652099, avgEncLatency=6223us, sentFrames=803
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253652099, avgEncLatency=7644us, sentFrames=803
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253652583, avgEncLatency=6189us, sentFrames=833
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253652583, avgEncLatency=7568us, sentFrames=833
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253653164, avgEncLatency=6229us, sentFrames=863
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253653164, avgEncLatency=7638us, sentFrames=863
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253653704, avgEncLatency=6253us, sentFrames=893
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253653704, avgEncLatency=7666us, sentFrames=893
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253654228, avgEncLatency=6269us, sentFrames=923
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253654228, avgEncLatency=7663us, sentFrames=923
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253654748, avgEncLatency=6267us, sentFrames=953
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253654748, avgEncLatency=7672us, sentFrames=953
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253655295, avgEncLatency=6288us, sentFrames=983
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253655295, avgEncLatency=7714us, sentFrames=983
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253655828, avgEncLatency=6321us, sentFrames=1013
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253655828, avgEncLatency=7744us, sentFrames=1013
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253656352, avgEncLatency=6376us, sentFrames=1043
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253656352, avgEncLatency=7771us, sentFrames=1043
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253656861, avgEncLatency=6377us, sentFrames=1073
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253656861, avgEncLatency=7733us, sentFrames=1073
 [Protocol] Phase3 RX: type=start_streaming, len=26
-[SIPSorcery] Stats: m0:1235, m1:1235, audio:1981pkts
+[SIPSorcery] Stats: m0:1092f,enc=6337us, m1:1092f,enc=7683us, audio:12477pkts (640.0/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253657346, avgEncLatency=6316us, sentFrames=1103
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253657346, avgEncLatency=7650us, sentFrames=1103
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253657826, avgEncLatency=6251us, sentFrames=1133
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253657826, avgEncLatency=7575us, sentFrames=1133
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253658307, avgEncLatency=7491us, sentFrames=1163
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253658307, avgEncLatency=6194us, sentFrames=1163
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253658842, avgEncLatency=6217us, sentFrames=1193
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253658842, avgEncLatency=7505us, sentFrames=1193
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253659389, avgEncLatency=6227us, sentFrames=1223
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253659389, avgEncLatency=7506us, sentFrames=1223
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:1860, m1:1860, audio:2982pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253659613, avgEncLatency=6224us, sentFrames=1237
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253659613, avgEncLatency=7486us, sentFrames=1237
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253660111, avgEncLatency=6222us, sentFrames=1267
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253660111, avgEncLatency=7457us, sentFrames=1267
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253660632, avgEncLatency=6228us, sentFrames=1297
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253660632, avgEncLatency=7454us, sentFrames=1297
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1980, captureMs=1772253661227, avgEncLatency=6257us, sentFrames=1327
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1980, captureMs=1772253661227, avgEncLatency=7498us, sentFrames=1327
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253661735, avgEncLatency=6277us, sentFrames=1357
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253661735, avgEncLatency=7473us, sentFrames=1357
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253662275, avgEncLatency=6308us, sentFrames=1387
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253662275, avgEncLatency=7487us, sentFrames=1387
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253662818, avgEncLatency=6328us, sentFrames=1417
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253662818, avgEncLatency=7506us, sentFrames=1417
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253663353, avgEncLatency=6358us, sentFrames=1447
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253663353, avgEncLatency=7529us, sentFrames=1447
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253663856, avgEncLatency=6368us, sentFrames=1477
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253663856, avgEncLatency=7495us, sentFrames=1477
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253664336, avgEncLatency=6319us, sentFrames=1507
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253664336, avgEncLatency=7420us, sentFrames=1507
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253664816, avgEncLatency=6274us, sentFrames=1537
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253664816, avgEncLatency=7369us, sentFrames=1537
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253665296, avgEncLatency=6234us, sentFrames=1567
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253665296, avgEncLatency=7313us, sentFrames=1567
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253665826, avgEncLatency=6246us, sentFrames=1597
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253665826, avgEncLatency=7330us, sentFrames=1597
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253666398, avgEncLatency=6275us, sentFrames=1627
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253666398, avgEncLatency=7370us, sentFrames=1627
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253666929, avgEncLatency=6297us, sentFrames=1657
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253666929, avgEncLatency=7370us, sentFrames=1657
+[SIPSorcery] Stats: m0:1672f,enc=6276us, m1:1672f,enc=7349us, audio:13926pkts (144.9/sec)
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253667412, avgEncLatency=7318us, sentFrames=1687
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253667412, avgEncLatency=6260us, sentFrames=1687
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253667892, avgEncLatency=6231us, sentFrames=1717
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253667892, avgEncLatency=7262us, sentFrames=1717
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253668376, avgEncLatency=6191us, sentFrames=1747
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253668376, avgEncLatency=7210us, sentFrames=1747
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253668876, avgEncLatency=7185us, sentFrames=1777
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253668876, avgEncLatency=6176us, sentFrames=1777
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253669402, avgEncLatency=6197us, sentFrames=1807
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253669402, avgEncLatency=7192us, sentFrames=1807
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253669918, avgEncLatency=6222us, sentFrames=1837
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253669918, avgEncLatency=7195us, sentFrames=1837
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253670398, avgEncLatency=6150us, sentFrames=1867
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253670398, avgEncLatency=7106us, sentFrames=1867
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253670878, avgEncLatency=6082us, sentFrames=1897
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253670878, avgEncLatency=7022us, sentFrames=1897
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253671358, avgEncLatency=6942us, sentFrames=1927
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253671358, avgEncLatency=6018us, sentFrames=1927
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253671838, avgEncLatency=5968us, sentFrames=1957
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253671838, avgEncLatency=6883us, sentFrames=1957
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253672318, avgEncLatency=6851us, sentFrames=1987
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253672318, avgEncLatency=5949us, sentFrames=1987
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253672799, avgEncLatency=6825us, sentFrames=2017
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253672799, avgEncLatency=5933us, sentFrames=2017
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253673282, avgEncLatency=5927us, sentFrames=2047
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253673282, avgEncLatency=6794us, sentFrames=2047
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253673788, avgEncLatency=5927us, sentFrames=2077
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253673788, avgEncLatency=6796us, sentFrames=2077
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253674321, avgEncLatency=5943us, sentFrames=2107
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253674321, avgEncLatency=6810us, sentFrames=2107
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253674835, avgEncLatency=5948us, sentFrames=2137
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253674835, avgEncLatency=6813us, sentFrames=2137
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253675333, avgEncLatency=5966us, sentFrames=2167
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253675333, avgEncLatency=6813us, sentFrames=2167
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253675847, avgEncLatency=5982us, sentFrames=2197
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253675847, avgEncLatency=6828us, sentFrames=2197
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:2485, m1:2485, audio:3978pkts
-[SIPSorcery] Stats: m0:3110, m1:3110, audio:4983pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253676070, avgEncLatency=6001us, sentFrames=2210
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253676070, avgEncLatency=6833us, sentFrames=2210
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253676549, avgEncLatency=5987us, sentFrames=2240
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253676549, avgEncLatency=6806us, sentFrames=2240
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253677029, avgEncLatency=5966us, sentFrames=2270
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253677029, avgEncLatency=6788us, sentFrames=2270
+[SIPSorcery] Stats: m0:2279f,enc=5960us, m1:2279f,enc=6782us, audio:14924pkts (99.8/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253677510, avgEncLatency=5952us, sentFrames=2300
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253677510, avgEncLatency=6757us, sentFrames=2300
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253677994, avgEncLatency=5938us, sentFrames=2330
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253677994, avgEncLatency=6736us, sentFrames=2330
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253678496, avgEncLatency=5956us, sentFrames=2360
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253678496, avgEncLatency=6740us, sentFrames=2360
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253678976, avgEncLatency=5926us, sentFrames=2390
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253678976, avgEncLatency=6714us, sentFrames=2390
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253679456, avgEncLatency=5898us, sentFrames=2420
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253679456, avgEncLatency=6685us, sentFrames=2420
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253679938, avgEncLatency=5871us, sentFrames=2450
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253679938, avgEncLatency=6666us, sentFrames=2450
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253680472, avgEncLatency=5871us, sentFrames=2480
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253680472, avgEncLatency=6680us, sentFrames=2480
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253681070, avgEncLatency=5890us, sentFrames=2510
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253681070, avgEncLatency=6715us, sentFrames=2510
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253681625, avgEncLatency=5902us, sentFrames=2540
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253681625, avgEncLatency=6733us, sentFrames=2540
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253682166, avgEncLatency=5908us, sentFrames=2570
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253682166, avgEncLatency=6748us, sentFrames=2570
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253682735, avgEncLatency=6780us, sentFrames=2600
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253682735, avgEncLatency=5926us, sentFrames=2600
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1980, captureMs=1772253683313, avgEncLatency=5941us, sentFrames=2630
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1980, captureMs=1772253683313, avgEncLatency=6811us, sentFrames=2630
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253683902, avgEncLatency=5956us, sentFrames=2660
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253683902, avgEncLatency=6840us, sentFrames=2660
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253684501, avgEncLatency=5971us, sentFrames=2690
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253684501, avgEncLatency=6869us, sentFrames=2690
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253685078, avgEncLatency=5983us, sentFrames=2720
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253685078, avgEncLatency=6896us, sentFrames=2720
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253685596, avgEncLatency=5986us, sentFrames=2750
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253685596, avgEncLatency=6897us, sentFrames=2750
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253686125, avgEncLatency=5994us, sentFrames=2780
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253686125, avgEncLatency=6905us, sentFrames=2780
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253686610, avgEncLatency=5989us, sentFrames=2810
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253686610, avgEncLatency=6889us, sentFrames=2810
+[SIPSorcery] Stats: m0:2838f,enc=5999us, m1:2838f,enc=6909us, audio:15924pkts (100.0/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1980, captureMs=1772253687197, avgEncLatency=6002us, sentFrames=2840
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1980, captureMs=1772253687197, avgEncLatency=6912us, sentFrames=2840
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253687793, avgEncLatency=6018us, sentFrames=2870
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253687793, avgEncLatency=6940us, sentFrames=2870
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253688385, avgEncLatency=6033us, sentFrames=2900
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253688385, avgEncLatency=6969us, sentFrames=2900
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253688970, avgEncLatency=6049us, sentFrames=2930
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253688970, avgEncLatency=6997us, sentFrames=2930
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253689516, avgEncLatency=6066us, sentFrames=2960
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253689516, avgEncLatency=7018us, sentFrames=2960
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253690098, avgEncLatency=6076us, sentFrames=2990
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253690098, avgEncLatency=7042us, sentFrames=2990
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253690678, avgEncLatency=6088us, sentFrames=3020
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253690678, avgEncLatency=7065us, sentFrames=3020
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1890, captureMs=1772253691265, avgEncLatency=6100us, sentFrames=3050
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1890, captureMs=1772253691265, avgEncLatency=7087us, sentFrames=3050
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:3736, m1:3735, audio:5980pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253691582, avgEncLatency=6105us, sentFrames=3066
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253691582, avgEncLatency=7100us, sentFrames=3066
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253692155, avgEncLatency=6116us, sentFrames=3096
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253692155, avgEncLatency=7122us, sentFrames=3096
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253692682, avgEncLatency=6135us, sentFrames=3126
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253692682, avgEncLatency=7127us, sentFrames=3126
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253693183, avgEncLatency=6151us, sentFrames=3156
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253693183, avgEncLatency=7136us, sentFrames=3156
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253693666, avgEncLatency=6131us, sentFrames=3186
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253693666, avgEncLatency=7102us, sentFrames=3186
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253694147, avgEncLatency=6106us, sentFrames=3216
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253694147, avgEncLatency=7072us, sentFrames=3216
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253694627, avgEncLatency=6080us, sentFrames=3246
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253694627, avgEncLatency=7037us, sentFrames=3246
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253695108, avgEncLatency=6056us, sentFrames=3276
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253695108, avgEncLatency=7006us, sentFrames=3276
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253695599, avgEncLatency=6059us, sentFrames=3306
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253695599, avgEncLatency=7004us, sentFrames=3306
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253696099, avgEncLatency=6066us, sentFrames=3336
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253696099, avgEncLatency=7003us, sentFrames=3336
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253696597, avgEncLatency=6071us, sentFrames=3366
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253696597, avgEncLatency=6999us, sentFrames=3366
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253697077, avgEncLatency=6048us, sentFrames=3396
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253697077, avgEncLatency=6969us, sentFrames=3396
+[SIPSorcery] Stats: m0:3401f,enc=6044us, m1:3401f,enc=6965us, audio:16927pkts (100.3/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253697558, avgEncLatency=6024us, sentFrames=3426
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253697558, avgEncLatency=6940us, sentFrames=3426
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253698038, avgEncLatency=6001us, sentFrames=3456
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253698038, avgEncLatency=6911us, sentFrames=3456
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253698533, avgEncLatency=5994us, sentFrames=3486
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253698533, avgEncLatency=6898us, sentFrames=3486
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253699013, avgEncLatency=5976us, sentFrames=3516
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253699013, avgEncLatency=6874us, sentFrames=3516
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253699500, avgEncLatency=5961us, sentFrames=3546
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253699500, avgEncLatency=6851us, sentFrames=3546
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253699980, avgEncLatency=5945us, sentFrames=3576
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253699980, avgEncLatency=6825us, sentFrames=3576
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253700469, avgEncLatency=5937us, sentFrames=3606
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253700469, avgEncLatency=6808us, sentFrames=3606
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253700949, avgEncLatency=5925us, sentFrames=3636
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253700949, avgEncLatency=6790us, sentFrames=3636
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253701429, avgEncLatency=5907us, sentFrames=3666
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253701429, avgEncLatency=6766us, sentFrames=3666
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253701909, avgEncLatency=5889us, sentFrames=3696
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253701909, avgEncLatency=6743us, sentFrames=3696
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253702391, avgEncLatency=5881us, sentFrames=3726
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253702391, avgEncLatency=6729us, sentFrames=3726
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253702890, avgEncLatency=5884us, sentFrames=3756
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253702890, avgEncLatency=6713us, sentFrames=3756
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253703370, avgEncLatency=5864us, sentFrames=3786
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253703370, avgEncLatency=6685us, sentFrames=3786
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253703850, avgEncLatency=5845us, sentFrames=3816
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253703850, avgEncLatency=6664us, sentFrames=3816
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253704330, avgEncLatency=5832us, sentFrames=3846
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253704330, avgEncLatency=6654us, sentFrames=3846
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253704844, avgEncLatency=5848us, sentFrames=3876
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253704844, avgEncLatency=6673us, sentFrames=3876
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253705324, avgEncLatency=5834us, sentFrames=3906
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253705324, avgEncLatency=6660us, sentFrames=3906
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253705804, avgEncLatency=5823us, sentFrames=3936
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253705804, avgEncLatency=6652us, sentFrames=3936
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253706284, avgEncLatency=5811us, sentFrames=3966
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253706284, avgEncLatency=6646us, sentFrames=3966
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253706765, avgEncLatency=5813us, sentFrames=3996
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253706765, avgEncLatency=6654us, sentFrames=3996
+[SIPSorcery] Stats: m0:4021f,enc=5821us, m1:4021f,enc=6668us, audio:17927pkts (100.0/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253707253, avgEncLatency=5820us, sentFrames=4026
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253707253, avgEncLatency=6668us, sentFrames=4026
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:4360, m1:4361, audio:6981pkts
-[SIPSorcery] Stats: m0:4986, m1:4985, audio:7980pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253707605, avgEncLatency=5813us, sentFrames=4048
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253707605, avgEncLatency=6667us, sentFrames=4048
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253708085, avgEncLatency=5804us, sentFrames=4078
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253708085, avgEncLatency=6665us, sentFrames=4078
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253708565, avgEncLatency=5795us, sentFrames=4108
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253708565, avgEncLatency=6663us, sentFrames=4108
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253709047, avgEncLatency=5803us, sentFrames=4138
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253709047, avgEncLatency=6676us, sentFrames=4138
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253709547, avgEncLatency=5827us, sentFrames=4168
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253709547, avgEncLatency=6708us, sentFrames=4168
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253710046, avgEncLatency=5847us, sentFrames=4198
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253710046, avgEncLatency=6736us, sentFrames=4198
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253710526, avgEncLatency=5838us, sentFrames=4228
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253710526, avgEncLatency=6733us, sentFrames=4228
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253711006, avgEncLatency=5830us, sentFrames=4258
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253711006, avgEncLatency=6729us, sentFrames=4258
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253711486, avgEncLatency=5822us, sentFrames=4288
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253711486, avgEncLatency=6728us, sentFrames=4288
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253711966, avgEncLatency=5823us, sentFrames=4318
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253711966, avgEncLatency=6736us, sentFrames=4318
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253712465, avgEncLatency=5846us, sentFrames=4348
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253712465, avgEncLatency=6767us, sentFrames=4348
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253712944, avgEncLatency=5839us, sentFrames=4378
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253712944, avgEncLatency=6766us, sentFrames=4378
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253713424, avgEncLatency=5830us, sentFrames=4408
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253713424, avgEncLatency=6764us, sentFrames=4408
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253713904, avgEncLatency=5822us, sentFrames=4438
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253713904, avgEncLatency=6762us, sentFrames=4438
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253714384, avgEncLatency=5821us, sentFrames=4468
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253714384, avgEncLatency=6766us, sentFrames=4468
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253714880, avgEncLatency=5842us, sentFrames=4498
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253714880, avgEncLatency=6795us, sentFrames=4498
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253715381, avgEncLatency=5863us, sentFrames=4528
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253715381, avgEncLatency=6822us, sentFrames=4528
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253715864, avgEncLatency=5859us, sentFrames=4558
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253715864, avgEncLatency=6824us, sentFrames=4558
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253716344, avgEncLatency=5849us, sentFrames=4588
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253716344, avgEncLatency=6814us, sentFrames=4588
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253716824, avgEncLatency=5841us, sentFrames=4618
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253716824, avgEncLatency=6809us, sentFrames=4618
+[SIPSorcery] Stats: m0:4639f,enc=5836us, m1:4639f,enc=6807us, audio:18927pkts (100.0/sec)
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253717304, avgEncLatency=6806us, sentFrames=4648
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253717304, avgEncLatency=5835us, sentFrames=4648
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253717798, avgEncLatency=5858us, sentFrames=4678
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253717798, avgEncLatency=6836us, sentFrames=4678
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253718302, avgEncLatency=5863us, sentFrames=4708
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253718302, avgEncLatency=6842us, sentFrames=4708
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253718781, avgEncLatency=5854us, sentFrames=4738
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253718781, avgEncLatency=6838us, sentFrames=4738
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253719261, avgEncLatency=5845us, sentFrames=4768
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253719261, avgEncLatency=6833us, sentFrames=4768
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253719743, avgEncLatency=5836us, sentFrames=4798
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253719743, avgEncLatency=6830us, sentFrames=4798
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2250, captureMs=1772253720254, avgEncLatency=5851us, sentFrames=4828
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=2250, captureMs=1772253720254, avgEncLatency=6850us, sentFrames=4828
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253720763, avgEncLatency=6861us, sentFrames=4858
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253720763, avgEncLatency=5856us, sentFrames=4858
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253721277, avgEncLatency=5861us, sentFrames=4888
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253721277, avgEncLatency=6869us, sentFrames=4888
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253721757, avgEncLatency=5846us, sentFrames=4918
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253721757, avgEncLatency=6852us, sentFrames=4918
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253722237, avgEncLatency=5833us, sentFrames=4948
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253722237, avgEncLatency=6841us, sentFrames=4948
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253722717, avgEncLatency=5821us, sentFrames=4978
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253722717, avgEncLatency=6830us, sentFrames=4978
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253723243, avgEncLatency=6846us, sentFrames=5008
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253723243, avgEncLatency=5836us, sentFrames=5008
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253723727, avgEncLatency=5830us, sentFrames=5038
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253723727, avgEncLatency=6838us, sentFrames=5038
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253724221, avgEncLatency=5823us, sentFrames=5068
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253724221, avgEncLatency=6828us, sentFrames=5068
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253724705, avgEncLatency=5816us, sentFrames=5098
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253724705, avgEncLatency=6820us, sentFrames=5098
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:5610, m1:5611, audio:8981pkts
-[SIPSorcery] Stats: m0:6235, m1:6235, audio:9978pkts
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1980, captureMs=1772253725160, avgEncLatency=6813us, sentFrames=5126
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1980, captureMs=1772253725160, avgEncLatency=5810us, sentFrames=5126
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253725651, avgEncLatency=5804us, sentFrames=5156
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253725651, avgEncLatency=6804us, sentFrames=5156
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253726136, avgEncLatency=6793us, sentFrames=5186
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253726136, avgEncLatency=5795us, sentFrames=5186
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253726616, avgEncLatency=5787us, sentFrames=5216
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253726616, avgEncLatency=6783us, sentFrames=5216
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253727098, avgEncLatency=5777us, sentFrames=5246
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253727098, avgEncLatency=6774us, sentFrames=5246
+[SIPSorcery] Stats: m0:5250f,enc=5777us, m1:5250f,enc=6773us, audio:19931pkts (100.4/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253727591, avgEncLatency=5776us, sentFrames=5276
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253727591, avgEncLatency=6770us, sentFrames=5276
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253728076, avgEncLatency=6763us, sentFrames=5306
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253728076, avgEncLatency=5772us, sentFrames=5306
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253728578, avgEncLatency=5770us, sentFrames=5336
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253728578, avgEncLatency=6762us, sentFrames=5336
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253729072, avgEncLatency=6761us, sentFrames=5366
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253729072, avgEncLatency=5767us, sentFrames=5366
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253729560, avgEncLatency=6761us, sentFrames=5396
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253729560, avgEncLatency=5765us, sentFrames=5396
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253730044, avgEncLatency=5762us, sentFrames=5426
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253730044, avgEncLatency=6759us, sentFrames=5426
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253730526, avgEncLatency=6740us, sentFrames=5456
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253730526, avgEncLatency=5747us, sentFrames=5456
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253731007, avgEncLatency=6715us, sentFrames=5486
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253731007, avgEncLatency=5727us, sentFrames=5486
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253731489, avgEncLatency=5708us, sentFrames=5516
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253731489, avgEncLatency=6691us, sentFrames=5516
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253731969, avgEncLatency=6668us, sentFrames=5546
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253731969, avgEncLatency=5689us, sentFrames=5546
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253732449, avgEncLatency=5669us, sentFrames=5576
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253732449, avgEncLatency=6644us, sentFrames=5576
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253732931, avgEncLatency=6619us, sentFrames=5606
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253732931, avgEncLatency=5650us, sentFrames=5606
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253733411, avgEncLatency=5631us, sentFrames=5636
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253733411, avgEncLatency=6596us, sentFrames=5636
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253733896, avgEncLatency=5611us, sentFrames=5666
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253733896, avgEncLatency=6572us, sentFrames=5666
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253734376, avgEncLatency=5602us, sentFrames=5696
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253734376, avgEncLatency=6563us, sentFrames=5696
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253734856, avgEncLatency=5595us, sentFrames=5726
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253734856, avgEncLatency=6560us, sentFrames=5726
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253735338, avgEncLatency=5589us, sentFrames=5756
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253735338, avgEncLatency=6558us, sentFrames=5756
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253735819, avgEncLatency=5584us, sentFrames=5786
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253735819, avgEncLatency=6557us, sentFrames=5786
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253736309, avgEncLatency=6557us, sentFrames=5816
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253736309, avgEncLatency=5580us, sentFrames=5816
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253736797, avgEncLatency=5576us, sentFrames=5846
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253736797, avgEncLatency=6557us, sentFrames=5846
+[SIPSorcery] Stats: m0:5869f,enc=5567us, m1:5869f,enc=6547us, audio:20931pkts (100.0/sec)
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253737280, avgEncLatency=6541us, sentFrames=5876
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253737280, avgEncLatency=5562us, sentFrames=5876
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253737784, avgEncLatency=5545us, sentFrames=5906
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253737784, avgEncLatency=6520us, sentFrames=5906
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253738264, avgEncLatency=6498us, sentFrames=5936
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253738264, avgEncLatency=5527us, sentFrames=5936
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253738744, avgEncLatency=6475us, sentFrames=5966
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253738744, avgEncLatency=5509us, sentFrames=5966
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253739224, avgEncLatency=5492us, sentFrames=5996
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253739224, avgEncLatency=6453us, sentFrames=5996
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253739710, avgEncLatency=6431us, sentFrames=6026
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253739710, avgEncLatency=5476us, sentFrames=6026
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253740196, avgEncLatency=5463us, sentFrames=6056
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253740196, avgEncLatency=6417us, sentFrames=6056
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253740676, avgEncLatency=5457us, sentFrames=6086
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253740676, avgEncLatency=6409us, sentFrames=6086
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253741156, avgEncLatency=5451us, sentFrames=6116
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253741156, avgEncLatency=6406us, sentFrames=6116
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:6860, m1:6860, audio:10980pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253741269, avgEncLatency=5450us, sentFrames=6123
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253741269, avgEncLatency=6406us, sentFrames=6123
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253741751, avgEncLatency=5446us, sentFrames=6153
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253741751, avgEncLatency=6403us, sentFrames=6153
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253742246, avgEncLatency=5444us, sentFrames=6183
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253742246, avgEncLatency=6405us, sentFrames=6183
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253742737, avgEncLatency=5441us, sentFrames=6213
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253742737, avgEncLatency=6406us, sentFrames=6213
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253743244, avgEncLatency=6390us, sentFrames=6243
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253743244, avgEncLatency=5429us, sentFrames=6243
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253743725, avgEncLatency=5413us, sentFrames=6273
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253743725, avgEncLatency=6369us, sentFrames=6273
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253744208, avgEncLatency=6350us, sentFrames=6303
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253744208, avgEncLatency=5398us, sentFrames=6303
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253744692, avgEncLatency=5382us, sentFrames=6333
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253744692, avgEncLatency=6331us, sentFrames=6333
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253745172, avgEncLatency=6312us, sentFrames=6363
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253745172, avgEncLatency=5367us, sentFrames=6363
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253745658, avgEncLatency=5352us, sentFrames=6393
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253745658, avgEncLatency=6292us, sentFrames=6393
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253746143, avgEncLatency=5341us, sentFrames=6423
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253746143, avgEncLatency=6279us, sentFrames=6423
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253746660, avgEncLatency=5337us, sentFrames=6453
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253746660, avgEncLatency=6278us, sentFrames=6453
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1710, captureMs=1772253747146, avgEncLatency=5333us, sentFrames=6483
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1710, captureMs=1772253747146, avgEncLatency=6278us, sentFrames=6483
+[SIPSorcery] Stats: m0:6484f,enc=5333us, m1:6484f,enc=6278us, audio:21928pkts (99.7/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253747629, avgEncLatency=5330us, sentFrames=6513
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253747629, avgEncLatency=6280us, sentFrames=6513
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253748110, avgEncLatency=5329us, sentFrames=6543
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253748110, avgEncLatency=6283us, sentFrames=6543
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253748596, avgEncLatency=5330us, sentFrames=6573
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253748596, avgEncLatency=6289us, sentFrames=6573
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253749096, avgEncLatency=5342us, sentFrames=6603
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253749096, avgEncLatency=6305us, sentFrames=6603
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253749607, avgEncLatency=5340us, sentFrames=6633
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253749607, avgEncLatency=6307us, sentFrames=6633
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253750092, avgEncLatency=5337us, sentFrames=6663
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253750092, avgEncLatency=6308us, sentFrames=6663
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253750580, avgEncLatency=5333us, sentFrames=6693
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253750580, avgEncLatency=6308us, sentFrames=6693
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253751082, avgEncLatency=6314us, sentFrames=6723
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253751082, avgEncLatency=5338us, sentFrames=6723
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253751563, avgEncLatency=5323us, sentFrames=6753
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253751563, avgEncLatency=6296us, sentFrames=6753
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253752044, avgEncLatency=6279us, sentFrames=6783
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253752044, avgEncLatency=5310us, sentFrames=6783
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253752526, avgEncLatency=6260us, sentFrames=6813
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253752526, avgEncLatency=5296us, sentFrames=6813
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253753018, avgEncLatency=5290us, sentFrames=6843
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253753018, avgEncLatency=6254us, sentFrames=6843
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253753499, avgEncLatency=5285us, sentFrames=6873
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253753499, avgEncLatency=6250us, sentFrames=6873
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253753979, avgEncLatency=5271us, sentFrames=6903
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253753979, avgEncLatency=6233us, sentFrames=6903
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253754459, avgEncLatency=5257us, sentFrames=6933
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253754459, avgEncLatency=6215us, sentFrames=6933
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253754961, avgEncLatency=6199us, sentFrames=6963
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253754961, avgEncLatency=5246us, sentFrames=6963
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253755442, avgEncLatency=6181us, sentFrames=6993
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253755442, avgEncLatency=5233us, sentFrames=6993
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253755954, avgEncLatency=5221us, sentFrames=7023
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253755954, avgEncLatency=6166us, sentFrames=7023
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253756435, avgEncLatency=5208us, sentFrames=7053
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253756435, avgEncLatency=6149us, sentFrames=7053
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253756922, avgEncLatency=6133us, sentFrames=7083
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253756922, avgEncLatency=5196us, sentFrames=7083
+[SIPSorcery] Stats: m0:7098f,enc=5193us, m1:7098f,enc=6130us, audio:22927pkts (99.9/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253757402, avgEncLatency=5191us, sentFrames=7113
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253757402, avgEncLatency=6130us, sentFrames=7113
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253757894, avgEncLatency=5189us, sentFrames=7143
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253757894, avgEncLatency=6132us, sentFrames=7143
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:7485, m1:7485, audio:11978pkts
-[SIPSorcery] Stats: m0:8110, m1:8110, audio:12982pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253758177, avgEncLatency=5189us, sentFrames=7160
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253758177, avgEncLatency=6134us, sentFrames=7160
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253758661, avgEncLatency=5187us, sentFrames=7190
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253758661, avgEncLatency=6136us, sentFrames=7190
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253759143, avgEncLatency=5187us, sentFrames=7220
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253759143, avgEncLatency=6139us, sentFrames=7220
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253759654, avgEncLatency=5187us, sentFrames=7250
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253759654, avgEncLatency=6142us, sentFrames=7250
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253760134, avgEncLatency=6136us, sentFrames=7280
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253760134, avgEncLatency=5181us, sentFrames=7280
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253760623, avgEncLatency=6120us, sentFrames=7310
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253760623, avgEncLatency=5169us, sentFrames=7310
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253761125, avgEncLatency=5157us, sentFrames=7340
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253761125, avgEncLatency=6105us, sentFrames=7340
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253761605, avgEncLatency=5145us, sentFrames=7370
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253761605, avgEncLatency=6090us, sentFrames=7370
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253762106, avgEncLatency=5134us, sentFrames=7400
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253762106, avgEncLatency=6075us, sentFrames=7400
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253762586, avgEncLatency=5121us, sentFrames=7430
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253762586, avgEncLatency=6060us, sentFrames=7430
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253763066, avgEncLatency=5109us, sentFrames=7460
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253763066, avgEncLatency=6046us, sentFrames=7460
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253763546, avgEncLatency=5107us, sentFrames=7490
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253763546, avgEncLatency=6049us, sentFrames=7490
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253764035, avgEncLatency=5106us, sentFrames=7520
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253764035, avgEncLatency=6052us, sentFrames=7520
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253764543, avgEncLatency=5107us, sentFrames=7550
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253764543, avgEncLatency=6058us, sentFrames=7550
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253765030, avgEncLatency=5107us, sentFrames=7580
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253765030, avgEncLatency=6063us, sentFrames=7580
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253765515, avgEncLatency=5108us, sentFrames=7610
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253765515, avgEncLatency=6068us, sentFrames=7610
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253766009, avgEncLatency=5110us, sentFrames=7640
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253766009, avgEncLatency=6073us, sentFrames=7640
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253766513, avgEncLatency=5112us, sentFrames=7670
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253766513, avgEncLatency=6074us, sentFrames=7670
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253766993, avgEncLatency=5100us, sentFrames=7700
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253766993, avgEncLatency=6059us, sentFrames=7700
+[SIPSorcery] Stats: m0:7711f,enc=5096us, m1:7711f,enc=6054us, audio:23928pkts (100.1/sec)
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253767473, avgEncLatency=6045us, sentFrames=7730
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253767473, avgEncLatency=5088us, sentFrames=7730
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253767955, avgEncLatency=5077us, sentFrames=7760
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253767955, avgEncLatency=6030us, sentFrames=7760
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253768437, avgEncLatency=5074us, sentFrames=7790
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253768437, avgEncLatency=6028us, sentFrames=7790
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253768952, avgEncLatency=5075us, sentFrames=7820
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253768952, avgEncLatency=6031us, sentFrames=7820
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253769457, avgEncLatency=5075us, sentFrames=7850
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253769457, avgEncLatency=6035us, sentFrames=7850
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253769937, avgEncLatency=5074us, sentFrames=7880
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253769937, avgEncLatency=6038us, sentFrames=7880
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253770417, avgEncLatency=5078us, sentFrames=7910
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253770417, avgEncLatency=6047us, sentFrames=7910
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253770897, avgEncLatency=5078us, sentFrames=7940
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253770897, avgEncLatency=6050us, sentFrames=7940
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253771401, avgEncLatency=5075us, sentFrames=7970
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253771401, avgEncLatency=6052us, sentFrames=7970
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253771893, avgEncLatency=6052us, sentFrames=8000
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253771893, avgEncLatency=5072us, sentFrames=8000
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253772385, avgEncLatency=5074us, sentFrames=8030
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253772385, avgEncLatency=6055us, sentFrames=8030
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253772873, avgEncLatency=6047us, sentFrames=8060
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253772873, avgEncLatency=5070us, sentFrames=8060
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253773354, avgEncLatency=5059us, sentFrames=8090
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253773354, avgEncLatency=6033us, sentFrames=8090
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253773838, avgEncLatency=6018us, sentFrames=8120
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253773838, avgEncLatency=5048us, sentFrames=8120
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:8735, m1:8735, audio:13981pkts
-[SIPSorcery] Stats: m0:9360, m1:9360, audio:14981pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253774206, avgEncLatency=5041us, sentFrames=8143
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253774206, avgEncLatency=6008us, sentFrames=8143
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253774687, avgEncLatency=5038us, sentFrames=8173
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253774687, avgEncLatency=6006us, sentFrames=8173
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253775170, avgEncLatency=5035us, sentFrames=8203
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253775170, avgEncLatency=6007us, sentFrames=8203
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253775659, avgEncLatency=5034us, sentFrames=8233
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253775659, avgEncLatency=6009us, sentFrames=8233
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253776145, avgEncLatency=5033us, sentFrames=8263
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253776145, avgEncLatency=6011us, sentFrames=8263
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253776643, avgEncLatency=5033us, sentFrames=8293
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253776643, avgEncLatency=6015us, sentFrames=8293
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253777136, avgEncLatency=5033us, sentFrames=8323
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253777136, avgEncLatency=6018us, sentFrames=8323
+[SIPSorcery] Stats: m0:8325f,enc=5033us, m1:8325f,enc=6018us, audio:24926pkts (99.8/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253777616, avgEncLatency=5033us, sentFrames=8353
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253777616, avgEncLatency=6019us, sentFrames=8353
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253778104, avgEncLatency=5033us, sentFrames=8383
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253778104, avgEncLatency=6021us, sentFrames=8383
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253778595, avgEncLatency=5035us, sentFrames=8413
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253778595, avgEncLatency=6021us, sentFrames=8413
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253779076, avgEncLatency=5025us, sentFrames=8443
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253779076, avgEncLatency=6007us, sentFrames=8443
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253779556, avgEncLatency=5015us, sentFrames=8473
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253779556, avgEncLatency=5994us, sentFrames=8473
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253780038, avgEncLatency=5005us, sentFrames=8503
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253780038, avgEncLatency=5980us, sentFrames=8503
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253780520, avgEncLatency=5001us, sentFrames=8533
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253780520, avgEncLatency=5977us, sentFrames=8533
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253781008, avgEncLatency=5000us, sentFrames=8563
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253781008, avgEncLatency=5979us, sentFrames=8563
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253781492, avgEncLatency=4998us, sentFrames=8593
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253781492, avgEncLatency=5981us, sentFrames=8593
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253781973, avgEncLatency=4998us, sentFrames=8623
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253781973, avgEncLatency=5983us, sentFrames=8623
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253782454, avgEncLatency=4997us, sentFrames=8653
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253782454, avgEncLatency=5986us, sentFrames=8653
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=2070, captureMs=1772253782963, avgEncLatency=5993us, sentFrames=8683
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2070, captureMs=1772253782963, avgEncLatency=5000us, sentFrames=8683
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253783456, avgEncLatency=5992us, sentFrames=8713
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253783456, avgEncLatency=5002us, sentFrames=8713
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253783938, avgEncLatency=4991us, sentFrames=8743
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253783938, avgEncLatency=5979us, sentFrames=8743
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253784427, avgEncLatency=5966us, sentFrames=8773
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253784427, avgEncLatency=4981us, sentFrames=8773
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253784907, avgEncLatency=4971us, sentFrames=8803
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253784907, avgEncLatency=5953us, sentFrames=8803
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253785389, avgEncLatency=4968us, sentFrames=8833
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253785389, avgEncLatency=5951us, sentFrames=8833
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253785869, avgEncLatency=4965us, sentFrames=8863
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253785869, avgEncLatency=5951us, sentFrames=8863
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253786350, avgEncLatency=4964us, sentFrames=8893
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253786350, avgEncLatency=5951us, sentFrames=8893
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253786835, avgEncLatency=4963us, sentFrames=8923
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253786835, avgEncLatency=5952us, sentFrames=8923
+[SIPSorcery] Stats: m0:8943f,enc=4963us, m1:8943f,enc=5953us, audio:25927pkts (100.1/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253787326, avgEncLatency=4963us, sentFrames=8953
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253787326, avgEncLatency=5953us, sentFrames=8953
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253787809, avgEncLatency=4962us, sentFrames=8983
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253787809, avgEncLatency=5954us, sentFrames=8983
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253788302, avgEncLatency=4966us, sentFrames=9013
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253788302, avgEncLatency=5955us, sentFrames=9013
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253788803, avgEncLatency=4956us, sentFrames=9043
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253788803, avgEncLatency=5943us, sentFrames=9043
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253789287, avgEncLatency=5930us, sentFrames=9073
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253789287, avgEncLatency=4947us, sentFrames=9073
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253789767, avgEncLatency=4937us, sentFrames=9103
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253789767, avgEncLatency=5918us, sentFrames=9103
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253790251, avgEncLatency=4935us, sentFrames=9133
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253790251, avgEncLatency=5918us, sentFrames=9133
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253790731, avgEncLatency=4935us, sentFrames=9163
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253790731, avgEncLatency=5920us, sentFrames=9163
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253791226, avgEncLatency=4926us, sentFrames=9193
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253791226, avgEncLatency=5910us, sentFrames=9193
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:9984, m1:9985, audio:15981pkts
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253791690, avgEncLatency=4917us, sentFrames=9222
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253791690, avgEncLatency=5899us, sentFrames=9222
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253792172, avgEncLatency=5887us, sentFrames=9252
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253792172, avgEncLatency=4907us, sentFrames=9252
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253792655, avgEncLatency=5875us, sentFrames=9282
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253792655, avgEncLatency=4899us, sentFrames=9282
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253793135, avgEncLatency=4889us, sentFrames=9312
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253793135, avgEncLatency=5863us, sentFrames=9312
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253793616, avgEncLatency=5851us, sentFrames=9342
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253793616, avgEncLatency=4881us, sentFrames=9342
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253794098, avgEncLatency=4875us, sentFrames=9372
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253794098, avgEncLatency=5842us, sentFrames=9372
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253794578, avgEncLatency=4874us, sentFrames=9402
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253794578, avgEncLatency=5843us, sentFrames=9402
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253795061, avgEncLatency=4874us, sentFrames=9432
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253795061, avgEncLatency=5847us, sentFrames=9432
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253795543, avgEncLatency=4876us, sentFrames=9462
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253795543, avgEncLatency=5851us, sentFrames=9462
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253796026, avgEncLatency=4877us, sentFrames=9492
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253796026, avgEncLatency=5856us, sentFrames=9492
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253796508, avgEncLatency=4878us, sentFrames=9522
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253796508, avgEncLatency=5860us, sentFrames=9522
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253796993, avgEncLatency=4870us, sentFrames=9552
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253796993, avgEncLatency=5851us, sentFrames=9552
+[SIPSorcery] Stats: m0:9563f,enc=4867us, m1:9563f,enc=5846us, audio:26930pkts (100.3/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253797473, avgEncLatency=4861us, sentFrames=9582
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253797473, avgEncLatency=5840us, sentFrames=9582
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253797960, avgEncLatency=5829us, sentFrames=9612
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253797960, avgEncLatency=4853us, sentFrames=9612
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253798440, avgEncLatency=4844us, sentFrames=9642
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253798440, avgEncLatency=5818us, sentFrames=9642
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253798920, avgEncLatency=5808us, sentFrames=9672
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253798920, avgEncLatency=4835us, sentFrames=9672
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2160, captureMs=1772253799411, avgEncLatency=4827us, sentFrames=9702
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=2160, captureMs=1772253799411, avgEncLatency=5797us, sentFrames=9702
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253799908, avgEncLatency=4819us, sentFrames=9732
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253799908, avgEncLatency=5786us, sentFrames=9732
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1800, captureMs=1772253800395, avgEncLatency=4816us, sentFrames=9762
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1800, captureMs=1772253800395, avgEncLatency=5785us, sentFrames=9762
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253800894, avgEncLatency=4816us, sentFrames=9792
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253800894, avgEncLatency=5787us, sentFrames=9792
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253801376, avgEncLatency=4816us, sentFrames=9822
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253801376, avgEncLatency=5790us, sentFrames=9822
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253801880, avgEncLatency=4819us, sentFrames=9852
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253801880, avgEncLatency=5794us, sentFrames=9852
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253802393, avgEncLatency=4822us, sentFrames=9882
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253802393, avgEncLatency=5801us, sentFrames=9882
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253802931, avgEncLatency=4825us, sentFrames=9912
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253802931, avgEncLatency=5807us, sentFrames=9912
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253803426, avgEncLatency=4828us, sentFrames=9942
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253803426, avgEncLatency=5812us, sentFrames=9942
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253803910, avgEncLatency=4826us, sentFrames=9972
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253803910, avgEncLatency=5811us, sentFrames=9972
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253804390, avgEncLatency=4825us, sentFrames=10002
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253804390, avgEncLatency=5810us, sentFrames=10002
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253804870, avgEncLatency=4823us, sentFrames=10032
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253804870, avgEncLatency=5809us, sentFrames=10032
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253805354, avgEncLatency=4822us, sentFrames=10062
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253805354, avgEncLatency=5810us, sentFrames=10062
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253805835, avgEncLatency=4824us, sentFrames=10092
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253805835, avgEncLatency=5814us, sentFrames=10092
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253806315, avgEncLatency=4824us, sentFrames=10122
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253806315, avgEncLatency=5816us, sentFrames=10122
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253806795, avgEncLatency=4822us, sentFrames=10152
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253806795, avgEncLatency=5815us, sentFrames=10152
+[SIPSorcery] Stats: m0:10176f,enc=4821us, m1:10175f,enc=5816us, audio:27928pkts (99.8/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253807277, avgEncLatency=4821us, sentFrames=10182
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253807277, avgEncLatency=5816us, sentFrames=10182
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253807783, avgEncLatency=4821us, sentFrames=10212
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253807783, avgEncLatency=5816us, sentFrames=10212
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253808279, avgEncLatency=5819us, sentFrames=10242
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253808279, avgEncLatency=4826us, sentFrames=10242
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253808767, avgEncLatency=4818us, sentFrames=10272
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253808767, avgEncLatency=5808us, sentFrames=10272
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253809253, avgEncLatency=5798us, sentFrames=10302
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253809253, avgEncLatency=4810us, sentFrames=10302
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253809735, avgEncLatency=5788us, sentFrames=10332
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253809735, avgEncLatency=4803us, sentFrames=10332
 [Protocol] Phase3 RX: type=request_keyframe, len=27
-[SIPSorcery] Stats: m0:10609, m1:10609, audio:16982pkts
-[Protocol] Client bd1fd72c-1f81-430b-9ea0-b2a737831b27 disconnected prematurely
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253810199, avgEncLatency=4799us, sentFrames=10361
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253810199, avgEncLatency=5783us, sentFrames=10361
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253810684, avgEncLatency=5785us, sentFrames=10391
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253810684, avgEncLatency=4800us, sentFrames=10391
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253811167, avgEncLatency=4801us, sentFrames=10421
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253811167, avgEncLatency=5790us, sentFrames=10421
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253811658, avgEncLatency=4803us, sentFrames=10451
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253811658, avgEncLatency=5795us, sentFrames=10451
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253812142, avgEncLatency=4805us, sentFrames=10481
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253812142, avgEncLatency=5800us, sentFrames=10481
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253812630, avgEncLatency=4809us, sentFrames=10511
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253812630, avgEncLatency=5806us, sentFrames=10511
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253813120, avgEncLatency=5805us, sentFrames=10541
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253813120, avgEncLatency=4809us, sentFrames=10541
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253813601, avgEncLatency=4802us, sentFrames=10571
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253813601, avgEncLatency=5795us, sentFrames=10571
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253814083, avgEncLatency=5786us, sentFrames=10601
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253814083, avgEncLatency=4795us, sentFrames=10601
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253814577, avgEncLatency=5776us, sentFrames=10631
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253814577, avgEncLatency=4787us, sentFrames=10631
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253815058, avgEncLatency=4786us, sentFrames=10661
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253815058, avgEncLatency=5776us, sentFrames=10661
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253815541, avgEncLatency=4785us, sentFrames=10691
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253815541, avgEncLatency=5778us, sentFrames=10691
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253816029, avgEncLatency=4785us, sentFrames=10721
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253816029, avgEncLatency=5780us, sentFrames=10721
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253816541, avgEncLatency=4788us, sentFrames=10751
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253816541, avgEncLatency=5784us, sentFrames=10751
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253817035, avgEncLatency=4788us, sentFrames=10781
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253817035, avgEncLatency=5784us, sentFrames=10781
+[SIPSorcery] Stats: m0:10789f,enc=4789us, m1:10789f,enc=5785us, audio:28929pkts (100.1/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253817515, avgEncLatency=4789us, sentFrames=10811
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253817515, avgEncLatency=5787us, sentFrames=10811
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253817995, avgEncLatency=4790us, sentFrames=10841
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253817995, avgEncLatency=5788us, sentFrames=10841
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253818487, avgEncLatency=5792us, sentFrames=10871
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253818487, avgEncLatency=4793us, sentFrames=10871
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253818967, avgEncLatency=5781us, sentFrames=10901
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253818967, avgEncLatency=4785us, sentFrames=10901
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253819447, avgEncLatency=4778us, sentFrames=10931
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253819447, avgEncLatency=5771us, sentFrames=10931
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253819927, avgEncLatency=5761us, sentFrames=10961
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253819927, avgEncLatency=4770us, sentFrames=10961
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253820431, avgEncLatency=5761us, sentFrames=10991
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253820431, avgEncLatency=4768us, sentFrames=10991
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253820911, avgEncLatency=4770us, sentFrames=11021
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253820911, avgEncLatency=5765us, sentFrames=11021
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253821391, avgEncLatency=4771us, sentFrames=11051
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253821391, avgEncLatency=5767us, sentFrames=11051
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253821876, avgEncLatency=4772us, sentFrames=11081
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253821876, avgEncLatency=5769us, sentFrames=11081
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253822361, avgEncLatency=5770us, sentFrames=11111
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253822361, avgEncLatency=4773us, sentFrames=11111
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253822858, avgEncLatency=4779us, sentFrames=11141
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253822858, avgEncLatency=5778us, sentFrames=11141
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253823359, avgEncLatency=5786us, sentFrames=11171
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253823359, avgEncLatency=4784us, sentFrames=11171
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253823858, avgEncLatency=4789us, sentFrames=11201
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253823858, avgEncLatency=5793us, sentFrames=11201
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253824375, avgEncLatency=4796us, sentFrames=11231
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253824375, avgEncLatency=5802us, sentFrames=11231
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253824883, avgEncLatency=4803us, sentFrames=11261
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253824883, avgEncLatency=5810us, sentFrames=11261
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253825369, avgEncLatency=5812us, sentFrames=11291
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253825369, avgEncLatency=4804us, sentFrames=11291
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253825721, avgEncLatency=5810us, sentFrames=11313
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253825721, avgEncLatency=4803us, sentFrames=11313
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253826212, avgEncLatency=4800us, sentFrames=11343
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253826212, avgEncLatency=5807us, sentFrames=11343
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253826692, avgEncLatency=4796us, sentFrames=11373
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253826692, avgEncLatency=5803us, sentFrames=11373
+[SIPSorcery] Stats: m0:11402f,enc=4795us, m1:11402f,enc=5801us, audio:29932pkts (100.3/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=3240, captureMs=1772253827194, avgEncLatency=4798us, sentFrames=11403
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=3240, captureMs=1772253827194, avgEncLatency=5804us, sentFrames=11403
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253827699, avgEncLatency=4799us, sentFrames=11433
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253827699, avgEncLatency=5805us, sentFrames=11433
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253828179, avgEncLatency=4797us, sentFrames=11463
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253828179, avgEncLatency=5802us, sentFrames=11463
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253828702, avgEncLatency=4797us, sentFrames=11493
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253828702, avgEncLatency=5801us, sentFrames=11493
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253829207, avgEncLatency=5799us, sentFrames=11523
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253829207, avgEncLatency=4795us, sentFrames=11523
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253829687, avgEncLatency=4794us, sentFrames=11553
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253829687, avgEncLatency=5799us, sentFrames=11553
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253830169, avgEncLatency=5801us, sentFrames=11583
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253830169, avgEncLatency=4797us, sentFrames=11583
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253830649, avgEncLatency=4796us, sentFrames=11613
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253830649, avgEncLatency=5801us, sentFrames=11613
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253831129, avgEncLatency=4800us, sentFrames=11643
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253831129, avgEncLatency=5806us, sentFrames=11643
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253831628, avgEncLatency=4806us, sentFrames=11673
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253831628, avgEncLatency=5814us, sentFrames=11673
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253832117, avgEncLatency=5813us, sentFrames=11703
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253832117, avgEncLatency=4805us, sentFrames=11703
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253832597, avgEncLatency=5809us, sentFrames=11733
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253832597, avgEncLatency=4802us, sentFrames=11733
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253833077, avgEncLatency=4801us, sentFrames=11763
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253833077, avgEncLatency=5808us, sentFrames=11763
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253833557, avgEncLatency=5806us, sentFrames=11793
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253833557, avgEncLatency=4801us, sentFrames=11793
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253834039, avgEncLatency=4803us, sentFrames=11823
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253834039, avgEncLatency=5809us, sentFrames=11823
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253834520, avgEncLatency=5812us, sentFrames=11853
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253834520, avgEncLatency=4804us, sentFrames=11853
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253835000, avgEncLatency=5814us, sentFrames=11883
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253835000, avgEncLatency=4807us, sentFrames=11883
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253835480, avgEncLatency=4808us, sentFrames=11913
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253835480, avgEncLatency=5816us, sentFrames=11913
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253835960, avgEncLatency=4810us, sentFrames=11943
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253835960, avgEncLatency=5818us, sentFrames=11943
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253836470, avgEncLatency=4815us, sentFrames=11973
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253836470, avgEncLatency=5823us, sentFrames=11973
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253836950, avgEncLatency=4812us, sentFrames=12003
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253836950, avgEncLatency=5820us, sentFrames=12003
+[SIPSorcery] Stats: m0:12017f,enc=4813us, m1:12017f,enc=5821us, audio:30921pkts (98.9/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253837435, avgEncLatency=4813us, sentFrames=12033
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253837435, avgEncLatency=5821us, sentFrames=12033
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253837917, avgEncLatency=5816us, sentFrames=12063
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253837917, avgEncLatency=4810us, sentFrames=12063
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253838397, avgEncLatency=4811us, sentFrames=12093
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253838397, avgEncLatency=5817us, sentFrames=12093
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253838877, avgEncLatency=4811us, sentFrames=12123
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253838877, avgEncLatency=5818us, sentFrames=12123
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253839357, avgEncLatency=5819us, sentFrames=12153
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253839357, avgEncLatency=4811us, sentFrames=12153
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253839838, avgEncLatency=5818us, sentFrames=12183
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253839838, avgEncLatency=4810us, sentFrames=12183
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253840318, avgEncLatency=4810us, sentFrames=12213
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253840318, avgEncLatency=5818us, sentFrames=12213
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=2520, captureMs=1772253840842, avgEncLatency=5830us, sentFrames=12243
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2520, captureMs=1772253840842, avgEncLatency=4820us, sentFrames=12243
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253841364, avgEncLatency=4820us, sentFrames=12273
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253841364, avgEncLatency=5830us, sentFrames=12273
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253841844, avgEncLatency=4819us, sentFrames=12303
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253841844, avgEncLatency=5830us, sentFrames=12303
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253842276, avgEncLatency=4818us, sentFrames=12330
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253842276, avgEncLatency=5829us, sentFrames=12330
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253842756, avgEncLatency=4817us, sentFrames=12360
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253842756, avgEncLatency=5828us, sentFrames=12360
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253843236, avgEncLatency=4816us, sentFrames=12390
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253843236, avgEncLatency=5827us, sentFrames=12390
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253843716, avgEncLatency=4817us, sentFrames=12420
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253843716, avgEncLatency=5828us, sentFrames=12420
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253844205, avgEncLatency=4818us, sentFrames=12450
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253844205, avgEncLatency=5829us, sentFrames=12450
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253844685, avgEncLatency=4813us, sentFrames=12480
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253844685, avgEncLatency=5823us, sentFrames=12480
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253845165, avgEncLatency=4808us, sentFrames=12510
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253845165, avgEncLatency=5816us, sentFrames=12510
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253845645, avgEncLatency=4802us, sentFrames=12540
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253845645, avgEncLatency=5809us, sentFrames=12540
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253846134, avgEncLatency=4796us, sentFrames=12570
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253846134, avgEncLatency=5803us, sentFrames=12570
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253846614, avgEncLatency=4796us, sentFrames=12600
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253846614, avgEncLatency=5804us, sentFrames=12600
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253847094, avgEncLatency=4798us, sentFrames=12630
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253847094, avgEncLatency=5809us, sentFrames=12630
+[SIPSorcery] Stats: m0:12635f,enc=4799us, m1:12634f,enc=5809us, audio:31925pkts (100.4/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253847591, avgEncLatency=4804us, sentFrames=12660
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253847591, avgEncLatency=5817us, sentFrames=12660
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253848092, avgEncLatency=4810us, sentFrames=12690
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253848092, avgEncLatency=5825us, sentFrames=12690
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253848592, avgEncLatency=5833us, sentFrames=12720
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253848592, avgEncLatency=4816us, sentFrames=12720
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253849079, avgEncLatency=4820us, sentFrames=12750
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253849079, avgEncLatency=5839us, sentFrames=12750
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253849560, avgEncLatency=4823us, sentFrames=12780
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253849560, avgEncLatency=5845us, sentFrames=12780
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1620, captureMs=1772253850043, avgEncLatency=4827us, sentFrames=12810
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1620, captureMs=1772253850043, avgEncLatency=5851us, sentFrames=12810
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253850542, avgEncLatency=4833us, sentFrames=12840
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253850542, avgEncLatency=5860us, sentFrames=12840
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253851030, avgEncLatency=5862us, sentFrames=12870
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253851030, avgEncLatency=4835us, sentFrames=12870
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253851526, avgEncLatency=5866us, sentFrames=12900
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253851526, avgEncLatency=4839us, sentFrames=12900
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253852030, avgEncLatency=4847us, sentFrames=12930
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253852030, avgEncLatency=5875us, sentFrames=12930
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253852519, avgEncLatency=5873us, sentFrames=12960
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253852519, avgEncLatency=4845us, sentFrames=12960
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253852999, avgEncLatency=5864us, sentFrames=12990
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253852999, avgEncLatency=4839us, sentFrames=12990
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253853479, avgEncLatency=4832us, sentFrames=13020
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253853479, avgEncLatency=5855us, sentFrames=13020
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253853959, avgEncLatency=4827us, sentFrames=13050
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253853959, avgEncLatency=5847us, sentFrames=13050
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253854442, avgEncLatency=4828us, sentFrames=13080
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253854442, avgEncLatency=5851us, sentFrames=13080
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253854926, avgEncLatency=4830us, sentFrames=13110
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253854926, avgEncLatency=5855us, sentFrames=13110
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253855412, avgEncLatency=4828us, sentFrames=13140
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253855412, avgEncLatency=5853us, sentFrames=13140
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253855892, avgEncLatency=5844us, sentFrames=13170
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253855892, avgEncLatency=4821us, sentFrames=13170
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253856372, avgEncLatency=4815us, sentFrames=13200
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253856372, avgEncLatency=5835us, sentFrames=13200
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253856881, avgEncLatency=4809us, sentFrames=13230
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253856881, avgEncLatency=5827us, sentFrames=13230
+[SIPSorcery] Stats: m0:13249f,enc=4805us, m1:13249f,enc=5822us, audio:32928pkts (100.3/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253857361, avgEncLatency=4802us, sentFrames=13260
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253857361, avgEncLatency=5819us, sentFrames=13260
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253857841, avgEncLatency=4796us, sentFrames=13290
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253857841, avgEncLatency=5810us, sentFrames=13290
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253858321, avgEncLatency=4790us, sentFrames=13320
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253858321, avgEncLatency=5802us, sentFrames=13320
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253858801, avgEncLatency=5794us, sentFrames=13350
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253858801, avgEncLatency=4784us, sentFrames=13350
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253859282, avgEncLatency=4781us, sentFrames=13380
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253859282, avgEncLatency=5790us, sentFrames=13380
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253859769, avgEncLatency=4784us, sentFrames=13410
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253859769, avgEncLatency=5795us, sentFrames=13410
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1530, captureMs=1772253860257, avgEncLatency=4787us, sentFrames=13440
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1530, captureMs=1772253860257, avgEncLatency=5801us, sentFrames=13440
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253860753, avgEncLatency=4791us, sentFrames=13470
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253860753, avgEncLatency=5807us, sentFrames=13470
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253861237, avgEncLatency=4794us, sentFrames=13500
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253861237, avgEncLatency=5812us, sentFrames=13500
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253861722, avgEncLatency=4796us, sentFrames=13530
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253861722, avgEncLatency=5816us, sentFrames=13530
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253862203, avgEncLatency=5820us, sentFrames=13560
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253862203, avgEncLatency=4799us, sentFrames=13560
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253862706, avgEncLatency=4809us, sentFrames=13590
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253862706, avgEncLatency=5832us, sentFrames=13590
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253863186, avgEncLatency=4808us, sentFrames=13620
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253863186, avgEncLatency=5832us, sentFrames=13620
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253863666, avgEncLatency=4807us, sentFrames=13650
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253863666, avgEncLatency=5832us, sentFrames=13650
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253864146, avgEncLatency=4806us, sentFrames=13680
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253864146, avgEncLatency=5832us, sentFrames=13680
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253864626, avgEncLatency=4810us, sentFrames=13710
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253864626, avgEncLatency=5837us, sentFrames=13710
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253865106, avgEncLatency=4810us, sentFrames=13740
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253865106, avgEncLatency=5838us, sentFrames=13740
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253865586, avgEncLatency=4809us, sentFrames=13770
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253865586, avgEncLatency=5839us, sentFrames=13770
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253866066, avgEncLatency=4808us, sentFrames=13800
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253866066, avgEncLatency=5840us, sentFrames=13800
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253866546, avgEncLatency=4810us, sentFrames=13830
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253866546, avgEncLatency=5843us, sentFrames=13830
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253867034, avgEncLatency=4817us, sentFrames=13860
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253867034, avgEncLatency=5851us, sentFrames=13860
+[SIPSorcery] Stats: m0:13869f,enc=4816us, m1:13869f,enc=5851us, audio:33928pkts (100.0/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253867514, avgEncLatency=4815us, sentFrames=13890
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253867514, avgEncLatency=5851us, sentFrames=13890
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253867994, avgEncLatency=4814us, sentFrames=13920
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253867994, avgEncLatency=5850us, sentFrames=13920
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253868474, avgEncLatency=4813us, sentFrames=13950
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253868474, avgEncLatency=5851us, sentFrames=13950
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253868956, avgEncLatency=4818us, sentFrames=13980
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253868956, avgEncLatency=5856us, sentFrames=13980
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253869436, avgEncLatency=4817us, sentFrames=14010
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253869436, avgEncLatency=5856us, sentFrames=14010
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253869918, avgEncLatency=4816us, sentFrames=14040
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253869918, avgEncLatency=5857us, sentFrames=14040
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253870398, avgEncLatency=5857us, sentFrames=14070
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253870398, avgEncLatency=4816us, sentFrames=14070
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1350, captureMs=1772253870925, avgEncLatency=4821us, sentFrames=14100
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253870925, avgEncLatency=5865us, sentFrames=14100
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253871405, avgEncLatency=4821us, sentFrames=14130
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253871405, avgEncLatency=5867us, sentFrames=14130
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253871885, avgEncLatency=4821us, sentFrames=14160
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253871885, avgEncLatency=5869us, sentFrames=14160
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253872365, avgEncLatency=4821us, sentFrames=14190
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253872365, avgEncLatency=5870us, sentFrames=14190
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253872845, avgEncLatency=4824us, sentFrames=14220
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253872845, avgEncLatency=5875us, sentFrames=14220
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253873326, avgEncLatency=4825us, sentFrames=14250
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253873326, avgEncLatency=5878us, sentFrames=14250
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253873806, avgEncLatency=4825us, sentFrames=14280
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253873806, avgEncLatency=5879us, sentFrames=14280
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253874286, avgEncLatency=4825us, sentFrames=14310
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253874286, avgEncLatency=5880us, sentFrames=14310
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253874766, avgEncLatency=4825us, sentFrames=14340
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253874766, avgEncLatency=5883us, sentFrames=14340
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253875246, avgEncLatency=4829us, sentFrames=14370
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253875246, avgEncLatency=5887us, sentFrames=14370
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253875726, avgEncLatency=4828us, sentFrames=14400
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253875726, avgEncLatency=5889us, sentFrames=14400
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253876206, avgEncLatency=4828us, sentFrames=14430
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253876206, avgEncLatency=5891us, sentFrames=14430
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253876686, avgEncLatency=4828us, sentFrames=14460
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253876686, avgEncLatency=5891us, sentFrames=14460
+[SIPSorcery] Stats: m0:14490f,enc=4836us, m1:14490f,enc=5901us, audio:34929pkts (100.1/sec)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253877175, avgEncLatency=4836us, sentFrames=14490
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253877175, avgEncLatency=5901us, sentFrames=14490
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253877271, avgEncLatency=4836us, sentFrames=14496
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253877287, avgEncLatency=5901us, sentFrames=14497
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253877751, avgEncLatency=4835us, sentFrames=14526
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253877767, avgEncLatency=5901us, sentFrames=14527
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253878231, avgEncLatency=4834us, sentFrames=14556
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253878247, avgEncLatency=5900us, sentFrames=14557
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253878711, avgEncLatency=4833us, sentFrames=14586
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253878727, avgEncLatency=5900us, sentFrames=14587
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253879193, avgEncLatency=4837us, sentFrames=14616
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1350, captureMs=1772253879208, avgEncLatency=5906us, sentFrames=14617
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253879672, avgEncLatency=4837us, sentFrames=14646
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253879688, avgEncLatency=5907us, sentFrames=14647
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253880152, avgEncLatency=4836us, sentFrames=14676
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253880168, avgEncLatency=5908us, sentFrames=14677
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253880632, avgEncLatency=4836us, sentFrames=14706
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253880648, avgEncLatency=5909us, sentFrames=14707
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253881112, avgEncLatency=4839us, sentFrames=14736
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253881128, avgEncLatency=5913us, sentFrames=14737
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772253881593, avgEncLatency=4840us, sentFrames=14766
+[SIPSorcery] Track 1 KEYFRAME: rtpStep=1440, captureMs=1772253881609, avgEncLatency=5916us, sentFrames=14767
+[Protocol] Client 3658122e-e386-4352-87a9-3d87cbb9bfe9 disconnected prematurely
 [Protocol] Phase changed to: Disconnecting
 [SIPSorcery] Stopping...
 [OpusEncoder] Disposed
-[AmfNativeWrapper] Disposed
-[AmfNativeWrapper] Disposed
+[NvencNativeWrapper] Disposed
+[NvencNativeWrapper] Disposed
 [SIPSorcery] Peer state: closed
 [SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
 [SIPSorcery] Connection closed
 [ERROR] [SIPSorcery] Disposed
-[PerMonitorCapture] Monitor 0: Capture thread stopped
 [PerMonitorCapture] Monitor 1: Capture thread stopped
+[PerMonitorCapture] Monitor 0: Capture thread stopped
 [MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
 [PerMonitorCapture] All capture threads stopped
@@ -342,25 +1377,23 @@ Server is running. Press ENTER to exit.
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY12, \\.\DISPLAY11
-[Guard] ForceDisableVdd: Setting \\.\DISPLAY11 as primary...
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY13
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
 Microsoft PnP Utility
 
-Failed to disable device:  ROOT\DISPLAY\0000
-The device is not connected.
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
 
 
-[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] ForceDisableVdd: ✓ VDD disabled successfully!
 [Guard] Restoring original state before exit...
 [Guard] Step 1: Restoring Scale and Layout (DPI)...
 [Guard] Restoring Scale and Layout (DPI)...
 [Guard] Restoring DPI to 100% (logPixels=96)
-[DpiScaling] Setting 100% for 2 monitor(s)...
+[DpiScaling] Setting 100% for 1 monitor(s)...
 [DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
-[DpiScaling] ✓ Set DPI to 100%
-[DpiScaling] Monitor 1: current=125%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 100%
 [Guard] ✓ Scale and Layout restored via API.
 [Guard] Step 2: Restoring monitor modes...
@@ -372,4 +1405,4 @@ The device is not connected.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client bd1fd72c-1f81-430b-9ea0-b2a737831b27 disconnected
+[Protocol] Client 3658122e-e386-4352-87a9-3d87cbb9bfe9 disconnected

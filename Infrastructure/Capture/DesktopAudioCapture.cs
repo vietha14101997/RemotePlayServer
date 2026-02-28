@@ -21,6 +21,7 @@ public sealed class DesktopAudioCapture : IDisposable
     private long _lastDataTimeTicks;
     private volatile bool _silenceActive;
     private long _lastSilenceFrameTicks;
+    private long _silenceAccumulatorMs;  // Sub-frame ms accumulator for precise frame pacing
 
     // Output format: always 16-bit PCM at the device's native sample rate
     private int _sampleRate;
@@ -28,9 +29,10 @@ public sealed class DesktopAudioCapture : IDisposable
 
     /// <summary>
     /// Fired when audio data is available.
-    /// Parameters: (byte[] pcm16Data, int bytesRecorded, int sampleRate, int channels)
+    /// Parameters: (byte[] pcm16Data, int bytesRecorded, int sampleRate, int channels, long timestampMs)
+    /// timestampMs is wallclock time (DateTimeOffset.UtcNow) for A/V sync alignment.
     /// </summary>
-    public event Action<byte[], int, int, int>? OnAudioData;
+    public event Action<byte[], int, int, int, long>? OnAudioData;
 
     public int SampleRate => _sampleRate;
     public int Channels => _channels;
@@ -99,6 +101,7 @@ public sealed class DesktopAudioCapture : IDisposable
     {
         _paused = false;
         _silenceActive = false;
+        _silenceAccumulatorMs = 0;
         _lastDataTimeTicks = Environment.TickCount64;
     }
 
@@ -121,7 +124,10 @@ public sealed class DesktopAudioCapture : IDisposable
     {
         if (!_running || _paused || e.BytesRecorded == 0) return;
 
-        _lastDataTimeTicks = Environment.TickCount64;
+        long now = Environment.TickCount64;
+        _lastDataTimeTicks = now;
+        // Use same clock source as video capture (DateTimeOffset) for A/V sync alignment
+        long wallclockMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         _silenceActive = false;
 
         var waveFormat = _capture!.WaveFormat;
@@ -151,14 +157,14 @@ public sealed class DesktopAudioCapture : IDisposable
                 }
             }
 
-            OnAudioData?.Invoke(pcm16, pcm16Bytes, _sampleRate, _channels);
+            OnAudioData?.Invoke(pcm16, pcm16Bytes, _sampleRate, _channels, wallclockMs);
         }
         else if (waveFormat.BitsPerSample == 16)
         {
             // Already PCM16 - pass through
             var copy = new byte[e.BytesRecorded];
             Buffer.BlockCopy(e.Buffer, 0, copy, 0, e.BytesRecorded);
-            OnAudioData?.Invoke(copy, e.BytesRecorded, _sampleRate, _channels);
+            OnAudioData?.Invoke(copy, e.BytesRecorded, _sampleRate, _channels, wallclockMs);
         }
         else
         {
@@ -179,14 +185,15 @@ public sealed class DesktopAudioCapture : IDisposable
     }
 
     /// <summary>
-    /// Continuous silence frame generator to keep RTP timestamps advancing at real-time rate.
+    /// Silence frame generator to keep RTP timestamps advancing at real-time rate.
     /// Three phases:
     /// 1. Detection: Wait 100ms after last WASAPI data (avoids false triggers from CPU-delayed callbacks)
     /// 2. Catch-up: On first entering silence mode, batch-send missed frames for the detection gap
-    /// 3. Generation: Send one 10ms frame per timer tick to maintain real-time RTP clock rate
+    /// 3. Accumulation-based generation: Track elapsed time and generate the correct number
+    ///    of 10ms frames per tick regardless of actual timer resolution.
     ///
-    /// Previous bug: sent only 1 frame per 500ms → RTP clock ran 50x slower during silence,
-    /// causing progressive audio drift after silence→sound transitions.
+    /// Previous bug: one frame per tick at 15.6ms timer resolution → only 64 frames/sec
+    /// instead of 100 → audio played in slow mode during silence periods.
     /// </summary>
     private void SilenceWatchdog(object? state)
     {
@@ -214,23 +221,48 @@ public sealed class DesktopAudioCapture : IDisposable
         if (!_silenceActive)
         {
             _silenceActive = true;
-            int missedFrames = (int)(elapsed / 10);
+            _silenceAccumulatorMs = 0;
+            int missedFrames = Math.Min((int)(elapsed / 10), 50); // Cap at 500ms catch-up
+            // Generate catch-up frames with interpolated timestamps (same clock as video: DateTimeOffset)
+            long wallclockNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long catchUpBase = wallclockNow - (missedFrames * 10L);
             for (int i = 0; i < missedFrames; i++)
-                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels, catchUpBase + i * 10L);
             _lastSilenceFrameTicks = now;
             return;
         }
 
-        // Phase 3: Continuous generation — one 10ms frame per timer tick = real-time rate
+        // Phase 3: Accumulation-based continuous generation.
+        // Regardless of actual timer resolution (10ms requested, but may fire at 15.6ms
+        // on Windows default tick), generate exactly the right number of 10ms frames.
+        // Example: 15.6ms tick → 1 frame + 5.6ms carry → next 15.6ms → 2 frames + 1.2ms carry
+        // Average converges to 100 frames/sec regardless of timer resolution.
         long sinceLast = now - _lastSilenceFrameTicks;
-        if (sinceLast >= 8) // Allow slight timer jitter (timer resolution ~10-16ms on Windows)
-        {
-            OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
-            _lastSilenceFrameTicks = now;
+        if (sinceLast < 1) return; // Spurious wake
 
-            // Drift compensation: if timer was late, send extra frame to catch up
-            if (sinceLast >= 18)
-                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels);
+        _lastSilenceFrameTicks = now;
+        _silenceAccumulatorMs += sinceLast;
+
+        int framesToSend = (int)(_silenceAccumulatorMs / 10);
+        _silenceAccumulatorMs -= framesToSend * 10L;
+
+        // Cap to prevent flooding after unexpected long delays (e.g., system sleep)
+        // Return excess ms to accumulator so they're not permanently lost
+        if (framesToSend > 10)
+        {
+            _silenceAccumulatorMs += (framesToSend - 10) * 10L;
+            framesToSend = 10;
+        }
+
+        if (framesToSend > 0)
+        {
+            long wallclockNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            for (int i = 0; i < framesToSend; i++)
+            {
+                // Spread timestamps across generated frames for smooth RTP progression
+                long frameTimestamp = wallclockNow - ((framesToSend - 1 - i) * 10L);
+                OnAudioData?.Invoke(silence, bytesPerFrame, _sampleRate, _channels, frameTimestamp);
+            }
         }
     }
 }
