@@ -50,7 +50,8 @@ public class SIPSorceryStreamer : IDisposable
     private DesktopAudioCapture? _audioCapture;
     private OpusAudioEncoder? _opusEncoder;
     private bool _hasAudioTrack;
-    private RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
+    private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
+    private volatile RTCDataChannel? _cursorDc; // DataChannel for low-latency cursor position updates
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
@@ -58,6 +59,32 @@ public class SIPSorceryStreamer : IDisposable
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).
     /// </summary>
     public bool IsPaused => _isPaused;
+
+    /// <summary>
+    /// Whether the cursor DataChannel is open and ready for sending.
+    /// </summary>
+    public bool HasCursorChannel => _cursorDc?.readyState == RTCDataChannelState.open;
+
+    /// <summary>
+    /// Send cursor position via DataChannel (low-latency binary format).
+    /// Binary format (little-endian): [type(1)][monitorIndex(1)][u(4)][v(4)][flags(1)][cursorId(8)] = 19 bytes
+    /// Allocates fresh buffer each call to avoid race with SCTP send queue.
+    /// </summary>
+    public void SendCursorPosition(int monitorIndex, float u, float v, bool visible, int cursorType, long cursorId)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != RTCDataChannelState.open) return;
+
+        var buf = new byte[19];
+        buf[0] = 1; // message type: cursor_position
+        buf[1] = (byte)monitorIndex;
+        BitConverter.TryWriteBytes(buf.AsSpan(2, 4), u);
+        BitConverter.TryWriteBytes(buf.AsSpan(6, 4), v);
+        buf[10] = (byte)((visible ? 1 : 0) | ((cursorType & 0x0F) << 1));
+        BitConverter.TryWriteBytes(buf.AsSpan(11, 8), cursorId);
+
+        dc.send(buf);
+    }
 
     /// <summary>
     /// Check if a specific monitor is paused.
@@ -165,6 +192,10 @@ public class SIPSorceryStreamer : IDisposable
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var warmupPc = new RTCPeerConnection(null);
             warmupPc.close();
+            // Let SIPSorcery's internal socket tasks abort cleanly
+            Thread.Sleep(50);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             sw.Stop();
             Logger.Info($"[SIPSorcery] DTLS pre-warm done in {sw.ElapsedMilliseconds}ms");
         }
@@ -311,9 +342,16 @@ public class SIPSorceryStreamer : IDisposable
                 _audioDc.onclose += () => { Logger.Info("[SIPSorcery] Audio DataChannel closed"); _audioDc = null; };
                 Logger.Info("[SIPSorcery] Audio DataChannel wired for sending");
             }
+            else if (dc.label == "cursor")
+            {
+                _cursorDc = dc;
+                _cursorDc.onopen += () => Logger.Info("[SIPSorcery] Cursor DataChannel opened");
+                _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Cursor DataChannel closed"); _cursorDc = null; };
+                Logger.Info("[SIPSorcery] Cursor DataChannel wired for sending");
+            }
         };
         _hasAudioTrack = true;
-        Logger.Info("[SIPSorcery] Waiting for client audio DataChannel");
+        Logger.Info("[SIPSorcery] Waiting for client audio/cursor DataChannels");
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>
@@ -1695,8 +1733,23 @@ public class SIPSorceryStreamer : IDisposable
         try { _audioDc?.close(); } catch { }
         _audioDc = null;
 
-        _pc?.close();
+        try { _cursorDc?.close(); } catch { }
+        _cursorDc = null;
+
+        try { _pc?.close(); } catch { }
         _pc = null;
+
+        // Allow SIPSorcery's internal UDP socket tasks to complete/cancel
+        // before GC finalizer fires and triggers UnobservedTaskException.
+        // Single GC cycle is insufficient - socket tasks may not be finalized yet.
+        // Use Thread.Sleep to let the socket abort callbacks propagate through
+        // the thread pool before forcing collection.
+        Thread.Sleep(100);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        // Second pass: catch any tasks that became unreachable during first pass
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
 
         Logger.Info("[SIPSorcery] Connection closed");
     }
@@ -1824,6 +1877,6 @@ public class SIPSorceryStreamer : IDisposable
         if (_disposed) return;
         _disposed = true;
         Stop();
-        Logger.Error("[SIPSorcery] Disposed");
+        Logger.Info("[SIPSorcery] Disposed");
     }
 }

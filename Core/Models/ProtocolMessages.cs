@@ -297,6 +297,14 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("preferGpu")]
         public string? PreferGpu { get; set; }
+
+        /// <summary>
+        /// Monitor type: "standard", "ultrawide", or "super_ultrawide".
+        /// Ultrawide/Super Ultrawide creates a single VDD virtual display with
+        /// "Show Only" topology instead of the normal multi-monitor extend mode.
+        /// </summary>
+        [JsonPropertyName("monitorType")]
+        public string MonitorType { get; set; } = "standard";
     }
 
     /// <summary>

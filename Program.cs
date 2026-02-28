@@ -70,6 +70,38 @@ partial class Program
         return "FFmpeg x264 (Software)";
     }
 
+    /// <summary>
+    /// Create a Windows Scheduled Task that runs at logon with highest privileges.
+    /// This ensures display recovery after power loss/BSOD.
+    /// </summary>
+    static void EnsureStartupRecoveryTask()
+    {
+        try
+        {
+            var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrEmpty(exePath)) return;
+
+            var taskName = "RemotePlayServerDisplayRecovery";
+            var args = $"/Create /TN \"{taskName}\" /TR \"\\\"{exePath}\\\" --restore-if-needed\" /SC ONLOGON /RL HIGHEST /F";
+
+            var psi = new System.Diagnostics.ProcessStartInfo("schtasks.exe", args)
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            var p = System.Diagnostics.Process.Start(psi);
+            p?.WaitForExit(5000);
+
+            Console.WriteLine("[System] Startup recovery task registered.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[System] Recovery task registration failed: {ex.Message}");
+        }
+    }
+
     static async Task Main()
     {
         // === GLOBAL EXCEPTION HANDLERS FOR CRASH LOGGING ===
@@ -149,6 +181,7 @@ partial class Program
         }
 
         DisplayGuard.CaptureSnapshotAtStartup();
+        EnsureStartupRecoveryTask();
 
         var monitors = WgcInterop.ListMonitorsDXGI();
         Console.WriteLine("=== Monitors ===");

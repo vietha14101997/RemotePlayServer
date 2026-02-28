@@ -17,9 +17,13 @@ namespace RemotePlayServer.Infrastructure.Capture
     {
         private readonly int _monitorCount;
 
-        // Max resolution after resize
-        public const int MaxWidth = 1440;
-        public const int MaxHeight = 810;
+        // Default max resolution (standard 16:9 monitors)
+        public const int DefaultMaxWidth = 1440;
+        public const int DefaultMaxHeight = 810;
+
+        // Instance max resolution (can be overridden for ultrawide)
+        public int MaxWidth { get; }
+        public int MaxHeight { get; }
 
         // Per-device GPU scalers (key = device pointer)
         private readonly Dictionary<IntPtr, GpuTextureScaler> _scalers = new();
@@ -28,16 +32,32 @@ namespace RemotePlayServer.Infrastructure.Capture
 
         private bool _disposed;
 
-        public TextureResizer(int monitorCount)
+        public TextureResizer(int monitorCount, int maxWidth = DefaultMaxWidth, int maxHeight = DefaultMaxHeight)
         {
             _monitorCount = monitorCount;
-            Logger.Info($"[TextureResizer] Initialized for {monitorCount} monitors (per-device GPU scaling)");
+            MaxWidth = maxWidth;
+            MaxHeight = maxHeight;
+            Logger.Info($"[TextureResizer] Initialized for {monitorCount} monitors, max {maxWidth}x{maxHeight} (per-device GPU scaling)");
         }
 
         /// <summary>
-        /// Check if resize is needed for the given dimensions.
+        /// Get max resolution for a given monitor type.
+        /// Standard: 1440x810, Ultrawide: 1920x810, Super Ultrawide: 2880x810.
         /// </summary>
-        public static bool NeedsResize(int width, int height)
+        public static (int maxWidth, int maxHeight) GetMaxResolutionForType(string monitorType)
+        {
+            return monitorType switch
+            {
+                "ultrawide" => (1920, 810),
+                "super_ultrawide" => (2880, 810),
+                _ => (DefaultMaxWidth, DefaultMaxHeight)
+            };
+        }
+
+        /// <summary>
+        /// Check if resize is needed for the given dimensions (uses instance max).
+        /// </summary>
+        public bool NeedsResize(int width, int height)
         {
             return width > MaxWidth || height > MaxHeight;
         }
@@ -45,7 +65,7 @@ namespace RemotePlayServer.Infrastructure.Capture
         /// <summary>
         /// Calculate target dimensions that fit within MaxWidth x MaxHeight while maintaining aspect ratio.
         /// </summary>
-        public static (int targetWidth, int targetHeight) CalculateTargetSize(int width, int height)
+        public (int targetWidth, int targetHeight) CalculateTargetSize(int width, int height)
         {
             if (width <= MaxWidth && height <= MaxHeight)
                 return (width, height); // No resize needed

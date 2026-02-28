@@ -513,57 +513,170 @@ namespace RemotePlayServer.Application.Protocol
             Logger.Info("[Protocol] Phase 2 complete, proceeding to Phase 3");
         }
 
+        /// <summary>
+        /// Ultrawide display setup: create VDD → ShowOnly → fix resolution.
+        /// Topology change resets VDD to 800x600, so we detect and recover.
+        /// </summary>
+        private async Task ApplyUltrawideDisplayAsync(DisplayConfigMessage config)
+        {
+            Logger.Info($"[Protocol] Ultrawide mode: {DisplayConfig.MonitorType}");
+
+            StopExistingCapture();
+
+            int width = DisplayConfig.MonitorType == "ultrawide" ? 2560 : 3840;
+            int height = 1080;
+            int hz = config.RefreshRate > 0 ? config.RefreshRate : 60;
+
+            DisplayConfig.MonitorCount = 1;
+            DisplayConfig.StreamFps = config.Fps;
+            DisplayConfig.RefreshRate = hz;
+
+            // Phase 1: Create VDD virtual monitor (blocking Win32 + pnputil calls)
+            await SendProgressAsync("vdd_setup", 20, $"Creating ultrawide virtual display ({width}x{height})...");
+            string? vddName = await Task.Run(() =>
+                VirtualDisplayManager.SetupUltrawideVirtualMonitor(width, height, hz));
+
+            if (vddName == null)
+            {
+                Logger.Error("[Protocol] Failed to create ultrawide virtual monitor!");
+                await SendProgressAsync("vdd_setup", 30, "Virtual display creation failed, using standard mode...");
+                DisplayConfig.MonitorType = "standard";
+                return;
+            }
+
+            // Phase 2: Apply ShowOnly topology (detach physical monitors)
+            await SendProgressAsync("topology", 50, "Switching to Show Only mode...");
+            await Task.Run(() => DisplayUtil.SetTopologyShowOnly(vddName));
+            await Task.Delay(2000); // Wait for Windows to apply topology
+
+            // Phase 3: Recover resolution if topology change reset VDD to 800x600
+            vddName = await EnsureVddResolutionAsync(vddName, width, height, hz);
+
+            DisplayGuard.MarkShowOnlyActive(vddName);
+            Logger.Info($"[Protocol] Show Only applied on {vddName}");
+            _displayModified = true;
+        }
+
+        /// <summary>
+        /// After topology change, Windows resets VDD to 800x600.
+        /// Detects this and recovers via mode enumeration or VDD re-toggle.
+        /// Returns the (possibly updated) VDD device name.
+        /// </summary>
+        private async Task<string> EnsureVddResolutionAsync(string vddName, int w, int h, int hz)
+        {
+            var current = await Task.Run(() => DisplayUtil.GetCurrentMode(vddName));
+            if (current.Width == w && current.Height == h)
+            {
+                Logger.Info($"[Protocol] VDD resolution preserved: {current.Width}x{current.Height}@{current.Frequency}Hz");
+                return vddName;
+            }
+
+            Logger.Info($"[Protocol] VDD reset to {current.Width}x{current.Height} after topology change");
+
+            // Attempt 1: Mode exists in driver list → apply directly
+            bool resolved = await Task.Run(() =>
+            {
+                bool available = DisplayUtil.EnumerateAndLogModes(vddName, w, h, hz);
+                if (!available) return false;
+
+                Logger.Info("[Protocol] Target mode available, trying ForceResolutionViaModeEnum...");
+                return DisplayUtil.ForceResolutionViaModeEnum(vddName, w, h, hz)
+                    || DisplayUtil.ForceResolution(vddName, w, h, hz);
+            });
+
+            // Attempt 2: Re-toggle VDD to force driver XML reload
+            if (!resolved)
+            {
+                Logger.Info("[Protocol] Re-toggling VDD to refresh mode list...");
+                await Task.Run(() => VirtualDisplayManager.ToggleVddForModeRefresh());
+                await Task.Delay(2000);
+
+                var newName = await Task.Run(() => VirtualDisplayManager.FindVirtualMonitorName());
+                if (newName != null)
+                {
+                    vddName = newName;
+                    Logger.Info($"[Protocol] VDD monitor after toggle: {vddName}");
+                    await Task.Run(() =>
+                    {
+                        DisplayUtil.EnumerateAndLogModes(vddName, w, h, hz);
+                        if (!DisplayUtil.ForceResolutionViaModeEnum(vddName, w, h, hz))
+                            DisplayUtil.ForceResolution(vddName, w, h, hz);
+                    });
+                }
+                else
+                {
+                    Logger.Error("[Protocol] VDD monitor not found after toggle!");
+                }
+            }
+
+            await Task.Delay(1000);
+            var final = await Task.Run(() => DisplayUtil.GetCurrentMode(vddName));
+            Logger.Info($"[Protocol] Final resolution: {final.Width}x{final.Height}@{final.Frequency}Hz");
+            return vddName;
+        }
+
+        private void StopExistingCapture()
+        {
+            lock (_captureLock)
+            {
+                if (_sharedCapture != null)
+                {
+                    Logger.Info("[Protocol] Stopping existing capture...");
+                    _sharedCapture.Stop();
+                    _sharedCapture.Dispose();
+                    _sharedCapture = null;
+                }
+            }
+        }
+
         private async Task ApplyDisplayConfigAsync(DisplayConfigMessage config)
         {
             await SendProgressAsync("vdd_setup", 0, "Checking display configuration...");
 
-            // NOTE: We IGNORE client's resolution - server captures at NATIVE resolution
-            // Server may later resize before encoding (to max 1440x810), but display stays native
-            // Only check for monitor count and FPS changes
-            bool monitorCountChanged = config.Monitors != DisplayConfig.MonitorCount;
-            bool fpsChanged = config.Fps != DisplayConfig.StreamFps;
+            // Store monitor type in runtime config
+            DisplayConfig.MonitorType = config.MonitorType ?? "standard";
+            bool isUltrawide = DisplayConfig.MonitorType == "ultrawide" || DisplayConfig.MonitorType == "super_ultrawide";
 
-            if (monitorCountChanged || fpsChanged)
+            if (isUltrawide)
             {
-                Logger.Info($"[Protocol] Applying new display config: {config.Monitors} monitors @ {config.Fps}fps (keeping native resolution)");
+                await ApplyUltrawideDisplayAsync(config);
+            }
+            else
+            {
+                // ── Standard flow: multi-monitor extend ──
+                // NOTE: We IGNORE client's resolution - server captures at NATIVE resolution
+                // Server may later resize before encoding (to max 1440x810), but display stays native
+                bool monitorCountChanged = config.Monitors != DisplayConfig.MonitorCount;
+                bool fpsChanged = config.Fps != DisplayConfig.StreamFps;
 
-                // Stop existing capture if config changed
-                lock (_captureLock)
+                if (monitorCountChanged || fpsChanged)
                 {
-                    if (_sharedCapture != null)
+                    Logger.Info($"[Protocol] Applying new display config: {config.Monitors} monitors @ {config.Fps}fps (keeping native resolution)");
+                    StopExistingCapture();
+
+                    // Update config - DO NOT change resolution, keep native
+                    DisplayConfig.MonitorCount = config.Monitors;
+                    DisplayConfig.StreamFps = config.Fps;
+                    DisplayConfig.RefreshRate = config.RefreshRate;
+
+                    await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
+
+                    await Task.Run(() =>
                     {
-                        Logger.Info("[Protocol] Stopping existing capture for reconfiguration...");
-                        _sharedCapture.Stop();
-                        _sharedCapture.Dispose();
-                        _sharedCapture = null;
-                    }
+                        VirtualDisplayManager.EnsureVddResolutionThenToggleDriver();
+                        Thread.Sleep(2000);
+                    });
+
+                    await SendProgressAsync("topology", 60, "Setting up display topology...");
+
+                    await Task.Run(() =>
+                    {
+                        VirtualDisplayManager.EnsureExtendDesktopWithVirtual();
+                        Thread.Sleep(1000);
+                    });
+
+                    _displayModified = true;
                 }
-
-                // Update config - DO NOT change resolution, keep native
-                DisplayConfig.MonitorCount = config.Monitors;
-                // Server captures at native resolution - no need to update from client
-                DisplayConfig.StreamFps = config.Fps;
-                DisplayConfig.RefreshRate = config.RefreshRate;
-
-                await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
-
-                // Apply VDD topology changes (only adds/removes virtual monitors, doesn't change resolution)
-                await Task.Run(() =>
-                {
-                    VirtualDisplayManager.EnsureVddResolutionThenToggleDriver();
-                    Thread.Sleep(2000);
-                });
-
-                await SendProgressAsync("topology", 60, "Setting up display topology...");
-
-                await Task.Run(() =>
-                {
-                    VirtualDisplayManager.EnsureExtendDesktopWithVirtual();
-                    Thread.Sleep(1000);
-                });
-
-                // Mark display as modified for cleanup
-                _displayModified = true;
             }
 
             await SendProgressAsync("capture_init", 90, "Initializing capture...");
@@ -599,10 +712,10 @@ namespace RemotePlayServer.Application.Protocol
             _streamer = new SIPSorceryStreamer(
                 actualMonitors, config.Fps, perEncoderBitrate, _capture.Device, negotiatedCodec);
 
-            // Create texture resizer for max resolution enforcement (1440x810)
-            // Create texture resizer (per-device scalers will be created on demand)
-            _textureResizer = new TextureResizer(actualMonitors);
-            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (max: {TextureResizer.MaxWidth}x{TextureResizer.MaxHeight})");
+            // Create texture resizer with dynamic max resolution based on monitor type
+            var (maxW, maxH) = TextureResizer.GetMaxResolutionForType(DisplayConfig.MonitorType);
+            _textureResizer = new TextureResizer(actualMonitors, maxW, maxH);
+            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (max: {maxW}x{maxH}, type: {DisplayConfig.MonitorType})");
 
 
             // Wire up per-monitor devices
@@ -827,6 +940,7 @@ namespace RemotePlayServer.Application.Protocol
                 // Each monitor has separate D3D11 device with dedicated GPU scaler
                 // TextureResizer creates per-device scalers on demand
                 var monitorCount = _displayConfig?.Monitors ?? 1;
+                var (resMaxW, resMaxH) = TextureResizer.GetMaxResolutionForType(DisplayConfig.MonitorType);
                 var dimensions = new List<(int w, int h)>();
                 for (int i = 0; i < monitorCount; i++)
                 {
@@ -835,18 +949,21 @@ namespace RemotePlayServer.Application.Protocol
                     {
                         var nativeW = _monitors[i].width;
                         var nativeH = _monitors[i].height;
-                        
+
                         // Calculate what TextureResizer will produce after scaling
-                        var (targetW, targetH) = TextureResizer.CalculateTargetSize(nativeW, nativeH);
-                        
+                        var resizer = _textureResizer;
+                        var (targetW, targetH) = resizer != null
+                            ? resizer.CalculateTargetSize(nativeW, nativeH)
+                            : (Math.Min(nativeW, resMaxW), Math.Min(nativeH, resMaxH));
+
                         dimensions.Add((targetW, targetH));
                         Logger.Info($"[Protocol] Monitor {i} native={nativeW}x{nativeH} -> encoder={targetW}x{targetH}");
                     }
                     else
                     {
-                        // Fallback to max resize dimensions
-                        dimensions.Add((TextureResizer.MaxWidth, TextureResizer.MaxHeight));
-                        Logger.Info($"[Protocol] Monitor {i} using default encoder resolution: {TextureResizer.MaxWidth}x{TextureResizer.MaxHeight}");
+                        // Fallback to max resize dimensions for monitor type
+                        dimensions.Add((resMaxW, resMaxH));
+                        Logger.Info($"[Protocol] Monitor {i} using default encoder resolution: {resMaxW}x{resMaxH}");
                     }
                 }
 
@@ -1819,7 +1936,7 @@ namespace RemotePlayServer.Application.Protocol
                         int targetWidth = w;
                         int targetHeight = h;
 
-                        if (_textureResizer != null && TextureResizer.NeedsResize(w, h))
+                        if (_textureResizer != null && _textureResizer.NeedsResize(w, h))
                         {
                             // Get device for this monitor (each monitor has dedicated device)
                             var device = _capture?.GetDeviceForMonitor(monitorIndex);
@@ -2484,9 +2601,9 @@ namespace RemotePlayServer.Application.Protocol
                     Logger.Info("[Protocol] Display settings restored.");
                     _displayModified = false;
 
-                    // Reset monitor count to force VDD setup on next session
-                    // Without this, reconnecting with same monitor count would skip VDD setup
+                    // Reset monitor count and type to force VDD setup on next session
                     DisplayConfig.MonitorCount = 1;
+                    DisplayConfig.MonitorType = "standard";
                 }
                 catch (Exception ex)
                 {
@@ -2610,6 +2727,8 @@ namespace RemotePlayServer.Application.Protocol
             {
                 byte[] rgbaData;
 
+                Logger.Info($"[Cursor] Converting shape: type={typeName}, size={width}x{height}, pitch={pitch}, bufLen={buffer.Length}");
+
                 switch (type)
                 {
                     case DXGI_POINTER_SHAPE_TYPE_MONOCHROME:
@@ -2624,8 +2743,19 @@ namespace RemotePlayServer.Application.Protocol
                         break;
 
                     default:
+                        Logger.Info($"[Cursor] Unknown cursor type: {type}");
                         return null;
                 }
+
+                // Log pixel statistics for debugging cursor rendering issues
+                int opaqueCount = 0, transparentCount = 0;
+                int totalPixels = width * height;
+                for (int i = 0; i < rgbaData.Length; i += 4)
+                {
+                    if (rgbaData[i + 3] == 0) transparentCount++;
+                    else opaqueCount++;
+                }
+                Logger.Info($"[Cursor] Converted {typeName} {width}x{height}: opaque={opaqueCount}, transparent={transparentCount}/{totalPixels}");
 
                 return (rgbaData, width, height, hotspotX, hotspotY);
             }
@@ -2637,6 +2767,8 @@ namespace RemotePlayServer.Application.Protocol
 
         /// <summary>
         /// Convert Monochrome cursor (1bpp AND/XOR masks) to RGBA32.
+        /// Inverse pixels (AND=1, XOR=1) are rendered as black with white outline
+        /// for visibility on any background, approximating Windows XOR behavior.
         /// </summary>
         private byte[] ConvertMonochromeCursorToRgba(byte[] buffer, int width, int height, int pitch)
         {
@@ -2653,6 +2785,11 @@ namespace RemotePlayServer.Application.Protocol
             {
                 return rgbaData;
             }
+
+            // Track inverse pixels for outline pass
+            bool hasInversePixels = false;
+            bool[] inverseMap = new bool[width * actualHeight];
+            int blackCount = 0, whiteCount = 0, inverseCount = 0, transpCount = 0;
 
             for (int y = 0; y < actualHeight; y++)
             {
@@ -2679,7 +2816,7 @@ namespace RemotePlayServer.Application.Protocol
                     // AND=0, XOR=0 -> Black, opaque
                     // AND=0, XOR=1 -> White, opaque
                     // AND=1, XOR=0 -> Transparent
-                    // AND=1, XOR=1 -> Inverse (we'll render as gray to show it)
+                    // AND=1, XOR=1 -> Inverse (black + white outline for contrast)
                     byte r, g, b, a;
 
                     if (andBit == 0)
@@ -2689,10 +2826,12 @@ namespace RemotePlayServer.Application.Protocol
                         if (xorBit == 0)
                         {
                             r = g = b = 0; // Black
+                            blackCount++;
                         }
                         else
                         {
                             r = g = b = 255; // White
+                            whiteCount++;
                         }
                     }
                     else
@@ -2701,23 +2840,71 @@ namespace RemotePlayServer.Application.Protocol
                         {
                             // Transparent
                             r = g = b = a = 0;
+                            transpCount++;
                         }
                         else
                         {
-                            // Inverse pixel - render as semi-transparent gray
-                            r = g = b = 128;
-                            a = 180;
+                            // Inverse pixel - render as black, will add white outline in second pass
+                            r = g = b = 0;
+                            a = 255;
+                            inverseMap[y * width + x] = true;
+                            hasInversePixels = true;
+                            inverseCount++;
                         }
                     }
 
                     // Output RGBA - NO FLIP, keep original Windows row order
-                    // Each client (Unity/Web) will handle Y orientation if needed
                     int dstOffset = (y * width + x) * 4;
                     rgbaData[dstOffset] = r;
                     rgbaData[dstOffset + 1] = g;
                     rgbaData[dstOffset + 2] = b;
                     rgbaData[dstOffset + 3] = a;
                 }
+            }
+
+            Logger.Info($"[Cursor] Monochrome {width}x{actualHeight}: black={blackCount}, white={whiteCount}, inverse={inverseCount}, transparent={transpCount}");
+
+            // Second pass: add white outline around inverse pixels for visibility on any background.
+            // On white bg: white outline blends in, black cursor visible (like native Windows).
+            // On dark bg: white outline provides contrast, cursor remains visible.
+            if (hasInversePixels)
+            {
+                byte[] outlined = new byte[rgbaData.Length];
+                Array.Copy(rgbaData, outlined, rgbaData.Length);
+
+                for (int y = 0; y < actualHeight; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int idx = (y * width + x) * 4;
+                        // Only convert transparent pixels to outline
+                        if (rgbaData[idx + 3] != 0) continue;
+
+                        // Check 8-connected neighbors for any inverse pixel
+                        bool adjacentToInverse = false;
+                        for (int dy = -1; dy <= 1 && !adjacentToInverse; dy++)
+                        {
+                            for (int dx = -1; dx <= 1 && !adjacentToInverse; dx++)
+                            {
+                                if (dx == 0 && dy == 0) continue;
+                                int nx = x + dx, ny = y + dy;
+                                if (nx < 0 || nx >= width || ny < 0 || ny >= actualHeight) continue;
+                                if (inverseMap[ny * width + nx])
+                                    adjacentToInverse = true;
+                            }
+                        }
+
+                        if (adjacentToInverse)
+                        {
+                            outlined[idx] = 255;     // R - white
+                            outlined[idx + 1] = 255; // G
+                            outlined[idx + 2] = 255; // B
+                            outlined[idx + 3] = 255; // A - fully opaque
+                        }
+                    }
+                }
+
+                return outlined;
             }
 
             return rgbaData;
@@ -2761,6 +2948,10 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
+            // Track XOR pixels for outline pass (masked color only)
+            bool hasXorPixels = false;
+            bool[]? xorMap = isMaskedColor ? new bool[width * height] : null;
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -2781,7 +2972,7 @@ namespace RemotePlayServer.Application.Protocol
 
                     // For masked color cursors, alpha has special meaning:
                     // 0x00 = use cursor color directly (OPAQUE, not transparent!)
-                    // 0xFF = XOR with background (we render as semi-transparent)
+                    // 0xFF = XOR with background (screen inversion not possible in overlay)
                     if (isMaskedColor)
                     {
                         if (a == 0x00)
@@ -2791,20 +2982,74 @@ namespace RemotePlayServer.Application.Protocol
                         }
                         else if (a == 0xFF)
                         {
-                            // XOR pixel - render with reduced opacity to show it
-                            a = 200;
+                            // XOR pixel: screen XOR cursor_color
+                            // Black (R=G=B=0) XOR'd means no change → transparent
+                            // Non-black: can't do real XOR in overlay, so render as
+                            // inverted color (best approximation) + white outline
+                            if (r == 0 && g == 0 && b == 0)
+                            {
+                                a = 0; // Transparent
+                            }
+                            else
+                            {
+                                // Invert the XOR color: white→black, etc.
+                                // This approximates XOR on a light background (most common)
+                                r = (byte)(255 - r);
+                                g = (byte)(255 - g);
+                                b = (byte)(255 - b);
+                                a = 255;
+                                xorMap![y * width + x] = true;
+                                hasXorPixels = true;
+                            }
                         }
-                        // Other alpha values: keep as-is (shouldn't happen for MASKED_COLOR)
                     }
 
                     // Output RGBA - NO FLIP, keep original Windows row order (row 0 = top)
-                    // Web clients can use directly, Unity clients flip when loading
                     int dstOffset = (y * width + x) * 4;
                     rgbaData[dstOffset] = r;
                     rgbaData[dstOffset + 1] = g;
                     rgbaData[dstOffset + 2] = b;
                     rgbaData[dstOffset + 3] = a;
                 }
+            }
+
+            // Second pass: add contrasting outline around XOR pixels for masked color cursors
+            if (hasXorPixels)
+            {
+                byte[] outlined = new byte[rgbaData.Length];
+                Array.Copy(rgbaData, outlined, rgbaData.Length);
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int idx = (y * width + x) * 4;
+                        if (rgbaData[idx + 3] != 0) continue;
+
+                        bool adjacentToXor = false;
+                        for (int dy = -1; dy <= 1 && !adjacentToXor; dy++)
+                        {
+                            for (int dx = -1; dx <= 1 && !adjacentToXor; dx++)
+                            {
+                                if (dx == 0 && dy == 0) continue;
+                                int nx = x + dx, ny = y + dy;
+                                if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                                if (xorMap![ny * width + nx])
+                                    adjacentToXor = true;
+                            }
+                        }
+
+                        if (adjacentToXor)
+                        {
+                            outlined[idx] = 255;     // White outline
+                            outlined[idx + 1] = 255;
+                            outlined[idx + 2] = 255;
+                            outlined[idx + 3] = 255;
+                        }
+                    }
+                }
+
+                return outlined;
             }
 
             return rgbaData;
@@ -2853,7 +3098,7 @@ namespace RemotePlayServer.Application.Protocol
 
             return Task.Run(async () =>
             {
-                const int POLL_INTERVAL_MS = 16; // ~60Hz
+                const int POLL_INTERVAL_MS = 8; // ~120Hz (faster cursor updates via DataChannel)
                 const float THRESHOLD = 0.001f; // Minimum UV change to send update
 
                 while (!ct.IsCancellationRequested && _ws.State == WebSocketState.Open)
@@ -2956,16 +3201,26 @@ namespace RemotePlayServer.Application.Protocol
                             _lastCursorVisible = visible;
                             _lastDxgiCursorShapeId = shapeId;
 
-                            var msg = new CursorPositionMessage
+                            // Prefer DataChannel (UDP-like, low latency) over WebSocket (TCP)
+                            if (_streamer?.HasCursorChannel == true)
                             {
-                                MonitorIndex = monitorIndex,
-                                U = u,
-                                V = v,
-                                Visible = visible,
-                                CursorTypeValue = (int)shapeInfo.Value.Type,
-                                CursorId = shapeId
-                            };
-                            await SendMessageAsync(msg);
+                                _streamer.SendCursorPosition(monitorIndex, u, v, visible,
+                                    (int)shapeInfo.Value.Type, shapeId);
+                            }
+                            else
+                            {
+                                // Fallback: WebSocket (for older clients without cursor DC)
+                                var msg = new CursorPositionMessage
+                                {
+                                    MonitorIndex = monitorIndex,
+                                    U = u,
+                                    V = v,
+                                    Visible = visible,
+                                    CursorTypeValue = (int)shapeInfo.Value.Type,
+                                    CursorId = shapeId
+                                };
+                                await SendMessageAsync(msg);
+                            }
                         }
 
                         await Task.Delay(POLL_INTERVAL_MS, ct);

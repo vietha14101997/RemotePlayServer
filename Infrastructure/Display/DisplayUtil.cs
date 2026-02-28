@@ -179,7 +179,12 @@ static class DisplayUtil
     {
         var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
         if (!EnumDisplaySettingsEx(deviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+        {
+            Logger.Error($"[DisplayUtil] ForceResolution: EnumDisplaySettingsEx(CURRENT) failed for {deviceName}");
             return false;
+        }
+
+        Logger.Info($"[DisplayUtil] ForceResolution: {deviceName} current={dm.dmPelsWidth}x{dm.dmPelsHeight}@{dm.dmDisplayFrequency}Hz, target={w}x{h}@{hz}Hz");
 
         dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
         dm.dmPelsWidth = w;
@@ -187,7 +192,90 @@ static class DisplayUtil
         dm.dmDisplayFrequency = hz;
 
         int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_GLOBAL, IntPtr.Zero);
+        if (ret != DISP_CHANGE_SUCCESSFUL)
+            Logger.Error($"[DisplayUtil] ForceResolution: ChangeDisplaySettingsEx returned {ret} for {deviceName}");
         return ret == DISP_CHANGE_SUCCESSFUL;
+    }
+
+    /// <summary>
+    /// Enumerate all available display modes for a device.
+    /// Logs all modes and returns whether the target mode was found.
+    /// </summary>
+    public static bool EnumerateAndLogModes(string deviceName, int targetW = 0, int targetH = 0, int targetHz = 0)
+    {
+        var modes = new List<(int w, int h, int hz)>();
+        bool targetFound = false;
+
+        for (int i = 0; ; i++)
+        {
+            var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+            if (!EnumDisplaySettingsEx(deviceName, i, ref dm, 0))
+                break;
+
+            // Deduplicate
+            var mode = (dm.dmPelsWidth, dm.dmPelsHeight, dm.dmDisplayFrequency);
+            if (!modes.Contains(mode))
+            {
+                modes.Add(mode);
+                if (targetW > 0 && mode.dmPelsWidth == targetW && mode.dmPelsHeight == targetH && mode.dmDisplayFrequency == targetHz)
+                    targetFound = true;
+            }
+        }
+
+        Logger.Info($"[DisplayUtil] Available modes for {deviceName}: {modes.Count} unique modes");
+        foreach (var (mw, mh, mhz) in modes)
+        {
+            string marker = (targetW > 0 && mw == targetW && mh == targetH && mhz == targetHz) ? " <<<TARGET>>>" : "";
+            Logger.Info($"[DisplayUtil]   {mw}x{mh}@{mhz}Hz{marker}");
+        }
+
+        if (targetW > 0)
+            Logger.Info($"[DisplayUtil] Target {targetW}x{targetH}@{targetHz}Hz: {(targetFound ? "FOUND" : "NOT FOUND")}");
+
+        return targetFound;
+    }
+
+    /// <summary>
+    /// Force resolution using mode index matching instead of CDS_GLOBAL.
+    /// Enumerates available modes, finds matching mode, and applies it.
+    /// This is more reliable after topology changes.
+    /// </summary>
+    public static bool ForceResolutionViaModeEnum(string deviceName, int w, int h, int hz)
+    {
+        // Find the exact mode from the driver's mode list
+        for (int i = 0; ; i++)
+        {
+            var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+            if (!EnumDisplaySettingsEx(deviceName, i, ref dm, 0))
+                break;
+
+            if (dm.dmPelsWidth == w && dm.dmPelsHeight == h && dm.dmDisplayFrequency == hz)
+            {
+                Logger.Info($"[DisplayUtil] ForceResolutionViaEnum: Found mode at index {i}: {w}x{h}@{hz}Hz");
+
+                // Try applying with just CDS_UPDATEREGISTRY (no CDS_GLOBAL)
+                int ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY, IntPtr.Zero);
+                if (ret == DISP_CHANGE_SUCCESSFUL)
+                {
+                    Logger.Info($"[DisplayUtil] ForceResolutionViaEnum: Applied successfully via CDS_UPDATEREGISTRY");
+                    return true;
+                }
+                Logger.Info($"[DisplayUtil] ForceResolutionViaEnum: CDS_UPDATEREGISTRY returned {ret}, trying without flags...");
+
+                // Try with no flags (temporary change)
+                ret = ChangeDisplaySettingsEx(deviceName, ref dm, IntPtr.Zero, 0, IntPtr.Zero);
+                if (ret == DISP_CHANGE_SUCCESSFUL)
+                {
+                    Logger.Info($"[DisplayUtil] ForceResolutionViaEnum: Applied successfully via temporary change");
+                    return true;
+                }
+                Logger.Error($"[DisplayUtil] ForceResolutionViaEnum: All attempts failed, last error={ret}");
+                return false;
+            }
+        }
+
+        Logger.Error($"[DisplayUtil] ForceResolutionViaEnum: Mode {w}x{h}@{hz}Hz not found in mode list");
+        return false;
     }
 
     /// <summary>
@@ -311,6 +399,123 @@ static class DisplayUtil
             return (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
         }
         return deviceName.Equals(@"\\.\DISPLAY1", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Set Windows display topology to "Show Only" on the target device.
+    /// Detaches all other active displays and makes target the sole primary at (0,0).
+    /// </summary>
+    /// <param name="targetDeviceName">The \\.\DISPLAYx to keep active</param>
+    /// <returns>True if topology was applied successfully</returns>
+    public static bool SetTopologyShowOnly(string targetDeviceName)
+    {
+        const int CDS_NORESET = 0x10000000;
+        const int CDS_SET_PRIMARY = 0x00000010;
+
+        Logger.Info($"[DisplayUtil] SetTopologyShowOnly: target={targetDeviceName}");
+
+        // Enumerate all active displays
+        var activeDisplays = new List<string>();
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
+            if ((dd.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0)
+                activeDisplays.Add(dd.DeviceName);
+        }
+
+        Logger.Info($"[DisplayUtil] Active displays: {string.Join(", ", activeDisplays)}");
+
+        // Step 1: Set target as primary at position (0,0) FIRST
+        // Must be done before detaching others, otherwise Windows has no primary.
+        {
+            var dm = new DEVMODE
+            {
+                dmDeviceName = new string('\0', 32),
+                dmFormName = new string('\0', 32),
+                dmSize = (short)Marshal.SizeOf<DEVMODE>()
+            };
+
+            if (EnumDisplaySettingsEx(targetDeviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
+            {
+                dm.dmFields = DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+                dm.dmPositionX = 0;
+                dm.dmPositionY = 0;
+
+                int ret = ChangeDisplaySettingsEx(targetDeviceName, ref dm, IntPtr.Zero,
+                    CDS_SET_PRIMARY | CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+                Logger.Info($"[DisplayUtil] Set primary {targetDeviceName}: result={ret}");
+            }
+        }
+
+        // Step 2: Detach all displays that are NOT the target
+        foreach (var displayName in activeDisplays)
+        {
+            if (string.Equals(displayName, targetDeviceName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var dm = new DEVMODE
+            {
+                dmDeviceName = new string('\0', 32),
+                dmFormName = new string('\0', 32),
+                dmSize = (short)Marshal.SizeOf<DEVMODE>()
+            };
+
+            dm.dmFields = DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT;
+            dm.dmPelsWidth = 0;
+            dm.dmPelsHeight = 0;
+            dm.dmPositionX = 0;
+            dm.dmPositionY = 0;
+
+            int ret = ChangeDisplaySettingsEx(displayName, ref dm, IntPtr.Zero,
+                CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+            Logger.Info($"[DisplayUtil] Detach {displayName}: result={ret}");
+        }
+
+        // Step 3: Apply all changes
+        bool success = ApplyDisplayChanges();
+        Logger.Info($"[DisplayUtil] SetTopologyShowOnly: applied={success}");
+        return success;
+    }
+
+    /// <summary>
+    /// Restore display topology from saved snapshots.
+    /// Re-attaches each display with its saved position/resolution.
+    /// </summary>
+    /// <param name="snapshots">Saved display mode snapshots from before Show Only was applied</param>
+    /// <returns>True if topology was restored successfully</returns>
+    public static bool RestoreExtendTopology(List<DisplayModeSnapshot> snapshots)
+    {
+        if (snapshots == null || snapshots.Count == 0) return false;
+
+        const int CDS_NORESET = 0x10000000;
+
+        Logger.Info($"[DisplayUtil] RestoreExtendTopology: restoring {snapshots.Count} displays");
+
+        foreach (var snap in snapshots)
+        {
+            var dm = new DEVMODE
+            {
+                dmDeviceName = new string('\0', 32),
+                dmFormName = new string('\0', 32),
+                dmSize = (short)Marshal.SizeOf<DEVMODE>()
+            };
+
+            dm.dmFields = DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+            dm.dmPositionX = snap.X;
+            dm.dmPositionY = snap.Y;
+            dm.dmPelsWidth = snap.Width;
+            dm.dmPelsHeight = snap.Height;
+            dm.dmDisplayFrequency = snap.Frequency;
+
+            int ret = ChangeDisplaySettingsEx(snap.DeviceName, ref dm, IntPtr.Zero,
+                CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+            Logger.Info($"[DisplayUtil] Restore {snap.DeviceName}: ({snap.X},{snap.Y}) {snap.Width}x{snap.Height}@{snap.Frequency}Hz result={ret}");
+        }
+
+        bool success = ApplyDisplayChanges();
+        Logger.Info($"[DisplayUtil] RestoreExtendTopology: applied={success}");
+        return success;
     }
 }
 

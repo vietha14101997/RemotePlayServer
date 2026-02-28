@@ -255,6 +255,146 @@ static class VirtualDisplayManager
             Console.WriteLine("[Display] Failed to set Scale and Layout");
     }
 
+    /// <summary>
+    /// Setup a single ultrawide virtual monitor for Ultrawide/Super Ultrawide mode.
+    /// Creates 1 VDD virtual display at the specified resolution.
+    /// Does NOT set Show Only topology — caller handles that separately.
+    /// </summary>
+    /// <param name="width">Ultrawide resolution width (2560 or 3840)</param>
+    /// <param name="height">Ultrawide resolution height (1080)</param>
+    /// <param name="refreshRate">Refresh rate in Hz</param>
+    /// <returns>The device name of the virtual monitor (e.g., \\.\DISPLAY5), or null on failure</returns>
+    public static string? SetupUltrawideVirtualMonitor(int width, int height, int refreshRate,
+        string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
+    {
+        // Step 1: Snapshot physical monitors
+        SnapshotPhysicalMonitors();
+        int physicalCount = _physicalMonitorNames.Count;
+        Console.WriteLine($"[VDD Ultrawide] Physical monitors: {physicalCount}, creating 1 virtual {width}x{height}@{refreshRate}Hz");
+
+        // Step 2: Ensure ultrawide resolution exists in VDD XML
+        try
+        {
+            EnsureResolutionInVddXml(settingsPath, width, height, refreshRate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD Ultrawide] XML resolution edit failed: {ex.Message}");
+        }
+
+        // Step 3: Create 1 virtual monitor via pipe
+        if (!TrySetDisplayCountViaPipe(1))
+        {
+            Console.WriteLine("[VDD Ultrawide] Pipe failed, trying pnputil fallback...");
+            try { SetVddMonitorCount(settingsPath, 1); } catch { }
+            ToggleVddViaPnputil();
+        }
+
+        // Step 4: Wait for virtual monitor to appear
+        int expectedTotal = physicalCount + 1;
+        WaitForMonitorCount(expectedTotal, timeoutMs: 5000);
+        Thread.Sleep(500); // Allow Windows to stabilize
+
+        // Step 5: Find the new virtual monitor
+        string? virtualMonitorName = null;
+        var mons = WgcInterop.ListMonitorsDXGI();
+        foreach (var mon in mons)
+        {
+            if (!_physicalMonitorNames.Contains(mon.name))
+            {
+                virtualMonitorName = mon.name;
+                Console.WriteLine($"[VDD Ultrawide] Virtual monitor found: {mon.name}");
+                break;
+            }
+        }
+
+        if (virtualMonitorName == null)
+        {
+            Console.WriteLine("[VDD Ultrawide] ERROR: Virtual monitor not found!");
+            return null;
+        }
+
+        // Step 6: Set ultrawide resolution on virtual monitor
+        bool resOk = DisplayUtil.ForceResolution(virtualMonitorName, width, height, refreshRate);
+        Console.WriteLine($"[VDD Ultrawide] ForceResolution {width}x{height}@{refreshRate}Hz: {(resOk ? "OK" : "FAILED")}");
+
+        if (!resOk)
+        {
+            // Try with position as well
+            DisplayUtil.SetResolutionAndPosition(virtualMonitorName, width, height, refreshRate, 0, 0);
+            DisplayUtil.ApplyDisplayChanges();
+            Thread.Sleep(300);
+        }
+
+        return virtualMonitorName;
+    }
+
+    /// <summary>
+    /// Disable all VDD virtual monitors (set count to 0 via pipe).
+    /// Used during cleanup to remove virtual displays.
+    /// </summary>
+    public static void DisableAllVirtualMonitors()
+    {
+        TrySetDisplayCountViaPipe(0);
+        Thread.Sleep(500);
+        Console.WriteLine("[VDD] All virtual monitors disabled");
+    }
+
+    /// <summary>
+    /// Re-toggle VDD (disable → enable) to force driver to reload XML and refresh mode list.
+    /// Used after topology change when VDD loses custom resolutions.
+    /// </summary>
+    public static void ToggleVddForModeRefresh()
+    {
+        try
+        {
+            var adapterId = FindAdapterId();
+            if (string.IsNullOrWhiteSpace(adapterId))
+            {
+                Console.WriteLine("[VDD] ToggleForModeRefresh: Adapter not found");
+                return;
+            }
+
+            Console.WriteLine("[VDD] ToggleForModeRefresh: Disabling VDD...");
+            RunPnputil($"/disable-device \"{adapterId}\"");
+            Thread.Sleep(1000);
+
+            Console.WriteLine("[VDD] ToggleForModeRefresh: Scanning devices...");
+            RunPnputil("/scan-devices");
+            Thread.Sleep(300);
+
+            Console.WriteLine("[VDD] ToggleForModeRefresh: Enabling VDD...");
+            RunPnputil($"/enable-device \"{adapterId}\"");
+
+            // Wait for monitor to appear
+            WaitForMonitorCount(1, timeoutMs: 5000);
+            Thread.Sleep(500);
+
+            Console.WriteLine("[VDD] ToggleForModeRefresh: Done");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[VDD] ToggleForModeRefresh failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Find the first virtual monitor name (\\.\DISPLAYx) from DXGI.
+    /// Useful after VDD re-toggle when display name may change.
+    /// </summary>
+    public static string? FindVirtualMonitorName()
+    {
+        foreach (var mon in WgcInterop.ListMonitorsDXGI())
+        {
+            if (!_physicalMonitorNames.Contains(mon.name))
+            {
+                Console.WriteLine($"[VDD] Found virtual monitor: {mon.name}");
+                return mon.name;
+            }
+        }
+        return null;
+    }
+
     // ================================================================
     // Named Pipe IPC (fast path)
     // ================================================================

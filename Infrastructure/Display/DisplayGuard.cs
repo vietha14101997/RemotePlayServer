@@ -38,6 +38,11 @@ static class DisplayGuard
         public List<DpiPerMonitorUtil.PerMonDpi>? DpiSnapshot { get; set; }  // Scale and Layout snapshot
         public string? VddInstanceId { get; set; }  // PNPDeviceID
         public bool? VddWasEnabled { get; set; }    // trạng thái driver tại thời điểm chụp
+
+        /// <summary>True if "Show Only" topology was activated during session (ultrawide mode).</summary>
+        public bool? ShowOnlyActive { get; set; }
+        /// <summary>Device name of the Show Only target monitor.</summary>
+        public string? ShowOnlyMonitorName { get; set; }
     }
 
     public class Mon
@@ -137,6 +142,31 @@ static class DisplayGuard
         catch (Exception ex)
         {
             Logger.Error("[Guard] Capture snapshot failed: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Mark that Show Only topology is active in the snapshot file.
+    /// Called by PhaseProtocolHandler when ultrawide mode sets Show Only.
+    /// This ensures recovery can restore extend topology on crash.
+    /// </summary>
+    public static void MarkShowOnlyActive(string monitorName)
+    {
+        try
+        {
+            if (!File.Exists(SnapshotPath)) return;
+            var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+            if (snap == null) return;
+
+            snap.ShowOnlyActive = true;
+            snap.ShowOnlyMonitorName = monitorName;
+
+            File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
+            Logger.Info($"[Guard] Marked ShowOnly active: {monitorName}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Guard] MarkShowOnlyActive failed: {ex.Message}");
         }
     }
 
@@ -290,6 +320,41 @@ static class DisplayGuard
 
         try
         {
+            // 0) Restore extend topology if Show Only was active (ultrawide mode)
+            // Must be done FIRST so physical monitors are re-attached before other steps
+            if (snap.ShowOnlyActive == true && snap.Monitors != null)
+            {
+                if (cancellationToken.IsCancellationRequested) return;
+                Logger.Info("[Guard] Step 0: Restoring extend topology (was Show Only)...");
+                try
+                {
+                    // Convert snapshot monitors to DisplayModeSnapshot for RestoreExtendTopology
+                    var physicalSnapshots = snap.Monitors
+                        .Where(m => !m.IsVirtual)
+                        .Select(m => new DisplayUtil.DisplayModeSnapshot
+                        {
+                            DeviceName = m.Name,
+                            X = m.X,
+                            Y = m.Y,
+                            Width = m.Width,
+                            Height = m.Height,
+                            Frequency = Math.Max(30, m.Refresh)
+                        })
+                        .ToList();
+
+                    if (physicalSnapshots.Count > 0)
+                    {
+                        DisplayUtil.RestoreExtendTopology(physicalSnapshots);
+                        Thread.Sleep(2000); // Wait for Windows to re-attach displays
+                        Logger.Info("[Guard] Extend topology restored from Show Only.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[Guard] Restore extend topology failed: {ex.Message}");
+                }
+            }
+
             // 1) Khôi phục Scale and Layout (DPI) - CHỈ cần restore cái này
             // Không restore TextScale vì chúng ta không thay đổi nó khi connect
             // TextScaleFactor (Make text bigger) khác với Scale and Layout (DpiValue)
@@ -642,6 +707,37 @@ static class DisplayGuard
         try { snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath)); }
         catch (Exception ex) { Logger.Error("[Guard] Cannot read snapshot: " + ex.Message); return; }
         if (snap == null) return;
+
+        // 0) Restore extend topology if Show Only was active
+        if (snap.ShowOnlyActive == true && snap.Monitors != null)
+        {
+            try
+            {
+                var physicalSnapshots = snap.Monitors
+                    .Where(m => !m.IsVirtual)
+                    .Select(m => new DisplayUtil.DisplayModeSnapshot
+                    {
+                        DeviceName = m.Name,
+                        X = m.X,
+                        Y = m.Y,
+                        Width = m.Width,
+                        Height = m.Height,
+                        Frequency = Math.Max(30, m.Refresh)
+                    })
+                    .ToList();
+
+                if (physicalSnapshots.Count > 0)
+                {
+                    DisplayUtil.RestoreExtendTopology(physicalSnapshots);
+                    Thread.Sleep(2000);
+                    Logger.Info("[Guard] Extend topology restored from Show Only.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Guard] Restore extend topology failed: {ex.Message}");
+            }
+        }
 
         // 1) Khôi phục Text size TRƯỚC TIÊN (theo yêu cầu)
         try { TextScaleUtil.Restore(snap.TextScale); Logger.Info("[Guard] Text size restored."); }
