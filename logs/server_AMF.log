@@ -1,0 +1,638 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.8
+[Encoder] AMD AMF (Hardware)
+[USB] Not detected. Enable USB Tethering on phone for USB streaming.
+[TextScale] Actual DPI for \\.\DISPLAY6: 96
+[Guard] Saved original text scale for \\.\DISPLAY6: 100%
+[TextScale] Actual DPI for \\.\DISPLAY5: 96
+[Guard] Saved original text scale for \\.\DISPLAY5: 100%
+[Guard] DPI snapshot: Source 0 = 100% (logPixels=96)
+[Guard] DPI snapshot: Source 1 = 100% (logPixels=96)
+[Guard] Saved DPI snapshot for 2 active monitors (via API)
+[Guard] Snapshot captured.
+[System] Startup recovery task registered.
+=== Monitors ===
+  \\.\DISPLAY6: 1920x1080 [Physical]
+  \\.\DISPLAY5: 1920x1080 [Physical]
+[HTTP] http://+:8288/
+[SIPSorcery] Pre-warming DTLS crypto...
+[SIPSorcery] DTLS pre-warm done in 638ms
+[HTTP] Server: 192.168.1.8:8288
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.8","port":"8288"}
+█████████████████████████████████████
+█████████████████████████████████████
+████ ▄▄▄▄▄ █ █▀█▀ ▀▄▄█▄█▀█ ▄▄▄▄▄ ████
+████ █   █ █ █▀ ▄  ▄▄   ▄█ █   █ ████
+████ █▄▄▄█ ██▀▄▄▄█▄█▄▀▀  █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄█▄█ ▀▄█ █ ▀ █▄▄▄▄▄▄▄████
+████▄▀  ▄█▄█▄█▀ ▀ ▀▀▀█ ▀  █▀▀▄▄ ▄████
+████▄ ▄▄▀ ▄▄ ▄ ▄▄▀▀▀▄▄▄ █▄█  ▀█▄ ████
+████  █▄▄▀▄▄   █▄▄▀█▄█▀▀▀██ █▀▄ █████
+████ ██ ▄▀▄▀▀ ██▄ █▄▄  ▄ █▄▄█▀▄██████
+████▀▄▄▀  ▄  █ █   ██ ▀▀▀██▄ █▄█▄████
+████ ▄ █ ▀▄▀ ▀▄▀ ▀▀ █▄▄██ ▀▀▄▄█▄█████
+████▄▄█▄██▄▄▀█ ▄▀ █▀▄██▄ ▄▄▄ █   ████
+████ ▄▄▄▄▄ ██▄██▀ █▀▀█▄  █▄█ ██▀▀████
+████ █   █ █ ▄█▀██ █ ▀██ ▄▄  ▄█▄ ████
+████ █▄▄▄█ █▄█ ▀ ▄ ▀█▄  ▄█▀█ ▄█▀▀████
+████▄▄▄▄▄▄▄█▄▄█▄▄▄▄▄███▄█▄███▄▄██████
+█████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+=== Connection Options ===
+  [USB]  Not available. Enable USB Tethering on phone
+  [WiFi] 192.168.1.8:8288 (Scan QR code above)
+
+Server is running. Press ENTER to exit.
+[Signal] Client connected f039865b-0374-4a82-81dd-1901f6249245, protocol=v2, transport=WiFi
+[Protocol] Client f039865b-0374-4a82-81dd-1901f6249245 connected from 192.168.1.3 (v2 protocol, transport=WiFi)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
+[HardwareInfo] SetDllDirectory: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\bin
+[ERROR] [HardwareInfo] HEVC encoder 'hevc_amf': available
+[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Monitor 0 (\\.\DISPLAY6): rect=(0,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY5): rect=(1920,0) 1920x1080
+[Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=172, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=vivo V2352GA
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264, VP9, VP8]
+[Protocol] Codec negotiation: selected H264
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 40MB in 2165ms = 155.0 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 276.6Mbps, 15.9ms
+[Protocol] ✓ Received speedtest_result from client: 276.6Mbps, 15.9ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 3x1440x810@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping:1772289587338...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":2560,"h":1080},"refreshRate":60,"bitrateKbps...
+[Protocol] Received display config: 1x2560x1080@60fps
+[Protocol] Ultrawide mode: ultrawide
+[VDD] Physical monitor: \\.\DISPLAY6 (1920x1080@60Hz)
+[VDD] Physical monitor: \\.\DISPLAY5 (1920x1080@60Hz)
+[VDD Ultrawide] Physical monitors: 2, creating 1 virtual 2560x1080@60Hz
+[VDD Pipe] Not available (driver not running or old version)
+[VDD Ultrawide] Pipe failed, trying pnputil fallback...
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Disabling VDD for config reload...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[VDD] 2 monitors detected (4ms)
+[VDD] 3 monitors detected (10ms)
+[VDD Ultrawide] Virtual monitor found: \\.\DISPLAY24
+[DisplayUtil] ForceResolution: \\.\DISPLAY24 current=2560x1080@60Hz, target=2560x1080@60Hz
+[VDD Ultrawide] ForceResolution 2560x1080@60Hz: OK
+[DisplayUtil] SetTopologyShowOnly: target=\\.\DISPLAY24
+[DisplayUtil] Active displays: \\.\DISPLAY5, \\.\DISPLAY6, \\.\DISPLAY24
+[DisplayUtil] Set primary \\.\DISPLAY24: result=0
+[DisplayUtil] Detach \\.\DISPLAY5: result=0
+[DisplayUtil] Detach \\.\DISPLAY6: result=0
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[DisplayUtil] SetTopologyShowOnly: applied=True
+[Protocol] VDD resolution preserved: 2560x1080@60Hz
+[Guard] Marked ShowOnly active: \\.\DISPLAY24
+[Protocol] Show Only applied on \\.\DISPLAY24
+[Protocol] Monitor 0 (\\.\DISPLAY24): rect=(0,0) 2560x1080
+[Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
+[Protocol] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY24 2560x1080 - duplication ready
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=15000kbps per encoder (total=15000kbps)
+[SIPSorcery] Created: 1 monitors, 60fps, 15000kbps, codec=H264
+[TextureResizer] Initialized for 1 monitors, max 1920x810 (per-device GPU scaling)
+[Protocol] Created TextureResizer for 1 monitors (max: 1920x810, type: ultrawide)
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping:1772289589365...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289591395...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289593415...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289595445...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289597483...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 3548505051740874546 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Monitor 0 native=2560x1080 -> encoder=1920x810
+[Protocol] Parsed H264 PT from offer: 124
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 58:8E:DE:01:79:2D:36:D8:F5:2E:07:11:F6:6E:64:B9:0D:AE:A1:72:BF:C1:FB:98:C7:04:4E:9D:C3:DB:B3:0E
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 58:8E:DE:01:79:2D:36:D8:F5:2E:07:11:F6:6E:64:B9:0D:AE:A1:72:BF:C1:FB:98:C7:04:4E:9D:C3:DB:B3:0E
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x810 (device=02DACB1C)
+[SIPSorcery] Waiting for client audio/cursor DataChannels
+[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 58576 typ ...
+[SIPSorcery] Local ICE: 3761916285 1 udp 2113940223 2402:800:610d:eab:e57d...
+[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] SDP: a=fingerprint:sha-256 10:0E:4F:9C:EF:5C:39:1A:FB:E2:70:B0:E7:69:06:80:C3:1C:F1:48:BE:EF:4E:E7:70:81:DD:F6:43:37:C3:08
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] SDP: a=fingerprint:sha-256 10:0E:4F:9C:EF:5C:39:1A:FB:E2:70:B0:E7:69:06:80:C3:1C:F1:48:BE:EF:4E:E7:70:81:DD:F6:43:37:C3:08
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1050 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 1050 to 1050 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 20768 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1072 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 58576 typ ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1096372068 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1096372068 1 udp 2122194687 192.168.1.3 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1102428502 1 udp 2122129151 16...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 58576 ty...
+[SIPSorcery] Added remote ICE: candidate:1102428502 1 udp 2122129151 166.101.170....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"965494182 1 udp 2122063615 9.1...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:965494182 1 udp 2122063615 9.192.123.53 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2462365590 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:2462365590 1 udp 2122262783 2402:800:610...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1096372068 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1096372068 1 udp 2122194687 192.168.1.3 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1102428502 1 udp 2122129151 16...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:1102428502 1 udp 2122129151 166.101.170....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"965494182 1 udp 2122063615 9.1...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:965494182 1 udp 2122063615 9.192.123.53 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2462365590 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[SIPSorcery] Added remote ICE: candidate:2462365590 1 udp 2122262783 2402:800:610...
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[Protocol] Client f039865b-0374-4a82-81dd-1901f6249245 cancelled
+[Protocol] Phase changed to: Disconnecting
+[SIPSorcery] Stopping...
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY24
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY24 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 0: Restoring extend topology (was Show Only)...
+[DisplayUtil] RestoreExtendTopology: restoring 2 displays
+[DisplayUtil] Restore \\.\DISPLAY6: (0,0) 1920x1080@60Hz result=0
+[DisplayUtil] Restore \\.\DISPLAY5: (1920,0) 1920x1080@60Hz result=0
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[DisplayUtil] RestoreExtendTopology: applied=True
+[SIPSorcery] Peer state: failed
+[ERROR] [SIPSorcery] DTLS FAILED - check certificate/fingerprint
+[Guard] Extend topology restored from Show Only.
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] Restoring DPI to 100% (logPixels=96)
+[DpiScaling] Setting 100% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
+[DpiScaling] Already at 100%
+[DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
+[DpiScaling] Already at 100%
+[Guard] ✓ Scale and Layout restored via API.
+[Guard] Step 2: Restoring monitor modes...
+[DisplayUtil] ForceResolution: \\.\DISPLAY6 current=1920x1080@60Hz, target=1920x1080@60Hz
+[DisplayUtil] ForceResolution: \\.\DISPLAY5 current=1920x1080@60Hz, target=1920x1080@60Hz
+[Guard] Monitor modes restored.
+[Guard] Step 3: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client f039865b-0374-4a82-81dd-1901f6249245 disconnected
+[Signal] Client connected e1511cd6-38ff-469a-b6e8-2e2349c000b5, protocol=v2, transport=WiFi
+[Protocol] Client e1511cd6-38ff-469a-b6e8-2e2349c000b5 connected from 192.168.1.3 (v2 protocol, transport=WiFi)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
+[ERROR] [HardwareInfo] HEVC encoder 'hevc_amf': available
+[HardwareInfo] Encoder: AMF, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Monitor 0 (\\.\DISPLAY6): rect=(0,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY5): rect=(1920,0) 1920x1080
+[Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=172, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","VP9","VP8"],"preferredCodec":...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=False, preferred=H264, device=vivo V2352GA
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264, VP9, VP8]
+[Protocol] Codec negotiation: selected H264
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 36MB in 2266ms = 133.3 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 279.5Mbps, 16.5ms
+[Protocol] ✓ Received speedtest_result from client: 279.5Mbps, 16.5ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 3x1440x810@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping:1772289620595...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":2560,"h":1080},"refreshRate":60,"bitrateKbps...
+[Protocol] Received display config: 1x2560x1080@60fps
+[Protocol] Ultrawide mode: ultrawide
+[VDD] Physical monitor: \\.\DISPLAY6 (1920x1080@60Hz)
+[VDD] Physical monitor: \\.\DISPLAY5 (1920x1080@60Hz)
+[VDD Ultrawide] Physical monitors: 2, creating 1 virtual 2560x1080@60Hz
+[VDD Pipe] Not available (driver not running or old version)
+[VDD Ultrawide] Pipe failed, trying pnputil fallback...
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Disabling VDD for config reload...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[VDD] 2 monitors detected (4ms)
+[VDD] 3 monitors detected (7ms)
+[VDD Ultrawide] Virtual monitor found: \\.\DISPLAY25
+[DisplayUtil] ForceResolution: \\.\DISPLAY25 current=2560x1080@60Hz, target=2560x1080@60Hz
+[VDD Ultrawide] ForceResolution 2560x1080@60Hz: OK
+[DisplayUtil] SetTopologyShowOnly: target=\\.\DISPLAY25
+[DisplayUtil] Active displays: \\.\DISPLAY5, \\.\DISPLAY6, \\.\DISPLAY25
+[DisplayUtil] Set primary \\.\DISPLAY25: result=0
+[DisplayUtil] Detach \\.\DISPLAY5: result=0
+[DisplayUtil] Detach \\.\DISPLAY6: result=0
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[DisplayUtil] SetTopologyShowOnly: applied=True
+[Protocol] VDD resolution preserved: 2560x1080@60Hz
+[Guard] Marked ShowOnly active: \\.\DISPLAY25
+[Protocol] Show Only applied on \\.\DISPLAY25
+[Protocol] Monitor 0 (\\.\DISPLAY25): rect=(0,0) 2560x1080
+[Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
+[Protocol] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=AMD Radeon RX 7600)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY25 2560x1080 - duplication ready
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer with codec=H264, bitrate=15000kbps per encoder (total=15000kbps)
+[SIPSorcery] Created: 1 monitors, 60fps, 15000kbps, codec=H264
+[TextureResizer] Initialized for 1 monitors, max 1920x810 (per-device GPU scaling)
+[Protocol] Created TextureResizer for 1 monitors (max: 1920x810, type: ultrawide)
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping:1772289622621...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289624651...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289626675...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1772289628694...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3386822567 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"623443367 1 udp 2122129151 166...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"454930415 1 udp 2122063615 9.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2194851520 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3386822567 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"623443367 1 udp 2122129151 166...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"454930415 1 udp 2122063615 9.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2194851520 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 4265856520672122070 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 8 pending ICE candidates
+[Protocol] Monitor 0 native=2560x1080 -> encoder=1920x810
+[Protocol] Parsed H264 PT from offer: 124
+[SIPSorcery] Processing offer for 1 monitors
+[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 89:B4:E7:04:3B:63:5D:56:FC:98:D8:C1:1E:39:49:2D:C7:05:5C:73:A9:4B:97:73:BE:F3:90:E2:67:0F:F8:70
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 89:B4:E7:04:3B:63:5D:56:FC:98:D8:C1:1E:39:49:2D:C7:05:5C:73:A9:4B:97:73:BE:F3:90:E2:67:0F:F8:70
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x810 (device=02D884EC)
+[SIPSorcery] Waiting for client audio/cursor DataChannels
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
+[SIPSorcery] Local ICE: 3761916285 1 udp 2113940223 2402:800:610d:eab:e57d...
+[SIPSorcery] Local ICE: 2055797717 1 udp 2113937663 192.168.1.8 62040 typ ...
+[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] SDP: a=fingerprint:sha-256 E7:6F:A1:A4:BF:A4:29:35:F0:10:22:5F:0C:A1:3C:EE:83:0F:A5:5B:E2:92:76:4C:7C:73:EB:8A:13:23:0D:B8
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] SDP: a=fingerprint:sha-256 E7:6F:A1:A4:BF:A4:29:35:F0:10:22:5F:0C:A1:3C:EE:83:0F:A5:5B:E2:92:76:4C:7C:73:EB:8A:13:23:0D:B8
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 1050 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 1050 to 1050 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 83183 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1072 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2055797717 1 udp 2113937663 192.168.1.8 62040 typ ...
+[Protocol] Applying 8 pending ICE candidates
+[SIPSorcery] Added remote ICE: candidate:3386822567 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3386822567 1 udp 2122194687 192.168.1.3 49231 typ ...
+[SIPSorcery] Added remote ICE: candidate:623443367 1 udp 2122129151 166.101.170.1...
+[Protocol] Applied pending ICE: 623443367 1 udp 2122129151 166.101.170.181 35573 t...
+[SIPSorcery] Added remote ICE: candidate:454930415 1 udp 2122063615 9.192.123.53 ...
+[Protocol] Applied pending ICE: 454930415 1 udp 2122063615 9.192.123.53 49428 typ ...
+[SIPSorcery] Added remote ICE: candidate:2194851520 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2194851520 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Added remote ICE: candidate:3386822567 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3386822567 1 udp 2122194687 192.168.1.3 41097 typ ...
+[SIPSorcery] Added remote ICE: candidate:623443367 1 udp 2122129151 166.101.170.1...
+[Protocol] Applied pending ICE: 623443367 1 udp 2122129151 166.101.170.181 60607 t...
+[SIPSorcery] Added remote ICE: candidate:454930415 1 udp 2122063615 9.192.123.53 ...
+[Protocol] Applied pending ICE: 454930415 1 udp 2122063615 9.192.123.53 35083 typ ...
+[SIPSorcery] Added remote ICE: candidate:2194851520 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2194851520 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 62040 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
+[SIPSorcery] Detected GPU vendor: AMD
+[SIPSorcery] Creating AMF encoder for AMD GPU
+[AmfNativeWrapper] Initializing BGRA mode 1920x810 @ 60fps, 15000kbps
+[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)
+[SIPSorcery] Track 0: Amf encoder initialized (BGRA mode - no color conversion)
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
+[Protocol] All 1 tracks ready, sending ice_ready
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
+[MultimediaTimer] Timer resolution set to 1ms
+[PerMonitorCapture] Started 1 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
+[GpuTextureScaler] Monitor 0: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 0 (device=2BC02D88650)
+[GpuTextureScaler] Monitor 0: Output texture 1920x810
+[SIPSorcery] DataChannel received: label=audio, id=1
+[SIPSorcery] Audio DataChannel wired for sending
+[SIPSorcery] DataChannel received: label=cursor, id=3
+[SIPSorcery] Cursor DataChannel wired for sending
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[Protocol] Capture thread already running, skipping start
+[Protocol] Cursor tracking started
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
+[KeepAlive] Server-side keep-alive started (5s interval)
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1500, captureMs=1772289628811, avgEncLatency=3027us, sentFrames=0
+[SIPSorcery] Track 0 first frame: VideoStreamList.Count=1, rtpStep=1500
+[SIPSorcery] VideoStream[0]: SSRC=341421733
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1500, captureMs=1772289628811, avgEncLatency=10263us, sentFrames=1
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=4590, captureMs=1772289628862, avgEncLatency=6941us, sentFrames=2
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1500, captureMs=1772289628862, avgEncLatency=6695us, sentFrames=3
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=3060, captureMs=1772289628896, avgEncLatency=5398us, sentFrames=4
+[AdaptiveBitrate] Initialized: target=15000kbps, range=[2000-30000]kbps, warmup=15000ms
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2880, captureMs=1772289632865, avgEncLatency=551us, sentFrames=252
+[Pipeline] Mon0: Server sent 313, Client received 1 (loss=99.7%)
+[SIPSorcery] FPS feedback m0: 4.8fps, dropped=0
+[Pipeline] Mon0: Server sent 499, Client received 1 (loss=99.8%)
+[SIPSorcery] FPS feedback m0: 10.1fps, dropped=0
+[SIPSorcery] Stats: m0:550f,enc=680us, audio:887pkts (88.7/sec)
+[Protocol] Phase3 RX: type=start_streaming, len=26
+[SIPSorcery] Stats: m0:1175f,enc=767us, audio:1887pkts (100.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289649841, avgEncLatency=781us, sentFrames=1313
+[SIPSorcery] Stats: m0:1800f,enc=756us, audio:2884pkts (99.7/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289666833, avgEncLatency=756us, sentFrames=2375
+[SIPSorcery] Stats: m0:2425f,enc=755us, audio:3886pkts (100.2/sec)
+[SIPSorcery] Stats: m0:3050f,enc=783us, audio:4884pkts (99.8/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289683345, avgEncLatency=800us, sentFrames=3407
+[SIPSorcery] Stats: m0:3675f,enc=812us, audio:5883pkts (99.9/sec)
+[SIPSorcery] Stats: m0:4300f,enc=844us, audio:6886pkts (100.3/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2880, captureMs=1772289700369, avgEncLatency=851us, sentFrames=4471
+[SIPSorcery] Stats: m0:4926f,enc=869us, audio:7887pkts (100.1/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289717379, avgEncLatency=884us, sentFrames=5534
+[SIPSorcery] Stats: m0:5550f,enc=884us, audio:8884pkts (99.7/sec)
+[SIPSorcery] Stats: m0:6175f,enc=894us, audio:9884pkts (100.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289734387, avgEncLatency=906us, sentFrames=6597
+[SIPSorcery] Stats: m0:6800f,enc=907us, audio:10885pkts (100.1/sec)
+[SIPSorcery] Stats: m0:7425f,enc=909us, audio:11884pkts (99.9/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=2880, captureMs=1772289750900, avgEncLatency=908us, sentFrames=7629
+[SIPSorcery] Stats: m0:8049f,enc=904us, audio:12886pkts (100.2/sec)
+[SIPSorcery] Stats: m0:8675f,enc=891us, audio:13886pkts (100.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe, len=27
+[SIPSorcery] Track 0 KEYFRAME: rtpStep=1440, captureMs=1772289768410, avgEncLatency=891us, sentFrames=8723
+[SIPSorcery] Stats: m0:9299f,enc=886us, audio:14885pkts (99.9/sec)
+[Protocol] Phase3 RX: type=pause_streaming, len=26
+[Protocol] Received pause_streaming
+[SIPSorcery] Streaming paused (connection maintained)
+[Protocol] Phase3 RX: type=stop_streaming, len=25
+[Protocol] Received stop_streaming
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
+[Protocol] Phase changed to: Disconnecting
+[SIPSorcery] Stopping...
+[OpusEncoder] Disposed
+[AmfNativeWrapper] Disposed
+[SIPSorcery] Audio DataChannel closed
+[SIPSorcery] Cursor DataChannel closed
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
+[ERROR] [PerMonitorCapture] Monitor 0 error: Cannot access a disposed object.
+Object name: 'TextureResizer'.
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[MultimediaTimer] Timer resolution restored
+[PerMonitorCapture] All capture threads stopped
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY25
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY25 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 0: Restoring extend topology (was Show Only)...
+[DisplayUtil] RestoreExtendTopology: restoring 2 displays
+[DisplayUtil] Restore \\.\DISPLAY6: (0,0) 1920x1080@60Hz result=0
+[DisplayUtil] Restore \\.\DISPLAY5: (1920,0) 1920x1080@60Hz result=0
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[DisplayUtil] RestoreExtendTopology: applied=True
+[Guard] Extend topology restored from Show Only.
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] Restoring DPI to 100% (logPixels=96)
+[DpiScaling] Setting 100% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
+[DpiScaling] Already at 100%
+[DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
+[DpiScaling] Already at 100%
+[Guard] ✓ Scale and Layout restored via API.
+[Guard] Step 2: Restoring monitor modes...
+[DisplayUtil] ForceResolution: \\.\DISPLAY6 current=1920x1080@60Hz, target=1920x1080@60Hz
+[DisplayUtil] ForceResolution: \\.\DISPLAY5 current=1920x1080@60Hz, target=1920x1080@60Hz
+[Guard] Monitor modes restored.
+[Guard] Step 3: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client e1511cd6-38ff-469a-b6e8-2e2349c000b5 disconnected

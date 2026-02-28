@@ -1,8 +1,0 @@
-Tôi muốn 1 lần sửa lớn cho cả Server và Client:
-source Server: F:\VRWorkspace Projects\RemotePlayServer
-source Client: F:\VRWorkspace Projects\VRWorkSpace
-Các điểm cần thiết:
-1) Client không còn gửi resolution lên yêu cầu Server đổi nữa, thay vào đó Serer sẽ thống nhất độ phân giải gốc cho tất cả màn hình. Sau khi Capture, nếu độ phân giải lớn hơn 1440 x 810 sẽ resize về 1440 x 810 rồi mới encode.
-2) Thay Dropdown resolution cũ thành Style, có 2 options là "Flat Planar" và "Curved Surround", với lựa chọn "Flat Planar" sẽ tạo WorldPanelClusterRig với : layoutMode = ClusterLayoutMode.FixedThreeSlot, useCurvedVisual = false. Với "Curved Surround" sẽ tạo WorldPanelClusterRig với : layoutMode = ClusterLayoutMode.Dynamic, useCurvedVisual = true. Tạo cơ chế để có thể chuyển đổi 2 style này ngay cả khi đang phát stream.
-3) Fps và Bitrate là giá trị động, có thể nhận yêu cầu thay đổi từ client ngay khi đang stream
-4) Bitrate mà client yêu cầu sẽ là tổng bitrate của tất cả màn hình, ví dụ chọn 20 Mbps với 2 monitors hay 3 monitors thì giá trị tổng vẫn luôn chỉ là 20 Mbps. Server cũng nên lưu ý việc này khi tạo suggested config.

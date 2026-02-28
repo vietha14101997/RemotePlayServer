@@ -1,0 +1,446 @@
+#nullable enable
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Vortice.Direct3D11;
+using RemotePlayServer.Infrastructure.Hardware;
+using RemotePlayServer.Infrastructure.Encoding;
+using RemotePlayServer.Core.Interfaces;
+using RemotePlayServer.Core;
+
+namespace RemotePlayServer.Application.Streaming;
+
+public partial class SIPSorceryStreamer
+{
+    private void InitializeEncoders()
+    {
+        // Detect GPU vendor once for all tracks
+        var gpuVendor = GpuVendorDetector.DetectPrimaryGpuVendor();
+        Logger.Info($"[SIPSorcery] Detected GPU vendor: {gpuVendor}");
+
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+            {
+                if (track.Encoder != null) continue;
+
+                var device = track.Device ?? _sharedDevice;
+                if (device == null)
+                {
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: No D3D11 device");
+                    continue;
+                }
+
+                // Try to initialize encoder with fallback chain
+                track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Try to initialize encoder with automatic fallback on failure
+    /// </summary>
+    private ITextureEncoder? TryInitializeEncoderWithFallback(TrackInfo track, ID3D11Device device, GpuVendorDetector.GpuVendor gpuVendor)
+    {
+        // First attempt: Use recommended encoder for GPU
+        ITextureEncoder? encoder = CreateEncoderForGpu(gpuVendor);
+        if (encoder == null)
+        {
+            Logger.Info($"[SIPSorcery] Track {track.Index}: No suitable encoder found for {gpuVendor}");
+            return null;
+        }
+
+        try
+        {
+            encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
+
+            bool initSuccess;
+            // Use BGRA mode if encoder supports it (eliminates GPU color conversion)
+            if (encoder.SupportsBgraInput)
+            {
+                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateKbps, device);
+                if (initSuccess)
+                {
+                    string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized (BGRA mode - no color conversion)");
+                    return encoder;
+                }
+                // Fallback to NV12 mode if BGRA failed
+                Logger.Error($"[SIPSorcery] Track {track.Index}: BGRA mode failed, trying NV12 mode...");
+            }
+
+            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device);
+            if (initSuccess)
+            {
+                string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
+                Logger.Info($"[SIPSorcery] Track {track.Index}: {encoderName} encoder initialized");
+                return encoder;
+            }
+
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Primary encoder init failed, trying fallback...");
+            encoder.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Primary encoder error: {ex.Message}");
+            try { encoder.Dispose(); } catch { }
+        }
+
+        // Fallback: Try LibAvEncoderAdapter (FFmpeg-based, more compatible)
+        if (gpuVendor == GpuVendorDetector.GpuVendor.Intel)
+        {
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv fallback for Intel...");
+            return TryInitializeLibAvEncoder(track, device);
+        }
+
+        // For other GPUs, also try LibAv as final fallback
+        Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv software fallback...");
+        return TryInitializeLibAvEncoder(track, device);
+    }
+
+    /// <summary>
+    /// Initialize LibAv encoder as fallback
+    /// Uses negotiated codec first, then fallback to other compatible codecs
+    /// </summary>
+    private ITextureEncoder? TryInitializeLibAvEncoder(TrackInfo track, ID3D11Device device)
+    {
+        // Build codec list with negotiated codec first, then fallbacks
+        var codecs = new System.Collections.Generic.List<VideoCodec> { _negotiatedCodec };
+
+        // Add fallbacks (only codecs client might support)
+        if (_negotiatedCodec != VideoCodec.H264) codecs.Add(VideoCodec.H264);
+        if (_negotiatedCodec != VideoCodec.VP9) codecs.Add(VideoCodec.VP9);
+        if (_negotiatedCodec != VideoCodec.VP8) codecs.Add(VideoCodec.VP8);
+        // Note: Don't add H265 as fallback - most WebRTC clients don't support it
+
+        Logger.Info($"[SIPSorcery] Track {track.Index}: Codec priority: [{string.Join(", ", codecs)}]");
+
+        foreach (var codec in codecs)
+        {
+            try
+            {
+                Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv with {codec}...");
+                var encoder = new LibAvEncoderAdapter();
+                encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
+
+                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device, codec))
+                {
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
+                    return encoder;
+                }
+
+                Logger.Error($"[SIPSorcery] Track {track.Index}: LibAv {codec} init failed, trying next...");
+                encoder.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[SIPSorcery] Track {track.Index}: LibAv {codec} error: {ex.Message}");
+            }
+        }
+
+        Logger.Error($"[SIPSorcery] Track {track.Index}: ALL ENCODERS FAILED - no video output!");
+        return null;
+    }
+
+    /// <summary>
+    /// Create the appropriate hardware encoder based on GPU vendor with fallback chain
+    /// </summary>
+    private static ITextureEncoder? CreateEncoderForGpu(GpuVendorDetector.GpuVendor gpuVendor)
+    {
+        switch (gpuVendor)
+        {
+            case GpuVendorDetector.GpuVendor.AMD:
+                // AMD: Use AMF encoder
+                if (AmfNativeWrapper.IsAvailable())
+                {
+                    Logger.Info("[SIPSorcery] Creating AMF encoder for AMD GPU");
+                    return new AmfNativeWrapper();
+                }
+                // AMD fallback to LibAv AMF
+                Logger.Info("[SIPSorcery] AMF native not available, trying LibAv encoder...");
+                return CreateLibAvFallbackEncoder("amf");
+
+            case GpuVendorDetector.GpuVendor.NVIDIA:
+                // NVIDIA: Use NVENC encoder with BGRA mode (no color conversion needed)
+                if (NvencNativeWrapper.IsAvailable())
+                {
+                    Logger.Info("[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)");
+                    return new NvencNativeWrapper();  // Will use InitializeBgra when initializing
+                }
+                // Fallback to AMF if available (some systems have both)
+                if (AmfNativeWrapper.IsAvailable())
+                {
+                    Logger.Info("[SIPSorcery] NVENC not available, falling back to AMF");
+                    return new AmfNativeWrapper();
+                }
+                // NVIDIA fallback to LibAv NVENC
+                Logger.Info("[SIPSorcery] NVENC native not available, trying LibAv encoder...");
+                return CreateLibAvFallbackEncoder("nvenc");
+
+            case GpuVendorDetector.GpuVendor.Intel:
+                return CreateIntelEncoder();
+
+            default:
+                // Try each encoder in order of preference
+                Logger.Info("[SIPSorcery] Unknown GPU, trying available encoders...");
+                if (NvencNativeWrapper.IsAvailable())
+                    return new NvencNativeWrapper();
+                if (AmfNativeWrapper.IsAvailable())
+                    return new AmfNativeWrapper();
+                if (QsvNativeWrapper.IsAvailable())
+                    return new QsvNativeWrapper();
+                // Final fallback to software
+                return CreateLibAvFallbackEncoder("software");
+        }
+    }
+
+    /// <summary>
+    /// Create Intel encoder with driver version-aware fallback chain:
+    /// 1. QsvNativeWrapper (Media Foundation) - requires driver >= 27.20.100.x
+    /// 2. LibAvEncoderAdapter with h264_qsv (FFmpeg QSV) - works with older drivers
+    /// 3. LibAvEncoderAdapter software (x264) - final fallback
+    /// </summary>
+    private static ITextureEncoder? CreateIntelEncoder()
+    {
+        var driverInfo = GpuVendorDetector.GetIntelDriverInfo();
+        Logger.Info($"[SIPSorcery] Intel GPU: {driverInfo.GpuName}");
+        Logger.Info($"[SIPSorcery] Intel driver: {driverInfo.DriverVersionString}, reason: {driverInfo.Reason}");
+
+        // Step 1: Try native MF encoder if driver supports it
+        if (driverInfo.RecommendedEncoder == "qsv_native" || driverInfo.RecommendedEncoder == "qsv_try_native")
+        {
+            if (QsvNativeWrapper.IsAvailable())
+            {
+                Logger.Info("[SIPSorcery] Trying QSV native encoder (Media Foundation)...");
+                var encoder = new QsvNativeWrapper();
+                // Note: Actual initialization happens later in InitializeEncoders()
+                // If it fails there, we should have a retry mechanism
+                return encoder;
+            }
+            Logger.Info("[SIPSorcery] QSV native not available (DLL missing or QsvIsAvailable=false)");
+        }
+
+        // Step 2: Try FFmpeg QSV (h264_qsv) - more compatible with older drivers
+        Logger.Info("[SIPSorcery] Trying FFmpeg QSV encoder (h264_qsv)...");
+        var ffmpegQsvEncoder = CreateLibAvFallbackEncoder("qsv");
+        if (ffmpegQsvEncoder != null)
+        {
+            return ffmpegQsvEncoder;
+        }
+
+        // Step 3: Final fallback to software encoder
+        Logger.Error("[SIPSorcery] All Intel hardware encoders failed, using software encoder...");
+        return CreateLibAvFallbackEncoder("software");
+    }
+
+    /// <summary>
+    /// Create LibAvEncoderAdapter as fallback encoder
+    /// </summary>
+    private static ITextureEncoder? CreateLibAvFallbackEncoder(string type)
+    {
+        try
+        {
+            Logger.Info($"[SIPSorcery] Creating LibAv fallback encoder (type={type})...");
+            var encoder = new LibAvEncoderAdapter();
+            // Note: LibAvEncoderAdapter will auto-detect hardware and fall back internally
+            // The 'type' hint is for logging purposes
+            return encoder;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] LibAv fallback encoder creation failed: {ex.Message}");
+            return null;
+        }
+    }
+
+    private void CloseConnection()
+    {
+        _running = false;
+        _connected = false;
+
+        // Reset shared sync clock for next connection
+        Interlocked.Exchange(ref _streamStartMs, -1);
+        lock (_audioSyncLock)
+        {
+            _audioClockInitialized = false;
+            _lastAbsoluteAudioRtp = 0;
+        }
+
+        // Stop audio pipeline
+        try { _audioCapture?.Stop(); } catch { }
+        try { _opusEncoder?.Dispose(); } catch { }
+        try { _audioCapture?.Dispose(); } catch { }
+        _audioCapture = null;
+        _opusEncoder = null;
+
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+                track.Dispose();
+            _tracks.Clear();
+            _pendingDevices.Clear();
+        }
+
+        try { _audioDc?.close(); } catch { }
+        _audioDc = null;
+
+        try { _cursorDc?.close(); } catch { }
+        _cursorDc = null;
+
+        try { _pc?.close(); } catch { }
+        _pc = null;
+        // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995
+        // when PC closes. This is expected and silently filtered by the global
+        // UnobservedTaskException handler in Program.cs.
+
+        Logger.Info("[SIPSorcery] Connection closed");
+    }
+
+    public void Stop()
+    {
+        if (!_running && _pc == null) return;
+        Logger.Info("[SIPSorcery] Stopping...");
+        CloseConnection();
+    }
+
+    /// <summary>
+    /// Pause streaming - stop encoding but keep connection alive.
+    /// Client can resume without reconnecting.
+    /// </summary>
+    public void Pause()
+    {
+        if (_isPaused)
+        {
+            Logger.Info("[SIPSorcery] Already paused");
+            return;
+        }
+        _isPaused = true;
+        _audioCapture?.Pause();
+        Logger.Info("[SIPSorcery] Streaming paused (connection maintained)");
+    }
+
+    /// <summary>
+    /// Resume streaming - restart encoding.
+    /// Should request keyframe for immediate visual update.
+    /// </summary>
+    public void Resume()
+    {
+        if (!_isPaused)
+        {
+            Logger.Info("[SIPSorcery] Already running (not paused)");
+            return;
+        }
+        _isPaused = false;
+        _audioCapture?.Resume();
+        Logger.Info("[SIPSorcery] Streaming resumed");
+
+        // Request keyframe on all tracks for immediate visual update (bypass throttle)
+        RequestKeyframe(-1, force: true);
+    }
+
+    /// <summary>
+    /// Pause a specific monitor's streaming.
+    /// Stops encoding for that monitor but keeps connection alive.
+    /// </summary>
+    /// <param name="monitorIndex">Index of the monitor to pause (0-based)</param>
+    public void PauseMonitor(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length)
+        {
+            Logger.Info($"[SIPSorcery] PauseMonitor: Invalid index {monitorIndex}");
+            return;
+        }
+        if (_monitorPaused[monitorIndex])
+        {
+            Logger.Info($"[SIPSorcery] Monitor {monitorIndex} already paused");
+            return;
+        }
+        _monitorPaused[monitorIndex] = true;
+        Logger.Info($"[SIPSorcery] Monitor {monitorIndex} paused");
+    }
+
+    /// <summary>
+    /// Resume a specific monitor's streaming.
+    /// Restarts encoding for that monitor and requests keyframe.
+    /// </summary>
+    /// <param name="monitorIndex">Index of the monitor to resume (0-based)</param>
+    public void ResumeMonitor(int monitorIndex)
+    {
+        if (monitorIndex < 0 || monitorIndex >= _monitorPaused.Length)
+        {
+            Logger.Info($"[SIPSorcery] ResumeMonitor: Invalid index {monitorIndex}");
+            return;
+        }
+        if (!_monitorPaused[monitorIndex])
+        {
+            Logger.Info($"[SIPSorcery] Monitor {monitorIndex} already running");
+            return;
+        }
+        _monitorPaused[monitorIndex] = false;
+        Logger.Info($"[SIPSorcery] Monitor {monitorIndex} resumed");
+
+        // Request keyframe for immediate visual update (bypass throttle)
+        RequestKeyframe(monitorIndex, force: true);
+    }
+
+    private async Task LogStatsAsync()
+    {
+        while (_running && !_disposed)
+        {
+            await Task.Delay(10000);
+            if (!_running) break;
+
+            lock (_lock)
+            {
+                var stats = string.Join(", ", _tracks.Select(t =>
+                {
+                    long encCount = Interlocked.Read(ref t.EncodeLatencyCount);
+                    long avgUs = encCount > 0 ? Interlocked.Read(ref t.EncodeLatencySum) / encCount : 0;
+                    return $"m{t.Index}:{t.SentFrames}f,enc={avgUs}us";
+                }));
+                var audioPkts = Interlocked.Read(ref _audioPacketsSent);
+                long lastInterval = _audioPacketsLastInterval;
+                long intervalPkts = audioPkts - lastInterval;
+                _audioPacketsLastInterval = audioPkts;
+                float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
+                var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether the cursor DataChannel is open and ready for sending.
+    /// </summary>
+    public bool HasCursorChannel => _cursorDc?.readyState == SIPSorcery.Net.RTCDataChannelState.open;
+
+    /// <summary>
+    /// Send cursor position via DataChannel (low-latency binary format).
+    /// Binary format (little-endian): [type(1)][monitorIndex(1)][u(4)][v(4)][flags(1)][cursorId(8)] = 19 bytes
+    /// Allocates fresh buffer each call to avoid race with SCTP send queue.
+    /// </summary>
+    public void SendCursorPosition(int monitorIndex, float u, float v, bool visible, int cursorType, long cursorId)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+
+        var buf = new byte[19];
+        buf[0] = 1; // message type: cursor_position
+        buf[1] = (byte)monitorIndex;
+        BitConverter.TryWriteBytes(buf.AsSpan(2, 4), u);
+        BitConverter.TryWriteBytes(buf.AsSpan(6, 4), v);
+        buf[10] = (byte)((visible ? 1 : 0) | ((cursorType & 0x0F) << 1));
+        BitConverter.TryWriteBytes(buf.AsSpan(11, 8), cursorId);
+
+        dc.send(buf);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        Stop();
+        Logger.Info("[SIPSorcery] Disposed");
+    }
+}
