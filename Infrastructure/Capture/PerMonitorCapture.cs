@@ -116,6 +116,16 @@ public sealed class PerMonitorCapture : IDisposable
     private Barrier? _captureBarrier;
     private long _syncedTimestamp; // Shared timestamp for all monitors in a frame (use Interlocked for access)
 
+    // Post-encode barrier: sync all monitors after encoding, before sending RTP
+    // Prevents consistent jitter asymmetry where one track's packets always arrive first
+    private Barrier? _postEncodeBarrier;
+
+    /// <summary>
+    /// Fired once after all monitors complete encoding for a frame.
+    /// The post-phase action sends all buffered frames in alternating track order.
+    /// </summary>
+    public event Action? OnPostEncodeSync;
+
     // Track which monitor currently has the cursor (shared across all capture threads)
     // When a monitor reports Visible=true, it becomes the active cursor monitor
     // Only the active cursor monitor fires cursor events (prevents duplicate events)
@@ -417,7 +427,14 @@ public sealed class PerMonitorCapture : IDisposable
                 // Set shared timestamp so all monitors use the same frame timestamp
                 Interlocked.Exchange(ref _syncedTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             });
-            Logger.Info($"[PerMonitorCapture] Created frame sync barrier for {activeMonitors} monitors");
+
+            // Post-encode barrier: after all tracks finish encoding, one designated thread
+            // (mon.Index == 0) flushes all buffered frames in alternating track order.
+            // No post-phase action — flush runs AFTER SignalAndWait returns, avoiding
+            // stalling the barrier while SRTP send is in progress.
+            _postEncodeBarrier = new Barrier(activeMonitors);
+
+            Logger.Info($"[PerMonitorCapture] Created frame sync barrier for {activeMonitors} monitors (capture + post-encode)");
         }
 
         // Start SEPARATE capture thread for EACH monitor (true parallelism!)
@@ -447,9 +464,11 @@ public sealed class PerMonitorCapture : IDisposable
             mon.Running = false;
         }
 
-        // Dispose barrier to unblock any waiting threads
+        // Dispose barriers to unblock any waiting threads
         try { _captureBarrier?.Dispose(); } catch { }
         _captureBarrier = null;
+        try { _postEncodeBarrier?.Dispose(); } catch { }
+        _postEncodeBarrier = null;
 
         // Wait for threads to finish
         foreach (var mon in Monitors)
@@ -537,10 +556,10 @@ public sealed class PerMonitorCapture : IDisposable
                     mon.LastFpsLogFrameCount = mon.CaptureFrameCount;
                 }
 
-                if (mon.Duplication == null) goto Pacing;
+                if (mon.Duplication == null) goto PostEncode;
 
                 // PAUSE CHECK: Skip frame acquisition entirely when monitor is paused
-                if (mon.Paused) goto Pacing;
+                if (mon.Paused) goto PostEncode;
 
                 // RATE LIMITING CHECK (BEFORE acquiring frame)
                 // Rate limiting controls SENDING, not ACQUIRING - always try to get the latest frame
@@ -739,7 +758,32 @@ public sealed class PerMonitorCapture : IDisposable
                     TrySendCachedFrame(mon, canSendFrame, loopStart, captureTimestamp);
                 }
 
-                Pacing:
+                PostEncode:
+                // POST-ENCODE SYNC: Wait for all monitors to finish encoding,
+                // then the designated thread (mon.Index == 0) sends all buffered
+                // frames in alternating order via OnPostEncodeSync.
+                if (_postEncodeBarrier != null)
+                {
+                    try
+                    {
+                        _postEncodeBarrier.SignalAndWait();
+                        // Only one thread flushes — avoids SRTP lock contention
+                        // and ensures predictable send timing
+                        if (mon.Index == 0)
+                        {
+                            try { OnPostEncodeSync?.Invoke(); }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"[PerMonitorCapture] PostEncodeSync error: {ex.Message}");
+                            }
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        break;
+                    }
+                }
+
                 // STRICT PACING: Hybrid sleep + spin for CPU-efficient frame timing
                 // Sleep threshold is dynamic based on target FPS (set at loop start)
                 long remaining = frameTimeMs - (sw.ElapsedMilliseconds - loopStart);

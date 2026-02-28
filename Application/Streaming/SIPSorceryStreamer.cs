@@ -49,7 +49,6 @@ public class SIPSorceryStreamer : IDisposable
     // Audio pipeline
     private DesktopAudioCapture? _audioCapture;
     private OpusAudioEncoder? _opusEncoder;
-    private volatile bool _audioEnabled;
     private bool _hasAudioTrack;
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
@@ -78,6 +77,11 @@ public class SIPSorceryStreamer : IDisposable
 
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
+
+    // Deferred send mode: buffer frames in OnEncodedData, flush via FlushAllPendingFrames()
+    // Prevents consistent jitter buffer asymmetry when SRTP lock serializes multi-track sends
+    public bool DeferredSendEnabled { get; set; }
+    private long _flushFrameCounter;
 
     /// <summary>
     /// Per-track state including encoder and staging texture
@@ -120,6 +124,15 @@ public class SIPSorceryStreamer : IDisposable
         public long LastEncodeStartTicks;
         public long EncodeLatencySum;
         public long EncodeLatencyCount;
+
+        // Deferred send: buffer encoded frame for coordinated multi-track sending
+        public volatile PendingFrameData? PendingFrame;
+        public class PendingFrameData
+        {
+            public readonly byte[] Au;
+            public readonly uint RtpStep;
+            public PendingFrameData(byte[] au, uint rtpStep) { Au = au; RtpStep = rtpStep; }
+        }
 
         public void Dispose()
         {
@@ -522,13 +535,13 @@ public class SIPSorceryStreamer : IDisposable
             };
 
             _audioCapture.Start();
-            _audioEnabled = true;
+
             Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP)");
         }
         catch (Exception ex)
         {
             Logger.Error($"[SIPSorcery] Audio init failed (non-fatal, video continues): {ex.Message}");
-            _audioEnabled = false;
+
             try { _opusEncoder?.Dispose(); } catch { }
             try { _audioCapture?.Dispose(); } catch { }
             _opusEncoder = null;
@@ -957,31 +970,82 @@ public class SIPSorceryStreamer : IDisposable
                 }
             }
 
-            // Send via VideoStreamList for ALL tracks (same code path = same latency)
-            // Previously track 0 used _pc.SendVideo() which may have different internal buffering
-            if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+            if (DeferredSendEnabled)
             {
-                var videoStream = _pc.VideoStreamList[track.Index];
-                videoStream.SendVideo(rtpStep, au);
-                Interlocked.Increment(ref track.SentFrames);
-            }
-            else if (track.Index == 0)
-            {
-                // Fallback for track 0 only: use _pc.SendVideo() if VideoStreamList unavailable
-                _pc.SendVideo(rtpStep, au);
-                Interlocked.Increment(ref track.SentFrames);
+                // Deferred mode: buffer frame for coordinated multi-track sending.
+                // FlushAllPendingFrames() sends all tracks in alternating order
+                // after the post-encode barrier, preventing jitter asymmetry.
+                track.PendingFrame = new TrackInfo.PendingFrameData(au, rtpStep);
             }
             else
             {
-                // Fallback: skip tracks we can't send to
-                if (frameNum < 5)
-                    Logger.Info($"[SIPSorcery] Track {track.Index} SKIP: VideoStreamList null or index out of range");
+                // Immediate send (single-monitor or no barrier sync)
+                SendFrameImmediate(track, au, rtpStep, frameNum);
             }
         }
         catch (Exception ex)
         {
             if (Interlocked.Read(ref track.SentFrames) % 120 == 0)
                 Logger.Error($"[SIPSorcery] Track {track.Index} send error: {ex.Message}");
+        }
+    }
+
+    private void SendFrameImmediate(TrackInfo track, byte[] au, uint rtpStep, long frameNum)
+    {
+        if (_pc!.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+        {
+            var videoStream = _pc.VideoStreamList[track.Index];
+            videoStream.SendVideo(rtpStep, au);
+            Interlocked.Increment(ref track.SentFrames);
+        }
+        else if (track.Index == 0)
+        {
+            _pc!.SendVideo(rtpStep, au);
+            Interlocked.Increment(ref track.SentFrames);
+        }
+        else
+        {
+            if (frameNum < 5)
+                Logger.Info($"[SIPSorcery] Track {track.Index} SKIP: VideoStreamList null or index out of range");
+        }
+    }
+
+    /// <summary>
+    /// Send all buffered frames in alternating track order.
+    /// Called by the post-encode barrier after all tracks finish encoding.
+    /// Alternating order prevents one track's RTP packets from consistently
+    /// arriving before the other's, which causes client jitter buffer asymmetry.
+    /// </summary>
+    public void FlushAllPendingFrames()
+    {
+        if (!_running || _pc == null || !_connected) return;
+
+        // Snapshot tracks under lock to prevent race with CloseConnection._tracks.Clear()
+        TrackInfo[] snapshot;
+        lock (_lock) { snapshot = _tracks.ToArray(); }
+
+        long frame = Interlocked.Increment(ref _flushFrameCounter);
+        bool reverse = (frame % 2) == 0;
+        int count = snapshot.Length;
+
+        for (int iter = 0; iter < count; iter++)
+        {
+            int i = reverse ? (count - 1 - iter) : iter;
+            var track = snapshot[i];
+            var pending = track.PendingFrame;
+            if (pending == null) continue;
+            track.PendingFrame = null;
+
+            try
+            {
+                long frameNum = Interlocked.Read(ref track.SentFrames);
+                SendFrameImmediate(track, pending.Au, pending.RtpStep, frameNum);
+            }
+            catch (Exception ex)
+            {
+                if (Interlocked.Read(ref track.SentFrames) % 120 == 0)
+                    Logger.Error($"[SIPSorcery] Track {i} flush error: {ex.Message}");
+            }
         }
     }
 
@@ -1593,7 +1657,6 @@ public class SIPSorceryStreamer : IDisposable
         }
 
         // Stop audio pipeline
-        _audioEnabled = false;
         try { _audioCapture?.Stop(); } catch { }
         try { _opusEncoder?.Dispose(); } catch { }
         try { _audioCapture?.Dispose(); } catch { }
@@ -1649,6 +1712,8 @@ public class SIPSorceryStreamer : IDisposable
                 track.LastPts100ns = -1;
             }
         }
+        // Reset deferred send counter for clean alternation on reconnect
+        Interlocked.Exchange(ref _flushFrameCounter, 0);
         // Enable frame sending — early capture frames were dropped to prevent WiFi congestion
         _phase3Active = true;
         Logger.Info("[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)");

@@ -1843,6 +1843,17 @@ namespace RemotePlayServer.Application.Protocol
                         }
                     };
 
+                    // Enable deferred multi-track sending if multiple monitors are active.
+                    // Post-encode barrier syncs all monitors after encoding, then sends
+                    // all tracks' RTP packets in alternating order to prevent jitter asymmetry.
+                    int activeMonitors = _capture.Monitors.Count(m => m.Device != null && m.Duplication != null);
+                    if (activeMonitors > 1 && _streamer != null)
+                    {
+                        _streamer.DeferredSendEnabled = true;
+                        _capture.OnPostEncodeSync += () => _streamer?.FlushAllPendingFrames();
+                        Logger.Info($"[Protocol] Deferred send enabled: {activeMonitors} monitors, alternating RTP send order");
+                    }
+
                     _capture.Start();
                     _captureCts.Token.WaitHandle.WaitOne();
                 }
