@@ -216,19 +216,13 @@ namespace RemotePlayServer.Application.Protocol
 
                     await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
 
-                    await Task.Run(() =>
-                    {
-                        VirtualDisplayManager.EnsureVddResolutionThenToggleDriver();
-                        Thread.Sleep(2000);
-                    });
+                    await Task.Run(() => VirtualDisplayManager.EnsureVddResolutionThenToggleDriver());
+                    await Task.Delay(2000); // Allow Windows to stabilize VDD resolution
 
                     await SendProgressAsync("topology", 60, "Setting up display topology...");
 
-                    await Task.Run(() =>
-                    {
-                        VirtualDisplayManager.EnsureExtendDesktopWithVirtual();
-                        Thread.Sleep(1000);
-                    });
+                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
+                    await Task.Delay(1000); // Allow Windows to apply topology change
 
                     _displayModified = true;
                 }
@@ -398,7 +392,7 @@ namespace RemotePlayServer.Application.Protocol
                 case "candidate":
                     var cand = ProtocolMessageParser.Parse<CandidateMessage>(json);
                     if (cand != null)
-                        ProcessIceCandidate(cand.MonitorIndex, cand.Candidate);
+                        await ProcessIceCandidateAsync(cand.MonitorIndex, cand.Candidate);
                     break;
 
                 case "proceed":
@@ -454,7 +448,7 @@ namespace RemotePlayServer.Application.Protocol
                 if (colonIdx > 0 && int.TryParse(rest.Substring(0, colonIdx), out int monIdx))
                 {
                     var candStr = rest.Substring(colonIdx + 1);
-                    ProcessIceCandidate(monIdx, candStr);
+                    await ProcessIceCandidateAsync(monIdx, candStr);
                 }
                 return;
             }
@@ -1041,12 +1035,12 @@ namespace RemotePlayServer.Application.Protocol
             return (cleanSdp, candidates);
         }
 
-        private void ProcessIceCandidate(int monitorIndex, string candidate)
+        private async Task ProcessIceCandidateAsync(int monitorIndex, string candidate)
         {
             if (_streamer == null) return;
 
             // Resolve mDNS if needed
-            candidate = MdnsHelper.MaybeResolveMdnsCandidateAsync(candidate).Result;
+            candidate = await MdnsHelper.MaybeResolveMdnsCandidateAsync(candidate);
             candidate = MdnsHelper.MaybeReplaceMdnsWithRemoteIp(candidate, _remoteIp);
 
             lock (_iceLock)

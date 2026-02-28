@@ -124,6 +124,15 @@ partial class Program
 
         TaskScheduler.UnobservedTaskException += (sender, e) =>
         {
+            // SIPSorcery internally fires UDP ReceiveFromAsync that become unobserved
+            // when PeerConnection closes (SocketException 995). This is expected - suppress silently.
+            if (e.Exception.InnerException is System.Net.Sockets.SocketException sockEx
+                && sockEx.NativeErrorCode == 995)
+            {
+                e.SetObserved();
+                return;
+            }
+
             var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] UNOBSERVED TASK EXCEPTION:\n{e.Exception}\n\n";
             Console.WriteLine(msg);
             try { File.AppendAllText(crashLogPath, msg); } catch { }

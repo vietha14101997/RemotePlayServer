@@ -166,10 +166,9 @@ public partial class SIPSorceryStreamer : IDisposable
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var warmupPc = new RTCPeerConnection(null);
             warmupPc.close();
-            // Let SIPSorcery's internal socket tasks abort cleanly
-            Thread.Sleep(50);
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995
+            // when PC closes. This is expected and silently filtered by the global
+            // UnobservedTaskException handler in Program.cs.
             sw.Stop();
             Logger.Info($"[SIPSorcery] DTLS pre-warm done in {sw.ElapsedMilliseconds}ms");
         }

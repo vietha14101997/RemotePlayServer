@@ -290,18 +290,9 @@ public partial class SIPSorceryStreamer
 
         try { _pc?.close(); } catch { }
         _pc = null;
-
-        // Allow SIPSorcery's internal UDP socket tasks to complete/cancel
-        // before GC finalizer fires and triggers UnobservedTaskException.
-        // Single GC cycle is insufficient - socket tasks may not be finalized yet.
-        // Use Thread.Sleep to let the socket abort callbacks propagate through
-        // the thread pool before forcing collection.
-        Thread.Sleep(100);
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        // Second pass: catch any tasks that became unreachable during first pass
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
+        // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995
+        // when PC closes. This is expected and silently filtered by the global
+        // UnobservedTaskException handler in Program.cs.
 
         Logger.Info("[SIPSorcery] Connection closed");
     }

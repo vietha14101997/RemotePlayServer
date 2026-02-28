@@ -46,7 +46,7 @@ static class MdnsHelper
                     return candStr;
                 }
 
-                var addrs = resolveTask.Result;
+                var addrs = await resolveTask;
                 if (addrs == null || addrs.Length == 0)
                 {
                     Console.WriteLine($"[Cluster Signal] mDNS resolve returned no addresses for '{addr}' (attempt {attempt}/{maxAttempts})");
