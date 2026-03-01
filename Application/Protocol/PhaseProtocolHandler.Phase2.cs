@@ -398,7 +398,51 @@ namespace RemotePlayServer.Application.Protocol
                 case "proceed":
                     var proceed = ProtocolMessageParser.Parse<ProceedMessage>(json);
                     if (proceed?.Phase == 3)
+                    {
+                        // Gate Phase 3 on DTLS completion to prevent the race condition where:
+                        // 1. Client sends proceed phase 3
+                        // 2. Server enters Phase 3, waits for start_streaming
+                        // 3. But DTLS hasn't completed → ice_ready never sent → client never sends start_streaming
+                        // 4. Client times out and disconnects
+                        //
+                        // By waiting here, we ensure DTLS is done before entering Phase 3,
+                        // so ice_ready + start_streaming exchange happens reliably.
+                        if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
+                        {
+                            Logger.Info("[Protocol] Received proceed phase 3, waiting for DTLS to complete...");
+                            try
+                            {
+                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts.Token, _ct);
+                                var dtlsTask = _allConnectedTcs.Task;
+                                var timeoutTask = Task.Delay(Timeout.Infinite, linkedCts.Token);
+                                var completed = await Task.WhenAny(dtlsTask, timeoutTask);
+
+                                if (completed == dtlsTask && dtlsTask.IsCompletedSuccessfully)
+                                {
+                                    Logger.Info("[Protocol] DTLS completed, proceeding to Phase 3");
+                                }
+                                else
+                                {
+                                    Logger.Error("[Protocol] DTLS timeout (10s) - requesting client to reconnect");
+                                    try
+                                    {
+                                        await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_timeout\"}");
+                                    }
+                                    catch { }
+                                    // Don't proceed to Phase 3 - let the ICE loop continue
+                                    // The client should reconnect with a new offer
+                                    break;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                // Client disconnected or global cancellation
+                                throw;
+                            }
+                        }
                         return true;
+                    }
                     break;
 
                 case "ping":

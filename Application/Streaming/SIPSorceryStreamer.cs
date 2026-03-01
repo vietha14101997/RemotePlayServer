@@ -177,7 +177,12 @@ public partial class SIPSorceryStreamer : IDisposable
     /// <summary>
     /// Pre-warm DTLS/BouncyCastle crypto at server startup.
     /// First RTCPeerConnection triggers lazy cert generation + RNG init (~2-5s).
-    /// Without this, the first client DTLS handshake times out.
+    /// Without this, the first client DTLS handshake may be slow.
+    ///
+    /// IMPORTANT: After closing the warmup PC, we must wait for SIPSorcery's internal
+    /// UDP tasks to fully settle. Without this delay, leftover state from the warmup PC
+    /// can interfere with the first real PeerConnection's DTLS handshake, causing it
+    /// to never complete (observed as first-session DTLS timeout → client cancel).
     /// </summary>
     public static void PreWarmDtls()
     {
@@ -190,6 +195,17 @@ public partial class SIPSorceryStreamer : IDisposable
             // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995
             // when PC closes. This is expected and silently filtered by the global
             // UnobservedTaskException handler in Program.cs.
+
+            // Wait for SIPSorcery's background UDP tasks and socket cleanup to settle.
+            // Without this, the first real PeerConnection's DTLS handshake can fail
+            // due to stale state from the warmup PC.
+            Thread.Sleep(1000);
+
+            // Force GC to collect the warmup PC and its associated resources,
+            // ensuring no lingering references interfere with real connections.
+            GC.Collect(0, GCCollectionMode.Forced);
+            GC.WaitForPendingFinalizers();
+
             sw.Stop();
             Logger.Info($"[SIPSorcery] DTLS pre-warm done in {sw.ElapsedMilliseconds}ms");
         }
