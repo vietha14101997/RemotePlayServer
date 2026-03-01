@@ -126,6 +126,14 @@ public sealed class PerMonitorCapture : IDisposable
     /// </summary>
     public event Action? OnPostEncodeSync;
 
+    /// <summary>
+    /// One-shot callback fired in the capture barrier's post-phase action.
+    /// Used for Phase 3 activation — ensures all monitors see the state change
+    /// at the same barrier cycle (no race between capture threads).
+    /// Automatically cleared after firing.
+    /// </summary>
+    public volatile Action? OnNextBarrierSync;
+
     // Track which monitor currently has the cursor (shared across all capture threads)
     // When a monitor reports Visible=true, it becomes the active cursor monitor
     // Only the active cursor monitor fires cursor events (prevents duplicate events)
@@ -466,6 +474,16 @@ public sealed class PerMonitorCapture : IDisposable
                 // This runs once after all threads reach the barrier
                 // Set shared timestamp so all monitors use the same frame timestamp
                 Interlocked.Exchange(ref _syncedTimestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+
+                // One-shot barrier-synced callback (Phase 3 activation, etc.)
+                // Ensures all monitors see state changes at the same barrier cycle.
+                var action = OnNextBarrierSync;
+                if (action != null)
+                {
+                    OnNextBarrierSync = null;
+                    try { action(); }
+                    catch (Exception ex) { Logger.Error($"[PerMonitorCapture] OnNextBarrierSync error: {ex.Message}"); }
+                }
             });
 
             // Post-encode barrier: after all tracks finish encoding, one designated thread

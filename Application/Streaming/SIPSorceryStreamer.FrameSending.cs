@@ -46,6 +46,12 @@ public partial class SIPSorceryStreamer
         var track = _tracks[monitorIndex];
         if (track.Encoder == null) return;
 
+        // Set shared stream start from barrier-synced capture timestamp.
+        // Moved here from CalculateRtpStepFromCaptureTime to ensure _streamStartMs
+        // is always set from a barrier-synced timestamp, not from callback timing.
+        if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
+            Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
+
         // Per-track lock: allows parallel NVENC encoding across tracks.
         // Previously used shared _lock which serialized all encoding,
         // causing the second track to accumulate transport delay on the client.
@@ -53,6 +59,12 @@ public partial class SIPSorceryStreamer
         {
             try
             {
+                // Clear NAL accumulator for new encode cycle.
+                // AMF's drain loop may fire 0-2+ callbacks per encode —
+                // accumulate all NAL data, then create PendingFrame after encode returns.
+                track.NalAccumulator = null;
+                track.NalAccumulatorIsKeyframe = false;
+
                 // Store capture timestamp for use in OnEncodedData callback
                 track.PendingCaptureTimestampMs = captureTimestampMs;
 
@@ -72,8 +84,28 @@ public partial class SIPSorceryStreamer
 
                 // Encode BGRA directly - no staging texture or copy needed
                 track.LastEncodeStartTicks = System.Diagnostics.Stopwatch.GetTimestamp();
-                track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
-                Interlocked.Increment(ref track.EncodedFrames);
+                bool encodeSuccess = track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
+
+                if (encodeSuccess)
+                    Interlocked.Increment(ref track.EncodedFrames);
+
+                // Create PendingFrame from accumulated callback data (if any).
+                // This ensures ALL NAL data from multiple callbacks is merged into one frame.
+                if (DeferredSendEnabled)
+                {
+                    if (track.NalAccumulator != null)
+                    {
+                        track.PendingFrame = new TrackInfo.PendingFrameData(
+                            track.NalAccumulator, track.NalAccumulatorRtpStep);
+                    }
+                    else if (encodeSuccess)
+                    {
+                        // AMF produced no output (VCN contention / pipeline buffering)
+                        long frames = Interlocked.Read(ref track.EncodedFrames);
+                        if (frames <= 3 || frames % 600 == 0)
+                            Logger.Warn($"[SIPSorcery] Track {monitorIndex}: encoder produced no output (frame {frames})");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -95,6 +127,10 @@ public partial class SIPSorceryStreamer
         var track = _tracks[monitorIndex];
         if (track.Encoder == null) return;
 
+        // Set shared stream start from barrier-synced capture timestamp
+        if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
+            Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
+
         // Per-track lock: allows parallel encoding across tracks
         lock (track.EncodeLock)
         {
@@ -102,6 +138,10 @@ public partial class SIPSorceryStreamer
             {
                 var device = track.Device ?? _sharedDevice;
                 if (device == null) return;
+
+                // Clear NAL accumulator for new encode cycle
+                track.NalAccumulator = null;
+                track.NalAccumulatorIsKeyframe = false;
 
                 // Store capture timestamp for use in OnEncodedData callback
                 track.PendingCaptureTimestampMs = captureTimestampMs;
@@ -140,8 +180,26 @@ public partial class SIPSorceryStreamer
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
                 track.LastEncodeStartTicks = System.Diagnostics.Stopwatch.GetTimestamp();
-                track.Encoder.EncodeTexture(track.StagingNV12, forceKeyframe: forceIdr);
-                Interlocked.Increment(ref track.EncodedFrames);
+                bool encodeSuccess = track.Encoder.EncodeTexture(track.StagingNV12, forceKeyframe: forceIdr);
+
+                if (encodeSuccess)
+                    Interlocked.Increment(ref track.EncodedFrames);
+
+                // Create PendingFrame from accumulated callback data (if any)
+                if (DeferredSendEnabled)
+                {
+                    if (track.NalAccumulator != null)
+                    {
+                        track.PendingFrame = new TrackInfo.PendingFrameData(
+                            track.NalAccumulator, track.NalAccumulatorRtpStep);
+                    }
+                    else if (encodeSuccess)
+                    {
+                        long frames = Interlocked.Read(ref track.EncodedFrames);
+                        if (frames <= 3 || frames % 600 == 0)
+                            Logger.Warn($"[SIPSorcery] Track {monitorIndex}: encoder produced no output (frame {frames})");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -216,10 +274,23 @@ public partial class SIPSorceryStreamer
 
             if (DeferredSendEnabled)
             {
-                // Deferred mode: buffer frame for coordinated multi-track sending.
-                // FlushAllPendingFrames() sends all tracks in alternating order
-                // after the post-encode barrier, preventing jitter asymmetry.
-                track.PendingFrame = new TrackInfo.PendingFrameData(au, rtpStep);
+                // Accumulate: AMF's drain loop may fire 0-2+ callbacks per encode.
+                // First callback sets rtpStep; subsequent callbacks append NAL data.
+                // PendingFrame is created AFTER encode returns in PushBgraTexture/PushTexture.
+                if (track.NalAccumulator == null)
+                {
+                    track.NalAccumulator = au;
+                    track.NalAccumulatorRtpStep = rtpStep;
+                }
+                else
+                {
+                    // Merge: [existing NALs] + [new NALs]
+                    var merged = new byte[track.NalAccumulator.Length + au.Length];
+                    Buffer.BlockCopy(track.NalAccumulator, 0, merged, 0, track.NalAccumulator.Length);
+                    Buffer.BlockCopy(au, 0, merged, track.NalAccumulator.Length, au.Length);
+                    track.NalAccumulator = merged;
+                }
+                if (isKeyframe) track.NalAccumulatorIsKeyframe = true;
             }
             else
             {

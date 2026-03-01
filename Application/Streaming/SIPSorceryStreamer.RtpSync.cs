@@ -46,10 +46,8 @@ public partial class SIPSorceryStreamer
         const int ClockRate = 90000;
         uint fallback = (uint)Math.Max(1, ClockRate / Math.Max(1, _fps));
 
-        // Initialize shared stream start time (first frame from any track sets this)
-        if (Interlocked.Read(ref _streamStartMs) < 0)
-            Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
-
+        // _streamStartMs is initialized in PushBgraTexture/PushTexture from barrier-synced
+        // capture timestamp, ensuring all tracks share the same origin.
         long startMs = Interlocked.Read(ref _streamStartMs);
         long elapsedMs = captureTimestampMs - startMs;
         if (elapsedMs < 0) elapsedMs = 0;
@@ -139,12 +137,16 @@ public partial class SIPSorceryStreamer
                 track.LastAbsoluteRtp = 0;
                 track.TimestampInitialized = false;
                 track.LastPts100ns = -1;
+                track.NalAccumulator = null;
+                track.NalAccumulatorIsKeyframe = false;
             }
         }
         // Reset deferred send counter for clean alternation on reconnect
         Interlocked.Exchange(ref _flushFrameCounter, 0);
-        // Enable frame sending — early capture frames were dropped to prevent WiFi congestion
-        _phase3Active = true;
-        Logger.Info("[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)");
+        // Mark Phase 3 as pending — actual activation happens via barrier sync
+        // (OnNextBarrierSync callback) to ensure all tracks start from the same
+        // barrier cycle. If no barrier is available, activate immediately.
+        _phase3PendingActivation = true;
+        Logger.Info("[SIPSorcery] Sync state reset, Phase 3 pending activation");
     }
 }

@@ -59,6 +59,19 @@ namespace RemotePlayServer.Application.Protocol
             // ensures Phase 3 frames start with clean RTP timestamps.
             _streamer?.ResetSyncState();
 
+            // Activate Phase 3 via barrier sync — ensures all tracks see
+            // _phase3Active=true at the same barrier cycle, preventing one track
+            // from starting 1-2 cycles before the other (27ms RTP offset).
+            if (_capture != null && _streamer != null)
+            {
+                _capture.OnNextBarrierSync = () => _streamer?.ActivatePhase3();
+            }
+            else
+            {
+                // No capture available — activate immediately as fallback
+                _streamer?.ActivatePhase3();
+            }
+
             // Send streaming_started
             var startedMsg = new StreamingStartedMessage
             {

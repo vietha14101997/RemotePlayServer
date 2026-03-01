@@ -42,6 +42,7 @@ public partial class SIPSorceryStreamer : IDisposable
     private volatile bool _connected;
     private volatile bool _isPaused;
     private volatile bool _phase3Active; // false during early capture → frames dropped to prevent WiFi congestion
+    private volatile bool _phase3PendingActivation; // set by ResetSyncState, activated by barrier sync
 
     // Per-monitor pause state (allows pausing individual monitors)
     private volatile bool[] _monitorPaused = Array.Empty<bool>();
@@ -113,6 +114,13 @@ public partial class SIPSorceryStreamer : IDisposable
         public long EncodeLatencySum;
         public long EncodeLatencyCount;
 
+        // NAL accumulator: collects data across multiple encoder callbacks per encode cycle.
+        // AMF's drain loop may fire 0-2+ callbacks per SubmitInput — accumulate all NAL data
+        // during encoding, then create PendingFrame after encode returns.
+        public byte[]? NalAccumulator;
+        public uint NalAccumulatorRtpStep;
+        public bool NalAccumulatorIsKeyframe;
+
         // Deferred send: buffer encoded frame for coordinated multi-track sending
         public volatile PendingFrameData? PendingFrame;
         public class PendingFrameData
@@ -135,6 +143,19 @@ public partial class SIPSorceryStreamer : IDisposable
     public event Action? OnAllTracksReady;
     public event Action<string>? OnIceCandidate;
     public event Action? OnConnectionFailed;
+
+    /// <summary>
+    /// Activate Phase 3 from barrier-synced context.
+    /// Called by PerMonitorCapture's barrier post-phase action to ensure
+    /// all tracks see _phase3Active=true at the same barrier cycle.
+    /// </summary>
+    public void ActivatePhase3()
+    {
+        if (!_phase3PendingActivation) return; // Already activated or not pending
+        _phase3PendingActivation = false;
+        _phase3Active = true;
+        Logger.Info("[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)");
+    }
 
     public bool IsConnected => _connected;
     public int MonitorCount => _monitorCount;
