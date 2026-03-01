@@ -29,8 +29,8 @@ public partial class SIPSorceryStreamer
             ? (float)clientTotalFrames / serverSentFrames
             : 1f;
 
-        Logger.Info($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (ratio={pipelineRatio:F2})");
-        Logger.Info($"[SIPSorcery] FPS feedback m{monitorIndex}: {effectiveFps:F1}fps, dropped={droppedFrames}");
+        Logger.Debug($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (ratio={pipelineRatio:F2})");
+        Logger.Debug($"[SIPSorcery] FPS feedback m{monitorIndex}: {effectiveFps:F1}fps, dropped={droppedFrames}");
 
         // Only trigger bitrate reduction when client reports ACTUAL dropped frames.
         // Low pipeline ratio (server sends >> client renders) is normal rate mismatch,

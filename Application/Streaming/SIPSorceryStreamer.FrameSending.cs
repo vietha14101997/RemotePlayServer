@@ -185,7 +185,7 @@ public partial class SIPSorceryStreamer
             {
                 long encCount = Interlocked.Read(ref track.EncodeLatencyCount);
                 long avgEncUs = encCount > 0 ? Interlocked.Read(ref track.EncodeLatencySum) / encCount : 0;
-                Logger.Info($"[SIPSorcery] Track {track.Index} KEYFRAME: rtpStep={rtpStep}, captureMs={captureMs}, " +
+                Logger.Debug($"[SIPSorcery] Track {track.Index} KEYFRAME: rtpStep={rtpStep}, captureMs={captureMs}, " +
                     $"avgEncLatency={avgEncUs}us, sentFrames={Interlocked.Read(ref track.SentFrames)}");
             }
 

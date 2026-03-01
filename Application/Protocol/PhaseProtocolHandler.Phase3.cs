@@ -118,8 +118,10 @@ namespace RemotePlayServer.Application.Protocol
 
                     var msgType = ProtocolMessageParser.GetMessageType(text);
 
-                    // Log important Phase 3 messages (skip frequent ones like quality_feedback, ping)
-                    if (msgType != "quality_feedback" && msgType != "fps_feedback" && !text.StartsWith("ping:"))
+                    // Log important Phase 3 messages (skip high-frequency ones)
+                    if (msgType != "quality_feedback" && msgType != "fps_feedback"
+                        && msgType != "request_keyframe" && msgType != "frameTiming"
+                        && !text.StartsWith("ping:"))
                     {
                         Logger.Info($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}");
                     }
@@ -268,7 +270,7 @@ namespace RemotePlayServer.Application.Protocol
                         }
                         catch { }
 
-                        Logger.Info($"[Protocol] skip_to_live received (monitor={monitorIndex}) - forcing keyframe for latency recovery");
+                        Logger.Debug($"[Protocol] skip_to_live received (monitor={monitorIndex}) - forcing keyframe for latency recovery");
 
                         // Force keyframe on specified monitor (or all if -1)
                         _streamer?.RequestKeyframe(monitorIndex);
