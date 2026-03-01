@@ -79,6 +79,9 @@ namespace RemotePlayServer.Application.Protocol
             // Start server-side keep-alive for early disconnect detection
             StartKeepAlive();
 
+            // Start server-side stall detection for proactive recovery
+            StartStallDetection();
+
             // Main loop - handle messages while streaming
             var buffer = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
@@ -292,6 +295,8 @@ namespace RemotePlayServer.Application.Protocol
                             var feedback = ProtocolMessageParser.Parse<FpsFeedbackMessage>(text);
                             if (feedback != null && _streamer != null)
                             {
+                                Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+                                _feedbackEstablished = true;
                                 _streamer.ProcessFpsFeedback(
                                     feedback.MonitorIndex,
                                     feedback.EffectiveFps,
@@ -322,6 +327,8 @@ namespace RemotePlayServer.Application.Protocol
                             var feedback = ProtocolMessageParser.Parse<QualityFeedbackMessage>(text);
                             if (feedback != null && _streamer != null)
                             {
+                                Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+                                _feedbackEstablished = true;
                                 // Proactive keyframe burst on significant packet loss
                                 if (feedback.PacketLossRate > 0.02f)
                                     _streamer.RequestKeyframeBurst(-1, 3);
@@ -389,6 +396,9 @@ namespace RemotePlayServer.Application.Protocol
             // Stop keep-alive timer
             StopKeepAlive();
 
+            // Stop stall detection timer
+            StopStallDetection();
+
             // Stop cursor tracking
             StopCursorTracking();
             Logger.Info("[Protocol] Cursor tracking stopped");
@@ -434,17 +444,25 @@ namespace RemotePlayServer.Application.Protocol
                         int targetWidth = w;
                         int targetHeight = h;
 
-                        if (_textureResizer != null && _textureResizer.NeedsResize(w, h))
+                        // Capture local ref to avoid TOCTOU race during shutdown
+                        var resizer = _textureResizer;
+                        if (resizer != null)
                         {
-                            // Get device for this monitor (each monitor has dedicated device)
-                            var device = _capture?.GetDeviceForMonitor(monitorIndex);
-                            if (device != null)
+                            try
                             {
-                                var (resized, rw, rh) = _textureResizer.ResizeBgraTexture(device, bgraTexture, w, h, monitorIndex);
-                                textureToSend = resized;
-                                targetWidth = rw;
-                                targetHeight = rh;
+                                if (resizer.NeedsResize(w, h))
+                                {
+                                    var device = _capture?.GetDeviceForMonitor(monitorIndex);
+                                    if (device != null)
+                                    {
+                                        var (resized, rw, rh) = resizer.ResizeBgraTexture(device, bgraTexture, w, h, monitorIndex);
+                                        textureToSend = resized;
+                                        targetWidth = rw;
+                                        targetHeight = rh;
+                                    }
+                                }
                             }
+                            catch (ObjectDisposedException) { return; }
                         }
 
                         // Push texture (null-forgiving since textureToSend is always non-null)
@@ -587,6 +605,92 @@ namespace RemotePlayServer.Application.Protocol
                 _keepAliveTimer?.Stop();
                 _keepAliveTimer?.Dispose();
                 _keepAliveTimer = null;
+            }
+            catch { }
+        }
+
+        // Stall detection fields
+        private System.Timers.Timer? _stallDetectTimer;
+        private const int STALL_CHECK_INTERVAL_MS = 200;    // Check every 200ms for sub-second detection
+        private const int STALL_THRESHOLD_MS = 800;          // 800ms without feedback = stall (cloud gaming ≤1s target)
+
+        /// <summary>
+        /// Start server-side stall detection.
+        /// If no quality_feedback or fps_feedback arrives for 1.5s during streaming,
+        /// proactively reduce bitrate and send keyframe burst.
+        /// </summary>
+        private void StartStallDetection()
+        {
+            Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+
+            _stallDetectTimer = new System.Timers.Timer(STALL_CHECK_INTERVAL_MS);
+            _stallDetectTimer.Elapsed += (s, e) =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open || _streamer == null)
+                    {
+                        _stallDetectTimer?.Stop();
+                        return;
+                    }
+
+                    // Don't detect stalls until client has sent at least one feedback
+                    // (avoids false positives during initial connection setup)
+                    if (!_feedbackEstablished) return;
+
+                    var lastFeedback = new DateTime(Interlocked.Read(ref _lastClientFeedbackTicks));
+                    var timeSinceLastFeedback = (DateTime.UtcNow - lastFeedback).TotalMilliseconds;
+                    if (timeSinceLastFeedback > STALL_THRESHOLD_MS)
+                    {
+                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s → reducing bitrate + keyframe burst");
+
+                        var (currentFps, currentBitrate, _) = _streamer.GetCurrentConfig();
+
+                        var stallFeedback = new QualityFeedbackMessage
+                        {
+                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                            EffectiveFps = 0f,
+                            TargetFps = currentFps,
+                            PacketLossRate = 0.5f,
+                            AvgPacketLossRate = 0.5f,
+                            BufferStatus = "starving",
+                            RttMs = 0,
+                            JitterMs = 0,
+                            ConnectionHealth = 1,
+                            IsWiFi = !_isUsbTransport,
+                        };
+
+                        _streamer.ProcessQualityFeedback(stallFeedback);
+
+                        // Keyframe burst on all monitors for visual recovery
+                        _streamer.RequestKeyframeBurst(-1, 3);
+
+                        // Reset timer so we don't spam reductions every 1s
+                        Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+
+                        Logger.Info($"[StallDetect] Applied: bitrate reduced, keyframe burst sent");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[StallDetect] Error: {ex.Message}");
+                }
+            };
+            _stallDetectTimer.AutoReset = true;
+            _stallDetectTimer.Start();
+            Logger.Info("[StallDetect] Server-side stall detection started (800ms threshold, 200ms check)");
+        }
+
+        /// <summary>
+        /// Stop stall detection timer.
+        /// </summary>
+        private void StopStallDetection()
+        {
+            try
+            {
+                _stallDetectTimer?.Stop();
+                _stallDetectTimer?.Dispose();
+                _stallDetectTimer = null;
             }
             catch { }
         }

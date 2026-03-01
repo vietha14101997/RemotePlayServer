@@ -89,6 +89,7 @@ namespace RemotePlayServer.Application.Streaming
 
             // Start warmup period
             _streamStartTime = DateTime.UtcNow;
+            _lastNetworkIssueTime = DateTime.UtcNow; // Avoid "stable for 2025 years" when no issue has occurred yet
 
             Logger.Info($"[AdaptiveBitrate] Initialized: target={initialBitrateKbps}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
         }
@@ -246,7 +247,21 @@ namespace RemotePlayServer.Application.Streaming
             // During warmup, skip normal buffer/FPS-based decreases (these are normal during startup)
             if (inWarmup)
             {
-                // Only log once every few seconds to avoid spam
+                // Emergency bypass: allow drastic reduction even during warmup
+                // when conditions are catastrophic (stream is clearly broken, not just warming up)
+                // Note: low FPS alone (static content) must NOT trigger - require evidence of problems
+                float warmupFpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 1f;
+                bool hasProblems = feedback.PacketLossRate > 0.01f || totalDroppedFrames > 0;
+                bool fpsEmergency = warmupFpsRatio < FPS_CRITICAL_THRESHOLD && hasProblems;  // < 30% target + evidence
+                bool lossEmergency = feedback.PacketLossRate > 0.5f;           // > 50% packet loss (always real)
+
+                if (fpsEmergency || lossEmergency)
+                {
+                    int emergencyBitrate = Math.Max(MinBitrateKbps, current / 2);  // 50% cut
+                    Logger.Info($"[EmergencyWarmup] Bypass warmup: fpsRatio={warmupFpsRatio:F2}, loss={feedback.PacketLossRate:P1} → {current} → {emergencyBitrate} kbps");
+                    return emergencyBitrate;
+                }
+
                 return current;
             }
 
@@ -370,7 +385,7 @@ namespace RemotePlayServer.Application.Streaming
             _ewmaPacketLoss = 0;
             _ewmaRtt = 30;
             _lastAdjustmentTime = DateTime.MinValue;
-            _lastNetworkIssueTime = DateTime.MinValue;
+            _lastNetworkIssueTime = DateTime.UtcNow; // Reset to now, not MinValue
             AdjustmentCount = 0;
 
             Logger.Info($"[AdaptiveBitrate] Reset to {InitialBitrateKbps}kbps");

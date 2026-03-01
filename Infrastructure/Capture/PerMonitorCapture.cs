@@ -164,8 +164,48 @@ public sealed class PerMonitorCapture : IDisposable
     /// </summary>
     public event Action<int, byte[], OutduplPointerShapeInfo, OutduplPointerPosition, long>? OnCursorUpdate;
 
-    // Global cursor shape ID counter (shared across all monitors)
-    private long _cursorShapeIdCounter;
+    // Global cursor shape ID — content-based hash so same visual cursor always has same ID.
+    // Prevents duplicate image sends when DXGI re-reports identical cursor bitmaps.
+
+    /// <summary>
+    /// Compute a stable content-based hash for cursor bitmap data.
+    /// Same visual cursor (same pixels + shape info) → same hash → same cursorId.
+    /// Uses FNV-1a 64-bit hash for speed (cursor buffers are typically 4KB).
+    /// </summary>
+    private static long ComputeCursorContentHash(byte[] buffer, OutduplPointerShapeInfo shapeInfo)
+    {
+        // FNV-1a 64-bit
+        const ulong FNV_OFFSET = 14695981039346656037UL;
+        const ulong FNV_PRIME = 1099511628211UL;
+
+        ulong hash = FNV_OFFSET;
+
+        // Include shape metadata in hash
+        hash ^= (ulong)(int)shapeInfo.Type;  hash *= FNV_PRIME;
+        hash ^= (ulong)shapeInfo.Width;      hash *= FNV_PRIME;
+        hash ^= (ulong)shapeInfo.Height;     hash *= FNV_PRIME;
+        hash ^= (ulong)shapeInfo.HotSpot.X;  hash *= FNV_PRIME;
+        hash ^= (ulong)shapeInfo.HotSpot.Y;  hash *= FNV_PRIME;
+
+        // Hash bitmap data (process 8 bytes at a time for speed)
+        int i = 0;
+        int len = buffer.Length;
+        for (; i + 7 < len; i += 8)
+        {
+            ulong block = BitConverter.ToUInt64(buffer, i);
+            hash ^= block;
+            hash *= FNV_PRIME;
+        }
+        // Remaining bytes
+        for (; i < len; i++)
+        {
+            hash ^= buffer[i];
+            hash *= FNV_PRIME;
+        }
+
+        // Return as positive long (avoid negative cursorId confusion)
+        return (long)(hash & 0x7FFFFFFFFFFFFFFFUL);
+    }
 
     /// <summary>
     /// Get D3D11 device for a specific monitor (for encoder initialization)
@@ -625,11 +665,13 @@ public sealed class PerMonitorCapture : IDisposable
                                         if (shapeResult.Success)
                                         {
                                             // Store cursor shape globally (shared across all monitors)
+                                            // Use content-based hash so same visual cursor → same ID
+                                            var contentHash = ComputeCursorContentHash(cursorBuffer, shapeInfo);
                                             lock (_globalCursorLock)
                                             {
                                                 _globalCursorBuffer = cursorBuffer;
                                                 _globalCursorShapeInfo = shapeInfo;
-                                                _globalCursorShapeId = Interlocked.Increment(ref _cursorShapeIdCounter);
+                                                _globalCursorShapeId = contentHash;
                                             }
                                         }
                                     }

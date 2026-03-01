@@ -21,13 +21,64 @@ public partial class SIPSorceryStreamer
             }
         }
 
-        // Calculate loss percentage
-        float lossPercent = serverSentFrames > 0
-            ? (1f - (float)clientTotalFrames / serverSentFrames) * 100f
-            : 0f;
+        // Pipeline ratio for logging only — NOT used for bitrate decisions.
+        // Server encodes at target FPS (e.g. 60fps) but client may only render ~10fps
+        // due to WebRTC decoder throughput limits. This rate mismatch is normal,
+        // not packet loss. Only droppedFrames indicates actual delivery problems.
+        float pipelineRatio = serverSentFrames > 0
+            ? (float)clientTotalFrames / serverSentFrames
+            : 1f;
 
-        Logger.Info($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (loss={lossPercent:F1}%)");
+        Logger.Info($"[Pipeline] Mon{monitorIndex}: Server sent {serverSentFrames}, Client received {clientTotalFrames} (ratio={pipelineRatio:F2})");
         Logger.Info($"[SIPSorcery] FPS feedback m{monitorIndex}: {effectiveFps:F1}fps, dropped={droppedFrames}");
+
+        // Only trigger bitrate reduction when client reports ACTUAL dropped frames.
+        // Low pipeline ratio (server sends >> client renders) is normal rate mismatch,
+        // not evidence of network problems. droppedFrames > 0 means the client received
+        // frames but couldn't display them — a real delivery problem.
+        if (droppedFrames > 0)
+        {
+            float fpsRatio = _fps > 0 ? effectiveFps / _fps : 1f;
+            // Use drop rate as proxy for loss, not pipeline ratio
+            float dropRate = (clientTotalFrames + droppedFrames) > 0
+                ? (float)droppedFrames / (clientTotalFrames + droppedFrames)
+                : 0f;
+
+            Logger.Info($"[FpsBitrateAction] Triggered: fpsRatio={fpsRatio:F2}, drops={droppedFrames}, dropRate={dropRate:P1} → creating synthetic QualityFeedback");
+
+            var syntheticFeedback = new QualityFeedbackMessage
+            {
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                EffectiveFps = effectiveFps,
+                TargetFps = _fps,
+                PacketLossRate = dropRate,
+                AvgPacketLossRate = dropRate,
+                BufferStatus = fpsRatio < 0.3f ? "starving" : "lossy",
+                RttMs = 0,
+                JitterMs = 0,
+                ConnectionHealth = fpsRatio < 0.3f ? 1 : 3,
+                IsWiFi = _bitrateController.IsWiFiMode,
+                Monitors = new List<MonitorFeedback>
+                {
+                    new MonitorFeedback
+                    {
+                        Index = monitorIndex,
+                        DroppedFrames = droppedFrames,
+                        RenderedFrames = Math.Max(0, (int)(clientTotalFrames - droppedFrames)),
+                    }
+                }
+            };
+
+            ProcessQualityFeedback(syntheticFeedback);
+
+            // Force keyframe burst on severe conditions
+            bool severe = fpsRatio < 0.3f || dropRate > 0.5f;
+            if (severe)
+            {
+                Logger.Info($"[FpsBitrateAction] Severe condition → keyframe burst mon={monitorIndex}");
+                RequestKeyframeBurst(monitorIndex, 3);
+            }
+        }
     }
 
     public int GetCurrentTargetFps(int monitorIndex) => _fps;

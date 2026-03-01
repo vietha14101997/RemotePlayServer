@@ -39,11 +39,14 @@ namespace RemotePlayServer.Application.Protocol
             // Clear cache at start to ensure fresh cursors each session
             _sentCursorIds.Clear();
             _lastDxgiCursorShapeId = -1;
+            long lastSentShapeId = -1; // Track last shapeId for which image was successfully sent
 
             return Task.Run(async () =>
             {
                 const int POLL_INTERVAL_MS = 8; // ~120Hz (faster cursor updates via DataChannel)
                 const float THRESHOLD = 0.001f; // Minimum UV change to send update
+                const int MIN_CURSOR_IMAGE_INTERVAL_MS = 50; // Max ~20 cursor images/s to avoid WebSocket flood
+                var lastCursorImageSendTime = DateTime.MinValue;
 
                 while (!ct.IsCancellationRequested && _ws.State == WebSocketState.Open)
                 {
@@ -102,39 +105,54 @@ namespace RemotePlayServer.Application.Protocol
                                                visible != _lastCursorVisible ||
                                                (Math.Abs(u - _lastCursorU) > THRESHOLD || Math.Abs(v - _lastCursorV) > THRESHOLD);
 
-                        // Send cursor image if shape changed and we haven't sent it yet
+                        // Send cursor image if shape changed and we haven't sent it yet.
+                        // With content-based hashing, _sentCursorIds works correctly:
+                        // same visual cursor → same shapeId → already in cache → skip.
+                        // Rate-limited to avoid flooding WebSocket (cursor images are ~6KB each).
                         if (shapeChanged && visible && !_sentCursorIds.Contains(shapeId))
                         {
-                            var converted = CursorConverter.ConvertDxgiCursorToRgba(cursorBuffer, shapeInfo.Value);
-                            if (converted.HasValue)
+                            var timeSinceLastImage = (DateTime.UtcNow - lastCursorImageSendTime).TotalMilliseconds;
+                            if (timeSinceLastImage >= MIN_CURSOR_IMAGE_INTERVAL_MS)
                             {
-                                var (rgbaData, width, height, hotspotX, hotspotY) = converted.Value;
-
-                                // CRITICAL: Force exact size to prevent client distortion
-                                // Client expects exactly width*height*4 bytes of RGBA data
-                                int expectedSize = width * height * 4;
-                                if (rgbaData.Length != expectedSize)
+                                var converted = CursorConverter.ConvertDxgiCursorToRgba(cursorBuffer, shapeInfo.Value);
+                                if (converted.HasValue)
                                 {
-                                    var fixedData = new byte[expectedSize];
-                                    Array.Copy(rgbaData, fixedData, Math.Min(rgbaData.Length, expectedSize));
-                                    rgbaData = fixedData;
+                                    var (rgbaData, width, height, hotspotX, hotspotY) = converted.Value;
+
+                                    // CRITICAL: Force exact size to prevent client distortion
+                                    int expectedSize = width * height * 4;
+                                    if (rgbaData.Length != expectedSize)
+                                    {
+                                        var fixedData = new byte[expectedSize];
+                                        Array.Copy(rgbaData, fixedData, Math.Min(rgbaData.Length, expectedSize));
+                                        rgbaData = fixedData;
+                                    }
+
+                                    var base64 = Convert.ToBase64String(rgbaData);
+
+                                    var imgMsg = new CursorImageMessage
+                                    {
+                                        CursorId = shapeId,
+                                        CursorTypeValue = (int)shapeInfo.Value.Type,
+                                        Width = width,
+                                        Height = height,
+                                        HotspotX = hotspotX,
+                                        HotspotY = hotspotY,
+                                        ImageBase64 = base64
+                                    };
+                                    await SendMessageAsync(imgMsg);
+                                    _sentCursorIds.Add(shapeId);
+                                    lastSentShapeId = shapeId;
+                                    lastCursorImageSendTime = DateTime.UtcNow;
                                 }
-
-                                var base64 = Convert.ToBase64String(rgbaData);
-
-                                var imgMsg = new CursorImageMessage
-                                {
-                                    CursorId = shapeId,
-                                    CursorTypeValue = (int)shapeInfo.Value.Type,
-                                    Width = width,
-                                    Height = height,
-                                    HotspotX = hotspotX,
-                                    HotspotY = hotspotY,
-                                    ImageBase64 = base64
-                                };
-                                await SendMessageAsync(imgMsg);
-                                _sentCursorIds.Add(shapeId);
                             }
+                            // If throttled: don't add to _sentCursorIds, so it retries next poll.
+                            // Position update below uses lastSentShapeId so client references a cached cursor.
+                        }
+                        else if (_sentCursorIds.Contains(shapeId))
+                        {
+                            // Already sent this cursor image before — update lastSentShapeId
+                            lastSentShapeId = shapeId;
                         }
 
                         if (positionChanged || shapeChanged)
@@ -145,11 +163,16 @@ namespace RemotePlayServer.Application.Protocol
                             _lastCursorVisible = visible;
                             _lastDxgiCursorShapeId = shapeId;
 
+                            // Use lastSentShapeId for position updates so client always
+                            // references a cursor it already has in cache.
+                            // If no image sent yet (-1), fall back to current shapeId.
+                            long positionCursorId = lastSentShapeId != -1 ? lastSentShapeId : shapeId;
+
                             // Prefer DataChannel (UDP-like, low latency) over WebSocket (TCP)
                             if (_streamer?.HasCursorChannel == true)
                             {
                                 _streamer.SendCursorPosition(monitorIndex, u, v, visible,
-                                    (int)shapeInfo.Value.Type, shapeId);
+                                    (int)shapeInfo.Value.Type, positionCursorId);
                             }
                             else
                             {
@@ -161,7 +184,7 @@ namespace RemotePlayServer.Application.Protocol
                                     V = v,
                                     Visible = visible,
                                     CursorTypeValue = (int)shapeInfo.Value.Type,
-                                    CursorId = shapeId
+                                    CursorId = positionCursorId
                                 };
                                 await SendMessageAsync(msg);
                             }
@@ -170,7 +193,10 @@ namespace RemotePlayServer.Application.Protocol
                         await Task.Delay(POLL_INTERVAL_MS, ct);
                     }
                     catch (OperationCanceledException) { break; }
-                    catch (Exception) { }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"[Cursor] Tracking error: {ex.Message}");
+                    }
                 }
             }, ct);
         }

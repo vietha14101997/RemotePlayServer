@@ -488,24 +488,35 @@ namespace RemotePlayServer.Application.Protocol
             // Stop keep-alive timer
             StopKeepAlive();
 
-            // Stop capture
+            // Stop capture — order matters to avoid ObjectDisposedException:
+            // 1. Signal capture thread to stop
+            // 2. Stop capture loops (waits for capture threads to exit)
+            // 3. Join our protocol capture thread
+            // 4. Dispose TextureResizer (now safe — no capture thread is using it)
+            // 5. Dispose shared capture
             try { _captureCts?.Cancel(); } catch { }
-            try { _captureThread?.Join(500); } catch { }
+
+            // Stop capture loops BEFORE disposing TextureResizer
+            lock (_captureLock)
+            {
+                try { _sharedCapture?.Stop(); } catch { }
+            }
+
+            try { _captureThread?.Join(2000); } catch { }
 
             // Dispose streamer
             _streamer?.Dispose();
             _streamer = null;
 
-            // Dispose texture resizer
+            // Dispose texture resizer — safe now that all capture threads have stopped
             _textureResizer?.Dispose();
             _textureResizer = null;
 
-            // Cleanup shared capture if we were the last user
+            // Cleanup shared capture
             lock (_captureLock)
             {
                 if (_sharedCapture != null)
                 {
-                    _sharedCapture.Stop();
                     _sharedCapture.Dispose();
                     _sharedCapture = null;
                 }

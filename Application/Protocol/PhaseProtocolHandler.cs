@@ -120,6 +120,10 @@ namespace RemotePlayServer.Application.Protocol
         private const int KEEPALIVE_INTERVAL_MS = 2000;  // Ping every 2s (synchronized with client)
         private const int MAX_MISSED_PONGS = 3;          // 6s without pong = dead (faster detection)
 
+        // Stall detection: track last client feedback for proactive recovery (ticks for thread safety)
+        private long _lastClientFeedbackTicks = DateTime.UtcNow.Ticks;
+        private volatile bool _feedbackEstablished = false; // true after first fps/quality feedback received
+
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
 
