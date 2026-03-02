@@ -315,16 +315,42 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Connection failed
+            // Connection failed - auto-retry DTLS before requesting full client reconnect
             _streamer.OnConnectionFailed += async () =>
             {
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
-                    Logger.Error("[Protocol] Connection failed, requesting full reconnect");
-                    await SendTextAsync("{\"type\":\"reconnect_required\"}");
+                    if (_dtlsRetrying) return; // Ignore events from old PC during retry
+
+                    if (_dtlsRetryCount < MAX_DTLS_RETRIES && _lastOfferSdp != null)
+                    {
+                        _dtlsRetrying = true;
+                        _dtlsRetryCount++;
+                        Logger.Info($"[Protocol] DTLS failed, auto-retry {_dtlsRetryCount}/{MAX_DTLS_RETRIES} in 500ms...");
+
+                        // Delay to exit PeerConnection event handler + allow socket cleanup
+                        await Task.Delay(500);
+
+                        // Reset DTLS completion gate
+                        _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                        // Re-process cached offer (creates new PC with fresh certificate)
+                        await ProcessSingleOfferAsync(_lastOfferSdp);
+
+                        _dtlsRetrying = false;
+                    }
+                    else
+                    {
+                        Logger.Error("[Protocol] Connection failed, requesting full reconnect");
+                        await SendTextAsync("{\"type\":\"reconnect_required\"}");
+                    }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _dtlsRetrying = false;
+                    Logger.Error($"[Protocol] DTLS retry error: {ex.Message}");
+                }
             };
 
             await SendProgressAsync("capture_init", 100, "Ready");
@@ -513,6 +539,10 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
+            // Cache offer for DTLS auto-retry
+            _lastOfferSdp = offerSdp;
+            _dtlsRetryCount = 0;
+
             Logger.Info("[Protocol] Received single offer for all monitors");
 
             // Clear answer ready state for new offer, but KEEP pending ICE candidates
@@ -531,6 +561,19 @@ namespace RemotePlayServer.Application.Protocol
                 // Each monitor has separate D3D11 device with dedicated GPU scaler
                 // TextureResizer creates per-device scalers on demand
                 var monitorCount = _displayConfig?.Monitors ?? 1;
+
+                // Count m=video sections in offer to avoid creating more tracks than
+                // the client negotiated. Client reconnect offers may have fewer video
+                // tracks than the original (e.g., 1 video + 1 datachannel instead of 2 video + 1 datachannel).
+                // Creating orphan tracks causes packets with unknown SSRCs that the client ignores.
+                int offerVideoCount = CountVideoMLines(offerSdp);
+                if (offerVideoCount > 0 && offerVideoCount < monitorCount)
+                {
+                    Logger.Info($"[Protocol] Offer has {offerVideoCount} m=video section(s) but {monitorCount} monitors configured. " +
+                        $"Limiting tracks to {offerVideoCount} to match offer.");
+                    monitorCount = offerVideoCount;
+                }
+
                 var (resMaxW, resMaxH) = TextureResizer.GetMaxResolutionForType(DisplayConfig.MonitorType);
                 var dimensions = new List<(int w, int h)>();
                 for (int i = 0; i < monitorCount; i++)
@@ -978,6 +1021,22 @@ namespace RemotePlayServer.Application.Protocol
         /// Parse the H264 payload type from the offer SDP.
         /// Browser offers multiple H264 profiles - we prefer Constrained Baseline (42e01f) with packetization-mode=1.
         /// </summary>
+        /// <summary>
+        /// Count the number of m=video sections in an SDP string.
+        /// Used to detect mismatch between expected monitors and offer video tracks.
+        /// </summary>
+        private static int CountVideoMLines(string sdp)
+        {
+            if (string.IsNullOrEmpty(sdp)) return 0;
+            int count = 0;
+            foreach (var line in sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                if (line.StartsWith("m=video", StringComparison.OrdinalIgnoreCase))
+                    count++;
+            }
+            return count;
+        }
+
         private int ParseH264PayloadType(string sdp)
         {
             if (string.IsNullOrEmpty(sdp)) return 96; // Fallback

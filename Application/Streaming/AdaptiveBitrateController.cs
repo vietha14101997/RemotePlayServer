@@ -376,6 +376,18 @@ namespace RemotePlayServer.Application.Streaming
         }
 
         /// <summary>
+        /// Force the target bitrate to a specific value (bypasses cooldown).
+        /// Used by stall detection to sync controller with direct encoder changes.
+        /// </summary>
+        public void ForceTarget(int kbps)
+        {
+            int clamped = Math.Clamp(kbps, MinBitrateKbps, MaxBitrateKbps);
+            TargetBitrateKbps = clamped;
+            _lastAdjustmentTime = DateTime.UtcNow;
+            _lastNetworkIssueTime = DateTime.UtcNow;
+        }
+
+        /// <summary>
         /// Reset controller to initial state.
         /// </summary>
         public void Reset()

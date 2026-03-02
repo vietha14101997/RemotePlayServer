@@ -25,6 +25,7 @@ public sealed class OpusAudioEncoder : IDisposable
     private int _frameBufferOffset;
     private readonly short[] _pcmShortBuffer;
     private readonly byte[] _opusOutputBuffer;
+    private readonly object _encodeLock = new object();
     private bool _disposed;
     private long _currentTimestampMs;
 
@@ -62,10 +63,6 @@ public sealed class OpusAudioEncoder : IDisposable
     {
         if (_disposed || length <= 0) return;
 
-        // Capture first-sample timestamp (not last-call-wins)
-        if (_frameBufferOffset == 0)
-            _currentTimestampMs = timestampMs;
-
         // Skip if sample rate doesn't match (resample not implemented yet)
         if (inputSampleRate != SAMPLE_RATE)
         {
@@ -74,7 +71,7 @@ public sealed class OpusAudioEncoder : IDisposable
             return;
         }
 
-        // Handle mono -> stereo or channel mismatch
+        // Handle mono -> stereo or channel mismatch (local data only, no lock needed)
         byte[] data = pcm16Data;
         int dataLength = length;
         if (inputChannels == 1 && CHANNELS == 2)
@@ -95,22 +92,35 @@ public sealed class OpusAudioEncoder : IDisposable
             return; // Unsupported channel config
         }
 
-        int offset = 0;
-        while (offset < dataLength)
+        // Lock accumulation + encoding: EncodePcm is called from both WASAPI
+        // callback thread and SilenceWatchdog timer thread concurrently.
+        // Without this lock, _frameBufferOffset can be modified between the
+        // calculation of toCopy and the Buffer.BlockCopy, causing out-of-bounds.
+        lock (_encodeLock)
         {
-            int needed = BYTES_PER_FRAME - _frameBufferOffset;
-            int available = dataLength - offset;
-            int toCopy = Math.Min(needed, available);
+            if (_disposed) return;
 
-            Buffer.BlockCopy(data, offset, _frameBuffer, _frameBufferOffset, toCopy);
-            _frameBufferOffset += toCopy;
-            offset += toCopy;
+            // Capture first-sample timestamp (not last-call-wins)
+            if (_frameBufferOffset == 0)
+                _currentTimestampMs = timestampMs;
 
-            // Full frame ready -> encode
-            if (_frameBufferOffset >= BYTES_PER_FRAME)
+            int offset = 0;
+            while (offset < dataLength)
             {
-                EncodeFrame();
-                _frameBufferOffset = 0;
+                int needed = BYTES_PER_FRAME - _frameBufferOffset;
+                int available = dataLength - offset;
+                int toCopy = Math.Min(needed, available);
+
+                Buffer.BlockCopy(data, offset, _frameBuffer, _frameBufferOffset, toCopy);
+                _frameBufferOffset += toCopy;
+                offset += toCopy;
+
+                // Full frame ready -> encode
+                if (_frameBufferOffset >= BYTES_PER_FRAME)
+                {
+                    EncodeFrame();
+                    _frameBufferOffset = 0;
+                }
             }
         }
     }
@@ -141,9 +151,12 @@ public sealed class OpusAudioEncoder : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-        _frameBufferOffset = 0;
+        lock (_encodeLock)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _frameBufferOffset = 0;
+        }
         // OpusEncoder doesn't implement IDisposable but we clear our state
         Logger.Info("[OpusEncoder] Disposed");
     }

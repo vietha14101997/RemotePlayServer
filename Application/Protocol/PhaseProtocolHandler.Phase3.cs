@@ -217,12 +217,20 @@ namespace RemotePlayServer.Application.Protocol
                     if (msgType == "offer")
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (JSON format)");
+                        // Reset stall detection state for fresh reconnection
+                        _consecutiveStallCount = 0;
+                        _feedbackEstablished = false;
+                        Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                         await HandleJsonMessageAsync(text, msgType);
                         continue;
                     }
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (legacy format)");
+                        // Reset stall detection state for fresh reconnection
+                        _consecutiveStallCount = 0;
+                        _feedbackEstablished = false;
+                        Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                         await HandleLegacyMessageAsync(text);
                         continue;
                     }
@@ -312,6 +320,7 @@ namespace RemotePlayServer.Application.Protocol
                             {
                                 Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                                 _feedbackEstablished = true;
+                                _consecutiveStallCount = 0; // Reset escalation on real feedback
                                 _streamer.ProcessFpsFeedback(
                                     feedback.MonitorIndex,
                                     feedback.EffectiveFps,
@@ -344,6 +353,7 @@ namespace RemotePlayServer.Application.Protocol
                             {
                                 Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                                 _feedbackEstablished = true;
+                                _consecutiveStallCount = 0; // Reset escalation on real feedback
                                 // Proactive keyframe burst on significant packet loss
                                 if (feedback.PacketLossRate > 0.02f)
                                     _streamer.RequestKeyframeBurst(-1, 3);
@@ -584,7 +594,7 @@ namespace RemotePlayServer.Application.Protocol
                             // Actually close the connection instead of just warning
                             try
                             {
-                                await _ws.CloseAsync(
+                                await _ws.CloseOutputAsync(
                                     WebSocketCloseStatus.EndpointUnavailable,
                                     "Client not responding to keepalive",
                                     CancellationToken.None);
@@ -626,24 +636,31 @@ namespace RemotePlayServer.Application.Protocol
 
         // Stall detection fields
         private System.Timers.Timer? _stallDetectTimer;
+        private int _consecutiveStallCount;
         private const int STALL_CHECK_INTERVAL_MS = 200;    // Check every 200ms for sub-second detection
         private const int STALL_THRESHOLD_MS = 800;          // 800ms without feedback = stall (cloud gaming ≤1s target)
+        private const int MAX_CONSECUTIVE_STALLS = 10;       // After 10 stalls (~8s), stop acting — let KeepAlive handle it
 
         /// <summary>
-        /// Start server-side stall detection.
-        /// If no quality_feedback or fps_feedback arrives for 1.5s during streaming,
-        /// proactively reduce bitrate and send keyframe burst.
+        /// Start server-side stall detection with escalating response.
+        /// Uses ForceSetBitrate to bypass adaptive controller cooldowns for immediate effect.
+        /// Escalation: 1st stall = 25% cut, 2nd = 50% cut, 3rd = drop to minimum.
+        /// Stall 4+: maintain minimum bitrate, NO keyframe bursts (counterproductive on stalled network).
+        /// Stall 10+: stop acting entirely (clearly dead connection, KeepAlive will close it).
         /// </summary>
         private void StartStallDetection()
         {
             Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+            _consecutiveStallCount = 0;
 
             _stallDetectTimer = new System.Timers.Timer(STALL_CHECK_INTERVAL_MS);
             _stallDetectTimer.Elapsed += (s, e) =>
             {
                 try
                 {
-                    if (_ws.State != WebSocketState.Open || _streamer == null)
+                    // Capture locally to prevent null race between check and use
+                    var streamer = _streamer;
+                    if (_ws.State != WebSocketState.Open || streamer == null)
                     {
                         _stallDetectTimer?.Stop();
                         return;
@@ -657,33 +674,77 @@ namespace RemotePlayServer.Application.Protocol
                     var timeSinceLastFeedback = (DateTime.UtcNow - lastFeedback).TotalMilliseconds;
                     if (timeSinceLastFeedback > STALL_THRESHOLD_MS)
                     {
-                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s → reducing bitrate + keyframe burst");
+                        _consecutiveStallCount++;
 
-                        var (currentFps, currentBitrate, _) = _streamer.GetCurrentConfig();
-
-                        var stallFeedback = new QualityFeedbackMessage
+                        // After MAX_CONSECUTIVE_STALLS, stop acting — the connection is dead.
+                        // KeepAlive will close it. Continuing to ForceSetBitrate/RequestKeyframeBurst
+                        // on a dead connection risks native encoder crashes and wastes CPU.
+                        if (_consecutiveStallCount > MAX_CONSECUTIVE_STALLS)
                         {
-                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            EffectiveFps = 0f,
-                            TargetFps = currentFps,
-                            PacketLossRate = 0.5f,
-                            AvgPacketLossRate = 0.5f,
-                            BufferStatus = "starving",
-                            RttMs = 0,
-                            JitterMs = 0,
-                            ConnectionHealth = 1,
-                            IsWiFi = !_isUsbTransport,
-                        };
+                            if (_consecutiveStallCount == MAX_CONSECUTIVE_STALLS + 1)
+                                Logger.Info($"[StallDetect] {MAX_CONSECUTIVE_STALLS} consecutive stalls — stopped acting, waiting for KeepAlive");
+                            return;
+                        }
 
-                        _streamer.ProcessQualityFeedback(stallFeedback);
+                        var (currentFps, currentBitrate, _) = streamer.GetCurrentConfig();
 
-                        // Keyframe burst on all monitors for visual recovery
-                        _streamer.RequestKeyframeBurst(-1, 3);
+                        // Escalating response based on consecutive stall count
+                        int newBitrate;
+                        string severity;
+                        bool sendKeyframeBurst;
+                        switch (_consecutiveStallCount)
+                        {
+                            case 1:
+                                // First stall: 25% cut - could be momentary blip
+                                newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                                severity = "moderate (25% cut)";
+                                sendKeyframeBurst = true;
+                                break;
+                            case 2:
+                                // Second stall: 50% cut - clear sustained problem
+                                newBitrate = Math.Max(2000, currentBitrate / 2);
+                                severity = "aggressive (50% cut)";
+                                sendKeyframeBurst = true;
+                                break;
+                            case 3:
+                                // Third stall: drop to minimum immediately
+                                newBitrate = 2000;
+                                severity = "emergency (minimum)";
+                                sendKeyframeBurst = true;
+                                break;
+                            default:
+                                // 4th+ stall: already at minimum, NO keyframe burst.
+                                // Keyframes are larger than P-frames and pile up in the
+                                // send buffer on a stalled network, making congestion worse
+                                // and risking OOM in the RTP layer.
+                                newBitrate = 2000;
+                                severity = "sustain (minimum, no burst)";
+                                sendKeyframeBurst = false;
+                                break;
+                        }
 
-                        // Reset timer so we don't spam reductions every 1s
+                        // Safety: stall detection must NEVER increase bitrate.
+                        // This can happen if stall count resets (feedback arrived between stalls)
+                        // and the new stall #1 calculates a higher value than the current actual bitrate.
+                        if (newBitrate >= currentBitrate && currentBitrate > 2000)
+                        {
+                            newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                            severity = $"clamped (was {severity}, would increase)";
+                        }
+
+                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s, stall #{_consecutiveStallCount} → {severity}: {currentBitrate} → {newBitrate}kbps");
+
+                        // Bypass adaptive controller - directly set encoder bitrate
+                        streamer.ForceSetBitrate(newBitrate);
+
+                        // Only send keyframe burst for first 3 stalls (escalation phase)
+                        if (sendKeyframeBurst)
+                            streamer.RequestKeyframeBurst(-1, 3);
+
+                        // Reset timer so we don't spam reductions every 200ms
                         Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
 
-                        Logger.Info($"[StallDetect] Applied: bitrate reduced, keyframe burst sent");
+                        Logger.Info($"[StallDetect] Applied: {severity}");
                     }
                 }
                 catch (Exception ex)
@@ -693,7 +754,7 @@ namespace RemotePlayServer.Application.Protocol
             };
             _stallDetectTimer.AutoReset = true;
             _stallDetectTimer.Start();
-            Logger.Info("[StallDetect] Server-side stall detection started (800ms threshold, 200ms check)");
+            Logger.Info("[StallDetect] Server-side stall detection started (800ms threshold, escalating response)");
         }
 
         /// <summary>

@@ -371,7 +371,8 @@ namespace RemotePlayServer.Application.Protocol
 
         /// <summary>
         /// Handle Phase 2 restart request from client.
-        /// Stops current streaming, closes all peer connections, and restarts ICE negotiation.
+        /// Lightweight restart: stops PeerConnection but keeps capture and streamer alive
+        /// for fast ICE renegotiation (~300ms vs 2-5s with full teardown).
         /// </summary>
         private async Task HandleRestartPhase2Async()
         {
@@ -379,24 +380,24 @@ namespace RemotePlayServer.Application.Protocol
 
             try
             {
-                // 1. Stop current streaming if active
+                // 1. Stop current PeerConnection (lightweight - keep streamer alive)
                 if (_streamer != null)
                 {
                     Logger.Info("[Protocol] Stopping current stream for restart...");
-                    _streamer.Dispose();
-                    _streamer = null;
+                    _streamer.Stop(); // Closes PC but preserves event handlers + device mappings
                 }
 
-                // 2. Stop capture if active
+                // 2. Stop capture threads (keep D3D11 devices + DXGI duplication alive)
                 if (_sharedCapture != null)
                 {
                     Logger.Info("[Protocol] Stopping capture for restart...");
-                    _sharedCapture.Stop();
-                    _sharedCapture.Dispose();
-                    _sharedCapture = null;
+                    _sharedCapture.Stop(); // Stops threads, restarts via StartCaptureThread() after DTLS
                 }
 
-                // 3. Get current monitor count from display config
+                // 3. Reset DTLS completion gate for new negotiation
+                _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                // 4. Get current monitor count from display config
                 int actualMonitors = _displayConfig?.Monitors ?? _monitors.Count;
                 actualMonitors = Math.Min(actualMonitors, _monitors.Count);
 

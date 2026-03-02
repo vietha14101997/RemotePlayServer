@@ -199,11 +199,11 @@ public partial class SIPSorceryStreamer : IDisposable
             // Wait for SIPSorcery's background UDP tasks and socket cleanup to settle.
             // Without this, the first real PeerConnection's DTLS handshake can fail
             // due to stale state from the warmup PC.
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
-            // Force GC to collect the warmup PC and its associated resources,
-            // ensuring no lingering references interfere with real connections.
-            GC.Collect(0, GCCollectionMode.Forced);
+            // Force full GC to collect the warmup PC and its associated resources,
+            // ensuring no lingering references or sockets interfere with real connections.
+            GC.Collect(2, GCCollectionMode.Forced);
             GC.WaitForPendingFinalizers();
 
             sw.Stop();

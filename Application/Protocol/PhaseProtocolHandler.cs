@@ -127,6 +127,12 @@ namespace RemotePlayServer.Application.Protocol
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
 
+        // DTLS auto-retry: retry PeerConnection on first DTLS failure
+        private string? _lastOfferSdp;
+        private int _dtlsRetryCount;
+        private volatile bool _dtlsRetrying;
+        private const int MAX_DTLS_RETRIES = 2;
+
         // Transport mode (USB Tethering vs WiFi)
         private readonly bool _isUsbTransport;
 

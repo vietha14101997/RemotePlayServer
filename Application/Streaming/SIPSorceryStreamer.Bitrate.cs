@@ -101,11 +101,16 @@ public partial class SIPSorceryStreamer
 
         if (decision.Changed)
         {
-            // Apply new bitrate to all track encoders
-            lock (_lock)
+            // Apply new bitrate to all track encoders.
+            // Snapshot tracks under _lock, then SetBitrate under each track's EncodeLock
+            // to serialize with encode path and prevent concurrent native P/Invoke calls.
+            TrackInfo[] snapshot;
+            lock (_lock) { snapshot = _tracks.ToArray(); }
+
+            int successCount = 0;
+            foreach (var track in snapshot)
             {
-                int successCount = 0;
-                foreach (var track in _tracks)
+                lock (track.EncodeLock)
                 {
                     if (track.Encoder != null)
                     {
@@ -120,11 +125,11 @@ public partial class SIPSorceryStreamer
                         }
                     }
                 }
+            }
 
-                if (successCount > 0)
-                {
-                    Logger.Info($"[SIPSorcery] Bitrate adjusted: {decision.NewBitrate}kbps ({decision.Reason})");
-                }
+            if (successCount > 0)
+            {
+                Logger.Info($"[SIPSorcery] Bitrate adjusted: {decision.NewBitrate}kbps ({decision.Reason})");
             }
 
             // Return message to notify client
@@ -254,58 +259,61 @@ public partial class SIPSorceryStreamer
         bool anySuccess = false;
 
         // FPS change - apply to all encoders
+        // Snapshot tracks under _lock, then SetFps under track.EncodeLock to serialize with encode path.
         if (fps.HasValue && fps.Value != _fps && fps.Value > 0)
         {
             Logger.Info($"[SIPSorcery] FPS update: {_fps} → {fps.Value}");
 
-            lock (_lock)
+            TrackInfo[] fpsSnapshot;
+            int trackCount;
+            lock (_lock) { fpsSnapshot = _tracks.ToArray(); trackCount = _tracks.Count; }
+
+            int successCount = 0;
+            foreach (var track in fpsSnapshot)
             {
-                int successCount = 0;
-                foreach (var track in _tracks)
+                lock (track.EncodeLock)
                 {
-                    if (track.Encoder != null)
+                    if (track.Encoder != null && track.Encoder.SetFps(fps.Value))
                     {
-                        if (track.Encoder.SetFps(fps.Value))
-                        {
-                            successCount++;
-                            Logger.Info($"[SIPSorcery] Track {track.Index} FPS → {fps.Value}");
-                        }
-                        else
-                        {
-                            Logger.Error($"[SIPSorcery] Track {track.Index} SetFps failed (encoder may not support runtime change)");
-                        }
+                        successCount++;
+                        Logger.Info($"[SIPSorcery] Track {track.Index} FPS → {fps.Value}");
                     }
                 }
+            }
 
-                if (successCount > 0)
-                {
-                    _fps = fps.Value;
-                    appliedFps = fps.Value;
-                    messages.Add($"FPS: {fps.Value} ({successCount}/{_tracks.Count} encoders updated)");
-                    anySuccess = true;
-                }
-                else if (_tracks.Count > 0)
-                {
-                    // Even if encoder doesn't support FPS change, update the internal state
-                    // so capture rate can be adjusted
-                    _fps = fps.Value;
-                    appliedFps = fps.Value;
-                    messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
-                    anySuccess = true;
-                }
+            if (successCount > 0)
+            {
+                _fps = fps.Value;
+                appliedFps = fps.Value;
+                messages.Add($"FPS: {fps.Value} ({successCount}/{trackCount} encoders updated)");
+                anySuccess = true;
+            }
+            else if (trackCount > 0)
+            {
+                // Even if encoder doesn't support FPS change, update the internal state
+                // so capture rate can be adjusted
+                _fps = fps.Value;
+                appliedFps = fps.Value;
+                messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
+                anySuccess = true;
             }
         }
 
         // Bitrate change - apply to all encoders
+        // Snapshot tracks under _lock, then SetBitrate under track.EncodeLock to serialize with encode path.
         if (totalBitrateKbps.HasValue && totalBitrateKbps.Value > 0)
         {
             int perMonitorBitrate = totalBitrateKbps.Value / Math.Max(1, _monitorCount);
             Logger.Info($"[SIPSorcery] Bitrate update: total={totalBitrateKbps.Value}kbps, per-monitor={perMonitorBitrate}kbps");
 
-            lock (_lock)
+            TrackInfo[] brSnapshot;
+            int trackCount;
+            lock (_lock) { brSnapshot = _tracks.ToArray(); trackCount = _tracks.Count; }
+
+            int successCount = 0;
+            foreach (var track in brSnapshot)
             {
-                int successCount = 0;
-                foreach (var track in _tracks)
+                lock (track.EncodeLock)
                 {
                     if (track.Encoder != null)
                     {
@@ -320,17 +328,17 @@ public partial class SIPSorceryStreamer
                         }
                     }
                 }
+            }
 
-                if (successCount > 0)
-                {
-                    appliedBitrate = totalBitrateKbps.Value;
-                    messages.Add($"Bitrate: {totalBitrateKbps.Value}kbps ({successCount}/{_tracks.Count} encoders updated)");
-                    anySuccess = true;
-                }
-                else if (_tracks.Count > 0)
-                {
-                    messages.Add("Bitrate change not supported by current encoder(s)");
-                }
+            if (successCount > 0)
+            {
+                appliedBitrate = totalBitrateKbps.Value;
+                messages.Add($"Bitrate: {totalBitrateKbps.Value}kbps ({successCount}/{trackCount} encoders updated)");
+                anySuccess = true;
+            }
+            else if (trackCount > 0)
+            {
+                messages.Add("Bitrate change not supported by current encoder(s)");
             }
         }
 
@@ -342,7 +350,46 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Get current streaming config.
+    /// Returns actual current bitrate from adaptive controller (not initial config value).
     /// </summary>
-    public (int Fps, int TotalBitrateKbps, int MonitorCount) GetCurrentConfig() =>
-        (_fps, _bitrateKbps, _monitorCount);
+    public (int Fps, int TotalBitrateKbps, int MonitorCount) GetCurrentConfig()
+    {
+        // Use adaptive controller's current target if initialized, otherwise fall back to initial config
+        int currentBitrate = _bitrateController.TargetBitrateKbps > 0
+            ? _bitrateController.TargetBitrateKbps
+            : _bitrateKbps;
+        return (_fps, currentBitrate, _monitorCount);
+    }
+
+    /// <summary>
+    /// Force set bitrate on all track encoders, bypassing adaptive controller cooldowns.
+    /// Used by escalating stall detection when immediate bitrate reduction is needed.
+    /// Also syncs the adaptive controller's target to prevent it from overriding.
+    /// Uses track.EncodeLock per-track to serialize with the encode path (PushBgraTexture),
+    /// preventing concurrent native P/Invoke calls (SetBitrate + Encode) on the same handle.
+    /// </summary>
+    public void ForceSetBitrate(int kbps)
+    {
+        int clampedKbps = Math.Max(_bitrateController.MinBitrateKbps, kbps);
+
+        // Sync adaptive controller so it doesn't immediately override
+        if (_bitrateController.TargetBitrateKbps > 0)
+        {
+            _bitrateController.ForceTarget(clampedKbps);
+        }
+
+        // Snapshot tracks under _lock, then SetBitrate under each track's EncodeLock.
+        // Lock order: _lock → track.EncodeLock (same as capture path, no deadlock).
+        TrackInfo[] snapshot;
+        lock (_lock) { snapshot = _tracks.ToArray(); }
+
+        foreach (var track in snapshot)
+        {
+            lock (track.EncodeLock)
+            {
+                track.Encoder?.SetBitrate(clampedKbps);
+            }
+        }
+        Logger.Info($"[SIPSorcery] Forced bitrate → {clampedKbps}kbps (stall escalation)");
+    }
 }
