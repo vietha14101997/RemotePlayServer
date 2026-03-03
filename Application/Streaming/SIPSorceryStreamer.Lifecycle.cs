@@ -51,6 +51,16 @@ public partial class SIPSorceryStreamer
             return null;
         }
 
+        // Set codec mode on native encoders (H265 if negotiated)
+        bool useHevc = _negotiatedCodec == VideoCodec.H265;
+        if (useHevc)
+        {
+            if (encoder is NvencNativeWrapper nvenc) nvenc.UseHevc = true;
+            else if (encoder is AmfNativeWrapper amf) amf.UseHevc = true;
+            else if (encoder is QsvNativeWrapper qsv) qsv.UseHevc = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Encoder configured for HEVC (H.265)");
+        }
+
         try
         {
             encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);

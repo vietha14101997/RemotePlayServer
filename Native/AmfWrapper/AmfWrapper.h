@@ -1,5 +1,5 @@
 // AmfWrapper.h - AMD AMF SDK Wrapper for C# Interop
-// Provides simple C API for zero-copy H.264 encoding from D3D11 textures
+// Provides simple C API for zero-copy H.264/H.265 encoding from D3D11 textures
 
 #pragma once
 
@@ -41,15 +41,8 @@ typedef void (*AmfEncodedDataCallback)(
 AMFWRAPPER_API int AmfIsAvailable();
 
 /// <summary>
-/// Create an AMF encoder instance
+/// Create an AMF encoder instance (H.264)
 /// </summary>
-/// <param name="outHandle">Output encoder handle</param>
-/// <param name="d3d11Device">D3D11 device to use for encoding (shared device)</param>
-/// <param name="width">Video width</param>
-/// <param name="height">Video height</param>
-/// <param name="fps">Frames per second</param>
-/// <param name="bitrate">Target bitrate in kbps</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfCreateEncoder(
     AmfEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -71,10 +64,6 @@ AMFWRAPPER_API int AmfSetEncodedDataCallback(
 /// <summary>
 /// Encode a D3D11 NV12 texture (zero-copy)
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="texture">D3D11 NV12 texture to encode</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfEncodeTexture(
     AmfEncoderHandle handle,
     ID3D11Texture2D* texture,
@@ -89,11 +78,6 @@ AMFWRAPPER_API int AmfFlush(AmfEncoderHandle handle);
 /// <summary>
 /// Encode NV12 data from byte array (uploads to GPU then encodes)
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="nv12Data">NV12 pixel data (Y plane followed by interleaved UV plane)</param>
-/// <param name="dataSize">Size of nv12Data in bytes</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfEncodeNV12Bytes(
     AmfEncoderHandle handle,
     const uint8_t* nv12Data,
@@ -114,30 +98,16 @@ AMFWRAPPER_API const char* AmfGetLastError();
 /// <summary>
 /// Dynamically change encoder bitrate without reinitialization
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="bitrateKbps">New target bitrate in kbps</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps);
 
 /// <summary>
 /// Dynamically change encoder FPS without reinitialization
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="fps">New target FPS</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps);
 
 /// <summary>
-/// Create an AMF encoder instance with BGRA input support.
-/// AMF internally converts BGRA to NV12 in hardware - no CPU/shader conversion needed.
+/// Create an AMF encoder instance with BGRA input (H.264)
 /// </summary>
-/// <param name="outHandle">Output encoder handle</param>
-/// <param name="d3d11Device">D3D11 device to use for encoding</param>
-/// <param name="width">Video width</param>
-/// <param name="height">Video height</param>
-/// <param name="fps">Frames per second</param>
-/// <param name="bitrate">Target bitrate in kbps</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfCreateEncoderBgra(
     AmfEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -148,17 +118,42 @@ AMFWRAPPER_API int AmfCreateEncoderBgra(
 );
 
 /// <summary>
-/// Encode a D3D11 BGRA texture directly (zero-copy, AMF converts internally)
-/// Use with encoder created via AmfCreateEncoderBgra()
+/// Encode a D3D11 BGRA texture directly (zero-copy)
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="bgraTexture">D3D11 BGRA texture to encode</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>AMF_WRAPPER_OK on success</returns>
 AMFWRAPPER_API int AmfEncodeBgraTexture(
     AmfEncoderHandle handle,
     ID3D11Texture2D* bgraTexture,
     int forceKeyframe
+);
+
+// ── H.265/HEVC Extended APIs ──────────────────────────────────────────────
+
+/// <summary>
+/// Create an AMF encoder with codec selection (NV12 input)
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+AMFWRAPPER_API int AmfCreateEncoderEx(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
+);
+
+/// <summary>
+/// Create an AMF encoder with BGRA input and codec selection
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+AMFWRAPPER_API int AmfCreateEncoderBgraEx(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
 );
 
 #ifdef __cplusplus

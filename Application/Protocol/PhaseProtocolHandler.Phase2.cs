@@ -645,9 +645,9 @@ namespace RemotePlayServer.Application.Protocol
                     }
                 }
 
-                // Parse offer to find H264 PT (must match what the streamer uses)
-                var h264PayloadType = ParseH264PayloadType(offerSdp);
-                Logger.Info($"[Protocol] Parsed H264 PT from offer: {h264PayloadType}");
+                // Parse offer to find codec PT (must match what the streamer uses)
+                var codecPayloadType = ParseCodecPayloadType(offerSdp, _selectedCodec);
+                Logger.Info($"[Protocol] Parsed {_selectedCodec} PT from offer: {codecPayloadType}");
 
                 // Process offer with all dimensions at once
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
@@ -656,7 +656,7 @@ namespace RemotePlayServer.Application.Protocol
                 var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);
 
                 // Filter SDP answer to only include selected codec
-                var filteredSdp = FilterSdpForCodec(reorderedSdp, h264PayloadType);
+                var filteredSdp = FilterSdpForCodec(reorderedSdp, codecPayloadType);
                 Logger.Info($"[Protocol] Filtered SDP from {answerSdp.Length} to {filteredSdp.Length} bytes");
 
                 // Extract embedded ICE candidates from filtered SDP
@@ -1081,27 +1081,40 @@ namespace RemotePlayServer.Application.Protocol
             return count;
         }
 
-        private int ParseH264PayloadType(string sdp)
+        /// <summary>
+        /// Parse SDP to find the best payload type for the given codec
+        /// </summary>
+        private int ParseCodecPayloadType(string sdp, string codec)
         {
             if (string.IsNullOrEmpty(sdp)) return 96; // Fallback
 
+            // Determine the rtpmap encoding name for the codec
+            string codecRtpName;
+            switch (codec?.ToUpperInvariant())
+            {
+                case "H265": codecRtpName = "H265/90000"; break;
+                case "VP9":  codecRtpName = "VP9/90000"; break;
+                case "VP8":  codecRtpName = "VP8/90000"; break;
+                default:     codecRtpName = "H264/90000"; break;
+            }
+
             var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-            // First pass: find H264 payload types
-            var h264PayloadTypes = new Dictionary<int, string>(); // PT -> fmtp line
+            // First pass: find codec payload types
+            var codecPayloadTypes = new Dictionary<int, string>(); // PT -> fmtp line
             foreach (var line in lines)
             {
-                if (line.StartsWith("a=rtpmap:") && line.Contains("H264/90000"))
+                if (line.StartsWith("a=rtpmap:") && line.Contains(codecRtpName))
                 {
                     var parts = line.Substring(9).Split(' ');
                     if (parts.Length >= 1 && int.TryParse(parts[0], out int pt))
                     {
-                        h264PayloadTypes[pt] = "";
+                        codecPayloadTypes[pt] = "";
                     }
                 }
             }
 
-            // Second pass: get fmtp for each H264 PT
+            // Second pass: get fmtp for each PT
             foreach (var line in lines)
             {
                 if (line.StartsWith("a=fmtp:"))
@@ -1110,38 +1123,41 @@ namespace RemotePlayServer.Application.Protocol
                     if (spaceIdx > 7)
                     {
                         var ptStr = line.Substring(7, spaceIdx - 7);
-                        if (int.TryParse(ptStr, out int pt) && h264PayloadTypes.ContainsKey(pt))
+                        if (int.TryParse(ptStr, out int pt) && codecPayloadTypes.ContainsKey(pt))
                         {
-                            h264PayloadTypes[pt] = line.Substring(spaceIdx + 1);
+                            codecPayloadTypes[pt] = line.Substring(spaceIdx + 1);
                         }
                     }
                 }
             }
 
-            // Find best match
-            // Priority 1: Constrained Baseline (42e01f) with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
+            // For H264, prefer specific profiles; for others, first match
+            if (codec?.ToUpperInvariant() == "H264")
             {
-                if (kv.Value.Contains("profile-level-id=42e01f") && kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
+                // Priority 1: Constrained Baseline (42e01f) with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("profile-level-id=42e01f") && kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
+
+                // Priority 2: Baseline (42001f) with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("profile-level-id=42001f") && kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
+
+                // Priority 3: Any H264 with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
             }
 
-            // Priority 2: Baseline (42001f) with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
-            {
-                if (kv.Value.Contains("profile-level-id=42001f") && kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
-            }
-
-            // Priority 3: Any H264 with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
-            {
-                if (kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
-            }
-
-            // Priority 4: First H264 found
-            foreach (var kv in h264PayloadTypes)
+            // Return first match for any codec
+            foreach (var kv in codecPayloadTypes)
             {
                 return kv.Key;
             }

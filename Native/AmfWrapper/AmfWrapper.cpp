@@ -1,5 +1,5 @@
 // AmfWrapper.cpp - AMD AMF SDK Wrapper Implementation
-// Provides zero-copy H.264 encoding from D3D11 textures
+// Provides zero-copy H.264/H.265 encoding from D3D11 textures
 
 #define AMFWRAPPER_EXPORTS
 #include "AmfWrapper.h"
@@ -12,6 +12,7 @@
 #include "amf/public/include/core/Factory.h"
 #include "amf/public/include/core/Context.h"
 #include "amf/public/include/components/VideoEncoderVCE.h"
+#include "amf/public/include/components/VideoEncoderHEVC.h"
 #include "amf/public/common/AMFFactory.h"
 
 #pragma comment(lib, "d3d11.lib")
@@ -20,8 +21,8 @@
 // Thread-safe error message
 static thread_local std::string g_lastError;
 
-// Detect keyframe by scanning for SPS (NAL type 7) or IDR (NAL type 5)
-static int DetectKeyframe(const uint8_t* data, size_t size) {
+// Detect keyframe for H.264: SPS (NAL type 7) or IDR (NAL type 5)
+static int DetectKeyframeH264(const uint8_t* data, size_t size) {
     for (size_t i = 0; i + 4 < size; i++) {
         if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
             int nalType = data[i+4] & 0x1F;
@@ -33,8 +34,21 @@ static int DetectKeyframe(const uint8_t* data, size_t size) {
     return 0;
 }
 
-// Configure common encoder properties for low-latency streaming
-static void ConfigureAmfEncoder(amf::AMFComponentPtr& encoder, int fps, int bitrate) {
+// Detect keyframe for H.265: VPS (32), SPS (33), IDR_W_RADL (19), IDR_N_LP (20)
+static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
+    for (size_t i = 0; i + 5 < size; i++) {
+        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+            int nalType = (data[i+4] >> 1) & 0x3F;
+            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// Configure common encoder properties for low-latency streaming (H.264)
+static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int bitrate) {
     encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
     encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_BASELINE);
@@ -44,12 +58,31 @@ static void ConfigureAmfEncoder(amf::AMFComponentPtr& encoder, int fps, int bitr
     encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps / 2);  // 0.5s GOP for WiFi resilience
+    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps / 2);
     encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+}
+
+// Configure encoder properties for low-latency streaming (H.265/HEVC)
+static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int bitrate) {
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, AMF_VIDEO_ENCODER_HEVC_USAGE_LOW_LATENCY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_BALANCED);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE, AMF_VIDEO_ENCODER_HEVC_PROFILE_MAIN);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TIER, AMF_VIDEO_ENCODER_HEVC_TIER_MAIN);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE_LEVEL, AMF_LEVEL_5_1);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrate * 1000);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1200);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps / 2);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, true);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
 }
 
 // Encoder context structure
@@ -71,10 +104,11 @@ struct AmfEncoderContext {
     std::mutex encodeMutex;
 
     bool useBgraInput;
+    bool useHevc;
 
     AmfEncoderContext() : d3dDevice(nullptr), width(0), height(0), fps(0),
                           bitrate(0), callback(nullptr), userData(nullptr),
-                          pts(0), initialized(false), useBgraInput(false) {}
+                          pts(0), initialized(false), useBgraInput(false), useHevc(false) {}
 };
 
 // Check AMF availability
@@ -87,12 +121,12 @@ AMFWRAPPER_API int AmfIsAvailable() {
     return 0;
 }
 
-// Internal: Create encoder with specified surface format
+// Internal: Create encoder with specified surface format and codec
 static int AmfCreateEncoderInternal(
     AmfEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate,
-    bool useBgra)
+    bool useBgra, bool useHevc)
 {
     if (!outHandle || !d3d11Device || width <= 0 || height <= 0) {
         g_lastError = "Invalid parameters";
@@ -108,6 +142,7 @@ static int AmfCreateEncoderInternal(
     ctx->fps = fps;
     ctx->bitrate = bitrate;
     ctx->useBgraInput = useBgra;
+    ctx->useHevc = useHevc;
 
     AMF_RESULT res;
 
@@ -135,8 +170,9 @@ static int AmfCreateEncoderInternal(
         return AMF_WRAPPER_FAIL;
     }
 
-    // Create H.264 encoder component
-    res = g_AMFFactory.GetFactory()->CreateComponent(ctx->context, AMFVideoEncoderVCE_AVC, &ctx->encoder);
+    // Create encoder component based on codec
+    const wchar_t* codecId = useHevc ? AMFVideoEncoder_HEVC : AMFVideoEncoderVCE_AVC;
+    res = g_AMFFactory.GetFactory()->CreateComponent(ctx->context, codecId, &ctx->encoder);
     if (res != AMF_OK || !ctx->encoder) {
         g_lastError = "CreateComponent failed: " + std::to_string(res);
         delete ctx;
@@ -144,7 +180,11 @@ static int AmfCreateEncoderInternal(
     }
 
     // Configure encoder properties
-    ConfigureAmfEncoder(ctx->encoder, fps, bitrate);
+    if (useHevc) {
+        ConfigureAmfEncoderHEVC(ctx->encoder, fps, bitrate);
+    } else {
+        ConfigureAmfEncoderH264(ctx->encoder, fps, bitrate);
+    }
 
     // Initialize encoder with appropriate surface format
     amf::AMF_SURFACE_FORMAT fmt = useBgra ? amf::AMF_SURFACE_BGRA : amf::AMF_SURFACE_NV12;
@@ -161,22 +201,40 @@ static int AmfCreateEncoderInternal(
     return AMF_WRAPPER_OK;
 }
 
-// Create encoder (NV12 input)
+// Create encoder (NV12 input, H.264)
 AMFWRAPPER_API int AmfCreateEncoder(
     AmfEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate)
 {
-    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false);
+    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false, false);
 }
 
-// Create encoder with BGRA input support
+// Create encoder with BGRA input support (H.264)
 AMFWRAPPER_API int AmfCreateEncoderBgra(
     AmfEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate)
 {
-    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true);
+    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true, false);
+}
+
+// Create encoder with codec selection (NV12 input)
+AMFWRAPPER_API int AmfCreateEncoderEx(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false, useHevc != 0);
+}
+
+// Create encoder with BGRA input and codec selection
+AMFWRAPPER_API int AmfCreateEncoderBgraEx(
+    AmfEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return AmfCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true, useHevc != 0);
 }
 
 // Set callback
@@ -194,7 +252,7 @@ AMFWRAPPER_API int AmfSetEncodedDataCallback(
     return AMF_WRAPPER_OK;
 }
 
-// Internal: Submit surface to encoder and drain output
+// Internal: Submit surface to encoder and drain output (codec-aware)
 static int AmfSubmitAndDrain(AmfEncoderContext* ctx, amf::AMFSurfacePtr& surface, int forceKeyframe) {
     AMF_RESULT res;
 
@@ -202,15 +260,23 @@ static int AmfSubmitAndDrain(AmfEncoderContext* ctx, amf::AMFSurfacePtr& surface
     surface->SetPts(ctx->pts);
     ctx->pts += 10000000 / ctx->fps;  // 100ns units
 
-    // Force keyframe if requested
+    // Force keyframe if requested (use correct property names per codec)
     if (forceKeyframe) {
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+        if (ctx->useHevc) {
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
 
-        surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
-        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
-        surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+            surface->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
+            surface->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
+        } else {
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+
+            surface->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+            surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
+            surface->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+        }
     }
 
     // Submit to encoder
@@ -222,7 +288,11 @@ static int AmfSubmitAndDrain(AmfEncoderContext* ctx, amf::AMFSurfacePtr& surface
 
     // Reset force picture type
     if (forceKeyframe) {
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_NONE);
+        if (ctx->useHevc) {
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_NONE);
+        } else {
+            ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_NONE);
+        }
     }
 
     // Release surface reference early
@@ -236,7 +306,7 @@ static int AmfSubmitAndDrain(AmfEncoderContext* ctx, amf::AMFSurfacePtr& surface
             uint8_t* data = static_cast<uint8_t*>(buffer->GetNative());
             size_t size = buffer->GetSize();
             int64_t pts = buffer->GetPts();
-            int isKeyFrame = DetectKeyframe(data, size);
+            int isKeyFrame = ctx->useHevc ? DetectKeyframeHEVC(data, size) : DetectKeyframeH264(data, size);
             ctx->callback(data, static_cast<uint32_t>(size), pts, isKeyFrame, ctx->userData);
         }
         outputData = nullptr;
@@ -393,7 +463,7 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
     return AmfSubmitAndDrain(ctx, surface, forceKeyframe);
 }
 
-// Dynamically change encoder bitrate
+// Dynamically change encoder bitrate (codec-aware)
 AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
     if (!handle) {
         g_lastError = "Invalid handle";
@@ -415,26 +485,37 @@ AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
 
     AMF_RESULT res;
 
-    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrateKbps * 1000);
-    if (res != AMF_OK) {
-        g_lastError = "SetProperty TARGET_BITRATE failed: " + std::to_string(res);
-        return AMF_WRAPPER_FAIL;
+    if (ctx->useHevc) {
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrateKbps * 1000);
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty HEVC_TARGET_BITRATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrateKbps * 1200);
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty HEVC_PEAK_BITRATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
+    } else {
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrateKbps * 1000);
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty TARGET_BITRATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrateKbps * 1200);
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty PEAK_BITRATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
     }
-
-    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrateKbps * 1200);
-    if (res != AMF_OK) {
-        g_lastError = "SetProperty PEAK_BITRATE failed: " + std::to_string(res);
-        return AMF_WRAPPER_FAIL;
-    }
-
-    // Force IDR to apply new bitrate immediately
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
 
     ctx->bitrate = bitrateKbps;
     return AMF_WRAPPER_OK;
 }
 
-// Dynamically change encoder FPS
+// Dynamically change encoder FPS (codec-aware)
 AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
     if (!handle) {
         g_lastError = "Invalid handle";
@@ -456,14 +537,23 @@ AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
 
     AMF_RESULT res;
 
-    res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
-    if (res != AMF_OK) {
-        g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
-        return AMF_WRAPPER_FAIL;
+    if (ctx->useHevc) {
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty HEVC_FRAMERATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps * 2);
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
+    } else {
+        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
+        if (res != AMF_OK) {
+            g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
+            return AMF_WRAPPER_FAIL;
+        }
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
     }
-
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
-    ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
 
     ctx->fps = fps;
     return AMF_WRAPPER_OK;

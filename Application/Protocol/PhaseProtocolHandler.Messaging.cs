@@ -98,7 +98,7 @@ namespace RemotePlayServer.Application.Protocol
 
         /// <summary>
         /// Negotiate codec based on server and client capabilities.
-        /// Priority order: H264 (hardware) > H265 > VP9 > VP8
+        /// Priority order: H265 (best quality) > H264 > VP9 > VP8
         /// </summary>
         private void NegotiateCodec()
         {
@@ -124,8 +124,8 @@ namespace RemotePlayServer.Application.Protocol
             var clientCodecs = _clientCodecCapability?.SupportedCodecs ?? new[] { "H264" };
             Logger.Info($"[Protocol] Client supported codecs: [{string.Join(", ", clientCodecs)}]");
 
-            // Find best mutual codec (priority: H264 first for hardware acceleration)
-            string[] priority = { "H264", "H265", "VP9", "VP8" };
+            // Find best mutual codec (priority: H265 for better quality/compression, then H264)
+            string[] priority = { "H265", "H264", "VP9", "VP8" };
 
             foreach (var codec in priority)
             {

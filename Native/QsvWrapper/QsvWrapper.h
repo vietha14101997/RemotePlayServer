@@ -1,5 +1,5 @@
 // QsvWrapper.h - Intel Quick Sync Video Wrapper for C# Interop
-// Provides simple C API for zero-copy H.264 encoding from D3D11 textures
+// Provides simple C API for zero-copy H.264/H.265 encoding from D3D11 textures
 
 #pragma once
 
@@ -41,15 +41,8 @@ typedef void (*QsvEncodedDataCallback)(
 QSVWRAPPER_API int QsvIsAvailable();
 
 /// <summary>
-/// Create a QSV encoder instance
+/// Create a QSV encoder instance (H.264)
 /// </summary>
-/// <param name="outHandle">Output encoder handle</param>
-/// <param name="d3d11Device">D3D11 device to use for encoding (shared device)</param>
-/// <param name="width">Video width</param>
-/// <param name="height">Video height</param>
-/// <param name="fps">Frames per second</param>
-/// <param name="bitrate">Target bitrate in kbps</param>
-/// <returns>QSV_WRAPPER_OK on success</returns>
 QSVWRAPPER_API int QsvCreateEncoder(
     QsvEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -71,10 +64,6 @@ QSVWRAPPER_API int QsvSetEncodedDataCallback(
 /// <summary>
 /// Encode a D3D11 NV12 texture (zero-copy)
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="texture">D3D11 NV12 texture to encode</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>QSV_WRAPPER_OK on success</returns>
 QSVWRAPPER_API int QsvEncodeTexture(
     QsvEncoderHandle handle,
     ID3D11Texture2D* texture,
@@ -99,19 +88,29 @@ QSVWRAPPER_API const char* QsvGetLastError();
 /// <summary>
 /// Dynamically change encoder bitrate without reinitialization
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="bitrateKbps">New target bitrate in kbps</param>
-/// <returns>QSV_WRAPPER_OK on success</returns>
 QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps);
 
 /// <summary>
 /// Dynamically change encoder FPS without reinitialization
 /// NOTE: QSV does not support runtime FPS changes, this always returns QSV_WRAPPER_FAIL
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="fps">New target FPS</param>
-/// <returns>QSV_WRAPPER_FAIL (not supported)</returns>
 QSVWRAPPER_API int QsvSetFps(QsvEncoderHandle handle, int fps);
+
+// ── H.265/HEVC Extended APIs ──────────────────────────────────────────────
+
+/// <summary>
+/// Create a QSV encoder with codec selection
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+QSVWRAPPER_API int QsvCreateEncoderEx(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
+);
 
 #ifdef __cplusplus
 }

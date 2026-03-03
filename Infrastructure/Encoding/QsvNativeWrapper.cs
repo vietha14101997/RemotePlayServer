@@ -9,7 +9,7 @@ namespace RemotePlayServer.Infrastructure.Encoding;
 
 /// <summary>
 /// C# wrapper for native QsvWrapper.dll
-/// Provides true zero-copy H.264 encoding from D3D11 textures on Intel GPUs (Quick Sync Video)
+/// Provides true zero-copy H.264/H.265 encoding from D3D11 textures on Intel GPUs (Quick Sync Video)
 /// </summary>
 public unsafe class QsvNativeWrapper : ITextureEncoder
 {
@@ -76,6 +76,18 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int QsvSetFps(IntPtr handle, int fps);
 
+    // H.265/HEVC Extended API
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvCreateEncoderEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
     #endregion
 
     #region Fields
@@ -89,6 +101,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     private int _height;
     private int _fps;
     private int _bitrate;
+    private bool _useHevc;
 
     #endregion
 
@@ -101,6 +114,11 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public int CurrentFps => _fps;
 
     #endregion
+
+    /// <summary>
+    /// Set to true before Initialize to use H.265/HEVC codec instead of H.264
+    /// </summary>
+    public bool UseHevc { get => _useHevc; set => _useHevc = value; }
 
     #region Events
 
@@ -153,16 +171,11 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
             _fps = fps;
             _bitrate = bitrate;
 
-            Logger.Info($"[QsvNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[QsvNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
 
-            int result = QsvCreateEncoder(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? QsvCreateEncoderEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : QsvCreateEncoder(out _handle, device.NativePointer, width, height, fps, bitrate);
 
             if (result != QSV_WRAPPER_OK)
             {
@@ -184,7 +197,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[QsvNativeWrapper] Initialized successfully (zero-copy enabled)");
+            Logger.Info($"[QsvNativeWrapper] Initialized successfully (zero-copy, codec={(_useHevc ? "HEVC" : "H264")})");
             return true;
         }
         catch (Exception ex)
