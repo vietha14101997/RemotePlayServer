@@ -288,10 +288,9 @@ namespace RemotePlayServer.Application.Protocol
             _streamer = new SIPSorceryStreamer(
                 actualMonitors, config.Fps, perEncoderBitrate, _capture.Device, negotiatedCodec);
 
-            // Create texture resizer with dynamic max resolution based on monitor type
-            var (maxW, maxH) = TextureResizer.GetMaxResolutionForType(DisplayConfig.MonitorType);
-            _textureResizer = new TextureResizer(actualMonitors, maxW, maxH);
-            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (max: {maxW}x{maxH}, type: {DisplayConfig.MonitorType})");
+            // Create texture resizer with target output height (default 1080p)
+            _textureResizer = new TextureResizer(actualMonitors, TextureResizer.DEFAULT_TARGET_HEIGHT);
+            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {TextureResizer.DEFAULT_TARGET_HEIGHT}p, type: {DisplayConfig.MonitorType})");
 
             // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)
@@ -618,7 +617,7 @@ namespace RemotePlayServer.Application.Protocol
                     monitorCount = offerVideoCount;
                 }
 
-                var (resMaxW, resMaxH) = TextureResizer.GetMaxResolutionForType(DisplayConfig.MonitorType);
+                var targetHeight = TextureResizer.DEFAULT_TARGET_HEIGHT;
                 var dimensions = new List<(int w, int h)>();
                 for (int i = 0; i < monitorCount; i++)
                 {
@@ -632,16 +631,17 @@ namespace RemotePlayServer.Application.Protocol
                         var resizer = _textureResizer;
                         var (targetW, targetH) = resizer != null
                             ? resizer.CalculateTargetSize(nativeW, nativeH)
-                            : (Math.Min(nativeW, resMaxW), Math.Min(nativeH, resMaxH));
+                            : CalculateFallbackDimensions(nativeW, nativeH, targetHeight);
 
                         dimensions.Add((targetW, targetH));
                         Logger.Info($"[Protocol] Monitor {i} native={nativeW}x{nativeH} -> encoder={targetW}x{targetH}");
                     }
                     else
                     {
-                        // Fallback to max resize dimensions for monitor type
-                        dimensions.Add((resMaxW, resMaxH));
-                        Logger.Info($"[Protocol] Monitor {i} using default encoder resolution: {resMaxW}x{resMaxH}");
+                        // Fallback: use target height with 16:9 aspect ratio
+                        var (fbW, fbH) = CalculateFallbackDimensions(1920, 1080, targetHeight);
+                        dimensions.Add((fbW, fbH));
+                        Logger.Info($"[Protocol] Monitor {i} using default encoder resolution: {fbW}x{fbH}");
                     }
                 }
 
@@ -1345,6 +1345,26 @@ namespace RemotePlayServer.Application.Protocol
             var selected = sorted.Skip(startIdx).Take(endIdx - startIdx + 1).Select(m => m.mon).ToList();
             Logger.Info($"[Protocol] Selected (primary+neighbors [{startIdx}..{endIdx}]): {string.Join(", ", selected.Select(m => m.name))}");
             return selected;
+        }
+
+        /// <summary>
+        /// Calculate fallback encoder dimensions for a given source and target height.
+        /// Maintains aspect ratio and ensures even dimensions.
+        /// </summary>
+        private static (int w, int h) CalculateFallbackDimensions(int sourceW, int sourceH, int targetHeight)
+        {
+            if (sourceH == targetHeight)
+                return (sourceW, sourceH);
+
+            double scale = (double)targetHeight / sourceH;
+            int w = (int)(sourceW * scale);
+            int h = targetHeight;
+
+            // Ensure even dimensions
+            w = (w + 1) & ~1;
+            h = (h + 1) & ~1;
+
+            return (Math.Max(w, 2), Math.Max(h, 2));
         }
     }
 }

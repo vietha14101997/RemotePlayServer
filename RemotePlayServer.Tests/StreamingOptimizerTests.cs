@@ -27,17 +27,18 @@ public class StreamingOptimizerTests
         SupportedCodecs = new List<string> { "H264", "VP9" }
     };
 
-    // ==================== Resolution (Always 1440x810) ====================
+    // ==================== Resolution (Dynamic based on client screen) ====================
 
     [Fact]
-    public void CalculateSuggestedConfig_AlwaysReturns1440x810()
+    public void CalculateSuggestedConfig_ReturnsReferenceResolution()
     {
         var config = StreamingOptimizer.CalculateSuggestedConfig(
             DefaultHardware(), HwEncoder(),
             new SpeedTestResult { PingMs = 5, BandwidthMbps = 500, Success = true });
 
-        Assert.Equal(1440, config.ResolutionWidth);
-        Assert.Equal(810, config.ResolutionHeight);
+        // Suggested config uses reference 1920x1080 (actual resize done by TextureResizer)
+        Assert.Equal(1920, config.ResolutionWidth);
+        Assert.Equal(1080, config.ResolutionHeight);
     }
 
     // ==================== LAN Connection ====================
@@ -171,7 +172,7 @@ public class StreamingOptimizerTests
             DefaultHardware(), HwEncoder(),
             new SpeedTestResult { PingMs = 5, BandwidthMbps = 500, Success = true });
 
-        Assert.Contains("1440x810", config.Reason);
+        Assert.Contains("Server-controlled", config.Reason);
         Assert.Contains("Mbps", config.Reason);
         Assert.Contains("fps", config.Reason);
     }

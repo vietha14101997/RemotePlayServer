@@ -9,21 +9,22 @@ namespace RemotePlayServer.Infrastructure.Capture
 {
     /// <summary>
     /// GPU-accelerated texture resizer using Compute Shader.
-    /// Resizes textures to max resolution (1440x810) while maintaining aspect ratio.
+    /// Resizes textures to a target resolution (default: 1080p) while maintaining aspect ratio.
     /// Uses bilinear filtering for high-quality scaling.
     /// Supports multiple D3D11 devices (one scaler per device).
+    /// 
+    /// The server always outputs at the target height (default 1080p).
+    /// Client can request a different target height during streaming via update_config.
     /// </summary>
     public class TextureResizer : IDisposable
     {
         private readonly int _monitorCount;
 
-        // Default max resolution (standard 16:9 monitors)
-        public const int DefaultMaxWidth = 1440;
-        public const int DefaultMaxHeight = 810;
-
-        // Instance max resolution (can be overridden for ultrawide)
-        public int MaxWidth { get; }
-        public int MaxHeight { get; }
+        /// <summary>
+        /// Target output height in pixels. The width is calculated proportionally.
+        /// Default: 1080 (1080p output regardless of source resolution).
+        /// </summary>
+        public int TargetHeight { get; private set; }
 
         // Per-device GPU scalers (key = device pointer)
         private readonly Dictionary<IntPtr, GpuTextureScaler> _scalers = new();
@@ -32,64 +33,69 @@ namespace RemotePlayServer.Infrastructure.Capture
 
         private bool _disposed;
 
-        public TextureResizer(int monitorCount, int maxWidth = DefaultMaxWidth, int maxHeight = DefaultMaxHeight)
+        /// <summary>
+        /// Default output height: 1080p.
+        /// </summary>
+        public const int DEFAULT_TARGET_HEIGHT = 1080;
+
+        public TextureResizer(int monitorCount, int targetHeight = DEFAULT_TARGET_HEIGHT)
         {
             _monitorCount = monitorCount;
-            MaxWidth = maxWidth;
-            MaxHeight = maxHeight;
-            Logger.Info($"[TextureResizer] Initialized for {monitorCount} monitors, max {maxWidth}x{maxHeight} (per-device GPU scaling)");
+            TargetHeight = Math.Max(targetHeight, 240); // minimum 240p
+            Logger.Info($"[TextureResizer] Initialized for {monitorCount} monitors, targetHeight={TargetHeight}p");
         }
 
         /// <summary>
-        /// Get max resolution for a given monitor type.
-        /// Standard: 1440x810, Ultrawide: 1920x810, Super Ultrawide: 2880x810.
+        /// Dynamically update target resolution during streaming.
+        /// Called when client sends update_config with a new resolutionHeight.
         /// </summary>
-        public static (int maxWidth, int maxHeight) GetMaxResolutionForType(string monitorType)
+        public void UpdateTargetHeight(int newTargetHeight)
         {
-            return monitorType switch
+            int clamped = Math.Clamp(newTargetHeight, 240, 4320); // 240p to 8K
+            Logger.Info($"[TextureResizer] Target height changed: {TargetHeight}p → {clamped}p");
+            TargetHeight = clamped;
+
+            // Clear cached scalers - they'll be recreated with new dimensions on next frame
+            lock (_lock)
             {
-                "ultrawide" => (1920, 810),
-                "super_ultrawide" => (2880, 810),
-                _ => (DefaultMaxWidth, DefaultMaxHeight)
-            };
+                foreach (var scaler in _scalers.Values)
+                {
+                    try { scaler.Dispose(); } catch { }
+                }
+                _scalers.Clear();
+                _failedDevices.Clear();
+            }
         }
 
         /// <summary>
-        /// Check if resize is needed for the given dimensions (uses instance max).
+        /// Check if resize is needed (source height differs from target).
         /// </summary>
         public bool NeedsResize(int width, int height)
         {
-            return width > MaxWidth || height > MaxHeight;
+            return height != TargetHeight;
         }
 
         /// <summary>
-        /// Calculate target dimensions that fit within MaxWidth x MaxHeight while maintaining aspect ratio.
+        /// Calculate target dimensions by scaling proportionally to TargetHeight.
+        /// Ensures even dimensions (required by many encoders).
         /// </summary>
         public (int targetWidth, int targetHeight) CalculateTargetSize(int width, int height)
         {
-            if (width <= MaxWidth && height <= MaxHeight)
-                return (width, height); // No resize needed
+            if (height == TargetHeight)
+                return (width, height); // Already at target
 
-            double aspectRatio = (double)width / height;
-
-            int targetWidth, targetHeight;
-
-            if (aspectRatio > (double)MaxWidth / MaxHeight)
-            {
-                // Width-limited: fit to MaxWidth
-                targetWidth = MaxWidth;
-                targetHeight = (int)(MaxWidth / aspectRatio);
-            }
-            else
-            {
-                // Height-limited: fit to MaxHeight
-                targetHeight = MaxHeight;
-                targetWidth = (int)(MaxHeight * aspectRatio);
-            }
+            // Scale proportionally based on height ratio
+            double scale = (double)TargetHeight / height;
+            int targetWidth = (int)(width * scale);
+            int targetHeight = TargetHeight;
 
             // Ensure even dimensions (required by many encoders)
             targetWidth = (targetWidth + 1) & ~1;
             targetHeight = (targetHeight + 1) & ~1;
+
+            // Ensure minimum dimensions
+            targetWidth = Math.Max(targetWidth, 2);
+            targetHeight = Math.Max(targetHeight, 2);
 
             return (targetWidth, targetHeight);
         }
@@ -129,7 +135,7 @@ namespace RemotePlayServer.Infrastructure.Capture
         }
 
         /// <summary>
-        /// Resize a BGRA texture to fit within MaxWidth x MaxHeight.
+        /// Resize a BGRA texture to TargetHeight.
         /// Returns (resizedTexture, targetWidth, targetHeight).
         /// If no resize needed, returns (originalTexture, originalWidth, originalHeight).
         /// Uses GPU Compute Shader for high-quality bilinear scaling.

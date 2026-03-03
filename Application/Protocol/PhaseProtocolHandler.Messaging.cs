@@ -78,8 +78,10 @@ namespace RemotePlayServer.Application.Protocol
                     if (ackMsg?.ClientCodecs != null)
                     {
                         _clientCodecCapability = ackMsg.ClientCodecs;
+                        _clientScreenHeight = ackMsg.ClientCodecs.ScreenHeight;
                         Logger.Info($"[Protocol] Client codec capabilities: HEVC={_clientCodecCapability.SupportsHevc}, " +
                                           $"preferred={_clientCodecCapability.PreferredCodec}, device={_clientCodecCapability.DeviceModel}");
+                        Logger.Info($"[Protocol] Client screen resolution: {ackMsg.ClientCodecs.ScreenWidth}x{ackMsg.ClientCodecs.ScreenHeight}");
 
                         // Negotiate codec: Use H.265 if both server and client support it
                         NegotiateCodec();

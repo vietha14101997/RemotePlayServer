@@ -299,8 +299,10 @@ namespace RemotePlayServer.Infrastructure.Network
     {
         /// <summary>
         /// Calculate optimal streaming configuration based on hardware and network.
-        /// Note: Resolution is now server-controlled. Server captures at native resolution
-        /// and resizes to max 1440x810 before encoding.
+        /// Note: Resolution is now server-controlled based on client screen resolution.
+        /// Server captures at native and applies scale factor:
+        /// - Client < 1440p: 50% resize (e.g., 1920x1080 → 960x540)
+        /// - Client ≥ 1440p: original frame (no resize)
         /// </summary>
         public static SuggestedConfig CalculateSuggestedConfig(
             HardwareInfo hw,
@@ -309,17 +311,17 @@ namespace RemotePlayServer.Infrastructure.Network
         {
             var config = new SuggestedConfig();
 
-            // Resolution is fixed: Server captures at native and resizes to max 1440x810
-            // This is the maximum resolution after server-side resize
-            config.ResolutionWidth = 1440;
-            config.ResolutionHeight = 810;
+            // Resolution is dynamic: depends on client screen and server capture.
+            // Use reference values for suggested config (actual resize in TextureResizer)
+            config.ResolutionWidth = 1920;
+            config.ResolutionHeight = 1080;
 
             // Calculate recommended bitrate per monitor based on resolution and network
             double availableBandwidth = network.BandwidthMbps > 0 ? network.BandwidthMbps : 100;
 
-            // Base bitrate recommendation based on 1440x810 resolution
-            // This is a "high quality" target for H.264/H.265 at this resolution
-            int baseBitrateKbps = 12000;  // 1440x810: 12 Mbps is excellent quality
+            // Base bitrate recommendation for server-controlled resolution
+            // Higher base for potential original-frame streaming to 2K+ clients
+            int baseBitrateKbps = 15000;  // 15 Mbps base (covers both 50% and original)
 
             // Scale up slightly if network is very good (low ping, high bandwidth)
             if (network.PingMs < 10 && availableBandwidth > 500)
@@ -415,7 +417,7 @@ namespace RemotePlayServer.Infrastructure.Network
             var reasons = new List<string>();
 
             // Resolution reason
-            reasons.Add($"1440x810 (Server-controlled, max auto-resize)");
+            reasons.Add($"Server-controlled (dynamic resize based on client screen)");
 
             // Bitrate reason
             reasons.Add($"{config.BitrateKbps / 1000}Mbps (BW: {network.BandwidthMbps:F0}Mbps)");

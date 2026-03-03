@@ -65,6 +65,10 @@ namespace RemotePlayServer.Application.Protocol
         private ClientCodecCapability? _clientCodecCapability;
         private string _selectedCodec = "H264";
 
+        // Client screen resolution (received in hardware_info_ack, used for resize decision)
+        // Screens < 1440p get 50% resize; >= 1440p get original frame
+        private int _clientScreenHeight = 0;
+
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
         private SIPSorceryStreamer? _streamer;

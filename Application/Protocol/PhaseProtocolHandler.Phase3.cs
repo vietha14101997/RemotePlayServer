@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Vortice.Direct3D11;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
+using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Protocol
@@ -378,7 +379,7 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
-                    // Handle update_config from client for dynamic FPS/Bitrate changes
+                    // Handle update_config from client for dynamic FPS/Bitrate/Resolution changes
                     if (msgType == "update_config")
                     {
                         try
@@ -386,7 +387,19 @@ namespace RemotePlayServer.Application.Protocol
                             var updateMsg = ProtocolMessageParser.Parse<UpdateConfigMessage>(text);
                             if (updateMsg != null && _streamer != null)
                             {
-                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, bitrate={updateMsg.BitrateKbps}kbps");
+                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, bitrate={updateMsg.BitrateKbps}kbps, resolutionHeight={updateMsg.ResolutionHeight}");
+
+                                // Handle resolution change
+                                if (updateMsg.ResolutionHeight.HasValue && _textureResizer != null)
+                                {
+                                    int newHeight = updateMsg.ResolutionHeight.Value;
+                                    Logger.Info($"[Protocol] Dynamic resolution change requested: {_textureResizer.TargetHeight}p → {newHeight}p");
+                                    _textureResizer.UpdateTargetHeight(newHeight);
+
+                                    // Request keyframe burst for all monitors so the new resolution takes effect immediately
+                                    _streamer?.RequestKeyframeBurst(-1, 3);
+                                    Logger.Info($"[Protocol] Resolution changed to {newHeight}p, keyframes requested");
+                                }
 
                                 var (success, appliedFps, appliedBitrate, message) = _streamer.UpdateConfig(
                                     updateMsg.Fps,
@@ -403,11 +416,12 @@ namespace RemotePlayServer.Application.Protocol
                                 {
                                     Fps = appliedFps,
                                     BitrateKbps = appliedBitrate,
+                                    ResolutionHeight = _textureResizer?.TargetHeight ?? 1080,
                                     Success = success,
                                     Message = message
                                 };
                                 await SendMessageAsync(ack);
-                                Logger.Info($"[Protocol] config_updated sent: {message}");
+                                Logger.Info($"[Protocol] config_updated sent: {message}, resolution={ack.ResolutionHeight}p");
                             }
                         }
                         catch (Exception ex)
@@ -466,7 +480,7 @@ namespace RemotePlayServer.Application.Protocol
                     // BGRA frame handler (zero-copy path, no color conversion)
                     _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
                     {
-                        // Resize texture if it exceeds max resolution (1440x810)
+                        // Resize texture to target resolution (default 1080p)
                         ID3D11Texture2D? textureToSend = bgraTexture;
                         int targetWidth = w;
                         int targetHeight = h;

@@ -90,6 +90,21 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("apiLevel")]
         public int ApiLevel { get; set; }
+
+        /// <summary>
+        /// Client screen width in pixels (per-eye for VR headsets).
+        /// Used by server to decide resize strategy.
+        /// </summary>
+        [JsonPropertyName("screenWidth")]
+        public int ScreenWidth { get; set; }
+
+        /// <summary>
+        /// Client screen height in pixels (per-eye for VR headsets).
+        /// Used by server to decide resize strategy.
+        /// Screens below 1440p get 50% resize; 1440p+ get original frame.
+        /// </summary>
+        [JsonPropertyName("screenHeight")]
+        public int ScreenHeight { get; set; }
     }
 
     /// <summary>
@@ -501,6 +516,13 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("bitrateKbps")]
         public int? BitrateKbps { get; set; }
+
+        /// <summary>
+        /// New target output resolution height in pixels (optional, null = no change).
+        /// Server will resize all frames to this height (e.g., 720, 1080, 1440).
+        /// </summary>
+        [JsonPropertyName("resolutionHeight")]
+        public int? ResolutionHeight { get; set; }
     }
 
     /// <summary>
@@ -515,6 +537,9 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("bitrateKbps")]
         public int BitrateKbps { get; set; }
+
+        [JsonPropertyName("resolutionHeight")]
+        public int ResolutionHeight { get; set; }
 
         [JsonPropertyName("success")]
         public bool Success { get; set; }
