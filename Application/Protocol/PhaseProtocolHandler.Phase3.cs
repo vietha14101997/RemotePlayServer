@@ -62,13 +62,15 @@ namespace RemotePlayServer.Application.Protocol
             // Activate Phase 3 via barrier sync — ensures all tracks see
             // _phase3Active=true at the same barrier cycle, preventing one track
             // from starting 1-2 cycles before the other (27ms RTP offset).
-            if (_capture != null && _streamer != null)
+            // NOTE: Single-monitor mode (e.g. ultrawide) has no barrier,
+            // so we must activate immediately in that case.
+            if (_capture != null && _streamer != null && _capture.HasBarrierSync)
             {
                 _capture.OnNextBarrierSync = () => _streamer?.ActivatePhase3();
             }
             else
             {
-                // No capture available — activate immediately as fallback
+                // No barrier (single monitor) or no capture — activate immediately
                 _streamer?.ActivatePhase3();
             }
 

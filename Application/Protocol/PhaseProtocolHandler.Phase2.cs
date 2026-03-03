@@ -37,6 +37,25 @@ namespace RemotePlayServer.Application.Protocol
             // Refresh monitor list after VDD changes
             _monitors = WgcInterop.ListMonitorsDXGI()
                 .Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
+
+            // For ultrawide mode: filter to ONLY the virtual monitor
+            // After ShowOnly, DXGI may still enumerate the detached physical monitor.
+            // We must capture from the VDD virtual monitor, not the physical one.
+            if (_ultrawideVddName != null)
+            {
+                var vddMonitor = _monitors.FirstOrDefault(m =>
+                    string.Equals(m.name, _ultrawideVddName, StringComparison.OrdinalIgnoreCase));
+                if (vddMonitor.name != null)
+                {
+                    _monitors = new List<(IntPtr hmon, string name, int width, int height)> { vddMonitor };
+                    Logger.Info($"[Protocol] Ultrawide: filtered to VDD monitor {vddMonitor.name} ({vddMonitor.width}x{vddMonitor.height})");
+                }
+                else
+                {
+                    Logger.Error($"[Protocol] Ultrawide: VDD monitor {_ultrawideVddName} not found in DXGI! Available: {string.Join(", ", _monitors.Select(m => m.name))}");
+                }
+            }
+
             RefreshMonitorRects(); // Refresh monitor rects for cursor tracking
 
             int actualMonitors = Math.Min(_displayConfig.Monitors, _monitors.Count);
@@ -69,8 +88,10 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
-        /// Ultrawide display setup: create VDD → ShowOnly → fix resolution.
-        /// Topology change resets VDD to 800x600, so we detect and recover.
+        /// Ultrawide display setup using complete 7-step flow:
+        /// 1. Ensure VDD off → 2. Snapshot physical → 3. Create VDD + find virtual →
+        /// 4. Set primary → 5. Set 125% scale → 6. Disconnect physical → 7. Verify resolution
+        /// All steps are handled inside SetupUltrawideVirtualMonitor.
         /// </summary>
         private async Task ApplyUltrawideDisplayAsync(DisplayConfigMessage config)
         {
@@ -86,7 +107,7 @@ namespace RemotePlayServer.Application.Protocol
             DisplayConfig.StreamFps = config.Fps;
             DisplayConfig.RefreshRate = hz;
 
-            // Phase 1: Create VDD virtual monitor (blocking Win32 + pnputil calls)
+            // Complete 7-step ultrawide setup (VDD off → create → primary → scale → ShowOnly → verify)
             await SendProgressAsync("vdd_setup", 20, $"Creating ultrawide virtual display ({width}x{height})...");
             string? vddName = await Task.Run(() =>
                 VirtualDisplayManager.SetupUltrawideVirtualMonitor(width, height, hz));
@@ -99,75 +120,13 @@ namespace RemotePlayServer.Application.Protocol
                 return;
             }
 
-            // Phase 2: Apply ShowOnly topology (detach physical monitors)
-            await SendProgressAsync("topology", 50, "Switching to Show Only mode...");
-            await Task.Run(() => DisplayUtil.SetTopologyShowOnly(vddName));
-            await Task.Delay(2000); // Wait for Windows to apply topology
-
-            // Phase 3: Recover resolution if topology change reset VDD to 800x600
-            vddName = await EnsureVddResolutionAsync(vddName, width, height, hz);
+            // Store VDD name for monitor filtering in RunPhase2Async
+            _ultrawideVddName = vddName;
 
             DisplayGuard.MarkShowOnlyActive(vddName);
+            DisplayGuard.SpawnWatchdog();
             Logger.Info($"[Protocol] Show Only applied on {vddName}");
             _displayModified = true;
-        }
-
-        /// <summary>
-        /// After topology change, Windows resets VDD to 800x600.
-        /// Detects this and recovers via mode enumeration or VDD re-toggle.
-        /// Returns the (possibly updated) VDD device name.
-        /// </summary>
-        private async Task<string> EnsureVddResolutionAsync(string vddName, int w, int h, int hz)
-        {
-            var current = await Task.Run(() => DisplayUtil.GetCurrentMode(vddName));
-            if (current.Width == w && current.Height == h)
-            {
-                Logger.Info($"[Protocol] VDD resolution preserved: {current.Width}x{current.Height}@{current.Frequency}Hz");
-                return vddName;
-            }
-
-            Logger.Info($"[Protocol] VDD reset to {current.Width}x{current.Height} after topology change");
-
-            // Attempt 1: Mode exists in driver list → apply directly
-            bool resolved = await Task.Run(() =>
-            {
-                bool available = DisplayUtil.EnumerateAndLogModes(vddName, w, h, hz);
-                if (!available) return false;
-
-                Logger.Info("[Protocol] Target mode available, trying ForceResolutionViaModeEnum...");
-                return DisplayUtil.ForceResolutionViaModeEnum(vddName, w, h, hz)
-                    || DisplayUtil.ForceResolution(vddName, w, h, hz);
-            });
-
-            // Attempt 2: Re-toggle VDD to force driver XML reload
-            if (!resolved)
-            {
-                Logger.Info("[Protocol] Re-toggling VDD to refresh mode list...");
-                await Task.Run(() => VirtualDisplayManager.ToggleVddForModeRefresh());
-                await Task.Delay(2000);
-
-                var newName = await Task.Run(() => VirtualDisplayManager.FindVirtualMonitorName());
-                if (newName != null)
-                {
-                    vddName = newName;
-                    Logger.Info($"[Protocol] VDD monitor after toggle: {vddName}");
-                    await Task.Run(() =>
-                    {
-                        DisplayUtil.EnumerateAndLogModes(vddName, w, h, hz);
-                        if (!DisplayUtil.ForceResolutionViaModeEnum(vddName, w, h, hz))
-                            DisplayUtil.ForceResolution(vddName, w, h, hz);
-                    });
-                }
-                else
-                {
-                    Logger.Error("[Protocol] VDD monitor not found after toggle!");
-                }
-            }
-
-            await Task.Delay(1000);
-            var final = await Task.Run(() => DisplayUtil.GetCurrentMode(vddName));
-            Logger.Info($"[Protocol] Final resolution: {final.Width}x{final.Height}@{final.Frequency}Hz");
-            return vddName;
         }
 
         private void StopExistingCapture()
@@ -224,6 +183,7 @@ namespace RemotePlayServer.Application.Protocol
                     await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
                     await Task.Delay(1000); // Allow Windows to apply topology change
 
+                    DisplayGuard.SpawnWatchdog();
                     _displayModified = true;
                 }
             }

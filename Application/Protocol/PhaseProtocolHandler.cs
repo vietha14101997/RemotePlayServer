@@ -139,6 +139,9 @@ namespace RemotePlayServer.Application.Protocol
         // Track if display settings were modified (for cleanup)
         private bool _displayModified = false;
 
+        // VDD monitor name for ultrawide mode (used to filter monitors for capture)
+        private string? _ultrawideVddName;
+
         // Buffer for display_config that might arrive before WaitForDisplayConfigAsync is called
         private DisplayConfigMessage? _bufferedDisplayConfig;
 

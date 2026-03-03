@@ -257,22 +257,32 @@ static class VirtualDisplayManager
 
     /// <summary>
     /// Setup a single ultrawide virtual monitor for Ultrawide/Super Ultrawide mode.
-    /// Creates 1 VDD virtual display at the specified resolution.
-    /// Does NOT set Show Only topology — caller handles that separately.
+    /// Complete 7-step flow:
+    ///   1. Ensure VDD is disabled (clean slate)
+    ///   2. Snapshot physical monitors (whatever exists = physical)
+    ///   3. Enable 1 VDD, find the new virtual monitor
+    ///   4. Set primary to virtual monitor
+    ///   5. Set 125% scale on virtual monitor
+    ///   6. Disconnect all physical monitors (Show Only on virtual)
+    ///   7. Verify virtual monitor resolution
     /// </summary>
-    /// <param name="width">Ultrawide resolution width (2560 or 3840)</param>
-    /// <param name="height">Ultrawide resolution height (1080)</param>
-    /// <param name="refreshRate">Refresh rate in Hz</param>
-    /// <returns>The device name of the virtual monitor (e.g., \\.\DISPLAY5), or null on failure</returns>
+    /// <returns>The device name of the virtual monitor, or null on failure</returns>
     public static string? SetupUltrawideVirtualMonitor(int width, int height, int refreshRate,
         string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
     {
-        // Step 1: Snapshot physical monitors
+        // ── Step 1: Ensure VDD is disabled (clean slate) ──
+        Console.WriteLine("[VDD Ultrawide] Step 1: Ensuring VDD is disabled...");
+        TrySetDisplayCountViaPipe(0);
+        Thread.Sleep(500);
+        // If pipe not available, VDD might already be off — that's fine
+
+        // ── Step 2: Snapshot physical monitors ──
+        Console.WriteLine("[VDD Ultrawide] Step 2: Checking physical monitors...");
         SnapshotPhysicalMonitors();
         int physicalCount = _physicalMonitorNames.Count;
-        Console.WriteLine($"[VDD Ultrawide] Physical monitors: {physicalCount}, creating 1 virtual {width}x{height}@{refreshRate}Hz");
+        Console.WriteLine($"[VDD Ultrawide] Physical monitors: {physicalCount} ({string.Join(", ", _physicalMonitorNames)})");
 
-        // Step 2: Ensure ultrawide resolution exists in VDD XML
+        // Ensure ultrawide resolution exists in VDD XML
         try
         {
             EnsureResolutionInVddXml(settingsPath, width, height, refreshRate);
@@ -282,7 +292,8 @@ static class VirtualDisplayManager
             Console.WriteLine($"[VDD Ultrawide] XML resolution edit failed: {ex.Message}");
         }
 
-        // Step 3: Create 1 virtual monitor via pipe
+        // ── Step 3: Enable 1 VDD and find the virtual monitor ──
+        Console.WriteLine($"[VDD Ultrawide] Step 3: Creating 1 virtual monitor {width}x{height}@{refreshRate}Hz...");
         if (!TrySetDisplayCountViaPipe(1))
         {
             Console.WriteLine("[VDD Ultrawide] Pipe failed, trying pnputil fallback...");
@@ -290,12 +301,11 @@ static class VirtualDisplayManager
             ToggleVddViaPnputil();
         }
 
-        // Step 4: Wait for virtual monitor to appear
         int expectedTotal = physicalCount + 1;
         WaitForMonitorCount(expectedTotal, timeoutMs: 5000);
         Thread.Sleep(500); // Allow Windows to stabilize
 
-        // Step 5: Find the new virtual monitor
+        // Find the NEW monitor (not in physical snapshot = virtual)
         string? virtualMonitorName = null;
         var mons = WgcInterop.ListMonitorsDXGI();
         foreach (var mon in mons)
@@ -314,16 +324,67 @@ static class VirtualDisplayManager
             return null;
         }
 
-        // Step 6: Set ultrawide resolution on virtual monitor
+        // Set ultrawide resolution on virtual monitor
         bool resOk = DisplayUtil.ForceResolution(virtualMonitorName, width, height, refreshRate);
         Console.WriteLine($"[VDD Ultrawide] ForceResolution {width}x{height}@{refreshRate}Hz: {(resOk ? "OK" : "FAILED")}");
-
         if (!resOk)
         {
-            // Try with position as well
             DisplayUtil.SetResolutionAndPosition(virtualMonitorName, width, height, refreshRate, 0, 0);
             DisplayUtil.ApplyDisplayChanges();
             Thread.Sleep(300);
+        }
+
+        // ── Step 4: Set primary to virtual monitor ──
+        Console.WriteLine($"[VDD Ultrawide] Step 4: Setting primary to {virtualMonitorName}...");
+        SetAsPrimaryDisplay(virtualMonitorName);
+        Thread.Sleep(500);
+
+        // ── Step 5: Set 125% scale on virtual monitor ──
+        Console.WriteLine("[VDD Ultrawide] Step 5: Setting 125% scale...");
+        _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
+        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
+            Console.WriteLine("[VDD Ultrawide] Scale set to 125%");
+        else
+            Console.WriteLine("[VDD Ultrawide] Failed to set 125% scale");
+        Thread.Sleep(300);
+
+        // ── Step 6: Disconnect all physical monitors (Show Only on virtual) ──
+        Console.WriteLine($"[VDD Ultrawide] Step 6: Disconnecting physical monitors...");
+        DisplayUtil.SetTopologyShowOnly(virtualMonitorName);
+        Thread.Sleep(2000); // Wait for Windows to apply topology
+
+        // ── Step 7: Verify virtual monitor resolution ──
+        Console.WriteLine("[VDD Ultrawide] Step 7: Verifying resolution...");
+        var current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+        if (current.Width == width && current.Height == height)
+        {
+            Console.WriteLine($"[VDD Ultrawide] ✓ Resolution verified: {current.Width}x{current.Height}@{current.Frequency}Hz");
+        }
+        else
+        {
+            Console.WriteLine($"[VDD Ultrawide] Resolution mismatch: got {current.Width}x{current.Height}, expected {width}x{height}");
+            Console.WriteLine("[VDD Ultrawide] Attempting recovery...");
+            // Topology change may reset VDD — try to fix
+            DisplayUtil.ForceResolutionViaModeEnum(virtualMonitorName, width, height, refreshRate);
+            Thread.Sleep(500);
+            current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+            if (current.Width != width || current.Height != height)
+            {
+                // Last resort: re-toggle VDD
+                Console.WriteLine("[VDD Ultrawide] Re-toggling VDD for mode refresh...");
+                ToggleVddForModeRefresh();
+                Thread.Sleep(1000);
+                var newName = FindVirtualMonitorName();
+                if (newName != null)
+                {
+                    virtualMonitorName = newName;
+                    DisplayUtil.ForceResolutionViaModeEnum(virtualMonitorName, width, height, refreshRate);
+                    DisplayUtil.SetTopologyShowOnly(virtualMonitorName);
+                    Thread.Sleep(1000);
+                }
+            }
+            current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+            Console.WriteLine($"[VDD Ultrawide] Final resolution: {current.Width}x{current.Height}@{current.Frequency}Hz");
         }
 
         return virtualMonitorName;

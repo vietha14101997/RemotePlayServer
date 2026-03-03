@@ -170,6 +170,70 @@ static class DisplayGuard
         }
     }
 
+    // Watchdog process handle (so we can kill it on clean shutdown)
+    private static Process? _watchdogProcess;
+
+    /// <summary>
+    /// Spawn a watchdog process that monitors the current server PID.
+    /// If the server crashes (for any reason), the watchdog restores display settings.
+    /// Should be called AFTER display modifications (VDD setup, ShowOnly, etc.).
+    /// </summary>
+    public static void SpawnWatchdog()
+    {
+        try
+        {
+            // Kill any existing watchdog first
+            StopWatchdog();
+
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath))
+            {
+                Logger.Error("[Guard] Cannot spawn watchdog: ProcessPath is null");
+                return;
+            }
+
+            int myPid = Environment.ProcessId;
+            var psi = new ProcessStartInfo(exePath, $"--watchdog-pid={myPid}")
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            _watchdogProcess = Process.Start(psi);
+            if (_watchdogProcess != null)
+            {
+                Logger.Info($"[Guard] Watchdog spawned (PID={_watchdogProcess.Id}), monitoring server PID={myPid}");
+            }
+            else
+            {
+                Logger.Error("[Guard] Failed to spawn watchdog process");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Guard] Watchdog spawn error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Stop the watchdog process (called during clean shutdown).
+    /// </summary>
+    public static void StopWatchdog()
+    {
+        try
+        {
+            if (_watchdogProcess != null && !_watchdogProcess.HasExited)
+            {
+                Logger.Info("[Guard] Stopping watchdog process...");
+                _watchdogProcess.Kill();
+                _watchdogProcess.Dispose();
+            }
+        }
+        catch { }
+        _watchdogProcess = null;
+    }
+
     // Dùng khi khởi động với flag --restore-if-needed hoặc khi phát hiện marker còn sót
     public static void RestoreIfNeededOnStartup()
     {
@@ -196,6 +260,10 @@ static class DisplayGuard
     public static void RestoreAndCleanupWithTimeout(TimeSpan timeout)
     {
         Logger.Info("[Guard] RestoreAndCleanupWithTimeout called...");
+
+        // Stop watchdog FIRST — so it doesn't also try to restore when this process exits
+        StopWatchdog();
+
         Logger.Info($"[Guard] SnapshotPath exists: {File.Exists(SnapshotPath)}");
         
         // Luôn cố gắng disable VDD trước, bất kể snapshot có tồn tại không

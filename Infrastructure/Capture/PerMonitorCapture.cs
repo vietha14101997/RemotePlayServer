@@ -134,6 +134,12 @@ public sealed class PerMonitorCapture : IDisposable
     /// </summary>
     public volatile Action? OnNextBarrierSync;
 
+    /// <summary>
+    /// Whether barrier sync is active (multi-monitor mode).
+    /// Single-monitor mode has no barrier — Phase 3 must be activated immediately.
+    /// </summary>
+    public bool HasBarrierSync => _captureBarrier != null;
+
     // Track which monitor currently has the cursor (shared across all capture threads)
     // When a monitor reports Visible=true, it becomes the active cursor monitor
     // Only the active cursor monitor fires cursor events (prevents duplicate events)
