@@ -38,18 +38,7 @@ namespace RemotePlayServer.Application.Protocol
             _monitors = WgcInterop.ListMonitorsDXGI()
                 .Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
 
-            // Sort monitors by desktop X coordinate (left → right) so VR view matches physical layout.
-            // DXGI returns monitors in adapter order which may not match the desktop arrangement.
-            _monitors = _monitors.OrderBy(m =>
-            {
-                var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(m.name);
-                return ok ? x : int.MaxValue;
-            }).ToList();
-            Logger.Info($"[Protocol] Monitors sorted by X: {string.Join(", ", _monitors.Select(m => { var (x,_,_,_,ok) = DisplayUtil.TryGetLayout(m.name); return $"{m.name}(x={x})"; }))}");
-
             // For ultrawide mode: filter to ONLY the virtual monitor
-            // After ShowOnly, DXGI may still enumerate the detached physical monitor.
-            // We must capture from the VDD virtual monitor, not the physical one.
             if (_ultrawideVddName != null)
             {
                 var vddMonitor = _monitors.FirstOrDefault(m =>
@@ -63,6 +52,11 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     Logger.Error($"[Protocol] Ultrawide: VDD monitor {_ultrawideVddName} not found in DXGI! Available: {string.Join(", ", _monitors.Select(m => m.name))}");
                 }
+            }
+            else
+            {
+                // Standard mode: select and order monitors for VR streaming
+                _monitors = SelectMonitorsForStreaming(_monitors, _displayConfig.Monitors);
             }
 
             RefreshMonitorRects(); // Refresh monitor rects for cursor tracking
@@ -182,18 +176,33 @@ namespace RemotePlayServer.Application.Protocol
                     DisplayConfig.StreamFps = config.Fps;
                     DisplayConfig.RefreshRate = config.RefreshRate;
 
-                    await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
+                    // Snapshot physical monitors first to decide if VDD is needed
+                    VirtualDisplayManager.SnapshotPhysicalMonitors();
+                    int physicalCount = VirtualDisplayManager.PhysicalMonitorNames.Count;
+                    int requested = config.Monitors;
 
-                    await Task.Run(() => VirtualDisplayManager.EnsureVddResolutionThenToggleDriver());
-                    await Task.Delay(2000); // Allow Windows to stabilize VDD resolution
+                    if (physicalCount < requested)
+                    {
+                        // Need VDD: create virtual monitors to fill the gap
+                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) < requested ({requested}), creating VDD...");
+                        await SendProgressAsync("vdd_setup", 30, "Configuring virtual displays...");
 
-                    await SendProgressAsync("topology", 60, "Setting up display topology...");
+                        await Task.Run(() => VirtualDisplayManager.EnsureVddResolutionThenToggleDriver());
+                        await Task.Delay(2000); // Allow Windows to stabilize VDD resolution
 
-                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
-                    await Task.Delay(1000); // Allow Windows to apply topology change
+                        await SendProgressAsync("topology", 60, "Setting up display topology...");
 
-                    DisplayGuard.SpawnWatchdog();
-                    _displayModified = true;
+                        await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
+                        await Task.Delay(1000); // Allow Windows to apply topology change
+
+                        DisplayGuard.SpawnWatchdog();
+                        _displayModified = true;
+                    }
+                    else
+                    {
+                        // Enough physical monitors — no VDD needed, keep original layout
+                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) >= requested ({requested}), no VDD needed");
+                    }
                 }
             }
 
@@ -1190,6 +1199,86 @@ namespace RemotePlayServer.Application.Protocol
             {
                 Logger.Error($"[Protocol] Failed to refresh monitor rects: {ex.Message}");
             }
+        }
+        /// <summary>
+        /// Select and order monitors for VR streaming based on the requested count.
+        ///
+        /// Rules:
+        /// - If VDD was created (has virtual monitors): physical first (sorted by X), then virtual (sorted by X)
+        /// - If all monitors are physical and count matches: sort by X (left → right)
+        /// - If more physical than requested: pick primary + contiguous neighbors to the right,
+        ///   filling from the left if not enough on the right. Ensures a continuous strip.
+        /// </summary>
+        private List<(IntPtr hmon, string name, int width, int height)> SelectMonitorsForStreaming(
+            List<(IntPtr hmon, string name, int width, int height)> allMonitors, int requested)
+        {
+            var physicalNames = VirtualDisplayManager.PhysicalMonitorNames;
+            bool hasVirtual = allMonitors.Any(m => !physicalNames.Contains(m.name));
+
+            // Sort all monitors by desktop X coordinate
+            var sorted = allMonitors
+                .Select(m =>
+                {
+                    var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(m.name);
+                    bool isPhysical = physicalNames.Contains(m.name);
+                    bool isPrimary = DisplayUtil.IsPrimary(m.name);
+                    return (mon: m, x: ok ? x : int.MaxValue, isPhysical, isPrimary);
+                })
+                .OrderBy(m => m.x)
+                .ToList();
+
+            Logger.Info($"[Protocol] All monitors by X: {string.Join(", ", sorted.Select(m => $"{m.mon.name}({(m.isPhysical ? "P" : "V")},x={m.x}{(m.isPrimary ? ",PRI" : "")})"))}");
+
+            if (hasVirtual)
+            {
+                // Has VDD monitors: physical first, then virtual, both by X
+                var result = sorted.Where(m => m.isPhysical).Select(m => m.mon)
+                    .Concat(sorted.Where(m => !m.isPhysical).Select(m => m.mon))
+                    .ToList();
+                Logger.Info($"[Protocol] Selected (physical→virtual): {string.Join(", ", result.Select(m => m.name))}");
+                return result;
+            }
+
+            // All physical monitors
+            int physicalCount = sorted.Count;
+
+            if (physicalCount <= requested)
+            {
+                // Enough or exactly matching — use all, sorted by X
+                var result = sorted.Select(m => m.mon).ToList();
+                Logger.Info($"[Protocol] Selected (all physical by X): {string.Join(", ", result.Select(m => m.name))}");
+                return result;
+            }
+
+            // More physical monitors than requested — select primary + contiguous neighbors
+            int primaryIdx = sorted.FindIndex(m => m.isPrimary);
+            if (primaryIdx < 0) primaryIdx = 0; // fallback: leftmost
+
+            // Build contiguous strip of 'requested' monitors centered around primary
+            // Strategy: start with primary, expand right first, then left
+            int startIdx = primaryIdx;
+            int endIdx = primaryIdx; // inclusive
+
+            while (endIdx - startIdx + 1 < requested)
+            {
+                // Try expanding right first
+                if (endIdx + 1 < physicalCount)
+                {
+                    endIdx++;
+                }
+                else if (startIdx - 1 >= 0)
+                {
+                    startIdx--;
+                }
+                else
+                {
+                    break; // shouldn't happen since physicalCount > requested
+                }
+            }
+
+            var selected = sorted.Skip(startIdx).Take(endIdx - startIdx + 1).Select(m => m.mon).ToList();
+            Logger.Info($"[Protocol] Selected (primary+neighbors [{startIdx}..{endIdx}]): {string.Join(", ", selected.Select(m => m.name))}");
+            return selected;
         }
     }
 }

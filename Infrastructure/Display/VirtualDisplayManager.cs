@@ -195,41 +195,104 @@ static class VirtualDisplayManager
         int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
         int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
 
-        int primaryX = 0, primaryY = 0;
-        if (physicalMonitors.Count > 0)
-        {
-            var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(physicalMonitors[0].name);
-            if (ok) { primaryX = px; primaryY = py; }
-        }
-
-        int currentX = primaryX + targetWidth;
-        foreach (var mon in virtualMonitors)
-        {
-            Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, {primaryY})");
-            DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, primaryY);
-            currentX += targetWidth;
-        }
-
-        if (virtualMonitors.Count > 0)
-        {
-            DisplayUtil.ApplyDisplayChanges();
-            Thread.Sleep(500);
-        }
-
+        // Check if any physical monitor is still primary
+        string? originalPrimary = null;
         foreach (var mon in physicalMonitors)
         {
-            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
-            if (original.name != null && (mon.width != original.width || mon.height != original.height))
-            {
-                Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to {original.width}x{original.height}@{original.refreshRate}Hz");
-                DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
-                Thread.Sleep(300);
-            }
+            if (DisplayUtil.IsPrimary(mon.name))
+                originalPrimary = mon.name;
         }
 
-        Thread.Sleep(500);
+        bool vddStolePrimary = originalPrimary == null && physicalMonitors.Count > 0;
+        if (vddStolePrimary)
+        {
+            originalPrimary = physicalMonitors[0].name;
+            Console.WriteLine($"[Display] VDD stole primary! Will reposition all monitors from scratch.");
+        }
 
-        // NOTE: Do NOT change primary display in standard mode — keep user's original primary
+        if (vddStolePrimary)
+        {
+            // VDD stole primary → Windows shifted positions. Ignore current positions entirely.
+            // Lay out from scratch: physical at (0,0), VDD to the right.
+            // Step 1: Set primary FIRST to anchor physical at (0,0)
+            Console.WriteLine($"[Display] Setting {originalPrimary} as PRIMARY first...");
+            SetAsPrimaryDisplay(originalPrimary!);
+            Thread.Sleep(500);
+
+            // Step 2: Explicitly position physical monitors starting at origin
+            int currentX = 0;
+            foreach (var mon in physicalMonitors)
+            {
+                var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+                int w = original.name != null ? original.width : targetWidth;
+                int h = original.name != null ? original.height : targetHeight;
+                int hz = original.name != null ? original.refreshRate : targetRefresh;
+                Console.WriteLine($"[Display] Positioning {mon.name} [PHYSICAL] -> {w}x{h}@{hz}Hz at ({currentX}, 0)");
+                DisplayUtil.SetResolutionAndPosition(mon.name, w, h, hz, currentX, 0);
+                currentX += w;
+            }
+
+            // Step 3: Place VDD monitors to the RIGHT of all physical
+            foreach (var mon in virtualMonitors)
+            {
+                Console.WriteLine($"[Display] Positioning {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, 0)");
+                DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, 0);
+                currentX += targetWidth;
+            }
+
+            DisplayUtil.ApplyDisplayChanges();
+            Thread.Sleep(1000);
+        }
+        else
+        {
+            // Normal case: physical is still primary, positions are valid
+            // Find the rightmost edge of all physical monitors to place VDD after them.
+            int rightmostX = 0;
+            int placeY = 0;
+            foreach (var mon in physicalMonitors)
+            {
+                var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(mon.name);
+                if (ok && px + pw > rightmostX)
+                {
+                    rightmostX = px + pw;
+                    placeY = py;
+                }
+            }
+
+            // Place virtual monitors to the RIGHT of the rightmost physical monitor.
+            int currentX = rightmostX;
+            foreach (var mon in virtualMonitors)
+            {
+                Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, {placeY})");
+                DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, placeY);
+                currentX += targetWidth;
+            }
+
+            if (virtualMonitors.Count > 0)
+            {
+                DisplayUtil.ApplyDisplayChanges();
+                Thread.Sleep(500);
+            }
+
+            foreach (var mon in physicalMonitors)
+            {
+                var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+                if (original.name != null && (mon.width != original.width || mon.height != original.height))
+                {
+                    Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to {original.width}x{original.height}@{original.refreshRate}Hz");
+                    DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
+                    Thread.Sleep(300);
+                }
+            }
+
+            Thread.Sleep(500);
+
+            if (originalPrimary != null)
+            {
+                Console.WriteLine($"[Display] Ensuring {originalPrimary} is PRIMARY (original)");
+                SetAsPrimaryDisplay(originalPrimary);
+            }
+        }
 
         // Log final layout
         Console.WriteLine("[Display] Multi-monitor system configured:");
@@ -516,7 +579,7 @@ static class VirtualDisplayManager
     /// Classify current monitors into physical/virtual using DisplayUtil.IsVirtualDisplay().
     /// No VDD disable needed — works whether VDD is running or not.
     /// </summary>
-    static void SnapshotPhysicalMonitors()
+    public static void SnapshotPhysicalMonitors()
     {
         _physicalMonitorNames.Clear();
         _originalPhysicalMonitors.Clear();
