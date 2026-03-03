@@ -639,9 +639,10 @@ namespace RemotePlayServer.Application.Protocol
         // Stall detection fields
         private System.Timers.Timer? _stallDetectTimer;
         private int _consecutiveStallCount;
-        private const int STALL_CHECK_INTERVAL_MS = 200;    // Check every 200ms for sub-second detection
-        private const int STALL_THRESHOLD_MS = 800;          // 800ms without feedback = stall (cloud gaming ≤1s target)
-        private const int MAX_CONSECUTIVE_STALLS = 10;       // After 10 stalls (~8s), stop acting — let KeepAlive handle it
+        private long _lastStallCheckFrameCount;              // Track frame production to distinguish static content from real stalls
+        private const int STALL_CHECK_INTERVAL_MS = 500;    // Check every 500ms (sufficient granularity)
+        private const int STALL_THRESHOLD_MS = 1500;         // 1.5s without feedback = stall (tolerates WiFi jitter, still fast recovery)
+        private const int MAX_CONSECUTIVE_STALLS = 10;       // After 10 stalls, stop acting — let KeepAlive handle it
 
         /// <summary>
         /// Start server-side stall detection with escalating response.
@@ -676,6 +677,18 @@ namespace RemotePlayServer.Application.Protocol
                     var timeSinceLastFeedback = (DateTime.UtcNow - lastFeedback).TotalMilliseconds;
                     if (timeSinceLastFeedback > STALL_THRESHOLD_MS)
                     {
+                        // Check if server is actually producing frames.
+                        // If capture is idle (static screen), feedback gaps are expected — NOT a network stall.
+                        // _frameCount is incremented by the capture callback for every captured frame.
+                        var currentFrameCount = Interlocked.Read(ref _frameCount);
+                        if (currentFrameCount == _lastStallCheckFrameCount)
+                        {
+                            // No new frames since last check → static content, not a stall
+                            Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
+                            return;
+                        }
+                        _lastStallCheckFrameCount = currentFrameCount;
+
                         _consecutiveStallCount++;
 
                         // After MAX_CONSECUTIVE_STALLS, stop acting — the connection is dead.
@@ -756,7 +769,7 @@ namespace RemotePlayServer.Application.Protocol
             };
             _stallDetectTimer.AutoReset = true;
             _stallDetectTimer.Start();
-            Logger.Info("[StallDetect] Server-side stall detection started (800ms threshold, escalating response)");
+            Logger.Info("[StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)");
         }
 
         /// <summary>

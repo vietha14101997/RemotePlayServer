@@ -59,6 +59,56 @@ namespace RemotePlayServer.Application.Protocol
                 _monitors = SelectMonitorsForStreaming(_monitors, _displayConfig.Monitors);
             }
 
+            // For ultrawide: wait for DXGI to reflect the new topology position (0,0)
+            // After SetTopologyShowOnly, DXGI may briefly cache the old position (e.g. 1920,0)
+            // where the VDD was before becoming the sole primary display.
+            if (_ultrawideVddName != null && _monitors.Count > 0)
+            {
+                var vddMon = _monitors[0];
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                bool positionCorrect = false;
+                while (sw.ElapsedMilliseconds < 3000)
+                {
+                    try
+                    {
+                        using var factory = Vortice.DXGI.DXGI.CreateDXGIFactory1<Vortice.DXGI.IDXGIFactory1>();
+                        for (uint ai = 0; !positionCorrect; ai++)
+                        {
+                            if (factory.EnumAdapters1(ai, out var adapter).Failure) break;
+                            using (adapter)
+                            {
+                                for (uint oi = 0; ; oi++)
+                                {
+                                    if (adapter.EnumOutputs(oi, out var output).Failure) break;
+                                    using (output)
+                                    {
+                                        var desc = output.Description;
+                                        if (desc.Monitor == vddMon.hmon)
+                                        {
+                                            var rect = desc.DesktopCoordinates;
+                                            if (rect.Left == 0 && rect.Top == 0)
+                                            {
+                                                positionCorrect = true;
+                                                Logger.Info($"[Protocol] DXGI position confirmed: VDD at (0,0) after {sw.ElapsedMilliseconds}ms");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+
+                    if (positionCorrect) break;
+                    Thread.Sleep(200);
+                }
+
+                if (!positionCorrect)
+                {
+                    Logger.Warn("[Protocol] DXGI position not updated to (0,0) after 3s — cursor tracking may be offset");
+                }
+            }
+
             RefreshMonitorRects(); // Refresh monitor rects for cursor tracking
 
             int actualMonitors = Math.Min(_displayConfig.Monitors, _monitors.Count);
@@ -320,8 +370,17 @@ namespace RemotePlayServer.Application.Protocol
                     }
                     else
                     {
-                        Logger.Error("[Protocol] Connection failed, requesting full reconnect");
-                        await SendTextAsync("{\"type\":\"reconnect_required\"}");
+                        // All DTLS retries exhausted — check if phase2 restarts are also exhausted
+                        if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
+                        {
+                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries x {_phase2RestartCount} restarts — sending terminal error");
+                            await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
+                        }
+                        else
+                        {
+                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries, requesting reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
+                            await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -455,7 +514,14 @@ namespace RemotePlayServer.Application.Protocol
 
                 case "restart_phase2":
                     // Client is requesting full Phase 2 restart (ICE renegotiation)
-                    Logger.Info("[Protocol] Client requested Phase 2 restart");
+                    _phase2RestartCount++;
+                    if (_phase2RestartCount > MAX_PHASE2_RESTARTS)
+                    {
+                        Logger.Error($"[Protocol] Phase 2 restart limit reached ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS}), rejecting restart");
+                        await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"max_restarts_exceeded\",\"message\":\"Connection failed after multiple reconnection attempts. Please restart the app.\"}");
+                        return true; // Exit ICE loop
+                    }
+                    Logger.Info($"[Protocol] Client requested Phase 2 restart ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS})");
                     await HandleRestartPhase2Async();
                     break;
 

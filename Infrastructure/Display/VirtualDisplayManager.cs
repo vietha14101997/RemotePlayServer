@@ -916,7 +916,16 @@ static class VirtualDisplayManager
             dm.dmSize = (short)Marshal.SizeOf<DEVMODE>();
             dm.dmDeviceName = new string('\0', 32);
             dm.dmFormName = new string('\0', 32);
-            dm.dmFields = DM_POSITION;
+
+            // Read current settings to preserve resolution/frequency
+            if (!EnumDisplaySettingsExA(deviceName, -1 /* ENUM_CURRENT_SETTINGS */, ref dm, 0))
+            {
+                Console.WriteLine($"[Display] SetAsPrimaryDisplay: EnumDisplaySettingsEx failed for {deviceName}");
+                return;
+            }
+
+            // Set position to (0,0) and include resolution fields for a complete mode change
+            dm.dmFields = DM_POSITION | 0x00080000 /* DM_PELSWIDTH */ | 0x00100000 /* DM_PELSHEIGHT */ | 0x00400000 /* DM_DISPLAYFREQUENCY */;
             dm.dmPositionX = 0;
             dm.dmPositionY = 0;
 
@@ -926,7 +935,7 @@ static class VirtualDisplayManager
             {
                 var dmApply = new DEVMODE { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
                 ChangeDisplaySettingsExA(null, ref dmApply, IntPtr.Zero, 0, IntPtr.Zero);
-                Console.WriteLine($"[Display] {deviceName} set as primary");
+                Console.WriteLine($"[Display] {deviceName} set as primary at (0,0) {dm.dmPelsWidth}x{dm.dmPelsHeight}@{dm.dmDisplayFrequency}Hz");
             }
             else
             {
@@ -971,4 +980,7 @@ static class VirtualDisplayManager
 
     [DllImport("user32.dll", CharSet = CharSet.Ansi)]
     static extern int ChangeDisplaySettingsExA(string? lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, uint dwflags, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+    static extern bool EnumDisplaySettingsExA(string lpszDeviceName, int iModeNum, ref DEVMODE lpDevMode, int dwFlags);
 }

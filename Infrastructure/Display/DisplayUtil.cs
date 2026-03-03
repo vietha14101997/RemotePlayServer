@@ -401,17 +401,129 @@ static class DisplayUtil
         return deviceName.Equals(@"\\.\DISPLAY1", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// Kiểm tra một \\.\DISPLAYx có đang active (attached) không
+    public static bool IsDisplayActive(string deviceName)
+    {
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
+            if (!string.Equals(dd.DeviceName, deviceName, StringComparison.OrdinalIgnoreCase)) continue;
+            return (dd.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0;
+        }
+        return false;
+    }
+
+    // --- CCD (Connecting and Configuring Displays) API ---
+    const uint QDC_ALL_PATHS = 0x00000001;
+    const uint QDC_ONLY_ACTIVE_PATHS = 0x00000002;
+    const uint SDC_APPLY = 0x00000080;
+    const uint SDC_USE_SUPPLIED_DISPLAY_CONFIG = 0x00000020;
+    const uint SDC_SAVE_TO_DATABASE = 0x00000200;
+    const uint SDC_ALLOW_CHANGES = 0x00000400;
+    const uint SDC_TOPOLOGY_SUPPLIED = 0x00000004;
+    const uint DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INTERNAL = 0x80000000;
+    const int ERROR_SUCCESS = 0;
+
+    [DllImport("user32.dll")]
+    static extern int GetDisplayConfigBufferSizes(uint flags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
+
+    [DllImport("user32.dll")]
+    static extern int QueryDisplayConfig(uint flags, ref uint numPathArrayElements,
+        [Out] DISPLAYCONFIG_PATH_INFO[] pathArray, ref uint numModeInfoArrayElements,
+        [Out] DISPLAYCONFIG_MODE_INFO[] modeInfoArray, IntPtr currentTopologyId);
+
+    [DllImport("user32.dll")]
+    static extern int SetDisplayConfig(uint numPathArrayElements,
+        DISPLAYCONFIG_PATH_INFO[]? pathArray, uint numModeInfoArrayElements,
+        DISPLAYCONFIG_MODE_INFO[]? modeInfoArray, uint flags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_SOURCE_DEVICE_NAME requestPacket);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct LUID
+    {
+        public uint LowPart;
+        public int HighPart;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_PATH_SOURCE_INFO
+    {
+        public LUID adapterId;
+        public uint id;
+        public uint modeInfoIdx;
+        public uint statusFlags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_PATH_TARGET_INFO
+    {
+        public LUID adapterId;
+        public uint id;
+        public uint modeInfoIdx;
+        public uint outputTechnology;
+        public uint rotation;
+        public uint scaling;
+        public DISPLAYCONFIG_RATIONAL refreshRate;
+        public uint scanLineOrdering;
+        public bool targetAvailable;
+        public uint statusFlags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_RATIONAL
+    {
+        public uint Numerator;
+        public uint Denominator;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_PATH_INFO
+    {
+        public DISPLAYCONFIG_PATH_SOURCE_INFO sourceInfo;
+        public DISPLAYCONFIG_PATH_TARGET_INFO targetInfo;
+        public uint flags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_MODE_INFO
+    {
+        public uint infoType; // DISPLAYCONFIG_MODE_INFO_TYPE
+        public uint id;
+        public LUID adapterId;
+        // Union: DISPLAYCONFIG_TARGET_MODE / DISPLAYCONFIG_SOURCE_MODE — use raw bytes
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+        public byte[] modeData;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DISPLAYCONFIG_SOURCE_DEVICE_NAME
+    {
+        public DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string viewGdiDeviceName;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct DISPLAYCONFIG_DEVICE_INFO_HEADER
+    {
+        public uint type; // DISPLAYCONFIG_DEVICE_INFO_TYPE
+        public uint size;
+        public LUID adapterId;
+        public uint id;
+    }
+
     /// <summary>
     /// Set Windows display topology to "Show Only" on the target device.
-    /// Detaches all other active displays and makes target the sole primary at (0,0).
+    /// Uses CCD API (SetDisplayConfig) for reliable topology changes.
+    /// Falls back to ChangeDisplaySettingsEx if CCD fails.
     /// </summary>
     /// <param name="targetDeviceName">The \\.\DISPLAYx to keep active</param>
     /// <returns>True if topology was applied successfully</returns>
     public static bool SetTopologyShowOnly(string targetDeviceName)
     {
-        const int CDS_NORESET = 0x10000000;
-        const int CDS_SET_PRIMARY = 0x00000010;
-
         Logger.Info($"[DisplayUtil] SetTopologyShowOnly: target={targetDeviceName}");
 
         // Enumerate all active displays
@@ -423,11 +535,172 @@ static class DisplayUtil
             if ((dd.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0)
                 activeDisplays.Add(dd.DeviceName);
         }
-
         Logger.Info($"[DisplayUtil] Active displays: {string.Join(", ", activeDisplays)}");
 
-        // Step 1: Set target as primary at position (0,0) FIRST
-        // Must be done before detaching others, otherwise Windows has no primary.
+        // Try CCD API first (reliable for topology changes)
+        if (SetTopologyShowOnlyViaCCD(targetDeviceName))
+        {
+            Logger.Info("[DisplayUtil] SetTopologyShowOnly: CCD API succeeded");
+            return true;
+        }
+
+        Logger.Warn("[DisplayUtil] CCD API failed, falling back to ChangeDisplaySettingsEx...");
+        return SetTopologyShowOnlyViaLegacy(targetDeviceName, activeDisplays);
+    }
+
+    /// <summary>
+    /// Use CCD API (QueryDisplayConfig + SetDisplayConfig) to show only the target display.
+    /// This properly updates DXGI output topology.
+    /// </summary>
+    static bool SetTopologyShowOnlyViaCCD(string targetDeviceName)
+    {
+        try
+        {
+            // Step 1: Query current active display config
+            int err = GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, out uint pathCount, out uint modeCount);
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[DisplayUtil] CCD: GetDisplayConfigBufferSizes failed: {err}");
+                return false;
+            }
+
+            var paths = new DISPLAYCONFIG_PATH_INFO[pathCount];
+            var modes = new DISPLAYCONFIG_MODE_INFO[modeCount];
+            err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero);
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[DisplayUtil] CCD: QueryDisplayConfig failed: {err}");
+                return false;
+            }
+
+            Logger.Info($"[DisplayUtil] CCD: {pathCount} active paths, {modeCount} modes");
+
+            // Step 2: Find which path corresponds to the target display
+            int targetPathIndex = -1;
+            for (int i = 0; i < pathCount; i++)
+            {
+                // Get the GDI device name for this source
+                var deviceName = new DISPLAYCONFIG_SOURCE_DEVICE_NAME();
+                deviceName.header.type = 1; // DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME
+                deviceName.header.size = (uint)Marshal.SizeOf<DISPLAYCONFIG_SOURCE_DEVICE_NAME>();
+                deviceName.header.adapterId = paths[i].sourceInfo.adapterId;
+                deviceName.header.id = paths[i].sourceInfo.id;
+
+                err = DisplayConfigGetDeviceInfo(ref deviceName);
+                if (err == ERROR_SUCCESS)
+                {
+                    string gdiName = deviceName.viewGdiDeviceName?.TrimEnd('\0') ?? "";
+                    Logger.Info($"[DisplayUtil] CCD: Path[{i}] source={gdiName}");
+
+                    if (string.Equals(gdiName, targetDeviceName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetPathIndex = i;
+                        Logger.Info($"[DisplayUtil] CCD: Target path found at index {i}");
+                    }
+                }
+            }
+
+            if (targetPathIndex < 0)
+            {
+                Logger.Error($"[DisplayUtil] CCD: Target display {targetDeviceName} not found in active paths!");
+                return false;
+            }
+
+            // Step 3: Build new config with only the target path
+            // Keep only the target path and its associated modes
+            var targetPath = paths[targetPathIndex];
+
+            // Collect mode indices used by the target path
+            var usedModeIndices = new HashSet<uint>();
+            if (targetPath.sourceInfo.modeInfoIdx != 0xFFFFFFFF) // DISPLAYCONFIG_PATH_MODE_IDX_INVALID
+                usedModeIndices.Add(targetPath.sourceInfo.modeInfoIdx);
+            if (targetPath.targetInfo.modeInfoIdx != 0xFFFFFFFF)
+                usedModeIndices.Add(targetPath.targetInfo.modeInfoIdx);
+
+            // Build new mode array with only the used modes, and remap indices
+            var newModes = new List<DISPLAYCONFIG_MODE_INFO>();
+            var indexMap = new Dictionary<uint, uint>();
+            foreach (var oldIdx in usedModeIndices)
+            {
+                if (oldIdx < modeCount)
+                {
+                    indexMap[oldIdx] = (uint)newModes.Count;
+                    newModes.Add(modes[oldIdx]);
+                }
+            }
+
+            // Remap mode indices in the target path
+            if (indexMap.ContainsKey(targetPath.sourceInfo.modeInfoIdx))
+                targetPath.sourceInfo.modeInfoIdx = indexMap[targetPath.sourceInfo.modeInfoIdx];
+            if (indexMap.ContainsKey(targetPath.targetInfo.modeInfoIdx))
+                targetPath.targetInfo.modeInfoIdx = indexMap[targetPath.targetInfo.modeInfoIdx];
+
+            var newPaths = new DISPLAYCONFIG_PATH_INFO[] { targetPath };
+            var newModesArr = newModes.ToArray();
+
+            // Step 4: Apply new topology
+            err = SetDisplayConfig(
+                (uint)newPaths.Length, newPaths,
+                (uint)newModesArr.Length, newModesArr,
+                SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_ALLOW_CHANGES);
+
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[DisplayUtil] CCD: SetDisplayConfig failed: {err}");
+                return false;
+            }
+
+            Logger.Info("[DisplayUtil] CCD: SetDisplayConfig applied successfully");
+
+            // Step 5: Verify via DXGI
+            System.Threading.Thread.Sleep(500);
+            bool verified = true;
+            foreach (var displayName in GetActiveDisplayNames())
+            {
+                if (!string.Equals(displayName, targetDeviceName, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Warn($"[DisplayUtil] CCD: {displayName} still active after SetDisplayConfig!");
+                    verified = false;
+                }
+            }
+
+            if (verified)
+                Logger.Info("[DisplayUtil] CCD: verified — only target display is active");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[DisplayUtil] CCD: Exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Get list of currently active display device names.
+    /// </summary>
+    static List<string> GetActiveDisplayNames()
+    {
+        var list = new List<string>();
+        for (uint devNum = 0; ; devNum++)
+        {
+            var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
+            if ((dd.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0)
+                list.Add(dd.DeviceName);
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Legacy fallback using ChangeDisplaySettingsEx.
+    /// </summary>
+    static bool SetTopologyShowOnlyViaLegacy(string targetDeviceName, List<string> activeDisplays)
+    {
+        const int CDS_NORESET = 0x10000000;
+        const int CDS_SET_PRIMARY = 0x00000010;
+
+        // Step 1: Set target as primary at position (0,0)
         {
             var dm = new DEVMODE
             {
@@ -435,13 +708,11 @@ static class DisplayUtil
                 dmFormName = new string('\0', 32),
                 dmSize = (short)Marshal.SizeOf<DEVMODE>()
             };
-
             if (EnumDisplaySettingsEx(targetDeviceName, ENUM_CURRENT_SETTINGS, ref dm, 0))
             {
                 dm.dmFields = DM_POSITION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
                 dm.dmPositionX = 0;
                 dm.dmPositionY = 0;
-
                 int ret = ChangeDisplaySettingsEx(targetDeviceName, ref dm, IntPtr.Zero,
                     CDS_SET_PRIMARY | CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
                 Logger.Info($"[DisplayUtil] Set primary {targetDeviceName}: result={ret}");
@@ -472,9 +743,20 @@ static class DisplayUtil
             Logger.Info($"[DisplayUtil] Detach {displayName}: result={ret}");
         }
 
-        // Step 3: Apply all changes
+        // Step 3: Apply
         bool success = ApplyDisplayChanges();
-        Logger.Info($"[DisplayUtil] SetTopologyShowOnly: applied={success}");
+        Logger.Info($"[DisplayUtil] SetTopologyShowOnly (legacy): applied={success}");
+
+        // Step 4: Verify
+        System.Threading.Thread.Sleep(500);
+        foreach (var displayName in activeDisplays)
+        {
+            if (string.Equals(displayName, targetDeviceName, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (IsDisplayActive(displayName))
+                Logger.Warn($"[DisplayUtil] SetTopologyShowOnly: {displayName} STILL active after legacy detach!");
+        }
+
         return success;
     }
 

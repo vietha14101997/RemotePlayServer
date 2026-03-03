@@ -133,6 +133,10 @@ namespace RemotePlayServer.Application.Protocol
         private volatile bool _dtlsRetrying;
         private const int MAX_DTLS_RETRIES = 2;
 
+        // Phase 2 restart limit: prevent infinite restart_phase2 ↔ reconnect_required loop
+        private int _phase2RestartCount;
+        private const int MAX_PHASE2_RESTARTS = 3;
+
         // Transport mode (USB Tethering vs WiFi)
         private readonly bool _isUsbTransport;
 
