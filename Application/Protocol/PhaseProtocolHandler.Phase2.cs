@@ -38,6 +38,15 @@ namespace RemotePlayServer.Application.Protocol
             _monitors = WgcInterop.ListMonitorsDXGI()
                 .Select(m => (m.hmon, m.name, m.width, m.height)).ToList();
 
+            // Sort monitors by desktop X coordinate (left → right) so VR view matches physical layout.
+            // DXGI returns monitors in adapter order which may not match the desktop arrangement.
+            _monitors = _monitors.OrderBy(m =>
+            {
+                var (x, y, w, h, ok) = DisplayUtil.TryGetLayout(m.name);
+                return ok ? x : int.MaxValue;
+            }).ToList();
+            Logger.Info($"[Protocol] Monitors sorted by X: {string.Join(", ", _monitors.Select(m => { var (x,_,_,_,ok) = DisplayUtil.TryGetLayout(m.name); return $"{m.name}(x={x})"; }))}");
+
             // For ultrawide mode: filter to ONLY the virtual monitor
             // After ShowOnly, DXGI may still enumerate the detached physical monitor.
             // We must capture from the VDD virtual monitor, not the physical one.

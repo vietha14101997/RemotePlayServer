@@ -229,11 +229,7 @@ static class VirtualDisplayManager
 
         Thread.Sleep(500);
 
-        if (physicalMonitors.Count > 0)
-        {
-            Console.WriteLine($"[Display] Setting {physicalMonitors[0].name} as PRIMARY");
-            SetAsPrimaryDisplay(physicalMonitors[0].name);
-        }
+        // NOTE: Do NOT change primary display in standard mode — keep user's original primary
 
         // Log final layout
         Console.WriteLine("[Display] Multi-monitor system configured:");
