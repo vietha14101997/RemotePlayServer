@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core;
 
@@ -231,7 +232,20 @@ public partial class SIPSorceryStreamer
             if (sc == 0) break;
             i += sc;
             if (i >= au.Length) break;
-            types.Add(au[i] & 0x1F);
+
+            int nalType;
+            if (_negotiatedCodec == VideoCodec.H265)
+            {
+                // H265: NAL type is in (header[0] >> 1) & 0x3F
+                nalType = (au[i] >> 1) & 0x3F;
+            }
+            else
+            {
+                // H264: NAL type is in header[0] & 0x1F
+                nalType = au[i] & 0x1F;
+            }
+            types.Add(nalType);
+
             // Find next start code
             int j = i + 1;
             for (; j + 3 < au.Length; j++)

@@ -32,9 +32,9 @@ public partial class SIPSorceryStreamer
 
         Logger.Info($"[SIPSorcery] Processing offer for {dimensions.Count} monitors");
 
-        // Parse H264 payload type from offer
-        var (h264Pt, h264Fmtp) = TryGetH264FromOfferSdp(offerSdp);
-        Logger.Info($"[SIPSorcery] Offer H264 pt={h264Pt ?? 96}, fmtp={h264Fmtp ?? "default"}");
+        // Parse negotiated codec payload type from offer
+        var (negotiatedPt, negotiatedFmtp) = TryGetCodecFromOfferSdp(offerSdp, _negotiatedCodec);
+        Logger.Info($"[SIPSorcery] Offer {_negotiatedCodec} pt={negotiatedPt ?? 96}, fmtp={negotiatedFmtp ?? "default"}");
 
         // Log client fingerprint from offer for DTLS debugging
         foreach (var line in offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
@@ -59,21 +59,23 @@ public partial class SIPSorceryStreamer
         {
             var (w, h) = dimensions[i];
 
-            // H264 format with constrained baseline profile
-            var h264 = new SDPAudioVideoMediaFormat(
+            // Negotiated codec format (H264, H265, etc.)
+            string defaultFmtp = _negotiatedCodec == VideoCodec.H264
+                ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
+                : ""; // H265 usually doesn't need complex FMTP for base support
+
+            var codecFormat = new SDPAudioVideoMediaFormat(
                 SDPMediaTypesEnum.video,
-                id: h264Pt ?? (96 + i),
-                name: "H264",
+                id: negotiatedPt ?? (96 + i),
+                name: _negotiatedCodec.ToString(),
                 clockRate: 90000,
                 channels: 0,
-                fmtp: string.IsNullOrWhiteSpace(h264Fmtp)
-                    ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
-                    : h264Fmtp);
+                fmtp: string.IsNullOrWhiteSpace(negotiatedFmtp) ? defaultFmtp : negotiatedFmtp);
 
             var track = new MediaStreamTrack(
                 SDPMediaTypesEnum.video,
                 isRemote: false,
-                capabilities: new List<SDPAudioVideoMediaFormat> { h264 },
+                capabilities: new List<SDPAudioVideoMediaFormat> { codecFormat },
                 streamStatus: MediaStreamStatusEnum.SendOnly);
 
             _pc.addTrack(track);
@@ -275,12 +277,13 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private static (int? pt, string? fmtp) TryGetH264FromOfferSdp(string sdp)
+    private static (int? pt, string? fmtp) TryGetCodecFromOfferSdp(string sdp, VideoCodec codec)
     {
         if (string.IsNullOrWhiteSpace(sdp)) return (null, null);
 
+        var codecName = codec.ToString();
         var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-        var h264Pts = new HashSet<int>();
+        var matchingPts = new HashSet<int>();
 
         foreach (var line in lines)
         {
@@ -289,14 +292,14 @@ public partial class SIPSorceryStreamer
             var sp = rest.IndexOf(' ');
             if (sp <= 0) continue;
             if (!int.TryParse(rest.Substring(0, sp), out var candPt)) continue;
-            var codec = rest.Substring(sp + 1);
-            if (codec.IndexOf("H264/", StringComparison.OrdinalIgnoreCase) >= 0)
-                h264Pts.Add(candPt);
+            var codecPart = rest.Substring(sp + 1);
+            if (codecPart.IndexOf(codecName + "/", StringComparison.OrdinalIgnoreCase) >= 0)
+                matchingPts.Add(candPt);
         }
 
-        if (h264Pts.Count == 0) return (null, null);
+        if (matchingPts.Count == 0) return (null, null);
 
-        int chosenPt = h264Pts.First();
+        int chosenPt = matchingPts.First();
         string? fmtp = null;
         var needle = "a=fmtp:" + chosenPt + " ";
         foreach (var line in lines)
@@ -363,7 +366,7 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private static byte[] StripLeadingAud(byte[] au)
+    private byte[] StripLeadingAud(byte[] au)
     {
         if (au.Length < 4) return au;
 
@@ -373,9 +376,22 @@ public partial class SIPSorceryStreamer
         else return au;
 
         if (pos >= au.Length) return au;
-        int nalType = au[pos] & 0x1F;
-        if (nalType != 9) return au;
 
+        int nalType;
+        if (_negotiatedCodec == VideoCodec.H265)
+        {
+            // H265: type is in (header[0] >> 1) & 0x3F
+            nalType = (au[pos] >> 1) & 0x3F;
+            if (nalType != 35) return au; // H265 AUD is 35
+        }
+        else
+        {
+            // H264: type is in header[0] & 0x1F
+            nalType = au[pos] & 0x1F;
+            if (nalType != 9) return au; // H264 AUD is 9
+        }
+
+        // Find next start code to strip the AUD NAL
         for (int i = pos + 1; i + 3 < au.Length; i++)
         {
             if ((au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ||

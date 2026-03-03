@@ -656,7 +656,7 @@ namespace RemotePlayServer.Application.Protocol
                 var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);
 
                 // Filter SDP answer to only include selected codec
-                var filteredSdp = FilterSdpForCodec(reorderedSdp, codecPayloadType);
+                var filteredSdp = FilterSdpForCodec(reorderedSdp, codecPayloadType, _selectedCodec);
                 Logger.Info($"[Protocol] Filtered SDP from {answerSdp.Length} to {filteredSdp.Length} bytes");
 
                 // Extract embedded ICE candidates from filtered SDP
@@ -827,12 +827,12 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
-        /// Filter SDP to only include H264 codec per m=video section.
-        /// Three-pass: 1) build PT→codec map, 2) rewrite each section with its actual H264 PT,
+        /// Filter SDP to only include selected codec per m=video section.
+        /// Three-pass: 1) build PT→codec map, 2) rewrite each section with its actual codec PT,
         /// 3) inject missing rtpmap/fmtp for video sections SIPSorcery didn't generate.
         /// SIPSorcery assigns different PTs per monitor track (96, 97, ...).
         /// </summary>
-        private string FilterSdpForCodec(string sdp, int payloadType)
+        private string FilterSdpForCodec(string sdp, int payloadType, string targetCodec)
         {
             if (string.IsNullOrEmpty(sdp))
                 return sdp;
@@ -846,7 +846,7 @@ namespace RemotePlayServer.Application.Protocol
                 if (!line.StartsWith("a=rtpmap:")) continue;
                 var pt = ExtractPayloadTypeFromLine(line);
                 if (pt < 0) continue;
-                // "a=rtpmap:96 H264/90000" → codec = "H264"
+                // "a=rtpmap:96 H264/90000" → codec = "H264" (or H265, etc.)
                 var colonIdx = line.IndexOf(':');
                 var rest = line.Substring(colonIdx + 1);
                 var spaceIdx = rest.IndexOf(' ');
@@ -858,7 +858,7 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
-            // Pass 2: Filter SDP, using actual H264 PT per m=video section
+            // Pass 2: Filter SDP, using actual codec PT per m=video section
             // Audio sections must preserve all codec attributes (rtpmap/fmtp/rtcp-fb)
             var filtered = new List<string>();
             int currentSectionPt = payloadType; // fallback to offer PT
@@ -872,30 +872,30 @@ namespace RemotePlayServer.Application.Protocol
                     var parts = line.Split(' ');
                     if (parts.Length >= 4)
                     {
-                        // Find the H264 PT among PTs listed in this m=video line
-                        int h264Pt = -1;
+                        // Find the target codec PT among PTs listed in this m=video line
+                        int targetedPt = -1;
                         for (int i = 3; i < parts.Length; i++)
                         {
                             if (int.TryParse(parts[i], out var pt) &&
                                 ptCodecMap.TryGetValue(pt, out var codec) &&
-                                codec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                                codec.Equals(targetCodec, StringComparison.OrdinalIgnoreCase))
                             {
-                                h264Pt = pt;
+                                targetedPt = pt;
                                 break;
                             }
                         }
 
-                        // Fallback: if no H264 found in map, use first PT from line
-                        if (h264Pt < 0 && int.TryParse(parts[3], out var firstPt))
-                            h264Pt = firstPt;
-                        if (h264Pt < 0)
-                            h264Pt = payloadType;
+                        // Fallback: if no target codec found in map, use first PT from line
+                        if (targetedPt < 0 && int.TryParse(parts[3], out var firstPt))
+                            targetedPt = firstPt;
+                        if (targetedPt < 0)
+                            targetedPt = payloadType;
 
-                        currentSectionPt = h264Pt;
+                        currentSectionPt = targetedPt;
                         var protocol = parts[2].EndsWith("/SAVP") ? parts[2] + "F" : parts[2];
                         var newLine = $"m=video {parts[1]} {protocol} {currentSectionPt}";
                         filtered.Add(newLine);
-                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine} (H264 PT={currentSectionPt})");
+                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine} ({targetCodec} PT={currentSectionPt})");
                         continue;
                     }
                 }
@@ -922,7 +922,7 @@ namespace RemotePlayServer.Application.Protocol
                     continue;
                 }
 
-                // Keep only rtpmap for current section's H264 PT
+                // Keep only rtpmap for current section's codec PT
                 if (line.StartsWith("a=rtpmap:"))
                 {
                     var pt = ExtractPayloadTypeFromLine(line);
@@ -939,9 +939,13 @@ namespace RemotePlayServer.Application.Protocol
                     var pt = ExtractPayloadTypeFromLine(line);
                     if (pt == currentSectionPt)
                     {
-                        // Update profile-level-id to match AMF encoder output
-                        var fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
+                        string fixedLine = line;
+                        // Update profile-level-id to match AMF encoder output (H264 only)
+                        if (targetCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                        {
+                            fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
                                             .Replace("profile-level-id=42001f", "profile-level-id=420428");
+                        }
                         filtered.Add(fixedLine);
                         Logger.Info($"[Protocol] SDP kept: {fixedLine}");
                     }
@@ -964,23 +968,23 @@ namespace RemotePlayServer.Application.Protocol
 
             // Pass 3: Inject missing rtpmap/fmtp for video sections
             // SIPSorcery may only generate codec attributes for the last video track
-            string? h264RtpmapSuffix = null; // e.g., "H264/90000"
-            string? h264FmtpSuffix = null;   // e.g., "packetization-mode=1;..."
+            string? codecRtpmapSuffix = null; // e.g., "H265/90000" or "H264/90000"
+            string? codecFmtpSuffix = null;   // e.g., "packetization-mode=1;..."
             foreach (var line in filtered)
             {
-                if (h264RtpmapSuffix == null && line.StartsWith("a=rtpmap:") && line.Contains("H264"))
+                if (codecRtpmapSuffix == null && line.StartsWith("a=rtpmap:") && line.Contains(targetCodec, StringComparison.OrdinalIgnoreCase))
                 {
                     var spIdx = line.IndexOf(' ');
-                    if (spIdx > 0) h264RtpmapSuffix = line.Substring(spIdx + 1);
+                    if (spIdx > 0) codecRtpmapSuffix = line.Substring(spIdx + 1);
                 }
-                if (h264FmtpSuffix == null && line.StartsWith("a=fmtp:"))
+                if (codecFmtpSuffix == null && line.StartsWith("a=fmtp:"))
                 {
                     var spIdx = line.IndexOf(' ');
-                    if (spIdx > 0) h264FmtpSuffix = line.Substring(spIdx + 1);
+                    if (spIdx > 0) codecFmtpSuffix = line.Substring(spIdx + 1);
                 }
             }
 
-            if (h264RtpmapSuffix != null)
+            if (codecRtpmapSuffix != null)
             {
                 // Identify video sections missing rtpmap and inject after a=mid: line
                 var final = new List<string>();
@@ -1033,9 +1037,9 @@ namespace RemotePlayServer.Application.Protocol
                     if (!injected && vidPt >= 0 && line.StartsWith("a=mid:")
                         && sectionNeedsInjection.TryGetValue(vidPt, out var needs) && needs)
                     {
-                        final.Add($"a=rtpmap:{vidPt} {h264RtpmapSuffix}");
-                        if (h264FmtpSuffix != null)
-                            final.Add($"a=fmtp:{vidPt} {h264FmtpSuffix}");
+                        final.Add($"a=rtpmap:{vidPt} {codecRtpmapSuffix}");
+                        if (codecFmtpSuffix != null)
+                            final.Add($"a=fmtp:{vidPt} {codecFmtpSuffix}");
                         Logger.Info($"[Protocol] Injected missing codec attrs for PT {vidPt}");
                         injected = true;
                     }
