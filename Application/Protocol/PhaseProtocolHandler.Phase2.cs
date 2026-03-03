@@ -240,19 +240,21 @@ namespace RemotePlayServer.Application.Protocol
                         await Task.Run(() => VirtualDisplayManager.EnsureVddResolutionThenToggleDriver());
                         await Task.Delay(2000); // Allow Windows to stabilize VDD resolution
 
-                        await SendProgressAsync("topology", 60, "Setting up display topology...");
-
-                        await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
-                        await Task.Delay(1000); // Allow Windows to apply topology change
-
-                        DisplayGuard.SpawnWatchdog();
                         _displayModified = true;
                     }
                     else
                     {
-                        // Enough physical monitors — no VDD needed, keep original layout
-                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) >= requested ({requested}), no VDD needed");
+                        // Enough physical monitors — no VDD needed, but still ensure scaling
+                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) >= requested ({requested}), using physical monitors");
                     }
+
+                    // ALWAYS ensure topology and scaling are applied (for both physical and virtual monitors)
+                    await SendProgressAsync("topology", 60, "Configuring display layout and scaling...");
+                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
+                    await Task.Delay(1000); // Allow Windows to apply changes
+
+                    _displayModified = true;
+                    DisplayGuard.SpawnWatchdog();
                 }
             }
 
@@ -315,23 +317,59 @@ namespace RemotePlayServer.Application.Protocol
                 catch { }
             };
 
-            // ICE ready notification
+            // H264 Fallback subscription: detect H.265 instability and request downgrade
+            _streamer.OnH264FallbackSuggested += async () =>
+            {
+                Logger.Warn("[Protocol] SIPSorceryStreamer suggested H.264 fallback due to H.265 instability.");
+                _selectedCodec = "H264";
+                var msg = new ReconnectRequestMessage 
+                { 
+                    Reason = "h265_instability",
+                    SuggestedCodec = "H264"
+                };
+                await SendMessageAsync(msg);
+            };
             _streamer.OnAllTracksReady += async () =>
             {
                 try
                 {
                     _allConnectedTcs?.TrySetResult(true);
                     if (_ws.State != WebSocketState.Open) return;
-                    Logger.Info($"[Protocol] All {actualMonitors} tracks ready, sending ice_ready");
+                    var streamer = _streamer;
+                    if (streamer == null) return;
+
+                    int negotiatedMonitors = actualMonitors;
+                    if (!string.IsNullOrEmpty(_lastOfferSdp))
+                    {
+                        int offerVideoCount = CountVideoMLines(_lastOfferSdp);
+                        if (offerVideoCount > 0)
+                            negotiatedMonitors = Math.Min(actualMonitors, offerVideoCount);
+                    }
+                    Logger.Info($"[Protocol] All {negotiatedMonitors} tracks ready, sending ice_ready");
+
+                    // Reconnect during Phase 3 resets streamer sync state to "pending activation".
+                    // If we don't re-activate here, video/audio frames are dropped indefinitely.
+                    if (_phase == ConnectionPhase.Phase3_Streaming)
+                    {
+                        if (_capture != null && _capture.HasBarrierSync)
+                        {
+                            _capture.OnNextBarrierSync = () => streamer.ActivatePhase3();
+                        }
+                        else
+                        {
+                            streamer.ActivatePhase3();
+                        }
+                        Logger.Info("[Protocol] Reconnect in Phase 3: requested streamer re-activation");
+                    }
 
                     // Check if encoder supports BGRA mode (skip color conversion)
-                    if (_streamer.AnyTrackRequiresBgraInput())
+                    if (streamer.AnyTrackRequiresBgraInput() && _capture != null)
                     {
                         Logger.Info("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
                         _capture.UseBgraMode = true;
                     }
 
-                    var msg = new IceReadyMessage { MonitorCount = actualMonitors };
+                    var msg = new IceReadyMessage { MonitorCount = negotiatedMonitors };
                     await SendMessageAsync(msg);
                     Logger.Info("[Protocol] Starting early capture to prevent browser track timeout...");
                     StartCaptureThread();
@@ -940,11 +978,19 @@ namespace RemotePlayServer.Application.Protocol
                     if (pt == currentSectionPt)
                     {
                         string fixedLine = line;
-                        // Update profile-level-id to match AMF encoder output (H264 only)
+                        // Update profile-level-id to match AMF/NVENC encoder output
                         if (targetCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
                         {
                             fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
                                             .Replace("profile-level-id=42001f", "profile-level-id=420428");
+                        }
+                        else if (targetCodec.Equals("H265", StringComparison.OrdinalIgnoreCase))
+                        {
+                            fixedLine = line.TrimEnd() + (line.TrimEnd().EndsWith(";") ? "" : ";");
+                            if (!line.Contains("profile-id=")) fixedLine += "profile-id=1;";
+                            if (!line.Contains("tier-flag=")) fixedLine += "tier-flag=0;";
+                            if (!line.Contains("level-id="))  fixedLine += "level-id=123;"; // Level 4.1
+                            fixedLine = fixedLine.TrimEnd(';');
                         }
                         filtered.Add(fixedLine);
                         Logger.Info($"[Protocol] SDP kept: {fixedLine}");

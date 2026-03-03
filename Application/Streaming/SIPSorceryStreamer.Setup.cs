@@ -24,13 +24,13 @@ public partial class SIPSorceryStreamer
     /// </summary>
     public Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
     {
-        if (_running)
-        {
-            Logger.Info("[SIPSorcery] Closing existing connection for reconnect...");
-            CloseConnection();
-        }
+        // 1. CLEAR previous connection state but PRESERVE TrackInfo list for SSRC persistence!
+        // (CloseConnection disposes _pc, _audioDc, etc. but not the underlying encoders/SSRCs)
+        CloseConnection();
 
-        Logger.Info($"[SIPSorcery] Processing offer for {dimensions.Count} monitors");
+        // Ensure fresh sync state for Every new connection/reconnect.
+        // Clears RTP offsets and capture start time to prevent client jitter buffer inflation.
+        ResetSyncState();
 
         // Parse negotiated codec payload type from offer
         var (negotiatedPt, negotiatedFmtp) = TryGetCodecFromOfferSdp(offerSdp, _negotiatedCodec);
@@ -54,56 +54,75 @@ public partial class SIPSorceryStreamer
         _pc = new RTCPeerConnection(cfg);
         Logger.Info("[SIPSorcery] PeerConnection created (with STUN)");
 
-        // Create N video tracks - one per monitor
+        // 2. Manage Video Tracks - Reuse SSRC from previous session if possible
         for (int i = 0; i < dimensions.Count; i++)
         {
             var (w, h) = dimensions[i];
 
-            // Negotiated codec format (H264, H265, etc.)
+            // Setup or reuse TrackInfo
+            TrackInfo ti;
+            lock (_tracks)
+            {
+                if (i < _tracks.Count)
+                {
+                    ti = _tracks[i];
+                    // If dimensions changed, we might need a new encoder (managed later in InitializeEncoders)
+                    ti.Width = w;
+                    ti.Height = h;
+                }
+                else
+                {
+                    ti = new TrackInfo
+                    {
+                        Index = i,
+                        Width = w,
+                        Height = h,
+                        // Generate a persistent SSRC for this monitor index
+                        Ssrc = (uint)new Random().Next(100000000, 2000000000),
+                        // Initialize sequence number to a random value per RFC 3550.
+                        // Continuity is maintained across reconnections as TrackInfo is reused.
+                        SequenceNumber = (ushort)new Random().Next(0, ushort.MaxValue)
+                    };
+                    _tracks.Add(ti);
+                }
+            }
+
+            // Negotiated codec format
             string defaultFmtp = _negotiatedCodec == VideoCodec.H264
                 ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
-                : ""; // H265 usually doesn't need complex FMTP for base support
+                : (_negotiatedCodec == VideoCodec.H265 ? "profile-id=1;tier-flag=0;level-id=123" : ""); 
 
             var codecFormat = new SDPAudioVideoMediaFormat(
                 SDPMediaTypesEnum.video,
                 id: negotiatedPt ?? (96 + i),
                 name: _negotiatedCodec.ToString(),
                 clockRate: 90000,
-                channels: 0,
-                fmtp: string.IsNullOrWhiteSpace(negotiatedFmtp) ? defaultFmtp : negotiatedFmtp);
+                fmtp: MergeFmtp(defaultFmtp, negotiatedFmtp));
 
             var track = new MediaStreamTrack(
                 SDPMediaTypesEnum.video,
                 isRemote: false,
                 capabilities: new List<SDPAudioVideoMediaFormat> { codecFormat },
                 streamStatus: MediaStreamStatusEnum.SendOnly);
-
+            
+            // Assign the PERSISTENT SSRC to this track
+            track.Ssrc = ti.Ssrc;
+            ti.PayloadType = codecFormat.ID;
+            ti.Track = track;
+            
             _pc.addTrack(track);
 
-            // Get device for track - priority: permanent mappings > pending > shared
+            // Device mapping logic (simplified for clarity)
             ID3D11Device? deviceForTrack = _sharedDevice;
-            if (_deviceMappings.TryGetValue(i, out var mappedDevice))
-            {
-                // Use permanent mapping (survives reconnection)
-                deviceForTrack = mappedDevice;
-            }
+            if (_deviceMappings.TryGetValue(i, out var mappedDevice)) deviceForTrack = mappedDevice;
             else if (_pendingDevices.TryGetValue(i, out var pendingDevice))
             {
                 deviceForTrack = pendingDevice;
                 _pendingDevices.Remove(i);
             }
+            ti.Device = deviceForTrack;
 
-            _tracks.Add(new TrackInfo
-            {
-                Index = i,
-                Track = track,
-                Mid = i.ToString(),
-                Width = w,
-                Height = h,
-                Device = deviceForTrack
-            });
-
-            Logger.Info($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8})");
+            Logger.Info($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8}), SSRC={ti.Ssrc}");
         }
 
         // Initialize per-monitor pause state (all monitors active initially)
@@ -366,6 +385,32 @@ public partial class SIPSorceryStreamer
         }
     }
 
+    private string MergeFmtp(string defaultFmtp, string? negotiatedFmtp)
+    {
+        if (string.IsNullOrWhiteSpace(negotiatedFmtp)) return defaultFmtp;
+        if (string.IsNullOrWhiteSpace(defaultFmtp)) return negotiatedFmtp;
+
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        // Parse defaults
+        foreach (var part in defaultFmtp.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2) result[kv[0].Trim()] = kv[1].Trim();
+            else result[kv[0].Trim()] = "";
+        }
+
+        // Merge negotiated (overwrites defaults)
+        foreach (var part in negotiatedFmtp.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2) result[kv[0].Trim()] = kv[1].Trim();
+            else result[kv[0].Trim()] = "";
+        }
+
+        return string.Join(";", result.Select(x => string.IsNullOrEmpty(x.Value) ? x.Key : $"{x.Key}={x.Value}"));
+    }
+
     private byte[] StripLeadingAud(byte[] au)
     {
         if (au.Length < 4) return au;
@@ -399,6 +444,19 @@ public partial class SIPSorceryStreamer
             {
                 var trimmed = new byte[au.Length - i];
                 Buffer.BlockCopy(au, i, trimmed, 0, trimmed.Length);
+                
+                // For H265, log if we see VPS/SPS/PPS after stripping AUD to debug no-frame issue
+                if (_negotiatedCodec == VideoCodec.H265)
+                {
+                    int nextPos = (trimmed[0] == 0 && trimmed[1] == 0 && trimmed[2] == 0 && trimmed[3] == 1) ? 4 : 3;
+                    if (nextPos < trimmed.Length)
+                    {
+                        int nextType = (trimmed[nextPos] >> 1) & 0x3F;
+                        if (nextType == 32 || nextType == 33 || nextType == 34)
+                            Logger.Info($"[SIPSorcery] H265 Meta after AUD: Type={nextType} (32=VPS, 33=SPS, 34=PPS)");
+                    }
+                }
+                
                 return trimmed;
             }
         }

@@ -418,6 +418,21 @@ namespace RemotePlayServer.Core.Models
         public int MonitorCount { get; set; }
     }
 
+    /// <summary>
+    /// Server -> Client: Request client to trigger a reconnect.
+    /// Used for dynamic codec fallback or recovery from fatal streaming errors.
+    /// </summary>
+    public class ReconnectRequestMessage : ProtocolMessage
+    {
+        public override string Type => "reconnect_request";
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+
+        [JsonPropertyName("suggestedCodec")]
+        public string? SuggestedCodec { get; set; }
+    }
+
     // ==================== Phase 3 Messages ====================
 
     /// <summary>

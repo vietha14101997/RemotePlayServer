@@ -23,7 +23,25 @@ public partial class SIPSorceryStreamer
         {
             foreach (var track in _tracks)
             {
-                if (track.Encoder != null) continue;
+                // Re-use existing encoder if it matches dimensions. 
+                // If it doesn't match, we dispose and create new one (handled below).
+                if (track.Encoder != null)
+                {
+                    if (track.Encoder.Width == track.Width && track.Encoder.Height == track.Height)
+                    {
+                        Logger.Info($"[SIPSorcery] Track {track.Index}: Reusing existing encoder {track.Encoder.GetType().Name} ({track.Width}x{track.Height})");
+                        continue;
+                    }
+                    else
+                    {
+                        Logger.Info($"[SIPSorcery] Track {track.Index}: Dimensions changed ({track.Encoder.Width}x{track.Encoder.Height} -> {track.Width}x{track.Height}), disposing old encoder");
+                        track.Encoder.Dispose();
+                        track.Encoder = null;
+                        // Reset frame counters on resolution change
+                        Interlocked.Exchange(ref track.SentFrames, 0);
+                        Interlocked.Exchange(ref track.EncodedFrames, 0);
+                    }
+                }
 
                 var device = track.Device ?? _sharedDevice;
                 if (device == null)
@@ -268,6 +286,8 @@ public partial class SIPSorceryStreamer
     {
         _running = false;
         _connected = false;
+        _phase3Active = false;
+        _phase3PendingActivation = false;
 
         // Reset shared sync clock for next connection
         Interlocked.Exchange(ref _streamStartMs, -1);
@@ -287,8 +307,16 @@ public partial class SIPSorceryStreamer
         lock (_lock)
         {
             foreach (var track in _tracks)
-                track.Dispose();
-            _tracks.Clear();
+            {
+                // IMPORTANT: Do NOT dispose encoders here to allow fast re-use!
+                // Just clear the track reference associated with the old PeerConnection.
+                track.Track = null;
+                
+                // Clear any pending frames from previous session
+                track.PendingFrame = null;
+            }
+            
+            // Do NOT call _tracks.Clear() anymore - we need to persist TrackInfo for SSRC persistence!
             _pendingDevices.Clear();
         }
 
@@ -451,6 +479,17 @@ public partial class SIPSorceryStreamer
         if (_disposed) return;
         _disposed = true;
         Stop();
+
+        // Final cleanup of persistent track resources
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+            {
+                track.Dispose();
+            }
+            _tracks.Clear();
+        }
+
         Logger.Info("[SIPSorcery] Disposed");
     }
 }

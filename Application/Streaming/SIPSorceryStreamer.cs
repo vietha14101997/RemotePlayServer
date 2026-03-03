@@ -23,6 +23,13 @@ namespace RemotePlayServer.Application.Streaming;
 /// </summary>
 public partial class SIPSorceryStreamer : IDisposable
 {
+    public event Action? OnH264FallbackSuggested;
+
+    public void RequestH264Fallback()
+    {
+        OnH264FallbackSuggested?.Invoke();
+    }
+
     private readonly int _monitorCount;
     private int _fps;
     private int _bitrateKbps;
@@ -79,9 +86,12 @@ public partial class SIPSorceryStreamer : IDisposable
     {
         public int Index { get; set; }
         public MediaStreamTrack? Track { get; set; }
+        public uint Ssrc { get; set; } // Persisted SSRC across reconnections
         public string Mid { get; set; } = "";
         public int Width { get; set; }
         public int Height { get; set; }
+        public int PayloadType { get; set; } // Negotiated payload type
+        public ushort SequenceNumber; // Manual sequence number for SendRtpRaw
 
         // Encoder per track (supports AMF, NVENC, QSV)
         public ITextureEncoder? Encoder { get; set; }
@@ -114,12 +124,13 @@ public partial class SIPSorceryStreamer : IDisposable
         public long EncodeLatencySum;
         public long EncodeLatencyCount;
 
-        // NAL accumulator: collects data across multiple encoder callbacks per encode cycle.
-        // AMF's drain loop may fire 0-2+ callbacks per SubmitInput — accumulate all NAL data
-        // during encoding, then create PendingFrame after encode returns.
-        public byte[]? NalAccumulator;
-        public uint NalAccumulatorRtpStep;
-        public bool NalAccumulatorIsKeyframe;
+        // Diagnostic: flag to ensure session-start log only fires once per session
+        public bool IsSessionStarted;
+
+        // Codec Stability: Track consecutive failures/stalls in H.265 mode
+        public int H265FailureStreak;
+        public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
+
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending
         public volatile PendingFrameData? PendingFrame;
@@ -241,6 +252,7 @@ public partial class SIPSorceryStreamer : IDisposable
             if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
             {
                 _tracks[monitorIndex].Device = device;
+                _tracks[monitorIndex].IsSessionStarted = false;
                 Logger.Info($"[SIPSorcery] Set device for existing track {monitorIndex}");
             }
             else

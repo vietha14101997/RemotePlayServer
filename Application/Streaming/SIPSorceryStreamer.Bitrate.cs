@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Models;
@@ -225,38 +226,39 @@ public partial class SIPSorceryStreamer
     {
         var types = new List<int>();
         int i = 0;
-        while (i + 4 <= au.Length)
+        int len = au.Length;
+        while (i + 3 < len)
         {
-            int sc = (au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ? 3 :
-                     (i + 4 <= au.Length && au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 0 && au[i + 3] == 1) ? 4 : 0;
-            if (sc == 0) break;
-            i += sc;
-            if (i >= au.Length) break;
-
-            int nalType;
-            if (_negotiatedCodec == VideoCodec.H265)
+            // Scan for 00 00 01 or 00 00 00 01
+            int sc = 0;
+            if (au[i] == 0 && au[i + 1] == 0)
             {
-                // H265: NAL type is in (header[0] >> 1) & 0x3F
-                nalType = (au[i] >> 1) & 0x3F;
+                if (au[i + 2] == 1) sc = 3;
+                else if (i + 3 < len && au[i + 2] == 0 && au[i + 3] == 1) sc = 4;
+            }
+
+            if (sc > 0)
+            {
+                i += sc;
+                if (i < len)
+                {
+                    int type;
+                    if (_negotiatedCodec == VideoCodec.H265)
+                        type = (au[i] >> 1) & 0x3F;
+                    else
+                        type = au[i] & 0x1F;
+                    
+                    types.Add(type);
+                }
             }
             else
             {
-                // H264: NAL type is in header[0] & 0x1F
-                nalType = au[i] & 0x1F;
+                i++;
             }
-            types.Add(nalType);
-
-            // Find next start code
-            int j = i + 1;
-            for (; j + 3 < au.Length; j++)
-            {
-                if ((au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 1) ||
-                    (j + 4 <= au.Length && au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 0 && au[j + 3] == 1))
-                    break;
-            }
-            i = j;
         }
-        return types;
+        var uniqueTypes = new List<int>();
+        foreach (var t in types) if (!uniqueTypes.Contains(t)) uniqueTypes.Add(t);
+        return uniqueTypes;
     }
 
     /// <summary>

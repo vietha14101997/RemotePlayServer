@@ -1,9 +1,14 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Threading;
 using Vortice.Direct3D11;
 using SIPSorcery.Net;
+using SIPSorcery.Media;
 using RemotePlayServer.Core;
+using RemotePlayServer.Core.Models;
+using RemotePlayServer.Infrastructure.Encoding;
+using RemotePlayServer.Infrastructure.Network;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -36,39 +41,24 @@ public partial class SIPSorceryStreamer
     public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
-        // During early capture (before Phase 3), drop frames to prevent WiFi congestion.
-        // Capture hardware stays warm but no encoding/sending — saves bandwidth for ICE/DTLS.
         if (!_phase3Active) return;
+        
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
-        // Check per-monitor pause
+        var track = _tracks[monitorIndex];
+        if (track.Track == null || track.Encoder == null) return;
+        
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
 
-        var track = _tracks[monitorIndex];
-        if (track.Encoder == null) return;
-
-        // Set shared stream start from barrier-synced capture timestamp.
-        // Moved here from CalculateRtpStepFromCaptureTime to ensure _streamStartMs
-        // is always set from a barrier-synced timestamp, not from callback timing.
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
             Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
 
-        // Per-track lock: allows parallel NVENC encoding across tracks.
-        // Previously used shared _lock which serialized all encoding,
-        // causing the second track to accumulate transport delay on the client.
         lock (track.EncodeLock)
         {
             try
             {
-                // Clear NAL accumulator for new encode cycle.
-                // AMF's drain loop may fire 0-2+ callbacks per encode —
-                // accumulate all NAL data, then create PendingFrame after encode returns.
-                track.NalAccumulator = null;
-                track.NalAccumulatorIsKeyframe = false;
-
-                // Store capture timestamp for use in OnEncodedData callback
+                track.PendingFrame = null;
                 track.PendingCaptureTimestampMs = captureTimestampMs;
 
-                // Stagger countdown: decrement and trigger keyframe when it reaches 0
                 if (track.KeyframeStaggerCountdown > 0)
                 {
                     track.KeyframeStaggerCountdown--;
@@ -76,36 +66,16 @@ public partial class SIPSorceryStreamer
                         track.ForceNextKeyframe = true;
                 }
 
-                // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
                 bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
-                // Encode BGRA directly - no staging texture or copy needed
                 track.LastEncodeStartTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                 bool encodeSuccess = track.Encoder.EncodeBgraTexture(bgraTexture, forceKeyframe: forceIdr);
 
                 if (encodeSuccess)
                     Interlocked.Increment(ref track.EncodedFrames);
-
-                // Create PendingFrame from accumulated callback data (if any).
-                // This ensures ALL NAL data from multiple callbacks is merged into one frame.
-                if (DeferredSendEnabled)
-                {
-                    if (track.NalAccumulator != null)
-                    {
-                        track.PendingFrame = new TrackInfo.PendingFrameData(
-                            track.NalAccumulator, track.NalAccumulatorRtpStep);
-                    }
-                    else if (encodeSuccess)
-                    {
-                        // AMF produced no output (VCN contention / pipeline buffering)
-                        long frames = Interlocked.Read(ref track.EncodedFrames);
-                        if (frames <= 3 || frames % 600 == 0)
-                            Logger.Warn($"[SIPSorcery] Track {monitorIndex}: encoder produced no output (frame {frames})");
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -118,20 +88,17 @@ public partial class SIPSorceryStreamer
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
-        // During early capture (before Phase 3), drop frames to prevent WiFi congestion
         if (!_phase3Active) return;
+
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
-        // Check per-monitor pause
+        var track = _tracks[monitorIndex];
+        if (track.Track == null || track.Encoder == null) return;
+        
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
 
-        var track = _tracks[monitorIndex];
-        if (track.Encoder == null) return;
-
-        // Set shared stream start from barrier-synced capture timestamp
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
             Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
 
-        // Per-track lock: allows parallel encoding across tracks
         lock (track.EncodeLock)
         {
             try
@@ -139,11 +106,7 @@ public partial class SIPSorceryStreamer
                 var device = track.Device ?? _sharedDevice;
                 if (device == null) return;
 
-                // Clear NAL accumulator for new encode cycle
-                track.NalAccumulator = null;
-                track.NalAccumulatorIsKeyframe = false;
-
-                // Store capture timestamp for use in OnEncodedData callback
+                track.PendingFrame = null;
                 track.PendingCaptureTimestampMs = captureTimestampMs;
 
                 if (track.StagingNV12 == null)
@@ -165,7 +128,6 @@ public partial class SIPSorceryStreamer
 
                 device.ImmediateContext.CopyResource(track.StagingNV12, nv12Texture);
 
-                // Stagger countdown: decrement and trigger keyframe when it reaches 0
                 if (track.KeyframeStaggerCountdown > 0)
                 {
                     track.KeyframeStaggerCountdown--;
@@ -173,7 +135,6 @@ public partial class SIPSorceryStreamer
                         track.ForceNextKeyframe = true;
                 }
 
-                // Force keyframe for first 5 frames, explicit request, or burst
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
                 bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
@@ -184,22 +145,6 @@ public partial class SIPSorceryStreamer
 
                 if (encodeSuccess)
                     Interlocked.Increment(ref track.EncodedFrames);
-
-                // Create PendingFrame from accumulated callback data (if any)
-                if (DeferredSendEnabled)
-                {
-                    if (track.NalAccumulator != null)
-                    {
-                        track.PendingFrame = new TrackInfo.PendingFrameData(
-                            track.NalAccumulator, track.NalAccumulatorRtpStep);
-                    }
-                    else if (encodeSuccess)
-                    {
-                        long frames = Interlocked.Read(ref track.EncodedFrames);
-                        if (frames <= 3 || frames % 600 == 0)
-                            Logger.Warn($"[SIPSorcery] Track {monitorIndex}: encoder produced no output (frame {frames})");
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -214,87 +159,84 @@ public partial class SIPSorceryStreamer
         if (!_running || _pc == null || !_connected) return;
         if (_pc.connectionState != RTCPeerConnectionState.connected) return;
 
-        // Track encode latency for diagnostics
-        long encodeStartTicks = track.LastEncodeStartTicks;
-        if (encodeStartTicks > 0)
+        // Track encode latency (from PushTexture/PushBgraTexture start to callback)
+        long startTicks = track.LastEncodeStartTicks;
+        if (startTicks > 0)
         {
-            long encodeEndTicks = System.Diagnostics.Stopwatch.GetTimestamp();
-            long latencyUs = (encodeEndTicks - encodeStartTicks) * 1_000_000L / System.Diagnostics.Stopwatch.Frequency;
-            Interlocked.Add(ref track.EncodeLatencySum, latencyUs);
+            long elapsed = System.Diagnostics.Stopwatch.GetTimestamp() - startTicks;
+            long us = elapsed * 1_000_000 / System.Diagnostics.Stopwatch.Frequency;
+            Interlocked.Add(ref track.EncodeLatencySum, us);
             Interlocked.Increment(ref track.EncodeLatencyCount);
         }
 
         try
         {
-            // Convert to Annex B if needed and strip AUD
+            // First-frame logging for H265 pipeline debugging
+            long earlyFrameNum = Interlocked.Read(ref track.SentFrames);
+            if (earlyFrameNum < 3)
+                Logger.Info($"[SIPSorcery] Track {track.Index} OnEncodedData: {nalData.Length} bytes, keyframe={isKeyframe}, annexB={ContainsAnnexBStartCode(nalData)}");
+
+            // CRITICAL: Drop P-frames that arrive before the first IDR of this session.
+            // AMF/NVENC encoders have a hardware pipeline — stale P-frames from the
+            // previous session can drain AFTER forceKeyframe=true is requested,
+            // arriving before the actual IDR. Sending a P-frame as the first frame
+            // causes the client decoder to fail and trigger a reconnect loop.
+            if (!isKeyframe && Interlocked.Read(ref track.SentFrames) == 0)
+            {
+                if (earlyFrameNum % 10 == 0)
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: Dropping stale P-frame before first IDR ({nalData.Length} bytes) - requesting keyframe");
+                
+                // Force IDR on next encode opportunity
+                track.ForceNextKeyframe = true;
+
+                // Track failures in H265 mode
+                if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
+                {
+                    track.H265FailureStreak++;
+                    if (track.H265FailureStreak == 60) // Threshold for fallback (approx 1-2s @ 30-60fps)
+                    {
+                        Logger.Warn($"[SIPSorcery] Track {track.Index} H265 stability threshold reached ({track.H265FailureStreak} drops). Suggesting H.264 fallback.");
+                        // Force a reconnect with H.264 preference if many tracks fail
+                        RequestH264Fallback();
+                    }
+                }
+                return;
+            }
+
+            if (isKeyframe)
+            {
+                track.IsDecodable = true;
+                track.H265FailureStreak = 0; // Reset streak on successful keyframe sent
+            }
+
             byte[] au = nalData;
             if (!ContainsAnnexBStartCode(au))
                 au = TryConvertAvccToAnnexB(au);
             au = StripLeadingAud(au);
 
-            // Use capture timestamp if available, fall back to encoder PTS
             long captureMs = track.PendingCaptureTimestampMs;
             uint rtpStep = captureMs > 0
                 ? CalculateRtpStepFromCaptureTime(track, captureMs)
                 : CalculateRtpStep(track, pts100ns);
 
-            // Log per-track diagnostics on keyframe sends
-            if (isKeyframe)
-            {
-                long encCount = Interlocked.Read(ref track.EncodeLatencyCount);
-                long avgEncUs = encCount > 0 ? Interlocked.Read(ref track.EncodeLatencySum) / encCount : 0;
-                Logger.Debug($"[SIPSorcery] Track {track.Index} KEYFRAME: rtpStep={rtpStep}, captureMs={captureMs}, " +
-                    $"avgEncLatency={avgEncUs}us, sentFrames={Interlocked.Read(ref track.SentFrames)}");
-            }
-
-            // DEBUG: Log NAL types for first few frames only (avoid spam)
             long frameNum = Interlocked.Read(ref track.SentFrames);
-            if (frameNum < 5)
-            {
-                var nalTypes = GetNalTypes(au);
-                Logger.Debug($"[SIPSorcery] Track {track.Index} frame #{frameNum}: {au.Length}B, NAL types=[{string.Join(",", nalTypes)}], key={isKeyframe}");
-            }
-
-            // DEBUG: Log VideoStreamList info on first frame of each track
-            if (frameNum == 0)
-            {
-                var streamCount = _pc.VideoStreamList?.Count ?? 0;
-                Logger.Info($"[SIPSorcery] Track {track.Index} first frame: VideoStreamList.Count={streamCount}, rtpStep={rtpStep}");
-
-                // Log SSRC info for each video stream
-                if (_pc.VideoStreamList != null)
-                {
-                    for (int i = 0; i < Math.Min(3, _pc.VideoStreamList.Count); i++)
-                    {
-                        var vs = _pc.VideoStreamList[i];
-                        Logger.Info($"[SIPSorcery] VideoStream[{i}]: SSRC={vs.LocalTrack?.Ssrc ?? 0}");
-                    }
-                }
-            }
-
             if (DeferredSendEnabled)
             {
-                // Accumulate: AMF's drain loop may fire 0-2+ callbacks per encode.
-                // First callback sets rtpStep; subsequent callbacks append NAL data.
-                // PendingFrame is created AFTER encode returns in PushBgraTexture/PushTexture.
-                if (track.NalAccumulator == null)
+                if (track.PendingFrame == null)
                 {
-                    track.NalAccumulator = au;
-                    track.NalAccumulatorRtpStep = rtpStep;
+                    track.PendingFrame = new TrackInfo.PendingFrameData(au, rtpStep);
                 }
                 else
                 {
-                    // Merge: [existing NALs] + [new NALs]
-                    var merged = new byte[track.NalAccumulator.Length + au.Length];
-                    Buffer.BlockCopy(track.NalAccumulator, 0, merged, 0, track.NalAccumulator.Length);
-                    Buffer.BlockCopy(au, 0, merged, track.NalAccumulator.Length, au.Length);
-                    track.NalAccumulator = merged;
+                    var merged = new byte[track.PendingFrame.Au.Length + au.Length];
+                    Buffer.BlockCopy(track.PendingFrame.Au, 0, merged, 0, track.PendingFrame.Au.Length);
+                    Buffer.BlockCopy(au, 0, merged, track.PendingFrame.Au.Length, au.Length);
+                    track.PendingFrame = new TrackInfo.PendingFrameData(merged, track.PendingFrame.RtpStep);
                 }
-                if (isKeyframe) track.NalAccumulatorIsKeyframe = true;
+                // (isKeyframe flag is no longer used for session-start guard here to avoid race with SendRtpPacket)
             }
             else
             {
-                // Immediate send (single-monitor or no barrier sync)
                 SendFrameImmediate(track, au, rtpStep, frameNum);
             }
         }
@@ -307,35 +249,85 @@ public partial class SIPSorceryStreamer
 
     private void SendFrameImmediate(TrackInfo track, byte[] au, uint rtpStep, long frameNum)
     {
-        if (_pc!.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+        // Update absolute timestamp for this frame
+        track.RtpTimestamp += rtpStep;
+
+        if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
         {
-            var videoStream = _pc.VideoStreamList[track.Index];
-            videoStream.SendVideo(rtpStep, au);
-            Interlocked.Increment(ref track.SentFrames);
+            var fragments = RemotePlayServer.Infrastructure.Network.H265Fragmenter.FragmentAnnexB(au);
+            if (frameNum < 3)
+                Logger.Info($"[SIPSorcery] Track {track.Index} H265 frame #{frameNum}: {au.Length} bytes → {fragments.Count} RTP packets, ts={track.RtpTimestamp}, seq={track.SequenceNumber + 1}");
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                bool isLast = (i == fragments.Count - 1);
+                SendRtpPacket(track, fragments[i], track.RtpTimestamp, isLast ? 1 : 0, frameNum);
+            }
         }
-        else if (track.Index == 0)
+        else if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H264)
         {
-            _pc!.SendVideo(rtpStep, au);
-            Interlocked.Increment(ref track.SentFrames);
+            var fragments = RemotePlayServer.Infrastructure.Network.H264Fragmenter.FragmentAnnexB(au);
+            if (frameNum < 3)
+                Logger.Info($"[SIPSorcery] Track {track.Index} H264 frame #{frameNum}: {au.Length} bytes → {fragments.Count} RTP packets, ts={track.RtpTimestamp}, seq={track.SequenceNumber + 1}");
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                bool isLast = (i == fragments.Count - 1);
+                SendRtpPacket(track, fragments[i], track.RtpTimestamp, isLast ? 1 : 0, frameNum);
+            }
         }
         else
         {
-            if (frameNum < 5)
-                Logger.Info($"[SIPSorcery] Track {track.Index} SKIP: VideoStreamList null or index out of range");
+            SendRtpPacket(track, au, track.RtpTimestamp, 1, frameNum);
+        }
+
+        Interlocked.Increment(ref track.SentFrames);
+    }
+
+    private void SendRtpPacket(TrackInfo track, byte[] payload, uint rtpTimestamp, int markerBit, long frameNum)
+    {
+        if (_pc == null) return;
+
+        // Increment sequence number for each RTP packet
+        track.SequenceNumber++;
+
+        // Session startup diagnostic: log details for the first packet of each session
+        if (frameNum == 0 && !track.IsSessionStarted)
+        {
+            track.IsSessionStarted = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index} SESSION START: SSRC={track.Ssrc}, First Seq={track.SequenceNumber}, First TS={rtpTimestamp}");
+        }
+
+        // 1. Preferred: Multi-track send using MediaStream.SendRtpRaw (supports manual seqNum)
+        if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+        {
+            var videoStream = _pc.VideoStreamList[track.Index];
+            // Use manual sequence number whenever possible
+            if (videoStream != null)
+            {
+                videoStream.SendRtpRaw(payload, rtpTimestamp, markerBit, track.PayloadType, track.SequenceNumber);
+                return;
+            }
+        }
+
+        // 2. Legacy/Fallback: Single-track send using RTPSession.SendRtpRaw (manages seqNum automatically)
+        // Warning: This may cause sequence jump/collision if fallback occurs mid-stream
+        if (track.Index == 0)
+        {
+            try
+            {
+                _pc.SendRtpRaw(SDPMediaTypesEnum.video, payload, rtpTimestamp, markerBit, track.PayloadType);
+            }
+            catch (Exception ex)
+            {
+                if (frameNum % 100 == 0)
+                    Logger.Warn($"[SIPSorcery] Track 0 fallback send failed: {ex.Message}");
+            }
         }
     }
 
-    /// <summary>
-    /// Send all buffered frames in alternating track order.
-    /// Called by the post-encode barrier after all tracks finish encoding.
-    /// Alternating order prevents one track's RTP packets from consistently
-    /// arriving before the other's, which causes client jitter buffer asymmetry.
-    /// </summary>
     public void FlushAllPendingFrames()
     {
         if (!_running || _pc == null || !_connected) return;
 
-        // Snapshot tracks under lock to prevent race with CloseConnection._tracks.Clear()
         TrackInfo[] snapshot;
         lock (_lock) { snapshot = _tracks.ToArray(); }
 
@@ -353,8 +345,8 @@ public partial class SIPSorceryStreamer
 
             try
             {
-                long frameNum = Interlocked.Read(ref track.SentFrames);
-                SendFrameImmediate(track, pending.Au, pending.RtpStep, frameNum);
+                long currentSent = Interlocked.Read(ref track.SentFrames);
+                SendFrameImmediate(track, pending.Au, pending.RtpStep, currentSent);
             }
             catch (Exception ex)
             {

@@ -401,7 +401,7 @@ namespace RemotePlayServer.Application.Protocol
                                     Logger.Info($"[Protocol] Resolution changed to {newHeight}p, keyframes requested");
                                 }
 
-                                var (success, appliedFps, appliedBitrate, message) = _streamer.UpdateConfig(
+                                var (success, appliedFps, appliedBitrate, message) = _streamer!.UpdateConfig(
                                     updateMsg.Fps,
                                     updateMsg.BitrateKbps);
 

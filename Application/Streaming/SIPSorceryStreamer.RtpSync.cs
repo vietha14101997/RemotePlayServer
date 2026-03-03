@@ -17,9 +17,9 @@ public partial class SIPSorceryStreamer
             if (!track.TimestampInitialized)
             {
                 track.LastPts100ns = pts100ns;
-                track.RtpTimestamp = (uint)(Environment.TickCount & 0xFFFF);
                 track.TimestampInitialized = true;
-                return track.RtpTimestamp;
+                // Seed with standard increment instead of absolute value
+                return fallback;
             }
 
             long delta = pts100ns - track.LastPts100ns;
@@ -61,9 +61,10 @@ public partial class SIPSorceryStreamer
             {
                 track.CaptureClockInitialized = true;
                 track.LastAbsoluteRtp = absoluteRtp;
-                // First frame: return the absolute timestamp as the initial step
-                // This seeds the RTP sequence at the correct wallclock position
-                return absoluteRtp > 0 ? absoluteRtp : fallback;
+                // Return normal increment instead of absolute timestamp.
+                // SIPSorcery's VideoStream.SendVideo adds this step to current timestamp.
+                // A massive step here causes jitter-buffer overflow on client.
+                return fallback;
             }
 
             // Step = difference from last sent absolute RTP
@@ -124,6 +125,13 @@ public partial class SIPSorceryStreamer
     public void ResetSyncState()
     {
         Interlocked.Exchange(ref _streamStartMs, -1);
+
+        // Reset pause state — client may have paused before reconnecting.
+        // If _isPaused is not cleared, PushBgraTexture/PushTexture returns early
+        // and no frames reach the encoder, causing 0 frames sent (silent starvation).
+        _isPaused = false;
+        _monitorPaused = new bool[_monitorCount]; // Reset per-monitor pause too
+
         lock (_audioSyncLock)
         {
             _audioClockInitialized = false;
@@ -137,8 +145,29 @@ public partial class SIPSorceryStreamer
                 track.LastAbsoluteRtp = 0;
                 track.TimestampInitialized = false;
                 track.LastPts100ns = -1;
-                track.NalAccumulator = null;
-                track.NalAccumulatorIsKeyframe = false;
+                track.IsSessionStarted = false;
+
+                // Reset frame counters for new session context (fixes missing logs on reconnect)
+                Interlocked.Exchange(ref track.SentFrames, 0);
+                Interlocked.Exchange(ref track.EncodedFrames, 0);
+
+                // Force next encode to be a keyframe — ensures first frame of new session is IDR.
+                // Works in tandem with the P-frame guard in OnEncodedData which drops stale
+                // pipeline frames that arrive before the IDR.
+                track.ForceNextKeyframe = true;
+                track.KeyframeBurstRemaining = 0; // Clear any pending burst from old session
+
+                // Flush encoder HW pipeline to drain stale frames from previous session.
+                // AMF/NVENC have async pipelines — without flush, old P-frames arrive
+                // AFTER forceKeyframe=true is set, causing client decoder failure.
+                if (track.Encoder != null)
+                {
+                    try { track.Encoder.Flush(); }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"[SIPSorcery] Track {track.Index}: Encoder flush error (non-fatal): {ex.Message}");
+                    }
+                }
             }
         }
         // Reset deferred send counter for clean alternation on reconnect
