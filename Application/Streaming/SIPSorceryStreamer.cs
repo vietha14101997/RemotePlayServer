@@ -33,7 +33,12 @@ public partial class SIPSorceryStreamer : IDisposable
     private readonly int _monitorCount;
     private int _fps;
     private int _bitrateKbps;
-    private readonly VideoCodec _negotiatedCodec;
+    private VideoCodec _negotiatedCodec;
+    public VideoCodec NegotiatedCodec
+    {
+        get => _negotiatedCodec;
+        set => _negotiatedCodec = value;
+    }
     private ID3D11Device? _sharedDevice;
 
     private RTCPeerConnection? _pc;
@@ -132,6 +137,7 @@ public partial class SIPSorceryStreamer : IDisposable
         public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
         public int IdrViaDcCount; // Number of IDR frames sent via DataChannel for this session
         public byte[]? LastH265ParamSets; // Cached VPS/SPS/PPS for H265 bootstrap recovery
+        public VideoCodec? LastUsedCodec; // Track which codec the encoder was initialized with
 
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending

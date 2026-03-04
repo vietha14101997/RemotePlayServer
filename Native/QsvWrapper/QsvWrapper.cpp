@@ -68,7 +68,8 @@ static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
     for (size_t i = 0; i + 5 < size; i++) {
         if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
             int nalType = (data[i+4] >> 1) & 0x3F;
-            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20) {
+            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
+            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
                 return 1;
             }
         }
@@ -325,7 +326,7 @@ static int QsvCreateEncoderInternal(
         ctx->codecApi->SetValue(&CODECAPI_AVEncCommonRateControlMode, &var);
 
         var.vt = VT_UI4;
-        var.ulVal = fps * 2;
+        var.ulVal = 0; // Infinite GOP (match Nvenc)
         ctx->codecApi->SetValue(&CODECAPI_AVEncMPVGOPSize, &var);
     }
 

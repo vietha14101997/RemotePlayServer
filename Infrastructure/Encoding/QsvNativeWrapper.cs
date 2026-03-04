@@ -112,6 +112,9 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
+    public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
+    public bool SupportsBgraInput => false; // QSV native wrapper doesn't support BGRA yet
+    public bool UsingBgraMode => false;
 
     #endregion
 
@@ -251,11 +254,30 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     /// </summary>
     public bool SetBitrate(int bitrateKbps)
     {
-        // QSV encoder through Media Foundation doesn't reliably support runtime bitrate changes
-        // Attempting to change bitrate mid-stream can cause "incompatible video parameters" errors
-        // Return false to let the adaptive bitrate controller know this encoder doesn't support it
-        Logger.Warn($"[QsvNativeWrapper] Runtime bitrate change not supported (requested: {bitrateKbps}kbps)");
-        return false;
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = QsvSetBitrate(_handle, bitrateKbps);
+            if (result == QSV_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Logger.Info($"[QsvNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                string error = GetLastError();
+                Logger.Error($"[QsvNativeWrapper] SetBitrate failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
     }
 
     /// <summary>
@@ -265,10 +287,31 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     /// </summary>
     public bool SetFps(int fps)
     {
-        // QSV encoder through Media Foundation doesn't reliably support runtime FPS changes
-        // Return false to let the caller know this encoder doesn't support it
-        Logger.Warn($"[QsvNativeWrapper] Runtime FPS change not supported (requested: {fps}fps)");
-        return false;
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (fps <= 0) return false;
+
+        try
+        {
+            int result = QsvSetFps(_handle, fps);
+            if (result == QSV_WRAPPER_OK)
+            {
+                _fps = fps;
+                Logger.Info($"[QsvNativeWrapper] FPS changed to {fps}");
+                return true;
+            }
+            else
+            {
+                // Note: QSV encoder currently returns FAIL for runtime FPS changes
+                string error = GetLastError();
+                Logger.Warn($"[QsvNativeWrapper] SetFps not supported or failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] SetFps exception: {ex.Message}");
+            return false;
+        }
     }
 
     #endregion

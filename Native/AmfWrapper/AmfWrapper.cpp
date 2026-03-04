@@ -39,7 +39,8 @@ static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
     for (size_t i = 0; i + 5 < size; i++) {
         if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
             int nalType = (data[i+4] >> 1) & 0x3F;
-            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20) {
+            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
+            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
                 return 1;
             }
         }
@@ -58,7 +59,7 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps / 2);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, 0); // Infinite GOP (match Nvenc)
     encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);
@@ -78,7 +79,7 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps / 2);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, 0); // Infinite GOP (match Nvenc)
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);

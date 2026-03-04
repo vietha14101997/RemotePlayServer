@@ -27,17 +27,18 @@ public partial class SIPSorceryStreamer
                 // If it doesn't match, we dispose and create new one (handled below).
                 if (track.Encoder != null)
                 {
-                    if (track.Encoder.Width == track.Width && track.Encoder.Height == track.Height)
+                    if (track.Encoder.Width == track.Width && track.Encoder.Height == track.Height && track.LastUsedCodec == _negotiatedCodec)
                     {
-                        Logger.Info($"[SIPSorcery] Track {track.Index}: Reusing existing encoder {track.Encoder.GetType().Name} ({track.Width}x{track.Height})");
+                        Logger.Info($"[SIPSorcery] Track {track.Index}: Reusing existing encoder {track.Encoder.GetType().Name} ({track.Width}x{track.Height}, {track.LastUsedCodec})");
                         continue;
                     }
                     else
                     {
-                        Logger.Info($"[SIPSorcery] Track {track.Index}: Dimensions changed ({track.Encoder.Width}x{track.Encoder.Height} -> {track.Width}x{track.Height}), disposing old encoder");
+                        string reason = (track.LastUsedCodec != _negotiatedCodec) ? "Codec changed" : "Dimensions changed";
+                        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {_negotiatedCodec}), disposing old encoder");
                         track.Encoder.Dispose();
                         track.Encoder = null;
-                        // Reset frame counters on resolution change
+                        // Reset frame counters on resolution or codec change
                         Interlocked.Exchange(ref track.SentFrames, 0);
                         Interlocked.Exchange(ref track.EncodedFrames, 0);
                     }
@@ -52,6 +53,10 @@ public partial class SIPSorceryStreamer
 
                 // Try to initialize encoder with fallback chain
                 track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
+                if (track.Encoder != null)
+                {
+                    track.LastUsedCodec = _negotiatedCodec;
+                }
             }
         }
     }

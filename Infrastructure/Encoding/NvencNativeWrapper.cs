@@ -142,6 +142,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
+    public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
 
     /// <summary>
     /// NVENC supports BGRA input directly (no NV12 conversion needed)

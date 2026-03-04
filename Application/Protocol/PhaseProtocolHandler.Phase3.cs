@@ -449,7 +449,13 @@ namespace RemotePlayServer.Application.Protocol
                             // Update server-side codec preference so the next reconnect offer
                             // is processed with H264 preference instead of H265.
                             if (toCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                            {
                                 _selectedCodec = "H264";
+                                if (_streamer != null)
+                                {
+                                    _streamer.NegotiatedCodec = VideoCodec.H264;
+                                }
+                            }
 
                             // Pause encoder temporarily to avoid sending stale H265 frames
                             // while client is resetting (brief pause, not full stop)
