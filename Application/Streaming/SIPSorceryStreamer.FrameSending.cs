@@ -9,6 +9,7 @@ using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Infrastructure.Network;
+using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -217,7 +218,7 @@ public partial class SIPSorceryStreamer
                 track.ForceNextKeyframe = true;
 
                 // Track failures in H265 mode
-                if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
+                if (_negotiatedCodec == VideoCodec.H265)
                 {
                     track.H265FailureStreak++;
                     if (track.H265FailureStreak == 60) // Threshold for fallback (approx 1-2s @ 30-60fps)
@@ -238,7 +239,7 @@ public partial class SIPSorceryStreamer
                 // H265 side-channel: Send VPS/SPS/PPS + IDR data via reliable DataChannel
                 // because keyframes fragmented into many FU RTP packets are lost
                 // before reaching the client's Encoded Transform API.
-                if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
+                if (_negotiatedCodec == VideoCodec.H265)
                 {
                     // Always send codec config (small, 89 bytes)
                     SendH265ParamSetsViaDataChannel(track, nalData);
@@ -298,7 +299,7 @@ public partial class SIPSorceryStreamer
         // Update absolute timestamp for this frame
         track.RtpTimestamp += rtpStep;
 
-        if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
+        if (_negotiatedCodec == VideoCodec.H265)
         {
             var fragments = RemotePlayServer.Infrastructure.Network.H265Fragmenter.FragmentAnnexB(au);
             if (frameNum < 3)
@@ -309,7 +310,7 @@ public partial class SIPSorceryStreamer
                 SendRtpPacket(track, fragments[i], track.RtpTimestamp, isLast ? 1 : 0, frameNum);
             }
         }
-        else if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H264)
+        else if (_negotiatedCodec == VideoCodec.H264)
         {
             var fragments = RemotePlayServer.Infrastructure.Network.H264Fragmenter.FragmentAnnexB(au);
             if (frameNum < 3)

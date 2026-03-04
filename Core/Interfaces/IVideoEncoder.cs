@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Vortice.Direct3D11;
+using RemotePlayServer.Core;
 
 namespace RemotePlayServer.Core.Interfaces;
 

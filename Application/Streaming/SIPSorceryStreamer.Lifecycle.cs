@@ -8,6 +8,7 @@ using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 

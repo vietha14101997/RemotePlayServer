@@ -14,6 +14,7 @@ using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 
