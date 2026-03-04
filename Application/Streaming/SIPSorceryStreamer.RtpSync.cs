@@ -156,6 +156,7 @@ public partial class SIPSorceryStreamer
                 // pipeline frames that arrive before the IDR.
                 track.ForceNextKeyframe = true;
                 track.KeyframeBurstRemaining = 0; // Clear any pending burst from old session
+                track.IdrViaDcCount = 0; // Reset so IDR is sent via DataChannel again
 
                 // Flush encoder HW pipeline to drain stale frames from previous session.
                 // AMF/NVENC have async pipelines — without flush, old P-frames arrive

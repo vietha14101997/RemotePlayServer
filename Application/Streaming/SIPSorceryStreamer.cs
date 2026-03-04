@@ -130,6 +130,7 @@ public partial class SIPSorceryStreamer : IDisposable
         // Codec Stability: Track consecutive failures/stalls in H.265 mode
         public int H265FailureStreak;
         public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
+        public int IdrViaDcCount; // Number of IDR frames sent via DataChannel for this session
 
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending

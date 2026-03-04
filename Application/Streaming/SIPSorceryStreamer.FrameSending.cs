@@ -174,7 +174,34 @@ public partial class SIPSorceryStreamer
             // First-frame logging for H265 pipeline debugging
             long earlyFrameNum = Interlocked.Read(ref track.SentFrames);
             if (earlyFrameNum < 3)
+            {
                 Logger.Info($"[SIPSorcery] Track {track.Index} OnEncodedData: {nalData.Length} bytes, keyframe={isKeyframe}, annexB={ContainsAnnexBStartCode(nalData)}");
+                // Dump NAL types for debugging H265 client issue
+                if (nalData.Length >= 4)
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.Append($"[SIPSorcery] Track {track.Index} NAL dump (key={isKeyframe}): ");
+                    int hexLen = Math.Min(nalData.Length, 32);
+                    for (int h = 0; h < hexLen; h++)
+                        sb.Append(nalData[h].ToString("X2")).Append(' ');
+                    sb.Append(" | NAL types: ");
+                    // Parse Annex-B NAL types
+                    for (int p = 0; p < nalData.Length - 4; p++)
+                    {
+                        int sc = 0;
+                        if (p + 3 < nalData.Length && nalData[p] == 0 && nalData[p+1] == 0 && nalData[p+2] == 0 && nalData[p+3] == 1) sc = 4;
+                        else if (p + 2 < nalData.Length && nalData[p] == 0 && nalData[p+1] == 0 && nalData[p+2] == 1) sc = 3;
+                        if (sc > 0 && p + sc < nalData.Length)
+                        {
+                            int nalType = (nalData[p + sc] >> 1) & 0x3F;
+                            string desc = nalType switch { 32 => "VPS", 33 => "SPS", 34 => "PPS", 19 => "IDR_W_RADL", 20 => "IDR_N_LP", 21 => "CRA", _ => nalType <= 9 ? $"TRAIL({nalType})" : $"T{nalType}" };
+                            sb.Append($"{nalType}({desc}) ");
+                            p += sc;
+                        }
+                    }
+                    Logger.Info(sb.ToString());
+                }
+            }
 
             // CRITICAL: Drop P-frames that arrive before the first IDR of this session.
             // AMF/NVENC encoders have a hardware pipeline — stale P-frames from the
@@ -207,6 +234,25 @@ public partial class SIPSorceryStreamer
             {
                 track.IsDecodable = true;
                 track.H265FailureStreak = 0; // Reset streak on successful keyframe sent
+
+                // H265 side-channel: Send VPS/SPS/PPS + IDR data via reliable DataChannel
+                // because keyframes fragmented into many FU RTP packets are lost
+                // before reaching the client's Encoded Transform API.
+                if (_negotiatedCodec == RemotePlayServer.Infrastructure.Encoding.VideoCodec.H265)
+                {
+                    // Always send codec config (small, 89 bytes)
+                    SendH265ParamSetsViaDataChannel(track, nalData);
+                    
+                    // Only send full IDR data for the first 2 keyframes per session.
+                    // After that, the client decoder is bootstrapped and can decode
+                    // P-frames from the Encoded Transform without full IDR via DataChannel.
+                    if (track.IdrViaDcCount < 2)
+                    {
+                        SendH265IdrViaDataChannel(track, nalData);
+                        track.IdrViaDcCount++;
+                        Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
+                    }
+                }
             }
 
             byte[] au = nalData;
@@ -354,5 +400,187 @@ public partial class SIPSorceryStreamer
                     Logger.Error($"[SIPSorcery] Track {i} flush error: {ex.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Extract VPS/SPS/PPS from H265 keyframe and send via reliable DataChannel.
+    /// Message format: [type=0x02][trackIndex(1)][annexB VPS+SPS+PPS bytes...]
+    /// </summary>
+    private void SendH265ParamSetsViaDataChannel(TrackInfo track, byte[] keyframeData)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+
+        try
+        {
+            // Extract VPS, SPS, PPS NAL units from the Annex-B keyframe
+            var paramSets = ExtractH265ParamSets(keyframeData);
+            if (paramSets == null || paramSets.Length == 0)
+            {
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: No VPS/SPS/PPS found in keyframe ({keyframeData.Length} bytes)");
+                return;
+            }
+
+            // Build message: [type=0x02][trackIndex][paramSets Annex-B bytes]
+            var msg = new byte[2 + paramSets.Length];
+            msg[0] = 0x02; // message type: h265_codec_config
+            msg[1] = (byte)track.Index;
+            Buffer.BlockCopy(paramSets, 0, msg, 2, paramSets.Length);
+
+            dc.send(msg);
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 codec config via DataChannel ({paramSets.Length} bytes VPS/SPS/PPS)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 config: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Send IDR keyframe data via reliable DataChannel.
+    /// The Encoded Transform API on the client NEVER delivers large IDR frames
+    /// because they're fragmented into 30-150+ RTP FU packets that get lost.
+    /// DataChannel (SCTP) delivers reliably.
+    /// 
+    /// Message format: [type=0x03][trackIndex(1)][chunkIndex(1)][totalChunks(1)][IDR Annex-B data...]
+    /// For single-chunk: chunkIndex=0, totalChunks=1
+    /// For multi-chunk: client reassembles all chunks before feeding to decoder.
+    /// </summary>
+    private void SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+
+        try
+        {
+            // Extract IDR NAL data (skip VPS/SPS/PPS — those are sent separately as type=0x02)
+            var idrData = ExtractH265IdrData(keyframeData);
+            if (idrData == null || idrData.Length == 0)
+            {
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: No IDR NAL found in keyframe ({keyframeData.Length} bytes)");
+                return;
+            }
+
+            // SCTP message size limit is typically ~256KB, but some implementations
+            // have lower limits. Chunk at 60KB to be safe and avoid blocking.
+            const int MAX_CHUNK = 60_000;
+            int totalChunks = (idrData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
+            if (totalChunks > 255) totalChunks = 255; // Protocol limit (1 byte)
+
+            for (int chunk = 0; chunk < totalChunks; chunk++)
+            {
+                int offset = chunk * MAX_CHUNK;
+                int len = Math.Min(MAX_CHUNK, idrData.Length - offset);
+
+                // Header: [type=0x03][trackIndex][chunkIndex][totalChunks]
+                var msg = new byte[4 + len];
+                msg[0] = 0x03; // message type: h265_idr_data
+                msg[1] = (byte)track.Index;
+                msg[2] = (byte)chunk;
+                msg[3] = (byte)totalChunks;
+                Buffer.BlockCopy(idrData, offset, msg, 4, len);
+
+                dc.send(msg);
+            }
+
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 IDR via DataChannel ({idrData.Length} bytes, {totalChunks} chunks)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 IDR: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Extract VPS(32), SPS(33), PPS(34) NAL units from Annex-B bitstream.
+    /// Returns concatenated Annex-B bytes containing only parameter set NALs.
+    /// </summary>
+    private static byte[] ExtractH265ParamSets(byte[] annexB)
+    {
+        using var result = new System.IO.MemoryStream();
+        int i = 0;
+        while (i < annexB.Length - 4)
+        {
+            // Find start code
+            int scLen = 0;
+            if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 0 && annexB[i + 3] == 1)
+                scLen = 4;
+            else if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 1)
+                scLen = 3;
+
+            if (scLen == 0) { i++; continue; }
+
+            int nalStart = i;
+            int headerPos = i + scLen;
+            if (headerPos >= annexB.Length) break;
+
+            int nalType = (annexB[headerPos] >> 1) & 0x3F;
+
+            // Find end of this NAL (next start code or end of data)
+            int nalEnd = annexB.Length;
+            for (int j = headerPos + 1; j < annexB.Length - 3; j++)
+            {
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 0 && annexB[j + 3] == 1)
+                { nalEnd = j; break; }
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 1)
+                { nalEnd = j; break; }
+            }
+
+            // Keep only VPS(32), SPS(33), PPS(34)
+            if (nalType >= 32 && nalType <= 34)
+            {
+                result.Write(annexB, nalStart, nalEnd - nalStart);
+            }
+
+            // Stop after we've passed the parameter sets (IDR starts at type 19/20)
+            if (nalType <= 21 && nalType >= 16) break; // IRAP NAL, no more param sets
+
+            i = nalEnd;
+        }
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// Extract IDR NAL units (type 19, 20) from Annex-B bitstream.
+    /// Returns concatenated Annex-B bytes containing only IDR slice NALs.
+    /// </summary>
+    private static byte[] ExtractH265IdrData(byte[] annexB)
+    {
+        using var result = new System.IO.MemoryStream();
+        int i = 0;
+        while (i < annexB.Length - 4)
+        {
+            int scLen = 0;
+            if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 0 && annexB[i + 3] == 1)
+                scLen = 4;
+            else if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 1)
+                scLen = 3;
+
+            if (scLen == 0) { i++; continue; }
+
+            int nalStart = i;
+            int headerPos = i + scLen;
+            if (headerPos >= annexB.Length) break;
+
+            int nalType = (annexB[headerPos] >> 1) & 0x3F;
+
+            int nalEnd = annexB.Length;
+            for (int j = headerPos + 1; j < annexB.Length - 3; j++)
+            {
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 0 && annexB[j + 3] == 1)
+                { nalEnd = j; break; }
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 1)
+                { nalEnd = j; break; }
+            }
+
+            // Keep only IDR_W_RADL(19) and IDR_N_LP(20)
+            if (nalType == 19 || nalType == 20)
+            {
+                result.Write(annexB, nalStart, nalEnd - nalStart);
+            }
+
+            i = nalEnd;
+        }
+        return result.ToArray();
     }
 }
