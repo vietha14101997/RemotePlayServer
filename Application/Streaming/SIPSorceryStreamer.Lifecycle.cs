@@ -314,6 +314,13 @@ public partial class SIPSorceryStreamer
                 
                 // Clear any pending frames from previous session
                 track.PendingFrame = null;
+
+                // Reset session-specific counters to ensure clean bootstrap on reconnect
+                Interlocked.Exchange(ref track.SentFrames, 0);
+                Interlocked.Exchange(ref track.EncodedFrames, 0);
+                track.IdrViaDcCount = 0;
+                track.IsDecodable = false;
+                track.IsSessionStarted = false;
             }
             
             // Do NOT call _tracks.Clear() anymore - we need to persist TrackInfo for SSRC persistence!

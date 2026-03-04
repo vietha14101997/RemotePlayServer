@@ -14,7 +14,7 @@
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
 [SIPSorcery] Pre-warming DTLS crypto...
-[SIPSorcery] DTLS pre-warm done in 2224ms
+[SIPSorcery] DTLS pre-warm done in 2225ms
 [HTTP] Server: 192.168.1.41:8288
 
 === QRCode (Scan to connect) ===
@@ -44,8 +44,8 @@ Data: {"ip":"192.168.1.41","port":"8288"}
   [WiFi] 192.168.1.41:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 74ce736c-fe2b-48ef-b782-7c6c3a92bdf8, protocol=v2, transport=WiFi
-[Protocol] Client 74ce736c-fe2b-48ef-b782-7c6c3a92bdf8 connected from 192.168.1.36 (v2 protocol, transport=WiFi)
+[Signal] Client connected 4012b145-58f5-405d-8aeb-fea6bdab3cc4, protocol=v2, transport=WiFi
+[Protocol] Client 4012b145-58f5-405d-8aeb-fea6bdab3cc4 connected from 192.168.1.36 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
@@ -75,18 +75,18 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 16MB in 2183ms = 61.5 Mbps
+[Protocol] Download test complete: sent 16MB in 2009ms = 66.8 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 167.9Mbps, 33.2ms
-[Protocol] ✓ Received speedtest_result from client: 167.9Mbps, 33.2ms ping
+[Protocol] speedtest_result parsed: 193.8Mbps, 33.3ms
+[Protocol] ✓ Received speedtest_result from client: 193.8Mbps, 33.3ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1920x1080@45fps, bitrate=15000kbps, codec=H265, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1772619541353...
+[Protocol] WaitForProceed received: ping:1772621692017...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -108,7 +108,7 @@ Server is running. Press ENTER to exit.
 [DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 125%
 [Display] Scale and Layout set to 125%
-[Guard] Watchdog spawned (PID=50756), monitoring server PID=35936
+[Guard] Watchdog spawned (PID=47532), monitoring server PID=55648
 [Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI)
 [Protocol] Selected (all physical by X): \\.\DISPLAY1
 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
@@ -127,25 +127,27 @@ Server is running. Press ENTER to exit.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1772619543380...
+[Protocol] ICE RX: ping:1772621694050...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4270399273 1 udp 2122194687 19...
+[Protocol] ICE RX: ping:1772621696080...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3617521439 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2742904507 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1274834917 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1487104106 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1103027130 1 udp 2122063615 11...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"975140477 1 udp 2122262783 240...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"549262310 1 udp 2122262783 240...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4270399273 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3617521439 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2742904507 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1274834917 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1487104106 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1103027130 1 udp 2122063615 11...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"975140477 1 udp 2122262783 240...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"549262310 1 udp 2122262783 240...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6655187139759056564 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 5524881812991790446 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 8 pending ICE candidates
@@ -154,23 +156,23 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 63:48:62:62:0D:7B:19:A1:53:25:95:60:C5:27:26:9A:63:B6:A0:91:AC:C8:19:4F:57:DF:8D:9D:37:2A:60:6E
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 A5:43:3B:24:D6:A9:5F:F9:0C:2F:F4:20:24:6D:48:88:2B:2D:68:E8:C8:1C:16:11:0A:73:50:AB:8E:F1:B3:22
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 63:48:62:62:0D:7B:19:A1:53:25:95:60:C5:27:26:9A:63:B6:A0:91:AC:C8:19:4F:57:DF:8D:9D:37:2A:60:6E
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 A5:43:3B:24:D6:A9:5F:F9:0C:2F:F4:20:24:6D:48:88:2B:2D:68:E8:C8:1C:16:11:0A:73:50:AB:8E:F1:B3:22
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080 (device=60FA0E62), SSRC=1753244817
+[SIPSorcery] Added track 0: 1920x1080 (device=DDE66536), SSRC=1723032172
 [SIPSorcery] Waiting for client audio/cursor DataChannels
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
 [SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
 [SIPSorcery] Local ICE: 1753790315 1 udp 2113940223 2402:800:6d62:26bf:bdc...
-[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 60432 typ ...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 60270 typ ...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 DD:4F:EB:04:23:F4:A2:10:40:61:BF:59:67:18:BB:C7:FC:43:4B:BE:55:62:18:68:DD:4E:C1:FD:99:57:84:11
+[SIPSorcery] SDP: a=fingerprint:sha-256 F9:09:F1:23:82:0E:70:F5:9A:CA:2C:E3:66:26:95:76:BA:AC:00:73:05:53:CD:0B:38:BF:75:16:D6:7C:2B:0D
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 DD:4F:EB:04:23:F4:A2:10:40:61:BF:59:67:18:BB:C7:FC:43:4B:BE:55:62:18:68:DD:4E:C1:FD:99:57:84:11
+[SIPSorcery] SDP: a=fingerprint:sha-256 F9:09:F1:23:82:0E:70:F5:9A:CA:2C:E3:66:26:95:76:BA:AC:00:73:05:53:CD:0B:38:BF:75:16:D6:7C:2B:0D
 [SIPSorcery] SDP: a=setup:active
 [SIPSorcery] Answer ready, 980 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
@@ -178,30 +180,35 @@ Server is running. Press ENTER to exit.
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
 [Protocol] Filtered SDP from 980 to 1018 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 46317 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 98061 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
 [Protocol] Sent single answer, len=1040 bytes
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60432 ty...
-[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 60432 typ ...
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 60270 typ ...
 [Protocol] Applying 8 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:4270399273 1 udp 2122194687 192.168.1.36...
-[Protocol] Applied pending ICE: 4270399273 1 udp 2122194687 192.168.1.36 43065 typ...
-[SIPSorcery] Added remote ICE: candidate:2742904507 1 udp 2122129151 5.1.48.248 6...
-[Protocol] Applied pending ICE: 2742904507 1 udp 2122129151 5.1.48.248 60166 typ h...
-[SIPSorcery] Added remote ICE: candidate:1487104106 1 udp 2122063615 11.130.60.12...
-[Protocol] Applied pending ICE: 1487104106 1 udp 2122063615 11.130.60.122 43363 ty...
-[SIPSorcery] Added remote ICE: candidate:975140477 1 udp 2122262783 2402:800:6d62...
-[Protocol] Applied pending ICE: 975140477 1 udp 2122262783 2402:800:6d62:26bf:5c7c...
-[SIPSorcery] Added remote ICE: candidate:4270399273 1 udp 2122194687 192.168.1.36...
-[Protocol] Applied pending ICE: 4270399273 1 udp 2122194687 192.168.1.36 59616 typ...
-[SIPSorcery] Added remote ICE: candidate:2742904507 1 udp 2122129151 5.1.48.248 4...
-[Protocol] Applied pending ICE: 2742904507 1 udp 2122129151 5.1.48.248 48981 typ h...
-[SIPSorcery] Added remote ICE: candidate:1487104106 1 udp 2122063615 11.130.60.12...
-[Protocol] Applied pending ICE: 1487104106 1 udp 2122063615 11.130.60.122 36190 ty...
-[SIPSorcery] Added remote ICE: candidate:975140477 1 udp 2122262783 2402:800:6d62...
-[Protocol] Applied pending ICE: 975140477 1 udp 2122262783 2402:800:6d62:26bf:5c7c...
+[SIPSorcery] Added remote ICE: candidate:3617521439 1 udp 2122194687 192.168.1.36...
+[Protocol] Applied pending ICE: 3617521439 1 udp 2122194687 192.168.1.36 59553 typ...
+[SIPSorcery] Added remote ICE: candidate:1274834917 1 udp 2122129151 5.1.48.248 5...
+[Protocol] Applied pending ICE: 1274834917 1 udp 2122129151 5.1.48.248 50128 typ h...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60270 ty...
+[SIPSorcery] Added remote ICE: candidate:1103027130 1 udp 2122063615 11.130.60.12...
+[Protocol] Applied pending ICE: 1103027130 1 udp 2122063615 11.130.60.122 48961 ty...
+[SIPSorcery] Added remote ICE: candidate:549262310 1 udp 2122262783 2402:800:6d62...
+[Protocol] Applied pending ICE: 549262310 1 udp 2122262783 2402:800:6d62:26bf:5c7c...
+[SIPSorcery] Added remote ICE: candidate:3617521439 1 udp 2122194687 192.168.1.36...
+[Protocol] Applied pending ICE: 3617521439 1 udp 2122194687 192.168.1.36 52458 typ...
+[SIPSorcery] Added remote ICE: candidate:1274834917 1 udp 2122129151 5.1.48.248 4...
+[Protocol] Applied pending ICE: 1274834917 1 udp 2122129151 5.1.48.248 44286 typ h...
+[SIPSorcery] Added remote ICE: candidate:1103027130 1 udp 2122063615 11.130.60.12...
+[Protocol] Applied pending ICE: 1103027130 1 udp 2122063615 11.130.60.122 33193 ty...
+[SIPSorcery] Added remote ICE: candidate:549262310 1 udp 2122262783 2402:800:6d62...
+[Protocol] Applied pending ICE: 549262310 1 udp 2122262783 2402:800:6d62:26bf:5c7c...
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Received proceed phase 3, waiting for DTLS to complete...
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
@@ -209,9 +216,6 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
 [SIPSorcery] Track 0: Encoder configured for HEVC (H.265)
 [NvencNativeWrapper] Initializing BGRA mode 1920x1080 @ 60fps, 15000kbps, codec=HEVC
-[Protocol] ICE RX: {"type":"proceed","phase":3}...
-[Protocol] ICE message type: proceed
-[Protocol] Received proceed phase 3, waiting for DTLS to complete...
 [NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=HEVC)
 [SIPSorcery] Track 0: Nvenc encoder initialized (BGRA mode - no color conversion)
 [OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
@@ -222,9 +226,9 @@ Server is running. Press ENTER to exit.
 [Protocol] DTLS completed, proceeding to Phase 3
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
-[Protocol] Starting early capture to prevent browser track timeout...
 [MultimediaTimer] Timer resolution set to 1ms
 [PerMonitorCapture] Started 1 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
@@ -232,8 +236,6 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Audio DataChannel wired for sending
 [SIPSorcery] DataChannel received: label=cursor, id=3
 [SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [Protocol] Phase 3: Waiting for all monitors to connect...
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
@@ -242,36 +244,27 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
 [Protocol] Capture thread already running, skipping start
 [Protocol] Cursor tracking started
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
 [KeepAlive] Server-side keep-alive started (5s interval)
 [StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)
-[SIPSorcery] Track 0 OnEncodedData: 167091 bytes, keyframe=True, annexB=True
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
+[SIPSorcery] Track 0 OnEncodedData: 172879 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (167002 bytes, 3 chunks)
+[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (172790 bytes, 3 chunks)
 [SIPSorcery] Track 0: IDR via DataChannel #1
-[SIPSorcery] Track 0 H265 frame #0: 167091 bytes → 143 RTP packets, ts=1500, seq=1403
-[SIPSorcery] Track 0 SESSION START: SSRC=1753244817, First Seq=1403, First TS=1500
-[SIPSorcery] Track 0 OnEncodedData: 44364 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 H265 frame #0: 172879 bytes → 148 RTP packets, ts=1500, seq=25174
+[SIPSorcery] Track 0 SESSION START: SSRC=1723032172, First Seq=25174, First TS=1500
+[SIPSorcery] Track 0 OnEncodedData: 58057 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (44275 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (57968 bytes, 1 chunks)
 [SIPSorcery] Track 0: IDR via DataChannel #2
-[SIPSorcery] Track 0 H265 frame #1: 44364 bytes → 40 RTP packets, ts=8610, seq=1546
-[SIPSorcery] Track 0 OnEncodedData: 31812 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 H265 frame #1: 58057 bytes → 52 RTP packets, ts=6900, seq=25322
+[SIPSorcery] Track 0 OnEncodedData: 35025 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0 H265 frame #2: 31812 bytes → 30 RTP packets, ts=11850, seq=1586
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
+[SIPSorcery] Track 0 H265 frame #2: 35025 bytes → 33 RTP packets, ts=8250, seq=25374
 [AdaptiveBitrate] Initialized: target=15000kbps, range=[2000-30000]kbps, warmup=15000ms
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
 [Protocol] Phase3 RX: type=skip_to_live, len=23
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
 [Protocol] Phase3 RX: type=offer, len=4488
 [Protocol] Received reconnect offer during streaming (JSON format)
 [Protocol] Received single offer for all monitors
@@ -286,23 +279,23 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 45:E2:EA:12:73:46:E7:3E:00:46:8B:41:C3:73:11:23:1E:85:88:48:14:38:57:CC:31:B5:56:BA:38:B0:A7:36
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 81:D0:C6:F8:BC:3B:DA:85:94:C6:F9:B3:8C:B4:10:59:60:F4:5E:6D:B9:75:94:97:8F:B6:1B:B4:19:F2:B2:38
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 45:E2:EA:12:73:46:E7:3E:00:46:8B:41:C3:73:11:23:1E:85:88:48:14:38:57:CC:31:B5:56:BA:38:B0:A7:36
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 81:D0:C6:F8:BC:3B:DA:85:94:C6:F9:B3:8C:B4:10:59:60:F4:5E:6D:B9:75:94:97:8F:B6:1B:B4:19:F2:B2:38
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080 (device=60FA0E62), SSRC=1753244817
+[SIPSorcery] Added track 0: 1920x1080 (device=DDE66536), SSRC=1723032172
 [SIPSorcery] Waiting for client audio/cursor DataChannels
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
 [SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
 [SIPSorcery] Local ICE: 1753790315 1 udp 2113940223 2402:800:6d62:26bf:bdc...
-[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 65486 typ ...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 63106 typ ...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 8B:07:E2:4C:EB:46:67:F0:24:D1:8A:BC:97:5E:90:82:1F:1F:93:FB:5E:A8:86:86:31:63:55:0B:FE:BC:AD:9F
+[SIPSorcery] SDP: a=fingerprint:sha-256 A7:48:7E:B2:08:8B:41:0E:01:69:18:2E:A7:63:E7:5B:1D:08:01:F8:09:6B:05:B7:E0:08:20:DD:CC:82:6D:95
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 8B:07:E2:4C:EB:46:67:F0:24:D1:8A:BC:97:5E:90:82:1F:1F:93:FB:5E:A8:86:86:31:63:55:0B:FE:BC:AD:9F
+[SIPSorcery] SDP: a=fingerprint:sha-256 A7:48:7E:B2:08:8B:41:0E:01:69:18:2E:A7:63:E7:5B:1D:08:01:F8:09:6B:05:B7:E0:08:20:DD:CC:82:6D:95
 [SIPSorcery] SDP: a=setup:active
 [SIPSorcery] Answer ready, 980 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
@@ -310,28 +303,28 @@ Server is running. Press ENTER to exit.
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
 [Protocol] Filtered SDP from 980 to 1018 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 33114 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 72561 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
 [Protocol] Sent single answer, len=1040 bytes
-[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 65486 typ ...
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 63106 typ ...
 [Protocol] Phase3 RX: type=candidate, len=160
-[SIPSorcery] Added remote ICE: candidate:3000512102 1 udp 2122194687 192.168.1.36...
+[SIPSorcery] Added remote ICE: candidate:1058122360 1 udp 2122194687 192.168.1.36...
 [Protocol] Phase3 RX: type=candidate, len=159
-[SIPSorcery] Added remote ICE: candidate:4012660724 1 udp 2122129151 5.1.48.248 5...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:351426853 1 udp 2122063615 11.130.60.122...
+[SIPSorcery] Added remote ICE: candidate:2742237826 1 udp 2122129151 5.1.48.248 3...
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Added remote ICE: candidate:2838597341 1 udp 2122063615 11.130.60.12...
 [Protocol] Phase3 RX: type=candidate, len=186
-[SIPSorcery] Added remote ICE: candidate:1984841522 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Added remote ICE: candidate:3358738049 1 udp 2122262783 2402:800:6d6...
 [Protocol] Phase3 RX: type=candidate, len=160
-[SIPSorcery] Added remote ICE: candidate:3000512102 1 udp 2122194687 192.168.1.36...
+[SIPSorcery] Added remote ICE: candidate:1058122360 1 udp 2122194687 192.168.1.36...
 [Protocol] Phase3 RX: type=candidate, len=159
-[SIPSorcery] Added remote ICE: candidate:4012660724 1 udp 2122129151 5.1.48.248 5...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:351426853 1 udp 2122063615 11.130.60.122...
+[SIPSorcery] Added remote ICE: candidate:2742237826 1 udp 2122129151 5.1.48.248 4...
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Added remote ICE: candidate:2838597341 1 udp 2122063615 11.130.60.12...
 [Protocol] Phase3 RX: type=candidate, len=186
-[SIPSorcery] Added remote ICE: candidate:1984841522 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Added remote ICE: candidate:3358738049 1 udp 2122262783 2402:800:6d6...
 [Protocol] Phase3 RX: type=candidate, len=193
-[SIPSorcery] Added remote ICE: candidate:3017301056 1 udp 1685987071 27.72.102.13...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 65486 ty...
+[SIPSorcery] Added remote ICE: candidate:3826420281 1 udp 1685987071 27.72.102.13...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 63106 ty...
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
@@ -340,7 +333,6 @@ Server is running. Press ENTER to exit.
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
 [SIPSorcery] Detected GPU vendor: NVIDIA
 [SIPSorcery] Track 0: Reusing existing encoder NvencNativeWrapper (1920x1080)
-[Protocol] Phase3 RX: type=reconnect_ack, len=41
 [OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
 [AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
 [AudioCapture] Started: 48000Hz, 2ch
@@ -351,39 +343,36 @@ Server is running. Press ENTER to exit.
 [Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
 [Protocol] Starting early capture to prevent browser track timeout...
 [Protocol] Capture thread already running, skipping start
-[SIPSorcery] Track 0 OnEncodedData: 42211 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 OnEncodedData: 33949 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
 [SIPSorcery] Track 0: IDR via DataChannel #1
-[SIPSorcery] Track 0 H265 frame #0: 42211 bytes → 39 RTP packets, ts=510960, seq=8369
-[SIPSorcery] Track 0 SESSION START: SSRC=1753244817, First Seq=8369, First TS=510960
-[SIPSorcery] Track 0 OnEncodedData: 59644 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 H265 frame #0: 33949 bytes → 32 RTP packets, ts=510150, seq=32702
+[SIPSorcery] Track 0 SESSION START: SSRC=1723032172, First Seq=32702, First TS=510150
+[SIPSorcery] Track 0 OnEncodedData: 35030 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
 [SIPSorcery] Track 0: IDR via DataChannel #2
-[SIPSorcery] Track 0 H265 frame #1: 59644 bytes → 53 RTP packets, ts=512400, seq=8408
+[SIPSorcery] Track 0 H265 frame #1: 35030 bytes → 33 RTP packets, ts=511590, seq=32734
 [SIPSorcery] DataChannel received: label=audio, id=1
 [SIPSorcery] Audio DataChannel wired for sending
 [SIPSorcery] DataChannel received: label=cursor, id=3
 [SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 33885 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 OnEncodedData: 33250 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0 H265 frame #2: 33885 bytes → 32 RTP packets, ts=513840, seq=8461
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
+[SIPSorcery] Track 0 H265 frame #2: 33250 bytes → 31 RTP packets, ts=513030, seq=32767
+[Protocol] Phase3 RX: type=reconnect_ack, len=41
 [Protocol] Phase3 RX: type=skip_to_live, len=49
-[SIPSorcery] Stats: m0:168f,enc=5410us, audio:3891pkts (389.1/sec)
-[SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes VPS/SPS/PPS)
-[Protocol] Phase3 RX: type=pause_streaming, len=26
-[Protocol] Received pause_streaming
+[SIPSorcery] Stats: m0:155f,enc=5061us, audio:3835pkts (383.5/sec)
+[Protocol] Phase3 RX: type=codec_fallback, len=78
+[Protocol] codec_fallback received: H265 → H264, reason=decoder_failure
 [SIPSorcery] Streaming paused (connection maintained)
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Streaming resumed
+[Protocol] codec_switch ACK sent → H264
 [Protocol] Phase3 RX: type=offer, len=4488
 [Protocol] Received reconnect offer during streaming (JSON format)
 [Protocol] Received single offer for all monitors
 [Protocol] Cleared answer state, preserved 0 pending ICE candidates
 [Protocol] Monitor 0 native=1920x1080 -> encoder=1920x1080
-[Protocol] Parsed H265 PT from offer: 123
+[Protocol] Parsed H264 PT from offer: 124
 [OpusEncoder] Disposed
 [SIPSorcery] Audio DataChannel closed
 [SIPSorcery] Cursor DataChannel closed
@@ -392,51 +381,300 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 32:23:5C:C2:12:61:B4:29:01:45:73:40:65:7F:06:18:64:02:F4:2F:8E:B5:64:55:BB:62:08:2A:33:DF:4F:FB
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 27:D2:16:CF:5E:46:02:7B:5F:88:A8:18:1D:AD:3A:42:C7:F8:7C:48:3D:BF:FB:02:96:3E:CB:F0:52:3A:5F:82
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 32:23:5C:C2:12:61:B4:29:01:45:73:40:65:7F:06:18:64:02:F4:2F:8E:B5:64:55:BB:62:08:2A:33:DF:4F:FB
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 27:D2:16:CF:5E:46:02:7B:5F:88:A8:18:1D:AD:3A:42:C7:F8:7C:48:3D:BF:FB:02:96:3E:CB:F0:52:3A:5F:82
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080 (device=60FA0E62), SSRC=1753244817
+[SIPSorcery] Added track 0: 1920x1080 (device=DDE66536), SSRC=1723032172
 [SIPSorcery] Waiting for client audio/cursor DataChannels
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
 [SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
 [SIPSorcery] Local ICE: 1753790315 1 udp 2113940223 2402:800:6d62:26bf:bdc...
-[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 61824 typ ...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 53768 typ ...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 D9:A0:C3:72:7A:2E:C7:60:80:F9:46:2F:98:DE:66:14:3B:56:B9:94:79:D0:46:7E:B2:55:B5:78:1D:C0:5A:D7
+[SIPSorcery] SDP: a=fingerprint:sha-256 14:9A:15:6D:57:51:AB:56:24:81:B6:88:54:26:1C:EB:84:2F:17:ED:53:8F:D8:D5:09:26:7F:2A:5B:27:BC:05
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 D9:A0:C3:72:7A:2E:C7:60:80:F9:46:2F:98:DE:66:14:3B:56:B9:94:79:D0:46:7E:B2:55:B5:78:1D:C0:5A:D7
+[SIPSorcery] SDP: a=fingerprint:sha-256 14:9A:15:6D:57:51:AB:56:24:81:B6:88:54:26:1C:EB:84:2F:17:ED:53:8F:D8:D5:09:26:7F:2A:5B:27:BC:05
 [SIPSorcery] SDP: a=setup:active
 [SIPSorcery] Answer ready, 980 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H264 PT=123)
 [Protocol] SDP kept: a=rtpmap:123 H265/90000
-[Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
-[Protocol] Filtered SDP from 980 to 1018 bytes
+[Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec
+[Protocol] Filtered SDP from 980 to 980 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 99590 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
-[Protocol] Sent single answer, len=1040 bytes
-[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 61824 typ ...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 28358 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1002 bytes
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 53768 typ ...
 [Protocol] Phase3 RX: type=candidate, len=160
-[SIPSorcery] Added remote ICE: candidate:3525570252 1 udp 2122194687 192.168.1.36...
-[Protocol] Phase3 RX: type=candidate, len=159
-[SIPSorcery] Added remote ICE: candidate:1312914998 1 udp 2122129151 5.1.48.248 3...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1141099113 1 udp 2122063615 11.130.60.12...
-[Protocol] Phase3 RX: type=candidate, len=185
-[SIPSorcery] Added remote ICE: candidate:620757557 1 udp 2122262783 2402:800:6d62...
+[SIPSorcery] Added remote ICE: candidate:2281475543 1 udp 2122194687 192.168.1.36...
+[Protocol] Phase3 RX: type=candidate, len=158
+[SIPSorcery] Added remote ICE: candidate:463346989 1 udp 2122129151 5.1.48.248 57...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:299673970 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1893687598 1 udp 2122262783 2402:800:6d6...
 [Protocol] Phase3 RX: type=candidate, len=160
-[SIPSorcery] Added remote ICE: candidate:3525570252 1 udp 2122194687 192.168.1.36...
+[SIPSorcery] Added remote ICE: candidate:2281475543 1 udp 2122194687 192.168.1.36...
+[Protocol] Phase3 RX: type=candidate, len=158
+[SIPSorcery] Added remote ICE: candidate:463346989 1 udp 2122129151 5.1.48.248 40...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:299673970 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1893687598 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 53768 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[SIPSorcery] Detected GPU vendor: NVIDIA
+[SIPSorcery] Track 0: Reusing existing encoder NvencNativeWrapper (1920x1080)
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
+[Protocol] All 1 tracks ready, sending ice_ready
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[Protocol] Reconnect in Phase 3: requested streamer re-activation
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[SIPSorcery] Track 0 OnEncodedData: 60949 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: IDR via DataChannel #1
+[SIPSorcery] Track 0 H265 frame #0: 60949 bytes → 54 RTP packets, ts=923490, seq=38307
+[SIPSorcery] Track 0 SESSION START: SSRC=1723032172, First Seq=38307, First TS=923490
+[SIPSorcery] Track 0 OnEncodedData: 55340 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: IDR via DataChannel #2
+[SIPSorcery] Track 0 H265 frame #1: 55340 bytes → 50 RTP packets, ts=924930, seq=38361
+[SIPSorcery] DataChannel received: label=audio, id=1
+[SIPSorcery] Audio DataChannel wired for sending
+[SIPSorcery] DataChannel received: label=cursor, id=3
+[SIPSorcery] Cursor DataChannel wired for sending
+[SIPSorcery] Track 0 OnEncodedData: 32517 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0 H265 frame #2: 32517 bytes → 31 RTP packets, ts=926550, seq=38411
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[Protocol] Phase3 RX: type=skip_to_live, len=23
+[SIPSorcery] Stats: m0:310f,enc=5120us, audio:4530pkts (69.5/sec)
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Stats: m0:474f,enc=5175us, audio:4792pkts (26.2/sec)
+[Protocol] Phase3 RX: type=offer, len=4488
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1920x1080
+[Protocol] Parsed H264 PT from offer: 124
+[OpusEncoder] Disposed
+[SIPSorcery] Audio DataChannel closed
+[SIPSorcery] Cursor DataChannel closed
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 3E:38:61:68:38:4A:36:D5:F0:C0:30:69:95:5D:A8:8B:6E:DA:F6:84:0E:C6:CA:46:22:3E:20:3F:F9:0A:78:3C
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 3E:38:61:68:38:4A:36:D5:F0:C0:30:69:95:5D:A8:8B:6E:DA:F6:84:0E:C6:CA:46:22:3E:20:3F:F9:0A:78:3C
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080 (device=DDE66536), SSRC=1723032172
+[SIPSorcery] Waiting for client audio/cursor DataChannels
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
+[SIPSorcery] Local ICE: 1753790315 1 udp 2113940223 2402:800:6d62:26bf:bdc...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 50394 typ ...
+[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] SDP: a=fingerprint:sha-256 9E:83:B5:6C:B1:A3:6C:1A:27:51:27:8E:77:BF:96:90:34:03:E1:ED:7F:BC:B5:11:FC:83:A6:72:0C:BF:10:2B
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] SDP: a=fingerprint:sha-256 9E:83:B5:6C:B1:A3:6C:1A:27:51:27:8E:77:BF:96:90:34:03:E1:ED:7F:BC:B5:11:FC:83:A6:72:0C:BF:10:2B
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 980 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H264 PT=123)
+[Protocol] SDP kept: a=rtpmap:123 H265/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec
+[Protocol] Filtered SDP from 980 to 980 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 14565 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1002 bytes
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 50394 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160
+[SIPSorcery] Added remote ICE: candidate:2706429892 1 udp 2122194687 192.168.1.36...
 [Protocol] Phase3 RX: type=candidate, len=159
-[SIPSorcery] Added remote ICE: candidate:1312914998 1 udp 2122129151 5.1.48.248 3...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1141099113 1 udp 2122063615 11.130.60.12...
-[Protocol] Phase3 RX: type=candidate, len=185
-[SIPSorcery] Added remote ICE: candidate:620757557 1 udp 2122262783 2402:800:6d62...
-[Protocol] Phase3 RX: type=candidate, len=192
-[SIPSorcery] Added remote ICE: candidate:153144973 1 udp 1685987071 27.72.102.134...
+[SIPSorcery] Added remote ICE: candidate:1026705214 1 udp 2122129151 5.1.48.248 3...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:930149217 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1450392381 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=160
+[SIPSorcery] Added remote ICE: candidate:2706429892 1 udp 2122194687 192.168.1.36...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Added remote ICE: candidate:1026705214 1 udp 2122129151 5.1.48.248 4...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:930149217 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1450392381 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193
+[SIPSorcery] Added remote ICE: candidate:2052323205 1 udp 1685987071 27.72.102.13...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 50394 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[SIPSorcery] Detected GPU vendor: NVIDIA
+[SIPSorcery] Track 0: Reusing existing encoder NvencNativeWrapper (1920x1080)
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
+[Protocol] All 1 tracks ready, sending ice_ready
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[Protocol] Reconnect in Phase 3: requested streamer re-activation
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[Protocol] Phase3 RX: type=reconnect_ack, len=41
+[SIPSorcery] Track 0 OnEncodedData: 65777 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: IDR via DataChannel #1
+[SIPSorcery] Track 0 H265 frame #0: 65777 bytes → 58 RTP packets, ts=1646340, seq=49142
+[SIPSorcery] Track 0 SESSION START: SSRC=1723032172, First Seq=49142, First TS=1646340
+[SIPSorcery] DataChannel received: label=audio, id=1
+[SIPSorcery] Audio DataChannel wired for sending
+[SIPSorcery] DataChannel received: label=cursor, id=3
+[SIPSorcery] Cursor DataChannel wired for sending
+[SIPSorcery] Track 0 OnEncodedData: 32571 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (32482 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #2
+[SIPSorcery] Track 0 H265 frame #1: 32571 bytes → 31 RTP packets, ts=1647780, seq=49200
+[SIPSorcery] Track 0 OnEncodedData: 33465 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0 H265 frame #2: 33465 bytes → 31 RTP packets, ts=1649580, seq=49231
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+[SIPSorcery] Stats: m0:93f,enc=5303us, audio:4984pkts (19.2/sec)
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[SIPSorcery] Stats: m0:410f,enc=5322us, audio:5497pkts (51.3/sec)
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[Protocol] Phase3 RX: type=offer, len=4488
+[Protocol] Received reconnect offer during streaming (JSON format)
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1920x1080
+[Protocol] Parsed H264 PT from offer: 124
+[OpusEncoder] Disposed
+[SIPSorcery] Audio DataChannel closed
+[SIPSorcery] Cursor DataChannel closed
+[SIPSorcery] Peer state: closed
+[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 EE:AD:DF:0B:5E:A4:D0:4E:35:00:B0:D6:E0:AB:1C:CC:58:1F:C7:F3:27:40:39:FF:BC:67:CB:13:F1:1A:EA:36
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 EE:AD:DF:0B:5E:A4:D0:4E:35:00:B0:D6:E0:AB:1C:CC:58:1F:C7:F3:27:40:39:FF:BC:67:CB:13:F1:1A:EA:36
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] PeerConnection created (with STUN)
+[SIPSorcery] Added track 0: 1920x1080 (device=DDE66536), SSRC=1723032172
+[SIPSorcery] Waiting for client audio/cursor DataChannels
+[SIPSorcery] ICE state: checking
+[SIPSorcery] Signaling state: have_remote_offer
+[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] Local ICE: 2876002150 1 udp 2113940223 2402:800:6d62:26bf:836...
+[SIPSorcery] Local ICE: 1753790315 1 udp 2113940223 2402:800:6d62:26bf:bdc...
+[SIPSorcery] Local ICE: 894532200 1 udp 2113937663 192.168.1.41 65188 typ ...
+[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] SDP: a=fingerprint:sha-256 C2:B2:61:BB:9B:E6:D9:DA:DF:7F:FA:F8:F9:5E:DC:6C:67:4F:01:22:CD:6F:0A:28:FB:51:8C:71:E7:DF:BD:DF
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] SDP: a=fingerprint:sha-256 C2:B2:61:BB:9B:E6:D9:DA:DF:7F:FA:F8:F9:5E:DC:6C:67:4F:01:22:CD:6F:0A:28:FB:51:8C:71:E7:DF:BD:DF
+[SIPSorcery] SDP: a=setup:active
+[SIPSorcery] Answer ready, 980 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H264 PT=123)
+[Protocol] SDP kept: a=rtpmap:123 H265/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec
+[Protocol] Filtered SDP from 980 to 980 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 53035 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=video 9 UDP/TLS/RTP/S...
+[Protocol] Sent single answer, len=1002 bytes
+[Protocol] Sent extracted ICE candidate: candidate:894532200 1 udp 2113937663 192.168.1.41 65188 typ ...
+[Protocol] Phase3 RX: type=candidate, len=160
+[SIPSorcery] Added remote ICE: candidate:2471496354 1 udp 2122194687 192.168.1.36...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Added remote ICE: candidate:3466883888 1 udp 2122129151 5.1.48.248 5...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:897220065 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1472619510 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=160
+[SIPSorcery] Added remote ICE: candidate:2471496354 1 udp 2122194687 192.168.1.36...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Added remote ICE: candidate:3466883888 1 udp 2122129151 5.1.48.248 5...
+[Protocol] Phase3 RX: type=candidate, len=161
+[SIPSorcery] Added remote ICE: candidate:897220065 1 udp 2122063615 11.130.60.122...
+[Protocol] Phase3 RX: type=candidate, len=186
+[SIPSorcery] Added remote ICE: candidate:1472619510 1 udp 2122262783 2402:800:6d6...
+[Protocol] Phase3 RX: type=candidate, len=193
+[SIPSorcery] Added remote ICE: candidate:2454747268 1 udp 1685987071 27.72.102.13...
+[Protocol] Phase3 RX: type=candidate, len=193
+[SIPSorcery] Added remote ICE: candidate:2454747268 1 udp 1685987071 27.72.102.13...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 65188 ty...
+[SIPSorcery] ICE state: connected
+[SIPSorcery] ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Peer state: connecting
+[SIPSorcery] Peer state: connected
+[SIPSorcery] DTLS CONNECTED - initializing encoders now
+[Protocol] Phase3 RX: type=reconnect_ack, len=41
+[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
+[SIPSorcery] Detected GPU vendor: NVIDIA
+[SIPSorcery] Track 0: Reusing existing encoder NvencNativeWrapper (1920x1080)
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
+[Protocol] All 1 tracks ready, sending ice_ready
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[Protocol] Reconnect in Phase 3: requested streamer re-activation
+[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[SIPSorcery] Track 0 OnEncodedData: 33476 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: IDR via DataChannel #1
+[SIPSorcery] Track 0 H265 frame #0: 33476 bytes → 31 RTP packets, ts=2382150, seq=59600
+[SIPSorcery] Track 0 SESSION START: SSRC=1723032172, First Seq=59600, First TS=2382150
+[SIPSorcery] DataChannel received: label=audio, id=1
+[SIPSorcery] Audio DataChannel wired for sending
+[SIPSorcery] DataChannel received: label=cursor, id=3
+[SIPSorcery] Cursor DataChannel wired for sending
+[SIPSorcery] Track 0 OnEncodedData: 36038 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (35949 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #2
+[SIPSorcery] Track 0 H265 frame #1: 36038 bytes → 34 RTP packets, ts=2384580, seq=59631
+[SIPSorcery] Track 0 OnEncodedData: 35022 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 7B 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
+[SIPSorcery] Track 0 H265 frame #2: 35022 bytes → 33 RTP packets, ts=2386740, seq=59665
+[SIPSorcery] Stats: m0:49f,enc=5334us, audio:5732pkts (23.5/sec)
+[SIPSorcery] Stats: m0:88f,enc=5322us, audio:5794pkts (6.2/sec)
+[Protocol] Phase3 RX: type=skip_to_live, len=23
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Stats: m0:189f,enc=5319us, audio:5957pkts (16.3/sec)
+[Protocol] Phase3 RX: type=pause_streaming, len=26
+[Protocol] Received pause_streaming
+[SIPSorcery] Streaming paused (connection maintained)
+[Protocol] Phase3 RX: type=skip_to_live, len=49
 [Protocol] Phase3 RX: type=stop_streaming, len=25
 [Protocol] Received stop_streaming
 [Protocol] Cursor tracking stopped
@@ -446,6 +684,9 @@ Server is running. Press ENTER to exit.
 [MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
 [SIPSorcery] Stopping...
+[OpusEncoder] Disposed
+[SIPSorcery] Audio DataChannel closed
+[SIPSorcery] Cursor DataChannel closed
 [SIPSorcery] Peer state: closed
 [SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
 [SIPSorcery] Connection closed
@@ -479,4 +720,4 @@ Server is running. Press ENTER to exit.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client 74ce736c-fe2b-48ef-b782-7c6c3a92bdf8 disconnected
+[Protocol] Client 4012b145-58f5-405d-8aeb-fea6bdab3cc4 disconnected

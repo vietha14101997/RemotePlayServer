@@ -131,6 +131,7 @@ public partial class SIPSorceryStreamer : IDisposable
         public int H265FailureStreak;
         public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
         public int IdrViaDcCount; // Number of IDR frames sent via DataChannel for this session
+        public byte[]? LastH265ParamSets; // Cached VPS/SPS/PPS for H265 bootstrap recovery
 
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending

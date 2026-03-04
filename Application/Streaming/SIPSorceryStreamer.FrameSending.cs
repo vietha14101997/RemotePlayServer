@@ -415,9 +415,23 @@ public partial class SIPSorceryStreamer
         {
             // Extract VPS, SPS, PPS NAL units from the Annex-B keyframe
             var paramSets = ExtractH265ParamSets(keyframeData);
+            
+            // Update cache/last seen if found
+            if (paramSets != null && paramSets.Length > 0)
+            {
+                track.LastH265ParamSets = paramSets;
+            }
+            else
+            {
+                // Keyframe doesn't contain param sets (common on reconnects), use cached
+                paramSets = track.LastH265ParamSets;
+            }
+
             if (paramSets == null || paramSets.Length == 0)
             {
-                Logger.Warn($"[SIPSorcery] Track {track.Index}: No VPS/SPS/PPS found in keyframe ({keyframeData.Length} bytes)");
+                // Only log if we've sent at least one frame, to avoid spam during startup
+                if (Interlocked.Read(ref track.SentFrames) > 0)
+                    Logger.Warn($"[SIPSorcery] Track {track.Index}: No VPS/SPS/PPS found in keyframe AND no cache available");
                 return;
             }
 
@@ -428,7 +442,10 @@ public partial class SIPSorceryStreamer
             Buffer.BlockCopy(paramSets, 0, msg, 2, paramSets.Length);
 
             dc.send(msg);
-            Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 codec config via DataChannel ({paramSets.Length} bytes VPS/SPS/PPS)");
+            
+            // Log once per session or on change
+            if (track.IdrViaDcCount == 0)
+                Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 codec config via DataChannel ({paramSets.Length} bytes)");
         }
         catch (Exception ex)
         {
