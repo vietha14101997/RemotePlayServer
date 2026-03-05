@@ -213,6 +213,7 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+
                     // Handle late ICE candidates
                     if (msgType == "candidate")
                     {

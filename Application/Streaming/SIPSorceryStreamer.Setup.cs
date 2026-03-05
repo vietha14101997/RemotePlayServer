@@ -144,7 +144,13 @@ public partial class SIPSorceryStreamer
             else if (dc.label == "cursor")
             {
                 _cursorDc = dc;
-                _cursorDc.onopen += () => Logger.Info("[SIPSorcery] Cursor DataChannel opened");
+                _cursorDc.onopen += () => 
+                {
+                    Logger.Info("[SIPSorcery] Cursor DataChannel opened - forcing keyframe for H265 bootstrap");
+                    // Force keyframe on all tracks once DataChannel is ready, 
+                    // ensuring H265 bootstrap (VPS/SPS/PPS + IDR) reaches the client reliably.
+                    RequestKeyframe(-1, force: true);
+                };
                 _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Cursor DataChannel closed"); _cursorDc = null; };
                 Logger.Info("[SIPSorcery] Cursor DataChannel wired for sending");
             }
