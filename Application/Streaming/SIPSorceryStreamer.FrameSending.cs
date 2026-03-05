@@ -258,13 +258,13 @@ public partial class SIPSorceryStreamer
                     // Always send codec config (small, 89 bytes)
                     SendH265ParamSetsViaDataChannel(track, nalData);
                     
-                    // Only send full IDR data for the first 2 keyframes per session.
-                    // After that, the client decoder is bootstrapped and can decode
-                    // P-frames from the Encoded Transform without full IDR via DataChannel.
-                    if (track.IdrViaDcCount < 2)
+                    // Send full IDR data for every H265 keyframe.
+                    // In practice, some clients only receive partial RTP payload in Encoded Transform,
+                    // so limiting IDR side-channel to bootstrap-only can leave decoder unrecoverable.
+                    SendH265IdrViaDataChannel(track, nalData);
+                    track.IdrViaDcCount++;
+                    if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
                     {
-                        SendH265IdrViaDataChannel(track, nalData);
-                        track.IdrViaDcCount++;
                         Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
                     }
                 }
