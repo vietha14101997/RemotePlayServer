@@ -77,6 +77,7 @@ namespace RemotePlayServer.Application.Streaming
         public void Initialize(int initialBitrateKbps, int? maxBitrateKbps = null)
         {
             InitialBitrateKbps = initialBitrateKbps;
+            MinBitrateKbps = initialBitrateKbps;
             TargetBitrateKbps = initialBitrateKbps;
 
             if (maxBitrateKbps.HasValue)
@@ -303,20 +304,20 @@ namespace RemotePlayServer.Application.Streaming
             }
 
             // === AUTO-RECOVERY: Restore bitrate after stable period ===
-            // If no network issues for RECOVERY_DELAY_MS and bitrate is below initial, recover gradually
+            // If no network issues for RECOVERY_DELAY_MS and bitrate is below max, recover gradually
             double timeSinceLastIssue = (DateTime.UtcNow - _lastNetworkIssueTime).TotalMilliseconds;
             double timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
 
             int recoveryDelayMs = IsWiFiMode ? WIFI_RECOVERY_DELAY_MS : RECOVERY_DELAY_MS;
             int recoveryCooldownMs = IsWiFiMode ? WIFI_RECOVERY_COOLDOWN_MS : RECOVERY_COOLDOWN_MS;
-            if (current < InitialBitrateKbps &&
+            if (current < MaxBitrateKbps &&
                 timeSinceLastIssue > recoveryDelayMs &&
                 timeSinceLastAdjustment > recoveryCooldownMs &&
                 !hasNetworkIssue)
             {
-                // Gradually recover toward initial bitrate
-                int recoveryStep = Math.Max(500, (InitialBitrateKbps - current) / 4); // 25% of deficit, min 500kbps
-                int newBitrate = Math.Min(InitialBitrateKbps, current + recoveryStep);
+                // Gradually recover toward max bitrate
+                int recoveryStep = Math.Max(500, (MaxBitrateKbps - current) / 4); // 25% of deficit, min 500kbps
+                int newBitrate = Math.Min(MaxBitrateKbps, current + recoveryStep);
                 Logger.Info($"[AdaptiveBitrate] Auto-recovery: {current} → {newBitrate} kbps (stable for {timeSinceLastIssue/1000:F1}s)");
                 return newBitrate;
             }
@@ -327,10 +328,10 @@ namespace RemotePlayServer.Application.Streaming
             float currentFpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 0f;
             bool isActiveContent = currentFpsRatio > 0.6f;  // At least 60% of target FPS = active streaming
 
-            // Only increase if we're below initial AND conditions are good
-            // We don't proactively exceed initial bitrate - that's set by user preference
+            // Only increase if we're below max AND conditions are good
+            // We proactively try to reach the max bitrate when conditions allow
             bool canIncrease =
-                current < InitialBitrateKbps &&  // Only increase up to initial, not beyond
+                current < MaxBitrateKbps &&  // Only increase up to max, not beyond
                 feedback.PacketLossRate < PACKET_LOSS_DECREASE_THRESHOLD &&
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
                 !hasNetworkIssue &&
@@ -338,7 +339,7 @@ namespace RemotePlayServer.Application.Streaming
 
             if (canIncrease)
             {
-                int newBitrate = Math.Min(InitialBitrateKbps, current + increaseStep);
+                int newBitrate = Math.Min(MaxBitrateKbps, current + increaseStep);
 
                 if (newBitrate > current)
                 {

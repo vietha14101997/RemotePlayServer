@@ -92,11 +92,7 @@ public partial class SIPSorceryStreamer
     /// <returns>BitrateAdjustedMessage if bitrate was changed, null otherwise.</returns>
     public BitrateAdjustedMessage? ProcessQualityFeedback(QualityFeedbackMessage feedback)
     {
-        // Initialize controller on first feedback if not already done
-        if (_bitrateController.TargetBitrateKbps == 0)
-        {
-            _bitrateController.Initialize(_bitrateKbps, _bitrateKbps * 2);
-        }
+        // Initialization is now done in constructur / config changes
 
         // Process feedback through adaptive bitrate controller
         var decision = _bitrateController.ProcessFeedback(feedback);
@@ -261,18 +257,41 @@ public partial class SIPSorceryStreamer
         return uniqueTypes;
     }
 
+    public (int MinBitrate, int MaxBitrate) GetBitrateRange(int resolutionHeight, int fps)
+    {
+        if (resolutionHeight <= 720)
+        {
+            if (fps <= 30) return (2500, 4000);
+            if (fps <= 60) return (3500, 5000);
+            return (6000, 8000); // 120 fps
+        }
+        else if (resolutionHeight <= 1080)
+        {
+            if (fps <= 30) return (3500, 5000);
+            if (fps <= 60) return (4500, 9000);
+            return (10000, 15000); // 120 fps
+        }
+        else // 1440p+
+        {
+            if (fps <= 30) return (6000, 13000);
+            if (fps <= 60) return (9000, 18000);
+            return (18000, 30000); // 120 fps
+        }
+    }
+
     /// <summary>
     /// Dynamically update streaming configuration during Phase 3.
     /// </summary>
     /// <param name="fps">New target FPS (optional, null = no change). Note: FPS change may not take effect until reconnect.</param>
-    /// <param name="totalBitrateKbps">New TOTAL bitrate in kbps for ALL monitors (optional, null = no change).</param>
-    /// <returns>Tuple of (success, appliedFps, appliedTotalBitrate, message)</returns>
-    public (bool Success, int Fps, int BitrateKbps, string Message) UpdateConfig(int? fps, int? totalBitrateKbps)
+    /// <param name="resolutionHeight">New resolution height (optional, null = no change).</param>
+    /// <returns>Tuple of (success, appliedFps, appliedResolutionHeight, message)</returns>
+    public (bool Success, int Fps, int ResolutionHeight, string Message) UpdateConfig(int? fps, int? resolutionHeight)
     {
         var messages = new List<string>();
         int appliedFps = _fps;
-        int appliedBitrate = _bitrateKbps;
+        int appliedResolutionHeight = _resolutionHeight;
         bool anySuccess = false;
+        bool configChanged = false;
 
         // FPS change - apply to all encoders
         // Snapshot tracks under _lock, then SetFps under track.EncodeLock to serialize with encode path.
@@ -303,6 +322,7 @@ public partial class SIPSorceryStreamer
                 appliedFps = fps.Value;
                 messages.Add($"FPS: {fps.Value} ({successCount}/{trackCount} encoders updated)");
                 anySuccess = true;
+                configChanged = true;
             }
             else if (trackCount > 0)
             {
@@ -312,56 +332,49 @@ public partial class SIPSorceryStreamer
                 appliedFps = fps.Value;
                 messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
                 anySuccess = true;
+                configChanged = true;
             }
         }
 
-        // Bitrate change - apply to all encoders
-        // Snapshot tracks under _lock, then SetBitrate under track.EncodeLock to serialize with encode path.
-        if (totalBitrateKbps.HasValue && totalBitrateKbps.Value > 0)
+        // Resolution Height change
+        if (resolutionHeight.HasValue && resolutionHeight.Value > 0 && resolutionHeight.Value != _resolutionHeight)
         {
-            int perMonitorBitrate = totalBitrateKbps.Value / Math.Max(1, _monitorCount);
-            Logger.Info($"[SIPSorcery] Bitrate update: total={totalBitrateKbps.Value}kbps, per-monitor={perMonitorBitrate}kbps");
+            Logger.Info($"[SIPSorcery] Resolution Height update: {_resolutionHeight} → {resolutionHeight.Value}");
+            _resolutionHeight = resolutionHeight.Value;
+            appliedResolutionHeight = resolutionHeight.Value;
+            messages.Add($"Resolution: {resolutionHeight.Value}p");
+            anySuccess = true;
+            configChanged = true;
+        }
 
+        if (configChanged)
+        {
+            var range = GetBitrateRange(_resolutionHeight, _fps);
+            _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+            
+            int newTargetBitrate = _bitrateController.TargetBitrateKbps;
+            
             TrackInfo[] brSnapshot;
-            int trackCount;
-            lock (_lock) { brSnapshot = _tracks.ToArray(); trackCount = _tracks.Count; }
+            lock (_lock) { brSnapshot = _tracks.ToArray(); }
 
-            int successCount = 0;
             foreach (var track in brSnapshot)
             {
                 lock (track.EncodeLock)
                 {
                     if (track.Encoder != null)
                     {
-                        if (track.Encoder.SetBitrate(perMonitorBitrate))
-                        {
-                            successCount++;
-                            Logger.Info($"[SIPSorcery] Track {track.Index} bitrate → {perMonitorBitrate}kbps");
-                        }
-                        else
-                        {
-                            Logger.Error($"[SIPSorcery] Track {track.Index} SetBitrate failed (encoder may not support runtime change)");
-                        }
+                        track.Encoder.SetBitrate(newTargetBitrate);
                     }
                 }
             }
-
-            if (successCount > 0)
-            {
-                appliedBitrate = totalBitrateKbps.Value;
-                messages.Add($"Bitrate: {totalBitrateKbps.Value}kbps ({successCount}/{trackCount} encoders updated)");
-                anySuccess = true;
-            }
-            else if (trackCount > 0)
-            {
-                messages.Add("Bitrate change not supported by current encoder(s)");
-            }
+            
+            messages.Add($"Target Bitrate reset to {newTargetBitrate}kbps based on {appliedResolutionHeight}p @ {appliedFps}fps");
         }
 
         string message = messages.Count > 0 ? string.Join(", ", messages) : "No changes applied";
         Logger.Info($"[SIPSorcery] UpdateConfig result: {message}");
 
-        return (anySuccess, appliedFps, appliedBitrate, message);
+        return (anySuccess, appliedFps, appliedResolutionHeight, message);
     }
 
     /// <summary>
@@ -370,11 +383,11 @@ public partial class SIPSorceryStreamer
     /// </summary>
     public (int Fps, int TotalBitrateKbps, int MonitorCount) GetCurrentConfig()
     {
-        // Use adaptive controller's current target if initialized, otherwise fall back to initial config
+        // Use adaptive controller's current target
         int currentBitrate = _bitrateController.TargetBitrateKbps > 0
             ? _bitrateController.TargetBitrateKbps
-            : _bitrateKbps;
-        return (_fps, currentBitrate, _monitorCount);
+            : 0;
+        return (_fps, currentBitrate * Math.Max(1, _monitorCount), _monitorCount);
     }
 
     /// <summary>

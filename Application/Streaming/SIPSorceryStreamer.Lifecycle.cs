@@ -24,41 +24,55 @@ public partial class SIPSorceryStreamer
         {
             foreach (var track in _tracks)
             {
-                // Re-use existing encoder if it matches dimensions. 
-                // If it doesn't match, we dispose and create new one (handled below).
-                if (track.Encoder != null)
+                lock (track.EncodeLock)
                 {
-                    if (track.Encoder.Width == track.Width && track.Encoder.Height == track.Height && track.LastUsedCodec == _negotiatedCodec)
-                    {
-                        Logger.Info($"[SIPSorcery] Track {track.Index}: Reusing existing encoder {track.Encoder.GetType().Name} ({track.Width}x{track.Height}, {track.LastUsedCodec})");
-                        continue;
-                    }
-                    else
-                    {
-                        string reason = (track.LastUsedCodec != _negotiatedCodec) ? "Codec changed" : "Dimensions changed";
-                        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {_negotiatedCodec}), disposing old encoder");
-                        track.Encoder.Dispose();
-                        track.Encoder = null;
-                        // Reset frame counters on resolution or codec change
-                        Interlocked.Exchange(ref track.SentFrames, 0);
-                        Interlocked.Exchange(ref track.EncodedFrames, 0);
-                    }
-                }
-
-                var device = track.Device ?? _sharedDevice;
-                if (device == null)
-                {
-                    Logger.Info($"[SIPSorcery] Track {track.Index}: No D3D11 device");
-                    continue;
-                }
-
-                // Try to initialize encoder with fallback chain
-                track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
-                if (track.Encoder != null)
-                {
-                    track.LastUsedCodec = _negotiatedCodec;
+                    EnsureEncoderMatchesResolution(track, track.Width, track.Height, gpuVendor);
                 }
             }
+        }
+    }
+
+    private void EnsureEncoderMatchesResolution(TrackInfo track, int width, int height, GpuVendorDetector.GpuVendor? gpuVendor = null)
+    {
+        // Must be called with track.EncodeLock held
+        if (track.Encoder != null && track.Encoder.Width == width && track.Encoder.Height == height && track.LastUsedCodec == _negotiatedCodec)
+        {
+            if (track.Width != width || track.Height != height) 
+            {
+                track.Width = width;
+                track.Height = height;
+            }
+            return;
+        }
+
+        string reason = (track.Encoder != null && track.LastUsedCodec != _negotiatedCodec) ? "Codec changed" : "Dimensions changed";
+        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {_negotiatedCodec}) or ({track.Encoder?.Width ?? 0}x{track.Encoder?.Height ?? 0} -> {width}x{height}), recreating encoder");
+
+        track.Width = width;
+        track.Height = height;
+
+        if (track.Encoder != null)
+        {
+            track.Encoder.Dispose();
+            track.Encoder = null;
+        }
+
+        // Reset frame counters on resolution or codec change
+        Interlocked.Exchange(ref track.SentFrames, 0);
+        Interlocked.Exchange(ref track.EncodedFrames, 0);
+
+        var device = track.Device ?? _sharedDevice;
+        if (device == null)
+        {
+            Logger.Info($"[SIPSorcery] Track {track.Index}: No D3D11 device, cannot initialize encoder");
+            return;
+        }
+
+        var vendor = gpuVendor ?? GpuVendorDetector.DetectPrimaryGpuVendor();
+        track.Encoder = TryInitializeEncoderWithFallback(track, device, vendor);
+        if (track.Encoder != null)
+        {
+            track.LastUsedCodec = _negotiatedCodec;
         }
     }
 
@@ -93,7 +107,7 @@ public partial class SIPSorceryStreamer
             // Use BGRA mode if encoder supports it (eliminates GPU color conversion)
             if (encoder.SupportsBgraInput)
             {
-                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateKbps, device);
+                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device);
                 if (initSuccess)
                 {
                     string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
@@ -104,7 +118,7 @@ public partial class SIPSorceryStreamer
                 Logger.Error($"[SIPSorcery] Track {track.Index}: BGRA mode failed, trying NV12 mode...");
             }
 
-            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device);
+            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device);
             if (initSuccess)
             {
                 string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
@@ -158,7 +172,7 @@ public partial class SIPSorceryStreamer
                 var encoder = new LibAvEncoderAdapter();
                 encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
-                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device, codec))
+                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device, codec))
                 {
                     Logger.Info($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
                     return encoder;

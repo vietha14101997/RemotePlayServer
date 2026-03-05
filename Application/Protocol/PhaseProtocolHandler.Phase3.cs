@@ -387,7 +387,7 @@ namespace RemotePlayServer.Application.Protocol
                             var updateMsg = ProtocolMessageParser.Parse<UpdateConfigMessage>(text);
                             if (updateMsg != null && _streamer != null)
                             {
-                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, bitrate={updateMsg.BitrateKbps}kbps, resolutionHeight={updateMsg.ResolutionHeight}");
+                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, resolutionHeight={updateMsg.ResolutionHeight}");
 
                                 // Handle resolution change
                                 if (updateMsg.ResolutionHeight.HasValue && _textureResizer != null)
@@ -401,9 +401,9 @@ namespace RemotePlayServer.Application.Protocol
                                     Logger.Info($"[Protocol] Resolution changed to {newHeight}p, keyframes requested");
                                 }
 
-                                var (success, appliedFps, appliedBitrate, message) = _streamer!.UpdateConfig(
+                                var (success, appliedFps, appliedResolutionHeight, message) = _streamer!.UpdateConfig(
                                     updateMsg.Fps,
-                                    updateMsg.BitrateKbps);
+                                    updateMsg.ResolutionHeight);
 
                                 // Also update capture FPS if FPS was changed
                                 if (updateMsg.Fps.HasValue && _capture != null)
@@ -411,12 +411,15 @@ namespace RemotePlayServer.Application.Protocol
                                     _capture.SetTargetFps(updateMsg.Fps.Value);
                                 }
 
+                                // Get current bitrate to send back in ack
+                                var (_, currentBitrate, _) = _streamer.GetCurrentConfig();
+
                                 // Send acknowledgment
                                 var ack = new ConfigUpdatedMessage
                                 {
                                     Fps = appliedFps,
-                                    BitrateKbps = appliedBitrate,
-                                    ResolutionHeight = _textureResizer?.TargetHeight ?? 1080,
+                                    BitrateKbps = currentBitrate,
+                                    ResolutionHeight = appliedResolutionHeight,
                                     Success = success,
                                     Message = message
                                 };

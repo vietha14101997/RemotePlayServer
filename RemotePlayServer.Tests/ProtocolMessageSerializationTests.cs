@@ -331,14 +331,14 @@ public class ProtocolMessageSerializationTests
     [Fact]
     public void UpdateConfigMessage_NullableFields_RoundTrip()
     {
-        // Only FPS set, bitrate null
-        var msg = new UpdateConfigMessage { Fps = 45, BitrateKbps = null };
+        // Only FPS set, resolutionHeight null
+        var msg = new UpdateConfigMessage { Fps = 45, ResolutionHeight = null };
         var json = ProtocolMessageParser.Serialize(msg);
         var parsed = ProtocolMessageParser.Parse<UpdateConfigMessage>(json);
 
         Assert.NotNull(parsed);
         Assert.Equal(45, parsed!.Fps);
-        Assert.Null(parsed.BitrateKbps);
+        Assert.Null(parsed.ResolutionHeight);
     }
 
     // ==================== ClientCodecCapability ====================

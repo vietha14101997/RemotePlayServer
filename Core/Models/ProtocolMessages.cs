@@ -526,13 +526,6 @@ namespace RemotePlayServer.Core.Models
         public int? Fps { get; set; }
 
         /// <summary>
-        /// New TOTAL bitrate in kbps for ALL monitors combined (optional, null = no change).
-        /// Server will divide by monitor count for per-encoder bitrate.
-        /// </summary>
-        [JsonPropertyName("bitrateKbps")]
-        public int? BitrateKbps { get; set; }
-
-        /// <summary>
         /// New target output resolution height in pixels (optional, null = no change).
         /// Server will resize all frames to this height (e.g., 720, 1080, 1440).
         /// </summary>

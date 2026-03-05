@@ -57,6 +57,10 @@ public partial class SIPSorceryStreamer
         {
             try
             {
+                // Ensure encoder matches incoming texture size
+                EnsureEncoderMatchesResolution(track, width, height);
+                if (track.Encoder == null) return;
+
                 track.PendingFrame = null;
                 track.PendingCaptureTimestampMs = captureTimestampMs;
 
@@ -107,8 +111,18 @@ public partial class SIPSorceryStreamer
                 var device = track.Device ?? _sharedDevice;
                 if (device == null) return;
 
+                // Ensure encoder matches incoming texture size
+                EnsureEncoderMatchesResolution(track, width, height);
+                if (track.Encoder == null) return;
+
                 track.PendingFrame = null;
                 track.PendingCaptureTimestampMs = captureTimestampMs;
+
+                if (track.StagingNV12 != null && (track.StagingNV12.Description.Width != width || track.StagingNV12.Description.Height != height))
+                {
+                    track.StagingNV12.Dispose();
+                    track.StagingNV12 = null;
+                }
 
                 if (track.StagingNV12 == null)
                 {

@@ -283,16 +283,15 @@ namespace RemotePlayServer.Application.Protocol
             _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             // Create SIPSorcery streamer with negotiated codec
-            // BitrateKbps from client is TOTAL for all monitors - divide by count for per-encoder bitrate
             var negotiatedCodec = ParseVideoCodec(_selectedCodec);
-            int perEncoderBitrate = config.BitrateKbps / Math.Max(1, actualMonitors);
-            Logger.Info($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, bitrate={perEncoderBitrate}kbps per encoder (total={config.BitrateKbps}kbps)");
+            int resolutionHeight = config.Resolution?.Height > 0 ? config.Resolution.Height : TextureResizer.DEFAULT_TARGET_HEIGHT;
+            Logger.Info($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, resolution={resolutionHeight}p");
             _streamer = new SIPSorceryStreamer(
-                actualMonitors, config.Fps, perEncoderBitrate, _capture.Device, negotiatedCodec);
+                actualMonitors, config.Fps, resolutionHeight, _capture.Device, negotiatedCodec);
 
-            // Create texture resizer with target output height (default 1080p)
-            _textureResizer = new TextureResizer(actualMonitors, TextureResizer.DEFAULT_TARGET_HEIGHT);
-            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {TextureResizer.DEFAULT_TARGET_HEIGHT}p, type: {DisplayConfig.MonitorType})");
+            // Create texture resizer with target output height
+            _textureResizer = new TextureResizer(actualMonitors, resolutionHeight);
+            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {resolutionHeight}p, type: {DisplayConfig.MonitorType})");
 
             // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)

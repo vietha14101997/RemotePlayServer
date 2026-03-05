@@ -33,7 +33,7 @@ public partial class SIPSorceryStreamer : IDisposable
 
     private readonly int _monitorCount;
     private int _fps;
-    private int _bitrateKbps;
+    private int _resolutionHeight;
     private VideoCodec _negotiatedCodec;
     public VideoCodec NegotiatedCodec
     {
@@ -235,15 +235,18 @@ public partial class SIPSorceryStreamer : IDisposable
         }
     }
 
-    public SIPSorceryStreamer(int monitorCount, int fps, int kbps, ID3D11Device? device = null, VideoCodec codec = VideoCodec.H264)
+    public SIPSorceryStreamer(int monitorCount, int fps, int resolutionHeight, ID3D11Device? device = null, VideoCodec codec = VideoCodec.H264)
     {
         _monitorCount = monitorCount;
         _fps = fps;
-        _bitrateKbps = kbps;
+        _resolutionHeight = resolutionHeight;
         _negotiatedCodec = codec;
         _sharedDevice = device;
 
-        Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {kbps}kbps, codec={codec}");
+        var range = GetBitrateRange(_resolutionHeight, _fps);
+        _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+
+        Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {_resolutionHeight}p, codec={codec}");
     }
 
     public void SetDevice(ID3D11Device device)
