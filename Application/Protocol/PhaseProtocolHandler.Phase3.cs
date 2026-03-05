@@ -229,6 +229,11 @@ namespace RemotePlayServer.Application.Protocol
                     if (msgType == "offer")
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (JSON format)");
+                        
+                        // CRITICAL: Reset sync state on reconnect to ensure IDR is sent via DataChannel
+                        // and stale frames are flushed from encoder pipeline.
+                        _streamer?.ResetSyncState();
+
                         // Reset stall detection state for fresh reconnection
                         _consecutiveStallCount = 0;
                         _feedbackEstablished = false;
@@ -239,6 +244,10 @@ namespace RemotePlayServer.Application.Protocol
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (legacy format)");
+
+                        // CRITICAL: Reset sync state on reconnect
+                        _streamer?.ResetSyncState();
+
                         // Reset stall detection state for fresh reconnection
                         _consecutiveStallCount = 0;
                         _feedbackEstablished = false;

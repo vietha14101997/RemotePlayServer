@@ -619,6 +619,9 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
+            // Reset RTP sync and encoder state for new session/reconnect
+            _streamer.ResetSyncState();
+
             // Cache offer for DTLS auto-retry
             _lastOfferSdp = offerSdp;
             _dtlsRetryCount = 0;
