@@ -131,6 +131,9 @@ namespace RemotePlayServer.Application.Protocol
         // Wait for all monitors to connect before starting streaming
         private TaskCompletionSource<bool>? _allConnectedTcs;
 
+        // Fatal error handling: linked to Phase 3 message loop
+        private CancellationTokenSource? _fatalErrorCts;
+
         // DTLS auto-retry: retry PeerConnection on first DTLS failure
         private string? _lastOfferSdp;
         private int _dtlsRetryCount;
@@ -222,6 +225,8 @@ namespace RemotePlayServer.Application.Protocol
             finally
             {
                 await CleanupAsync();
+                _fatalErrorCts?.Dispose();
+                _fatalErrorCts = null;
             }
         }
     }

@@ -345,6 +345,19 @@ public partial class SIPSorceryStreamer
             messages.Add($"Resolution: {resolutionHeight.Value}p");
             anySuccess = true;
             configChanged = true;
+
+            // CRITICAL: When resolution changes, do NOT update FPS/Bitrate synchronously here.
+            // This prevents deadlocks between the message loop (this thread) and the capture thread.
+            // The capture thread will detect the resolution change in the next PushBgraTexture call
+            // and recreate the encoder safely via EnsureEncoderMatchesResolution.
+            Logger.Info("[SIPSorcery] Resolution changed, deferred encoder update to capture thread");
+            
+            // Still update the bitrate controller so the next encoder gets the right initial values
+            var range = GetBitrateRange(_resolutionHeight, _fps);
+            _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+            messages.Add($"Bitrate controller re-initialized for {appliedResolutionHeight}p");
+            
+            return (true, appliedFps, appliedResolutionHeight, string.Join(", ", messages));
         }
 
         if (configChanged)

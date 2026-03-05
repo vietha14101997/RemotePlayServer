@@ -25,6 +25,7 @@ namespace RemotePlayServer.Application.Streaming;
 public partial class SIPSorceryStreamer : IDisposable
 {
     public event Action? OnH264FallbackSuggested;
+    public event Action<string>? OnFatalError;
 
     public void RequestH264Fallback()
     {
@@ -252,6 +253,23 @@ public partial class SIPSorceryStreamer : IDisposable
     public void SetDevice(ID3D11Device device)
     {
         _sharedDevice = device;
+    }
+
+    /// <summary>
+    /// Forces re-initialization of all encoders.
+    /// Useful when dynamically switching codecs (e.g., H.265 fallback to H.264)
+    /// </summary>
+    public void ForceReinitializeEncoders()
+    {
+        Logger.Info("[SIPSorcery] Forcing re-initialization of encoders...");
+        try 
+        {
+            InitializeEncoders();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Error during forced encoder re-initialization: {ex.Message}");
+        }
     }
 
     public void SetDeviceForMonitor(int monitorIndex, ID3D11Device device)

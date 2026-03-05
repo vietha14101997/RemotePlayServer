@@ -69,11 +69,20 @@ namespace RemotePlayServer.Application.Protocol
             {
                 _capture.OnNextBarrierSync = () => _streamer?.ActivatePhase3();
             }
-            else
+            // Internal fatal error CTS - linked to _ct (client disconnect)
+            _fatalErrorCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+
+            if (_streamer != null)
             {
-                // No barrier (single monitor) or no capture — activate immediately
-                _streamer?.ActivatePhase3();
+                _streamer.OnFatalError += (reason) =>
+                {
+                    Logger.Error($"[Protocol] Fatal streamer error: {reason} - triggering cleanup");
+                    _fatalErrorCts?.Cancel();
+                };
             }
+
+            // No barrier (single monitor) or no capture — activate immediately
+            _streamer?.ActivatePhase3();
 
             // Send streaming_started
             var startedMsg = new StreamingStartedMessage
@@ -102,7 +111,7 @@ namespace RemotePlayServer.Application.Protocol
             var buffer = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
 
-            while (_ws.State == WebSocketState.Open && !_ct.IsCancellationRequested)
+            while (_ws.State == WebSocketState.Open && !_fatalErrorCts.IsCancellationRequested)
             {
                 try
                 {
@@ -303,11 +312,7 @@ namespace RemotePlayServer.Application.Protocol
                         try
                         {
                             var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"monitor\":{monitorIndex},\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
-                            await _ws.SendAsync(
-                                new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(ackJson)),
-                                System.Net.WebSockets.WebSocketMessageType.Text,
-                                true,
-                                _ct);
+                            await SendTextAsync(ackJson);
                         }
                         catch { }
                         continue;
@@ -394,11 +399,22 @@ namespace RemotePlayServer.Application.Protocol
                                 {
                                     int newHeight = updateMsg.ResolutionHeight.Value;
                                     Logger.Info($"[Protocol] Dynamic resolution change requested: {_textureResizer.TargetHeight}p → {newHeight}p");
+                                    
+                                    // SAFE RESOLUTION CHANGE:
+                                    // 1. Pause streamer to clear encoder pipeline
+                                    _streamer?.Pause();
+                                    
+                                    // 2. Update resizer (recreates GPU scalers)
                                     _textureResizer.UpdateTargetHeight(newHeight);
 
-                                    // Request keyframe burst for all monitors so the new resolution takes effect immediately
-                                    _streamer?.RequestKeyframeBurst(-1, 3);
-                                    Logger.Info($"[Protocol] Resolution changed to {newHeight}p, keyframes requested");
+                                    // 3. Force re-initialization of encoders BEFORE resume
+                                    // This ensures old encoder handles are closed and new ones created.
+                                    _streamer?.ForceReinitializeEncoders();
+
+                                    // 4. Resume streamer
+                                    _streamer?.Resume();
+
+                                    Logger.Info($"[Protocol] Resolution changed to {newHeight}p, encoders re-initialized");
                                 }
 
                                 var (success, appliedFps, appliedResolutionHeight, message) = _streamer!.UpdateConfig(
@@ -457,6 +473,7 @@ namespace RemotePlayServer.Application.Protocol
                                 if (_streamer != null)
                                 {
                                     _streamer.NegotiatedCodec = VideoCodec.H264;
+                                    _streamer.ForceReinitializeEncoders();
                                 }
                             }
 
@@ -657,10 +674,11 @@ namespace RemotePlayServer.Application.Protocol
                             // Actually close the connection instead of just warning
                             try
                             {
+                                using var cts = new CancellationTokenSource(5000);
                                 await _ws.CloseOutputAsync(
                                     WebSocketCloseStatus.EndpointUnavailable,
                                     "Client not responding to keepalive",
-                                    CancellationToken.None);
+                                    cts.Token);
                             }
                             catch (Exception closeEx)
                             {

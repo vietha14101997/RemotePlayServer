@@ -1,0 +1,14 @@
+[17:41:00] Connecting to ws://localhost:8288/signal...
+[17:41:00] WebSocket connected
+[17:41:00] Server: ADMIN-PC | GPU: NVIDIA GeForce GTX 1660 Ti
+[17:41:00] HEVC Support: Client=false, Server=true -> Using H264
+[17:41:00] Reporting speed test result...
+[17:41:00] Suggested: 3x@60fps, 15000kbps, H264
+[17:41:25] Configuring session: 2 displays, 720p @ 60fps
+[17:41:39] Configuration complete, initializing WebRTC...
+[17:41:40] Track received for monitor 0
+[17:41:40] Track received for monitor 1
+[17:41:40] Remote description set
+[17:41:41] Signaling start_streaming...
+[17:42:13] WebSocket closed
+[17:42:13] Session ended.

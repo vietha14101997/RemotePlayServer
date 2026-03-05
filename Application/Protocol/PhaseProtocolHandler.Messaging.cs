@@ -323,11 +323,26 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_ws.State != WebSocketState.Open) return;
 
-            await _sendLock.WaitAsync(_ct);
+            if (!await _sendLock.WaitAsync(5000, _ct))
+            {
+                Logger.Error($"[Protocol] SendTextAsync timed out waiting for lock (len={text.Length})");
+                return;
+            }
+
             try
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(text);
-                await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, _ct);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                cts.CancelAfter(5000); // 5 sec timeout
+                await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Warn($"[Protocol] SendTextAsync timed out or cancelled (len={text.Length})");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] SendTextAsync error: {ex.Message}");
             }
             finally
             {

@@ -181,6 +181,7 @@ public partial class SIPSorceryStreamer
             {
                 _connected = false;
                 OnConnectionFailed?.Invoke();
+                OnFatalError?.Invoke("ICE Connection Failed");
             }
             else if (state == RTCIceConnectionState.disconnected || state == RTCIceConnectionState.closed)
             {
@@ -205,6 +206,7 @@ public partial class SIPSorceryStreamer
                 Logger.Error("[SIPSorcery] DTLS FAILED - check certificate/fingerprint");
                 _connected = false;
                 OnConnectionFailed?.Invoke();
+                OnFatalError?.Invoke("DTLS Handshake Failed");
             }
             else if (state == RTCPeerConnectionState.closed)
             {

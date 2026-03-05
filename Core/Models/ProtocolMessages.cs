@@ -320,6 +320,12 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("monitorType")]
         public string MonitorType { get; set; } = "standard";
+
+        /// <summary>
+        /// True if connection is via USB Tethering (RNDIS).
+        /// </summary>
+        [JsonPropertyName("isUsbMode")]
+        public bool IsUsbMode { get; set; }
     }
 
     /// <summary>
