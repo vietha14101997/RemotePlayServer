@@ -45,13 +45,15 @@ public partial class SIPSorceryStreamer
                     // DataChannel path: send Opus frame as binary message
                     // Format: [type(1)][timestamp(8)][opus_data]
                     // Client decodes with Concentus + OnAudioFilterRead (~20ms latency)
-                    if (_audioDc?.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    // Prefer dedicated audio PC's DC (isolated SCTP, no H.265 video congestion)
+                    var audioDc = _audioPcAudioDc ?? _audioDc;
+                    if (audioDc?.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                     {
                         var msg = new byte[1 + 8 + opusLength];
                         msg[0] = 0x01; // Audio frame type
                         BitConverter.TryWriteBytes(msg.AsSpan(1, 8), timestampMs);
                         Buffer.BlockCopy(opusData, 0, msg, 9, opusLength);
-                        _audioDc.send(msg);
+                        audioDc.send(msg);
                         Interlocked.Increment(ref _audioPacketsSent);
                     }
                     else if (_pc.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)

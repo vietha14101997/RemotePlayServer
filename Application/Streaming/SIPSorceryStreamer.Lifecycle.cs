@@ -355,8 +355,17 @@ public partial class SIPSorceryStreamer
             _pendingDevices.Clear();
         }
 
+        try { _audioPcAudioDc?.close(); } catch { }
+        _audioPcAudioDc = null;
+
         try { _audioDc?.close(); } catch { }
         _audioDc = null;
+
+        try { _audioPc?.close(); } catch { }
+        _audioPc = null;
+        lock (_pendingAudioIceCandidates) { _pendingAudioIceCandidates.Clear(); }
+        lock (_pendingAudioLocalCandidates) { _pendingAudioLocalCandidates.Clear(); }
+        _audioAnswerDelivered = false;
 
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;

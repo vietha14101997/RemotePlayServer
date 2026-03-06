@@ -317,6 +317,276 @@ public partial class SIPSorceryStreamer
         }
     }
 
+    // Buffer for audio ICE candidates that arrive before the audio PC is created
+    // (trickle ICE: client sends candidates immediately, but audio_offer may arrive later)
+    private readonly List<string> _pendingAudioIceCandidates = new();
+
+    // Buffer for server-side audio ICE candidates generated during createAnswer()
+    // These must be sent AFTER the answer SDP to avoid client receiving candidates before remote description
+    private readonly List<string> _pendingAudioLocalCandidates = new();
+    private volatile bool _audioAnswerDelivered;
+
+    /// <summary>
+    /// Process an audio offer from the client's dedicated audio PeerConnection.
+    /// Creates a second RTCPeerConnection with its own SCTP association,
+    /// isolating audio DataChannel traffic from H.265 video congestion.
+    /// </summary>
+    public Task<string> ProcessAudioOfferAsync(string offerSdp)
+    {
+        try
+        {
+            // Close previous audio PC if any
+            try { _audioPc?.close(); } catch { }
+            _audioPc = null;
+            try { _audioPcAudioDc?.close(); } catch { }
+            _audioPcAudioDc = null;
+
+            var config = new RTCConfiguration
+            {
+                iceServers = new List<RTCIceServer>
+                {
+                    new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+                }
+            };
+            _audioPc = new RTCPeerConnection(config);
+
+            // Wire DataChannel handler - client creates "audio" DC on this PC
+            _audioPc.ondatachannel += (dc) =>
+            {
+                Logger.Info($"[SIPSorcery] Audio PC DataChannel received: label={dc.label}, id={dc.id}");
+                if (dc.label == "audio")
+                {
+                    _audioPcAudioDc = dc;
+                    dc.onopen += () => Logger.Info("[SIPSorcery] Audio PC audio DC opened (dedicated SCTP - low latency)");
+                    dc.onclose += () =>
+                    {
+                        Logger.Info("[SIPSorcery] Audio PC audio DC closed");
+                        _audioPcAudioDc = null;
+                    };
+                }
+            };
+
+            // ICE candidate forwarding for audio PC
+            // Buffer candidates until answer is delivered to client, then send directly
+            _audioAnswerDelivered = false;
+            _audioPc.onicecandidate += (cand) =>
+            {
+                if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+                {
+                    Logger.Info($"[SIPSorcery] Audio PC Local ICE: {cand.candidate.Substring(0, Math.Min(60, cand.candidate.Length))}...");
+                    if (_audioAnswerDelivered)
+                    {
+                        OnAudioIceCandidate?.Invoke(cand.candidate);
+                    }
+                    else
+                    {
+                        lock (_pendingAudioLocalCandidates)
+                        {
+                            _pendingAudioLocalCandidates.Add(cand.candidate);
+                        }
+                    }
+                }
+            };
+
+            _audioPc.oniceconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Audio PC ICE state: {state}");
+            };
+
+            _audioPc.onconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Audio PC peer state: {state}");
+            };
+
+            // Add a dummy sendonly audio track so the SDP includes m=audio.
+            // SIPSorcery's ICE agent doesn't perform connectivity checks for
+            // data-channel-only PCs (m=application only). Adding a media section
+            // forces the full ICE/DTLS transport initialization.
+            var dummyAudioFormat = new SDPAudioVideoMediaFormat(
+                SDPMediaTypesEnum.audio, 0, "PCMU", 8000);
+            var dummyAudioTrack = new MediaStreamTrack(
+                SDPMediaTypesEnum.audio, false,
+                new List<SDPAudioVideoMediaFormat> { dummyAudioFormat },
+                MediaStreamStatusEnum.SendOnly);
+            _audioPc.addTrack(dummyAudioTrack);
+            Logger.Info("[SIPSorcery] Audio PC: added dummy audio track for ICE compatibility");
+
+            // Set remote offer and create answer
+            var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
+            _audioPc.setRemoteDescription(offer);
+
+            var answer = _audioPc.createAnswer(null);
+
+            // Unlike the main PC, the audio PC (data-channel-only) NEEDS setLocalDescription
+            // for the ICE agent to properly respond to STUN binding requests.
+            // Main PC skips this due to SIPSorcery 8.x signalingState bug corrupting DTLS config,
+            // but audio PC has no media tracks so the DTLS config issue doesn't apply.
+            try
+            {
+                _audioPc.setLocalDescription(answer);
+                Logger.Info("[SIPSorcery] Audio PC setLocalDescription(answer) OK");
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[SIPSorcery] Audio PC setLocalDescription failed (non-fatal): {ex.Message}");
+            }
+
+            var answerSdp = answer.sdp ?? "";
+
+            // Log raw SDP for debugging compatibility issues
+            Logger.Info($"[SIPSorcery] Audio PC raw answer SDP:\n{answerSdp}");
+
+            // Fix actpass → active for RFC 5763 compliance (answerer must not use actpass)
+            if (answerSdp.Contains("a=setup:actpass"))
+                answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
+
+            // SIPSorcery may generate "DTLS/SCTP" instead of "UDP/DTLS/SCTP" for the
+            // m=application line. libwebrtc (used by Unity WebRTC) requires "UDP/DTLS/SCTP".
+            answerSdp = answerSdp.Replace("m=application 9 DTLS/SCTP", "m=application 9 UDP/DTLS/SCTP");
+
+            // SIPSorcery includes "ice2" in ice-options which libwebrtc may not understand.
+            // Replace with just "trickle" which is universally supported.
+            answerSdp = answerSdp.Replace("a=ice-options:ice2,trickle", "a=ice-options:trickle");
+            answerSdp = answerSdp.Replace("a=ice-options:ice2", "a=ice-options:trickle");
+
+            // Remove "a=end-of-candidates" - RFC 8838 line not recognized by all libwebrtc versions
+            answerSdp = System.Text.RegularExpressions.Regex.Replace(
+                answerSdp, @"a=end-of-candidates\r?\n?", "");
+
+            // Extract embedded a=candidate lines before stripping them from the SDP.
+            // SIPSorcery uses vanilla ICE (candidates embedded in SDP), but libwebrtc's
+            // data-channel-only SDP parser can choke on embedded candidates.
+            // We extract them and send via trickle ICE (OnAudioIceCandidate) after the answer.
+            var extractedCandidates = new List<string>();
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(
+                answerSdp, @"a=(candidate:[^\r\n]*)"))
+            {
+                extractedCandidates.Add(m.Groups[1].Value);
+            }
+            answerSdp = System.Text.RegularExpressions.Regex.Replace(
+                answerSdp, @"a=candidate:[^\r\n]*\r?\n?", "");
+
+            // SIPSorcery may use old sctpmap format instead of sctp-port.
+            if (answerSdp.Contains("a=sctpmap:") && !answerSdp.Contains("a=sctp-port:"))
+            {
+                var sctpMapMatch = System.Text.RegularExpressions.Regex.Match(
+                    answerSdp, @"a=sctpmap:(\d+)");
+                if (sctpMapMatch.Success)
+                {
+                    var port = sctpMapMatch.Groups[1].Value;
+                    answerSdp = answerSdp.Replace(sctpMapMatch.Value,
+                        $"a=sctp-port:{port}\r\n{sctpMapMatch.Value}");
+                }
+            }
+
+            Logger.Info($"[SIPSorcery] Audio PC fixed answer SDP ({answerSdp.Length} bytes):\n{answerSdp}");
+
+            // Flush any ICE candidates that arrived before the audio PC was created
+            lock (_pendingAudioIceCandidates)
+            {
+                if (_pendingAudioIceCandidates.Count > 0)
+                {
+                    Logger.Info($"[SIPSorcery] Flushing {_pendingAudioIceCandidates.Count} pending audio ICE candidates");
+                    foreach (var cand in _pendingAudioIceCandidates)
+                    {
+                        try { AddAudioIceCandidateInternal(cand); }
+                        catch (Exception ex) { Logger.Error($"[SIPSorcery] Flush audio ICE error: {ex.Message}"); }
+                    }
+                    _pendingAudioIceCandidates.Clear();
+                }
+            }
+
+            // Extracted candidates are added to the local buffer (they may duplicate
+            // onicecandidate events, but dedup happens at the ICE agent level).
+            lock (_pendingAudioLocalCandidates)
+            {
+                foreach (var cand in extractedCandidates)
+                {
+                    if (!_pendingAudioLocalCandidates.Contains(cand))
+                        _pendingAudioLocalCandidates.Add(cand);
+                }
+                Logger.Info($"[SIPSorcery] Audio PC: {_pendingAudioLocalCandidates.Count} local ICE candidates buffered (will flush after answer sent)");
+            }
+
+            return Task.FromResult(answerSdp);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Audio PC offer processing failed: {ex.Message}");
+            return Task.FromResult("");
+        }
+    }
+
+    /// <summary>
+    /// Flush buffered server-side audio ICE candidates via OnAudioIceCandidate.
+    /// Must be called AFTER the audio answer SDP has been sent to the client.
+    /// </summary>
+    public void FlushAudioLocalCandidates()
+    {
+        _audioAnswerDelivered = true;
+
+        List<string> toSend;
+        lock (_pendingAudioLocalCandidates)
+        {
+            toSend = new List<string>(_pendingAudioLocalCandidates);
+            _pendingAudioLocalCandidates.Clear();
+        }
+
+        if (toSend.Count > 0)
+        {
+            Logger.Info($"[SIPSorcery] Flushing {toSend.Count} audio local ICE candidates");
+            foreach (var cand in toSend)
+            {
+                Logger.Info($"[SIPSorcery] Audio PC trickle ICE: {cand.Substring(0, Math.Min(60, cand.Length))}...");
+                OnAudioIceCandidate?.Invoke(cand);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Add ICE candidate for the dedicated audio PeerConnection.
+    /// Buffers candidates if the audio PC hasn't been created yet (trickle ICE race).
+    /// </summary>
+    public void AddAudioIceCandidate(string candidate)
+    {
+        if (string.IsNullOrEmpty(candidate)) return;
+
+        if (_audioPc == null)
+        {
+            // Buffer: audio PC not created yet (audio_candidate arrived before audio_offer)
+            lock (_pendingAudioIceCandidates)
+            {
+                _pendingAudioIceCandidates.Add(candidate);
+                Logger.Info($"[SIPSorcery] Buffered audio ICE candidate (PC not ready, {_pendingAudioIceCandidates.Count} pending)");
+            }
+            return;
+        }
+
+        AddAudioIceCandidateInternal(candidate);
+    }
+
+    private void AddAudioIceCandidateInternal(string candidate)
+    {
+        try
+        {
+            var candStr = candidate.Trim();
+            if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring(2);
+            if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring("candidate:".Length);
+            if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = "candidate:" + candStr;
+
+            var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" };
+            _audioPc!.addIceCandidate(init);
+            Logger.Info($"[SIPSorcery] Audio PC added ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Audio PC AddIceCandidate error: {ex.Message}");
+        }
+    }
+
     private static (int? pt, string? fmtp) TryGetCodecFromOfferSdp(string sdp, VideoCodec codec)
     {
         if (string.IsNullOrWhiteSpace(sdp)) return (null, null);

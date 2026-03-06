@@ -214,6 +214,18 @@ namespace RemotePlayServer.Application.Protocol
                     }
 
 
+                    // Handle dedicated audio PeerConnection signaling
+                    if (msgType == "audio_offer")
+                    {
+                        await HandleAudioOfferAsync(text);
+                        continue;
+                    }
+                    if (msgType == "audio_candidate")
+                    {
+                        HandleAudioIceCandidate(text);
+                        continue;
+                    }
+
                     // Handle late ICE candidates
                     if (msgType == "candidate")
                     {

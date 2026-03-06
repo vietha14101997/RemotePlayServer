@@ -316,6 +316,18 @@ namespace RemotePlayServer.Application.Protocol
                 catch { }
             };
 
+            // Dedicated audio PeerConnection ICE candidate forwarding
+            _streamer.OnAudioIceCandidate += async (candidate) =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open) return;
+                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
+                    await SendTextAsync(json);
+                }
+                catch { }
+            };
+
             // H264 Fallback subscription: detect H.265 instability and request downgrade
             _streamer.OnH264FallbackSuggested += async () =>
             {
@@ -502,6 +514,14 @@ namespace RemotePlayServer.Application.Protocol
                         await ProcessIceCandidateAsync(cand.MonitorIndex, cand.Candidate);
                     break;
 
+                case "audio_offer":
+                    await HandleAudioOfferAsync(json);
+                    break;
+
+                case "audio_candidate":
+                    HandleAudioIceCandidate(json);
+                    break;
+
                 case "proceed":
                     var proceed = ProtocolMessageParser.Parse<ProceedMessage>(json);
                     if (proceed?.Phase == 3)
@@ -575,6 +595,60 @@ namespace RemotePlayServer.Application.Protocol
                     break;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Handle audio_offer from client's dedicated audio PeerConnection.
+        /// Creates a second RTCPeerConnection on the server side with isolated SCTP.
+        /// </summary>
+        private async Task HandleAudioOfferAsync(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                string? sdp = doc.RootElement.TryGetProperty("sdp", out var sp) ? sp.GetString() : null;
+                if (string.IsNullOrEmpty(sdp))
+                {
+                    Logger.Error("[Protocol] audio_offer has empty SDP");
+                    return;
+                }
+
+                var answerSdp = await _streamer.ProcessAudioOfferAsync(sdp!);
+                if (!string.IsNullOrEmpty(answerSdp))
+                {
+                    var answerJson = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_answer", sdp = answerSdp });
+                    await SendTextAsync(answerJson);
+                    Logger.Info("[Protocol] Audio PC answer sent");
+
+                    // Flush server-side ICE candidates AFTER the answer is sent
+                    // so the client has the remote description before receiving candidates
+                    _streamer.FlushAudioLocalCandidates();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] audio_offer handling failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle audio_candidate from client's dedicated audio PeerConnection.
+        /// </summary>
+        private void HandleAudioIceCandidate(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                string? candidate = doc.RootElement.TryGetProperty("candidate", out var cp) ? cp.GetString() : null;
+                if (!string.IsNullOrEmpty(candidate))
+                    _streamer.AddAudioIceCandidate(candidate!);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] audio_candidate handling failed: {ex.Message}");
+            }
         }
 
         private async Task HandleLegacyMessageAsync(string text)
