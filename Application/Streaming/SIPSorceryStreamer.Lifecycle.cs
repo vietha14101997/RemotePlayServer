@@ -355,9 +355,6 @@ public partial class SIPSorceryStreamer
             _pendingDevices.Clear();
         }
 
-        try { _audioPcAudioDc?.close(); } catch { }
-        _audioPcAudioDc = null;
-
         try { _audioDc?.close(); } catch { }
         _audioDc = null;
 

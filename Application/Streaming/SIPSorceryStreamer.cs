@@ -66,8 +66,7 @@ public partial class SIPSorceryStreamer : IDisposable
     private OpusAudioEncoder? _opusEncoder;
     private bool _hasAudioTrack;
     private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
-    private volatile RTCDataChannel? _audioPcAudioDc; // Audio DC from dedicated audio PeerConnection (preferred over _audioDc)
-    private RTCPeerConnection? _audioPc; // Dedicated PeerConnection for audio (isolated SCTP, no H.265 video congestion)
+    private RTCPeerConnection? _audioPc; // Dedicated PeerConnection for audio RTP (isolated from H.265 video SCTP congestion)
     private volatile RTCDataChannel? _cursorDc; // DataChannel for low-latency cursor position updates
     private volatile RTCDataChannel? _h265VideoDc; // DataChannel for H.265 video (unreliable, unordered - avoids SCTP HOL blocking on audio)
     private long _audioPacketsSent;

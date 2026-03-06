@@ -391,58 +391,35 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Connection failed - auto-retry DTLS before requesting full client reconnect
+            // Connection failed - immediately request client reconnect.
+            // Server-side auto-retry (creating new PC + sending new answer) doesn't work because
+            // the client's old PeerConnection is already in Stable state and rejects the second answer.
+            // The only way to recover is for the client to create a fresh PeerConnection.
             _streamer.OnConnectionFailed += async () =>
             {
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
-                    if (_dtlsRetrying) return; // Ignore events from old PC during retry
+                    if (_dtlsRetrying) return;
+                    _dtlsRetrying = true;
 
-                    if (_dtlsRetryCount < MAX_DTLS_RETRIES && _lastOfferSdp != null)
+                    if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
                     {
-                        _dtlsRetrying = true;
-                        _dtlsRetryCount++;
-                        Logger.Info($"[Protocol] DTLS failed, auto-retry {_dtlsRetryCount}/{MAX_DTLS_RETRIES} in 500ms...");
-
-                        // Delay to exit PeerConnection event handler + allow socket cleanup
-                        await Task.Delay(500);
-
-                        // Reset DTLS completion gate
-                        _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                        // Re-populate pending ICE with all previously received client candidates
-                        // so they get re-applied to the new PeerConnection after offer processing
-                        lock (_iceLock)
-                        {
-                            _pendingIce[0] = new List<string>(_allReceivedIceCandidates);
-                            Logger.Info($"[Protocol] DTLS retry: re-queued {_allReceivedIceCandidates.Count} cached ICE candidates for new PC");
-                        }
-
-                        // Re-process cached offer (creates new PC with fresh certificate)
-                        await ProcessSingleOfferAsync(_lastOfferSdp);
-
-                        _dtlsRetrying = false;
+                        Logger.Error($"[Protocol] DTLS failed, all {MAX_PHASE2_RESTARTS} restarts exhausted — sending terminal error");
+                        await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
                     }
                     else
                     {
-                        // All DTLS retries exhausted — check if phase2 restarts are also exhausted
-                        if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
-                        {
-                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries x {_phase2RestartCount} restarts — sending terminal error");
-                            await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
-                        }
-                        else
-                        {
-                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries, requesting reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
-                            await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
-                        }
+                        Logger.Error($"[Protocol] DTLS failed, requesting client reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
+                        await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
                     }
+
+                    _dtlsRetrying = false;
                 }
                 catch (Exception ex)
                 {
                     _dtlsRetrying = false;
-                    Logger.Error($"[Protocol] DTLS retry error: {ex.Message}");
+                    Logger.Error($"[Protocol] DTLS reconnect request error: {ex.Message}");
                 }
             };
 
@@ -539,7 +516,7 @@ namespace RemotePlayServer.Application.Protocol
                             Logger.Info("[Protocol] Received proceed phase 3, waiting for DTLS to complete...");
                             try
                             {
-                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
                                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts.Token, _ct);
                                 var dtlsTask = _allConnectedTcs.Task;
                                 var timeoutTask = Task.Delay(Timeout.Infinite, linkedCts.Token);
@@ -551,7 +528,7 @@ namespace RemotePlayServer.Application.Protocol
                                 }
                                 else
                                 {
-                                    Logger.Error("[Protocol] DTLS timeout (10s) - requesting client to reconnect");
+                                    Logger.Error("[Protocol] DTLS timeout (6s) - requesting client to reconnect");
                                     try
                                     {
                                         await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_timeout\"}");
@@ -707,14 +684,9 @@ namespace RemotePlayServer.Application.Protocol
             // Reset RTP sync and encoder state for new session/reconnect
             _streamer.ResetSyncState();
 
-            // Cache offer for DTLS auto-retry
-            // Only reset retry count on a genuinely new offer (not during DTLS retry)
-            if (!_dtlsRetrying)
-            {
-                _lastOfferSdp = offerSdp;
-                _dtlsRetryCount = 0;
-                lock (_iceLock) { _allReceivedIceCandidates.Clear(); }
-            }
+            // Cache offer for video m-line counting
+            _lastOfferSdp = offerSdp;
+            lock (_iceLock) { _allReceivedIceCandidates.Clear(); }
 
             Logger.Info("[Protocol] Received single offer for all monitors");
 

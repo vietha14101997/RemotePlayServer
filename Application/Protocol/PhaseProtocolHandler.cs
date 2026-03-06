@@ -137,11 +137,9 @@ namespace RemotePlayServer.Application.Protocol
         // Fatal error handling: linked to Phase 3 message loop
         private CancellationTokenSource? _fatalErrorCts;
 
-        // DTLS auto-retry: retry PeerConnection on first DTLS failure
+        // Cached offer for video m-line counting
         private string? _lastOfferSdp;
-        private int _dtlsRetryCount;
         private volatile bool _dtlsRetrying;
-        private const int MAX_DTLS_RETRIES = 2;
 
         // Phase 2 restart limit: prevent infinite restart_phase2 ↔ reconnect_required loop
         private int _phase2RestartCount;

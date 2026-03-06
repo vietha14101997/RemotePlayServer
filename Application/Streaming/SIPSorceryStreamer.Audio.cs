@@ -42,37 +42,28 @@ public partial class SIPSorceryStreamer
                 if (!_phase3Active) return;
                 try
                 {
-                    // DataChannel path: send Opus frame as binary message
-                    // Format: [type(1)][timestamp(8)][opus_data]
-                    // Client decodes with Concentus + OnAudioFilterRead (~20ms latency)
-                    // Prefer dedicated audio PC's DC (isolated SCTP, no H.265 video congestion)
-                    var audioDc = _audioPcAudioDc ?? _audioDc;
-                    if (audioDc?.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    // Primary: send Opus via DataChannel (same SCTP transport as H.265 video).
+                    // This keeps audio/video in sync — both travel the same path with similar latency.
+                    // RTP audio goes through Unity WebRTC's NetEQ jitter buffer (~500ms+) causing desync.
+                    var dc = _audioDc;
+                    if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                     {
-                        var msg = new byte[1 + 8 + opusLength];
-                        msg[0] = 0x01; // Audio frame type
-                        BitConverter.TryWriteBytes(msg.AsSpan(1, 8), timestampMs);
-                        Buffer.BlockCopy(opusData, 0, msg, 9, opusLength);
-                        audioDc.send(msg);
-                        Interlocked.Increment(ref _audioPacketsSent);
-                    }
-                    else if (_pc.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
-                    {
-                        // RTP fallback: used when DataChannel not yet open
                         var packet = new byte[opusLength];
                         Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-
-                        uint audioStep;
-                        lock (_audioSyncLock)
-                        {
-                            if (!_audioClockInitialized && timestampMs > 0)
-                                audioStep = CalculateAudioRtpStep(timestampMs);
-                            else
-                                audioStep = rtpDuration;
-                        }
-
-                        _pc.SendAudio(audioStep, packet);
+                        dc.send(packet);
                         Interlocked.Increment(ref _audioPacketsSent);
+                    }
+                    else
+                    {
+                        // Fallback: send Opus via RTP on main PC
+                        var pc = _pc;
+                        if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                        {
+                            var packet = new byte[opusLength];
+                            Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
+                            pc.SendAudio(rtpDuration, packet);
+                            Interlocked.Increment(ref _audioPacketsSent);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -82,9 +73,28 @@ public partial class SIPSorceryStreamer
                 }
             };
 
+            // Log which audio path is active (one-time, after first successful send)
+            bool audioPathLogged = false;
+
+            _opusEncoder.OnEncodedAudio += (_, _, _, _) =>
+            {
+                if (audioPathLogged) return;
+                var dcCheck = _audioDc;
+                if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                {
+                    Logger.Info("[SIPSorcery] Audio path: DataChannel (same SCTP as video, synced latency)");
+                    audioPathLogged = true;
+                }
+                else if (_pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                {
+                    Logger.Info("[SIPSorcery] Audio path: RTP fallback (DC not open, using NetEQ path)");
+                    audioPathLogged = true;
+                }
+            };
+
             _audioCapture.Start();
 
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)");
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel primary)");
         }
         catch (Exception ex)
         {

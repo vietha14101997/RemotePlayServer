@@ -128,6 +128,19 @@ public partial class SIPSorceryStreamer
         // Initialize per-monitor pause state (all monitors active initially)
         _monitorPaused = new bool[dimensions.Count];
 
+        // Add SendOnly audio track for RTP Opus (matches client's RecvOnly audio transceiver).
+        // Audio goes through RTP/UDP on the same ICE connection — NOT SCTP,
+        // so no head-of-line blocking from H.265 video DataChannel traffic.
+        var opusFormat = new SDPAudioVideoMediaFormat(
+            SDPMediaTypesEnum.audio, 111, "opus", 48000,
+            channels: 2, fmtp: "minptime=10;useinbandfec=1;stereo=1;sprop-stereo=1");
+        var audioTrack = new MediaStreamTrack(
+            SDPMediaTypesEnum.audio, false,
+            new List<SDPAudioVideoMediaFormat> { opusFormat },
+            MediaStreamStatusEnum.SendOnly);
+        _pc.addTrack(audioTrack);
+        Logger.Info("[SIPSorcery] Added SendOnly Opus audio track to main PC (RTP transport)");
+
         // Receive client-created DataChannel for low-latency audio.
         // Client creates DC "audio" (libwebrtc manages SCTP), server just receives and sends Opus via it.
         // Opus frames sent as binary messages: [type(1)][timestamp(8)][opus_data]
@@ -328,18 +341,22 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Process an audio offer from the client's dedicated audio PeerConnection.
-    /// Creates a second RTCPeerConnection with its own SCTP association,
-    /// isolating audio DataChannel traffic from H.265 video congestion.
+    /// DEPRECATED: Audio now goes through the main PC as an RTP track.
+    /// This method is kept for backwards compatibility with older clients
+    /// that still send audio_offer. Returns empty string to gracefully decline.
     /// </summary>
     public Task<string> ProcessAudioOfferAsync(string offerSdp)
     {
+        Logger.Info("[SIPSorcery] Audio offer received but audio now uses main PC RTP track. Ignoring separate Audio PC.");
+        return Task.FromResult("");
+
+        // Legacy code below — kept for reference
+        #pragma warning disable CS0162
         try
         {
             // Close previous audio PC if any
             try { _audioPc?.close(); } catch { }
             _audioPc = null;
-            try { _audioPcAudioDc?.close(); } catch { }
-            _audioPcAudioDc = null;
 
             var config = new RTCConfiguration
             {
@@ -349,22 +366,8 @@ public partial class SIPSorceryStreamer
                 }
             };
             _audioPc = new RTCPeerConnection(config);
-
-            // Wire DataChannel handler - client creates "audio" DC on this PC
-            _audioPc.ondatachannel += (dc) =>
-            {
-                Logger.Info($"[SIPSorcery] Audio PC DataChannel received: label={dc.label}, id={dc.id}");
-                if (dc.label == "audio")
-                {
-                    _audioPcAudioDc = dc;
-                    dc.onopen += () => Logger.Info("[SIPSorcery] Audio PC audio DC opened (dedicated SCTP - low latency)");
-                    dc.onclose += () =>
-                    {
-                        Logger.Info("[SIPSorcery] Audio PC audio DC closed");
-                        _audioPcAudioDc = null;
-                    };
-                }
-            };
+            // No DataChannel on Audio PC — SCTP is broken on Unity WebRTC for dedicated PCs.
+            // Audio goes through RTP (Opus track) via ICE/DTLS/UDP instead.
 
             // ICE candidate forwarding for audio PC
             // Buffer candidates until answer is delivered to client, then send directly
@@ -398,18 +401,20 @@ public partial class SIPSorceryStreamer
                 Logger.Info($"[SIPSorcery] Audio PC peer state: {state}");
             };
 
-            // Add a dummy sendonly audio track so the SDP includes m=audio.
-            // SIPSorcery's ICE agent doesn't perform connectivity checks for
-            // data-channel-only PCs (m=application only). Adding a media section
-            // forces the full ICE/DTLS transport initialization.
-            var dummyAudioFormat = new SDPAudioVideoMediaFormat(
-                SDPMediaTypesEnum.audio, 0, "PCMU", 8000);
-            var dummyAudioTrack = new MediaStreamTrack(
+            // Add a REAL Opus sendonly audio track (48kHz, 2ch).
+            // This serves dual purpose:
+            // 1. Forces ICE/DTLS transport initialization (SIPSorcery needs m=audio)
+            // 2. Provides actual RTP transport for Opus audio — bypasses SCTP entirely
+            //    RTP goes through ICE/DTLS/UDP directly, no SCTP head-of-line blocking
+            var opusFormat = new SDPAudioVideoMediaFormat(
+                SDPMediaTypesEnum.audio, 111, "opus", 48000,
+                channels: 2, fmtp: "minptime=10;useinbandfec=1;stereo=1;sprop-stereo=1");
+            var audioTrack = new MediaStreamTrack(
                 SDPMediaTypesEnum.audio, false,
-                new List<SDPAudioVideoMediaFormat> { dummyAudioFormat },
+                new List<SDPAudioVideoMediaFormat> { opusFormat },
                 MediaStreamStatusEnum.SendOnly);
-            _audioPc.addTrack(dummyAudioTrack);
-            Logger.Info("[SIPSorcery] Audio PC: added dummy audio track for ICE compatibility");
+            _audioPc.addTrack(audioTrack);
+            Logger.Info("[SIPSorcery] Audio PC: added Opus audio track (48kHz stereo, RTP transport)");
 
             // Set remote offer and create answer
             var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
@@ -417,19 +422,11 @@ public partial class SIPSorceryStreamer
 
             var answer = _audioPc.createAnswer(null);
 
-            // Unlike the main PC, the audio PC (data-channel-only) NEEDS setLocalDescription
-            // for the ICE agent to properly respond to STUN binding requests.
-            // Main PC skips this due to SIPSorcery 8.x signalingState bug corrupting DTLS config,
-            // but audio PC has no media tracks so the DTLS config issue doesn't apply.
-            try
-            {
-                _audioPc.setLocalDescription(answer);
-                Logger.Info("[SIPSorcery] Audio PC setLocalDescription(answer) OK");
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn($"[SIPSorcery] Audio PC setLocalDescription failed (non-fatal): {ex.Message}");
-            }
+            // DO NOT call setLocalDescription(answer) — same SIPSorcery 8.x bug as main PC.
+            // signalingState shows "closed" after setRemoteDescription, so setLocalDescription
+            // corrupts ICE credentials internally, causing ICE connectivity checks to fail
+            // (client receives correct SDP but server sends STUN requests with different creds).
+            // createAnswer() already configures DTLS/ICE internals correctly.
 
             var answerSdp = answer.sdp ?? "";
 
@@ -440,9 +437,10 @@ public partial class SIPSorceryStreamer
             if (answerSdp.Contains("a=setup:actpass"))
                 answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
 
-            // SIPSorcery may generate "DTLS/SCTP" instead of "UDP/DTLS/SCTP" for the
-            // m=application line. libwebrtc (used by Unity WebRTC) requires "UDP/DTLS/SCTP".
-            answerSdp = answerSdp.Replace("m=application 9 DTLS/SCTP", "m=application 9 UDP/DTLS/SCTP");
+            // SIPSorcery generates "UDP/TLS/RTP/SAVP" but libwebrtc requires "SAVPF" (with feedback).
+            // Without this fix, DTLS handshake fails because libwebrtc rejects non-SAVPF profiles.
+            if (!answerSdp.Contains("SAVPF"))
+                answerSdp = answerSdp.Replace("SAVP", "SAVPF");
 
             // SIPSorcery includes "ice2" in ice-options which libwebrtc may not understand.
             // Replace with just "trickle" which is universally supported.
@@ -465,19 +463,6 @@ public partial class SIPSorceryStreamer
             }
             answerSdp = System.Text.RegularExpressions.Regex.Replace(
                 answerSdp, @"a=candidate:[^\r\n]*\r?\n?", "");
-
-            // SIPSorcery may use old sctpmap format instead of sctp-port.
-            if (answerSdp.Contains("a=sctpmap:") && !answerSdp.Contains("a=sctp-port:"))
-            {
-                var sctpMapMatch = System.Text.RegularExpressions.Regex.Match(
-                    answerSdp, @"a=sctpmap:(\d+)");
-                if (sctpMapMatch.Success)
-                {
-                    var port = sctpMapMatch.Groups[1].Value;
-                    answerSdp = answerSdp.Replace(sctpMapMatch.Value,
-                        $"a=sctp-port:{port}\r\n{sctpMapMatch.Value}");
-                }
-            }
 
             Logger.Info($"[SIPSorcery] Audio PC fixed answer SDP ({answerSdp.Length} bytes):\n{answerSdp}");
 
@@ -515,6 +500,7 @@ public partial class SIPSorceryStreamer
             Logger.Error($"[SIPSorcery] Audio PC offer processing failed: {ex.Message}");
             return Task.FromResult("");
         }
+        #pragma warning restore CS0162
     }
 
     /// <summary>
