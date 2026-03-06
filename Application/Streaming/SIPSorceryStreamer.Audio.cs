@@ -54,7 +54,7 @@ public partial class SIPSorceryStreamer
                         _audioDc.send(msg);
                         Interlocked.Increment(ref _audioPacketsSent);
                     }
-                    else
+                    else if (_pc.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                     {
                         // RTP fallback: used when DataChannel not yet open
                         var packet = new byte[opusLength];

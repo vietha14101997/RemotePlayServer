@@ -1,7 +1,7 @@
 === RemotePlayServer ===
 [System] Running as Administrator: YES
 [System] Process: F:\VRWorkspace Projects\RemotePlayServer\bin\release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
-[System] Local IP: 192.168.1.41
+[System] Local IP: 10.190.178.241
 [Encoder] NVIDIA NVENC (Hardware)
 [USB-Tether] Detected by: NDIS interface
 [USB-Tether] Found interface: Ethernet 2
@@ -20,40 +20,40 @@
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
 [SIPSorcery] Pre-warming DTLS crypto...
-[SIPSorcery] DTLS pre-warm done in 6983ms
-[HTTP] Server: 192.168.1.41:8288
+[SIPSorcery] DTLS pre-warm done in 2233ms
+[HTTP] Server: 10.190.178.241:8288
 
 === QRCode (Scan to connect) ===
-Data: {"ip":"192.168.1.41","port":"8288","usbIP":"10.190.178.241"}
+Data: {"ip":"10.190.178.241","port":"8288","usbIP":"10.190.178.241"}
 █████████████████████████████████████████
 █████████████████████████████████████████
-████ ▄▄▄▄▄ █ ▀▄ █▀ ▀█ ▄▄▄▄▄▄▄█ ▄▄▄▄▄ ████
-████ █   █ █ █▀    █▀▀▄▀█▄   █ █   █ ████
-████ █▄▄▄█ █▄▀▄ ▄▄▄▀▄▀ ▀▄▄▄▀▀█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀ ▀ ▀▄█ ▀ █ █▄█ █▄▄▄▄▄▄▄████
-████▀ ▀ █▄▄█ ▀▀▀ ▀▄█▀ ▀ █▄█ ▄ ▄▀▄  ▄ ████
-█████▀ ▀▄▄▄█▄█▀ ▀▄▄▄█▄ ▀▀▄▄▄▄█ ▀ ██▄▄████
-████▀▄██ ▀▄ ▄█▄██ ▀ ▄█▄██ ▀ ▄█▄██ ▀ ▄████
-████▄ ▄▀█ ▄▀ █▀ ▀▄ █ █▀▄█▄ ▀▄█▀▄▀▄ ▀ ████
-████▄▀█▀█▄▄█ ██▄ ▀▀█ ██▄▀▀██ █▄▄ ▀ █ ████
-████ ▄  ▀▄▄▀▄▀▄▄▄▄█▄ █▄▀▄▀▄▀▄▀▄▄▄ █ ▄████
-██████▀▄▀█▄▀██▀▀▄ ▄▀█▄▀▀█▄ ▀▄ ▄ ▄▄▀▀█████
-████ █▀█▀█▄██ █▀█ █▀▀ ███ █▀██▀███ ██████
-████▄▄▄▄▄▄▄█▀▀▄ ██▀█▄▀ ▄█▀▄  ▄▄▄ ▄██▄████
-████ ▄▄▄▄▄ █▀ ▀█▀   █ ▀██ █▀ █▄█ █ ▀▄████
-████ █   █ █▀█▄▄ ██▄▄█▄█ █▀█ ▄ ▄ ▄█▄▄████
-████ █▄▄▄█ █▀▄█▄█▀▀ █▄▀▄█▄▄ █▀ ▄▀ █▄▀████
-████▄▄▄▄▄▄▄██▄███▄██▄▄█▄█▄█▄▄▄██▄▄███████
+████ ▄▄▄▄▄ █ ▀▄ ▄ █ █  ▄█▀▄▀▄█ ▄▄▄▄▄ ████
+████ █   █ █▄▀█▀▀ █ ██▀▄▀█▀  █ █   █ ████
+████ █▄▄▄█ █  ▄▀▄  ▄▀ █▄ █ ▄▀█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █▄█▄▀▄▀▄▀▄█ ▀ █ █▄▄▄▄▄▄▄████
+█████▀▄▀▀█▄▄▄ █▀█▄▄  ▄▀▄ ▀ █▄  ▄▄▀   ████
+████▄█▀██ ▄▀█▀ ▄  █▀█▀ █▀ ▄▀▄  █▀▀█ ▄████
+█████▀█▄▄▄▄▀ ▄▄ ██▀█▄ ▄ ██▀█▄ ▄ ██▀█▄████
+████▀▀█▀ ▀▄██▄█▄ ██▀▀█▄▄▄▄█▀██▄▄ ▄█▀█████
+████▄██▄ █▄▀▀▀   ▀▄▀▀▀█ ▀█▀▀▀▀▄  █▄▀▀████
+████ ▀▄▀█▀▄▀ ▀▄█▄▄▄▄▄▄▄▀▄███▄▄▄  ▄▄▄▄████
+████▄▀▄▄█▄▄▀ ▄ ▀  ▀▀▀▄█ ▀  ▀ █▄  █▄▀ ████
+████▀  ▀ ▀▄█ ▄▄▀▄█▄█▄▄▄▀ ▄▄█▄  ▀▄▄▄█▄████
+██████▄▄█▄▄▄ ▄ ██▄▄▀▄▀  ▄█▄▀ ▄▄▄ ▀ ▄▄████
+████ ▄▄▄▄▄ █▄     ██▄ █      █▄█ ███▄████
+████ █   █ ██▀▄▀▀▀█ █▀▄▀▀▀    ▄ ▄▄▄▀ ████
+████ █▄▄▄█ █▄▀█▀█▄▀██▀▀▀█▀▄███ ▀▀▄█▀▀████
+████▄▄▄▄▄▄▄██▄▄█▄▄▄██▄▄▄▄▄▄▄█▄▄▄█▄▄█▄████
 █████████████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 === Connection Options ===
   [USB]  10.190.178.241:8288 (Full streaming over USB cable)
-  [WiFi] 192.168.1.41:8288 (Scan QR code above)
+  [WiFi] 10.190.178.241:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 3e148cac-d395-4746-a5cc-e1ec58f95354, protocol=v2, transport=USB
-[Protocol] Client 3e148cac-d395-4746-a5cc-e1ec58f95354 connected from 10.190.178.105 (v2 protocol, transport=USB Tethering)
+[Signal] Client connected 62cd7acd-7d29-4c5c-acc2-20a12af751a6, protocol=v2, transport=USB
+[Protocol] Client 62cd7acd-7d29-4c5c-acc2-20a12af751a6 connected from 10.190.178.105 (v2 protocol, transport=USB Tethering)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
@@ -95,16 +95,14 @@ Server is running. Press ENTER to exit.
 [UsbLatency] USB xHCI service found (USB 3.x support present)
 [UsbLatency] USB version detected via Registry: USB 3.0
 [UsbLatency] Measuring latency to gateway 10.190.178.105 (USB 3.0)...
-[UsbLatency] ✓ ICMP RTT: 2.03ms, Jitter: 0.06ms
-[Protocol] ✓ USB Latency: 2.03ms, Jitter: 0.06ms, Version: USB 3.0
+[UsbLatency] ✓ ICMP RTT: 1.88ms, Jitter: 0.14ms
+[Protocol] ✓ USB Latency: 1.88ms, Jitter: 0.14ms, Version: USB 3.0
 [Protocol] Sending suggested_config: 3x1920x1080@60fps, bitrate=30000kbps, codec=H265, transport=USB
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1772786669381...
-[Protocol] WaitForProceed received: ping:1772786671404...
-[Protocol] WaitForProceed received: ping:1772786673431...
-[Protocol] WaitForProceed received: ping:1772786675454...
+[Protocol] WaitForProceed received: ping:1772789245189...
+[Protocol] WaitForProceed received: ping:1772789247219...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -142,18 +140,18 @@ Enabling device:          ROOT\DISPLAY\0000
 Device enabled successfully.
 
 
-[VDD] 2 monitors detected (80ms)
+[VDD] 2 monitors detected (105ms)
 [Display] Setting up multi-monitor system...
 [Display] Physical: 1, Virtual: 1
-[Display] Setting \\.\DISPLAY26 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
-[DisplayUtil] \\.\DISPLAY26 current position: (1920,0)
-[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY26: (1920,0) 1920x1080@60Hz
+[Display] Setting \\.\DISPLAY29 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
+[DisplayUtil] \\.\DISPLAY29 current position: (1920,0)
+[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY29: (1920,0) 1920x1080@60Hz
 [DisplayUtil] ApplyDisplayChanges: SUCCESS
 [Display] Ensuring \\.\DISPLAY1 is PRIMARY (original)
 [Display] \\.\DISPLAY1 set as primary at (0,0) 1920x1080@60Hz
 [Display] Multi-monitor system configured:
 [Display]   \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
-[Display]   \\.\DISPLAY26 1920x1080 at (1920,0) [VIRTUAL]
+[Display]   \\.\DISPLAY29 1920x1080 at (1920,0) [VIRTUAL]
 [Display] Setting Windows Scale and Layout to 125%...
 [DpiScaling] Setting 125% for 2 monitor(s)...
 [DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
@@ -161,18 +159,18 @@ Device enabled successfully.
 [DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 125%
 [Display] Scale and Layout set to 125%
-[Guard] Watchdog spawned (PID=58996), monitoring server PID=49780
-[Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI), \\.\DISPLAY26(V,x=1920)
-[Protocol] Selected (physical→virtual): \\.\DISPLAY1, \\.\DISPLAY26
+[Guard] Watchdog spawned (PID=64260), monitoring server PID=43752
+[Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI), \\.\DISPLAY29(V,x=1920)
+[Protocol] Selected (physical→virtual): \\.\DISPLAY1, \\.\DISPLAY29
 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
-[Protocol] Monitor 1 (\\.\DISPLAY26): rect=(1920,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY29): rect=(1920,0) 1920x1080
 [Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
 [Protocol] Available monitors: 2, using: 2
 [PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY26 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY29 1920x1080 - duplication ready
 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
 [Protocol] Creating SIPSorceryStreamer with codec=H265, resolution=720p
 [AdaptiveBitrate] Initialized: target=3500kbps, range=[3500-5000]kbps, warmup=15000ms
@@ -186,25 +184,25 @@ Device enabled successfully.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1772786677479...
+[Protocol] ICE RX: ping:1772789249243...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772786679507...
+[Protocol] ICE RX: ping:1772789251270...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772786681536...
+[Protocol] ICE RX: ping:1772789253293...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772786683559...
+[Protocol] ICE RX: ping:1772789255316...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772786685586...
+[Protocol] ICE RX: ping:1772789257346...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1772786687613...
+[Protocol] ICE RX: ping:1772789259367...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2514265668 1 udp 2122260223 10...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4003080344 1 udp 2122260223 10...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2514265668 1 udp 2122260223 10...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4003080344 1 udp 2122260223 10...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2514265668 1 udp 2122260223 10...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4003080344 1 udp 2122260223 10...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 9006995014315003895 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 4768348046673990327 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [Protocol] Received single offer for all monitors
@@ -215,47 +213,47 @@ Device enabled successfully.
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 EA:81:3F:4E:55:D4:AF:DF:9C:2F:29:0D:7A:71:4E:CF:FF:EA:C6:15:1D:C8:C3:6A:58:B3:10:54:A8:AE:F3:12
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 80:B3:F0:31:85:50:4B:05:82:21:76:05:BD:6F:F6:AE:4F:C0:86:9E:03:88:FB:C2:1F:95:53:7F:76:B2:BD:8C
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 EA:81:3F:4E:55:D4:AF:DF:9C:2F:29:0D:7A:71:4E:CF:FF:EA:C6:15:1D:C8:C3:6A:58:B3:10:54:A8:AE:F3:12
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 80:B3:F0:31:85:50:4B:05:82:21:76:05:BD:6F:F6:AE:4F:C0:86:9E:03:88:FB:C2:1F:95:53:7F:76:B2:BD:8C
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 EA:81:3F:4E:55:D4:AF:DF:9C:2F:29:0D:7A:71:4E:CF:FF:EA:C6:15:1D:C8:C3:6A:58:B3:10:54:A8:AE:F3:12
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 80:B3:F0:31:85:50:4B:05:82:21:76:05:BD:6F:F6:AE:4F:C0:86:9E:03:88:FB:C2:1F:95:53:7F:76:B2:BD:8C
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=271209241
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=1029840925
+[SIPSorcery] Added track 0: 1280x720 (device=0039832E), SSRC=1526481048
+[SIPSorcery] Added track 1: 1280x720 (device=042C742E), SSRC=1381988246
 [SIPSorcery] Waiting for client audio/cursor DataChannels
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 61964 t...
+[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 57930 t...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 7E:9F:59:1F:CD:E3:3C:B9:BE:D8:08:AD:42:B1:B5:55:45:2F:6C:5F:80:F4:A9:47:80:2F:33:D6:1C:5E:E5:92
+[SIPSorcery] SDP: a=fingerprint:sha-256 DD:68:9F:1E:5D:AC:14:A4:C1:E0:08:D4:6D:1B:81:2D:40:FF:04:1B:2C:28:8A:7F:59:6F:9C:73:9C:1F:EA:2E
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 7E:9F:59:1F:CD:E3:3C:B9:BE:D8:08:AD:42:B1:B5:55:45:2F:6C:5F:80:F4:A9:47:80:2F:33:D6:1C:5E:E5:92
+[SIPSorcery] SDP: a=fingerprint:sha-256 DD:68:9F:1E:5D:AC:14:A4:C1:E0:08:D4:6D:1B:81:2D:40:FF:04:1B:2C:28:8A:7F:59:6F:9C:73:9C:1F:EA:2E
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 7E:9F:59:1F:CD:E3:3C:B9:BE:D8:08:AD:42:B1:B5:55:45:2F:6C:5F:80:F4:A9:47:80:2F:33:D6:1C:5E:E5:92
+[SIPSorcery] SDP: a=fingerprint:sha-256 DD:68:9F:1E:5D:AC:14:A4:C1:E0:08:D4:6D:1B:81:2D:40:FF:04:1B:2C:28:8A:7F:59:6F:9C:73:9C:1F:EA:2E
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1468 bytes
+[SIPSorcery] Answer ready, 1469 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
 [Protocol] SDP kept: a=rtpmap:123 H265/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
 [Protocol] SDP kept: a=rtpmap:123 H265/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
-[Protocol] Filtered SDP from 1468 to 1544 bytes
+[Protocol] Filtered SDP from 1469 to 1545 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 56563 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1593 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 61964 t...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 47549 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
+[Protocol] Sent single answer, len=1594 bytes
+[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 57930 t...
 [Protocol] Applying 3 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:2514265668 1 udp 2122260223 10.190.178.1...
-[Protocol] Applied pending ICE: 2514265668 1 udp 2122260223 10.190.178.105 35999 t...
-[SIPSorcery] Added remote ICE: candidate:2514265668 1 udp 2122260223 10.190.178.1...
-[Protocol] Applied pending ICE: 2514265668 1 udp 2122260223 10.190.178.105 33320 t...
-[SIPSorcery] Added remote ICE: candidate:2514265668 1 udp 2122260223 10.190.178.1...
-[Protocol] Applied pending ICE: 2514265668 1 udp 2122260223 10.190.178.105 50441 t...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61964 ty...
+[SIPSorcery] Added remote ICE: candidate:4003080344 1 udp 2122260223 10.190.178.1...
+[Protocol] Applied pending ICE: 4003080344 1 udp 2122260223 10.190.178.105 33431 t...
+[SIPSorcery] Added remote ICE: candidate:4003080344 1 udp 2122260223 10.190.178.1...
+[Protocol] Applied pending ICE: 4003080344 1 udp 2122260223 10.190.178.105 57269 t...
+[SIPSorcery] Added remote ICE: candidate:4003080344 1 udp 2122260223 10.190.178.1...
+[Protocol] Applied pending ICE: 4003080344 1 udp 2122260223 10.190.178.105 49775 t...
+[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 57930 ty...
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
@@ -288,19 +286,23 @@ Device enabled successfully.
 [Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
 [Protocol] Starting early capture to prevent browser track timeout...
 [Protocol] Phase changed to: Phase3_WaitingStart
-[Protocol] Deferred send enabled: 2 monitors, alternating RTP send order
 [Protocol] Phase 3: Waiting for start_streaming command...
+[Protocol] Deferred send enabled: 2 monitors, alternating RTP send order
 [MultimediaTimer] Timer resolution set to 1ms
 [PerMonitorCapture] Created frame sync barrier for 2 monitors (capture + post-encode)
-[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
 [PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
 [PerMonitorCapture] Monitor 1: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
+[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
 [GpuTextureScaler] Monitor 1: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 1 (device=2059BED1758)
-[GpuTextureScaler] Monitor 0: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 0 (device=2059BBE23F8)
+[TextureResizer] Created GPU scaler for monitor 1 (device=2F6042C76D8)
 [GpuTextureScaler] Monitor 1: Output texture 1280x720
+[GpuTextureScaler] Monitor 0: Compute shader initialized
+[TextureResizer] Created GPU scaler for monitor 0 (device=2F6003981D8)
 [GpuTextureScaler] Monitor 0: Output texture 1280x720
+[SIPSorcery] DataChannel received: label=audio, id=1
+[SIPSorcery] Audio DataChannel wired for sending
+[SIPSorcery] DataChannel received: label=cursor, id=3
+[SIPSorcery] Cursor DataChannel wired for sending
 [Protocol] Phase 3: Waiting for all monitors to connect...
 [Protocol] Phase 3: All monitors connected!
 [Protocol] Phase changed to: Phase3_Streaming
@@ -313,1197 +315,79 @@ Device enabled successfully.
 [StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[ERROR] [SIPSorcery] Audio send error: Cannot get the audio sending format, missing either local or remote audio track.
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 1 OnEncodedData: 32590 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 OnEncodedData: 21006 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 1 OnEncodedData: 15295 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 78 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
 [SIPSorcery] Track 1: Sent H265 codec config via DataChannel (89 bytes)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (32501 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (15206 bytes, 1 chunks)
 [SIPSorcery] Track 1: IDR via DataChannel #1
-[SIPSorcery] Track 0 OnEncodedData: 68364 bytes, keyframe=True, annexB=True
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 90 00 00 03 00 00 03 00 78 97 02 40 00 00 00 01  | NAL types: 32(VPS) 33(SPS) 34(PPS) 19(IDR_W_RADL)
 [SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (68275 bytes, 2 chunks)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (20917 bytes, 1 chunks)
 [SIPSorcery] Track 0: IDR via DataChannel #1
-[SIPSorcery] Track 1 OnEncodedData: 2647 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 02 01 D0 08 BE 43 98 F3 4A E0 D8 98 3C 61 73 79 67 C0 33 B5 08 E4 22 B8 6A F3 E4 AD  | NAL types: 1(TRAIL(1))
-[SIPSorcery] Track 1: P-frame via DataChannel (2647 bytes, 1 chunks)
-[SIPSorcery] Track 0 OnEncodedData: 61 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 02 01 D0 08 BE 41 46 F9 34 00 00 03 00 17 BF 7A 07 9E C0 80 00 00 03 00 00 03 00 02  | NAL types: 1(TRAIL(1))
-[SIPSorcery] Track 0: P-frame via DataChannel (61 bytes, 1 chunks)
-[SIPSorcery] Track 1 OnEncodedData: 225 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 02 01 D0 10 FD 90 E6 FC 18 FC 00 00 03 00 5D 81 27 A5 16 11 5F E6 C8 26 62 A3 72 6E  | NAL types: 1(TRAIL(1))
-[SIPSorcery] Track 1: P-frame via DataChannel (225 bytes, 1 chunks)
-[SIPSorcery] Track 0 OnEncodedData: 7637 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 02 01 D0 10 FD 90 51 80 F9 34 00 00 03 00 00 59 EA D3 6B C9 FC 33 18 4A 51 F4 F2 15  | NAL types: 1(TRAIL(1))
-[SIPSorcery] Track 0: P-frame via DataChannel (7637 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (55 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (1249 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (5890 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (1893 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (2476 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (5755 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (3577 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (3916 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (4164 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (3474 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (5292 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (3307 bytes, 1 chunks)
-[SIPSorcery] Track 1: P-frame via DataChannel (6472 bytes, 1 chunks)
-[SIPSorcery] Track 0: P-frame via DataChannel (3261 bytes, 1 chunks)
+[SIPSorcery] Track 0 OnEncodedData: 6501 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 02 01 D0 08 BE 41 06 FC C1 F5 00 00 3D 98 78 00 09 6F 3E 81 75 7E 8D 3C B9 87 00 C5  | NAL types: 1(TRAIL(1))
+[SIPSorcery] Track 1 OnEncodedData: 5574 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 02 01 D0 08 BE 43 18 FB B1 8B 06 28 6F 0B 12 B8 C5 0C E4 63 DB 53 CD 25 9A BE 32 D2  | NAL types: 1(TRAIL(1))
+[SIPSorcery] Track 0: P-frame via DataChannel (6501 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (5574 bytes, 1 chunks)
+[SIPSorcery] Track 0 OnEncodedData: 8839 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 02 01 D0 10 FD 90 41 80 FC C1 F5 00 01 19 18 A4 34 7E AB AA F5 C8 A7 B9 FA 6C 2F 27  | NAL types: 1(TRAIL(1))
+[SIPSorcery] Track 0: P-frame via DataChannel (8839 bytes, 1 chunks)
+[SIPSorcery] Track 1 OnEncodedData: 2471 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 02 01 D0 10 FD 90 C6 FB B1 8B 00 00 03 00 78 28 87 F9 98 E8 DB 8B 57 65 53 12 66 25  | NAL types: 1(TRAIL(1))
+[SIPSorcery] Track 1: P-frame via DataChannel (2471 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (9635 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (3474 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (6604 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (3364 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (6041 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (3147 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (4540 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (4233 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (4579 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (4484 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (4188 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (5331 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (3917 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (5567 bytes, 1 chunks)
+[Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
+[Cursor] Monochrome 32x32: black=0, white=0, inverse=26, transparent=998
+[Cursor] Converted MONOCHROME 32x32: opaque=90, transparent=934/1024
+[SIPSorcery] Track 0: P-frame via DataChannel (8054 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (7054 bytes, 1 chunks)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
-[WARN] [SIPSorcery] Track 0: DC buffer high (254KB), dropping P-frame (total dropped: 1)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10672 bytes, 1 chunks)
-[SIPSorcery] Track 0: IDR via DataChannel #2
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10899 bytes, 1 chunks)
-[SIPSorcery] Track 1: IDR via DataChannel #2
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (14394 bytes, 1 chunks)
-[SIPSorcery] Track 0: IDR via DataChannel #3
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 1: IDR via DataChannel #3
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (12360 bytes, 1 chunks)
-[SIPSorcery] Track 0: IDR via DataChannel #4
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 1: IDR via DataChannel #4
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (14205 bytes, 1 chunks)
-[SIPSorcery] Track 0: IDR via DataChannel #5
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 1: IDR via DataChannel #5
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11305 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10488 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10760 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10877 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10934 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11158 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11108 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11761 bytes, 1 chunks)
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (507KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (507KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (507KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #20
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #20
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (508KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (509KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (510KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #40
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #40
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (511KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (512KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #60
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (513KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #60
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (514KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (515KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #80
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #80
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (516KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (517KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #100
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (518KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #100
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (518KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (519KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (520KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #120
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #120
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (521KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (522KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (523KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (523KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #140
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #140
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (524KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (525KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #160
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #160
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (526KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (527KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (528KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #180
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #180
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (529KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (530KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
+[SIPSorcery] Stats: m0:534f(enc=534),lat=5151us, m1:534f(enc=534),lat=5427us, audio:5510pkts (551.0/sec)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #200
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #200
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (531KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (532KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (533KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #220
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #220
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (534KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (535KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #240
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #240
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (536KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (537KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (538KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #260
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #260
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (539KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (540KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #280
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (541KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (541KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #280
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (542KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (543KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #300
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #300
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (544KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[SIPSorcery] Stats: m0:412f(enc=412),lat=4291us, m1:413f(enc=413),lat=4861us, audio:4320pkts (432.0/sec), dc_dropped:24
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (545KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (546KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #320
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #320
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (547KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (548KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (549KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #340
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #340
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (550KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (551KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #360
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (552KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (552KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #360
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (553KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (554KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #380
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #380
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (555KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[Protocol] Phase3 RX: type=skip_to_live, len=35
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (556KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (557KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #400
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #400
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (558KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (559KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
+[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+[SIPSorcery] Track 0: P-frame via DataChannel (3812 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (7553 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #420
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (560KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #420
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (561KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (562KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #440
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[SIPSorcery] Track 1: IDR via DataChannel #440
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (563KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (564KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[SIPSorcery] Track 0: IDR via DataChannel #460
-[WARN] [SIPSorcery] Track 1: DC buffer CRITICAL (565KB), deferring IDR
-[WARN] [SIPSorcery] Track 0: DC buffer CRITICAL (565KB), deferring IDR
-[Protocol] Phase3 RX: type=codec_fallback, len=78
-[Protocol] codec_fallback received: H265 → H264, reason=decoder_failure
-[Protocol] Offer generation bumped to 1 (stale H265 offers will be discarded)
-[SIPSorcery] Forcing re-initialization of encoders...
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[SIPSorcery] Track 0: Codec changed (H265 -> H264) or (1280x720 -> 1280x720), recreating encoder
-[NvencNativeWrapper] Disposed
-[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
-[NvencNativeWrapper] Initializing BGRA mode 1280x720 @ 60fps, 3500kbps, codec=H264
-[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=H264)
-[SIPSorcery] Track 0: Nvenc encoder initialized (BGRA mode - no color conversion)
-[SIPSorcery] Track 1: Codec changed (H265 -> H264) or (1280x720 -> 1280x720), recreating encoder
-[NvencNativeWrapper] Disposed
-[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
-[NvencNativeWrapper] Initializing BGRA mode 1280x720 @ 60fps, 3500kbps, codec=H264
-[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=H264)
-[SIPSorcery] Track 1: Nvenc encoder initialized (BGRA mode - no color conversion)
-[SIPSorcery] Streaming paused (connection maintained)
-[SIPSorcery] Track 1 H264 frame #0: 10102 bytes → 12 RTP packets, ts=1500, seq=8753
-[SIPSorcery] Track 1 SESSION START: SSRC=1029840925, First Seq=8753, First TS=1500
-[SIPSorcery] Streaming resumed
-[Protocol] codec_switch ACK sent → H264
-[SIPSorcery] Track 0 OnEncodedData: 65956 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 53541 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #1: 53541 bytes → 47 RTP packets, ts=12480, seq=8765
-[SIPSorcery] Track 0 H264 frame #0: 65956 bytes → 58 RTP packets, ts=1500, seq=17466
-[SIPSorcery] Track 0 SESSION START: SSRC=271209241, First Seq=17466, First TS=1500
-[SIPSorcery] Track 0 OnEncodedData: 6845 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 09 B8 07 99 01 0E 3D 8C 38 6D E2 1E EF C2 57 AA 3E EA A9 A3 B4 A6 21 67 1B  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 15 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 08 B8 06 AE DC 00 63 34  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 6845 bytes → 6 RTP packets, ts=4290, seq=17524
-[SIPSorcery] Track 1 H264 frame #2: 15 bytes → 1 RTP packets, ts=15270, seq=8812
-[SIPSorcery] Track 0 OnEncodedData: 6170 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 6E 01 E9 F1 65 E3 98 C5 7C B7 7D 0D 64 A0 7A 3A 30 5F 7E C2 A0 1F 30 21  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #2: 6170 bytes → 6 RTP packets, ts=5730, seq=17530
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:770052201 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:770052201 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:770052201 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Track 0 OnEncodedData: 19353 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E3 A0 DC EB BA 19 7B 17 1E 2F D5 9D 04 0E 5B 0D 78 14 DA FC 3D 32 D0 ED A2 78 CE  | NAL types: 48(T48)
-[SIPSorcery] Track 0: Dropping stale P-frame before first IDR (19353 bytes) - requesting keyframe
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 E3:93:9F:B9:21:75:19:CE:CB:53:59:EE:0D:3E:84:D0:63:20:4B:EE:21:E6:5E:47:C0:05:46:BE:09:66:AC:C9
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 E3:93:9F:B9:21:75:19:CE:CB:53:59:EE:0D:3E:84:D0:63:20:4B:EE:21:E6:5E:47:C0:05:46:BE:09:66:AC:C9
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 E3:93:9F:B9:21:75:19:CE:CB:53:59:EE:0D:3E:84:D0:63:20:4B:EE:21:E6:5E:47:C0:05:46:BE:09:66:AC:C9
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=296260908
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=425815302
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 60410 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 31:EE:11:19:EB:3D:32:F3:69:FB:2F:C6:15:DE:54:55:C0:54:E4:1B:26:72:68:3B:93:0C:22:03:8D:8E:9B:D0
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 31:EE:11:19:EB:3D:32:F3:69:FB:2F:C6:15:DE:54:55:C0:54:E4:1B:26:72:68:3B:93:0C:22:03:8D:8E:9B:D0
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 31:EE:11:19:EB:3D:32:F3:69:FB:2F:C6:15:DE:54:55:C0:54:E4:1B:26:72:68:3B:93:0C:22:03:8D:8E:9B:D0
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1609 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1609 to 1609 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 59140 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1658 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 60410 t...
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (6516 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #2
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (8700 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #2
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60410 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 13223 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Track 1 OnEncodedData: 12955 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 12955 bytes → 13 RTP packets, ts=55650, seq=49632
-[SIPSorcery] Track 1 SESSION START: SSRC=425815302, First Seq=49632, First TS=55650
-[SIPSorcery] Track 0 H264 frame #0: 13223 bytes → 14 RTP packets, ts=44670, seq=26754
-[SIPSorcery] Track 0 SESSION START: SSRC=296260908, First Seq=26754, First TS=44670
-[SIPSorcery] Track 0 OnEncodedData: 4537 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 0B 38 91 1C 04 C4 7E C4 4B 88 E5 11 C8 23 87 57 36 BF 11 84 5E 94 46 6C 04  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 148 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 0A 38 0A 6C F0 CD BB B5 05 DC 8F 58 15 EC 91 56 E0 51 A3 C4 CE 58 10 69 4D  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 4537 bytes → 4 RTP packets, ts=46290, seq=26768
-[SIPSorcery] Track 1 H264 frame #1: 148 bytes → 1 RTP packets, ts=57270, seq=49645
-[SIPSorcery] Track 0 OnEncodedData: 6160 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 6E 04 DF 13 DD EF 84 7C D8 FF 6C 09 E2 2C A4 13 08 CA 41 42 34 0E 23 C4  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 567 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 02 4E 0A F1 CE BC 12 78 77 CD 0F FB F5 1D A4 4F 50 45 EE 30 B1 7F 97 1C CA  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 567 bytes → 1 RTP packets, ts=58980, seq=49646
-[SIPSorcery] Track 0 H264 frame #2: 6160 bytes → 6 RTP packets, ts=48000, seq=26772
-[AdaptiveBitrate] Auto-recovery: 3500 → 4000 kbps (stable for 16.3s)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (15898 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #3
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (8683 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #3
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11360 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #4
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (8683 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #4
+[AdaptiveBitrate] Auto-recovery: 3500 → 4000 kbps (stable for 16.1s)
 [AdaptiveBitrate] Adjusting: 3500 → 4000 kbps (conditions_good (loss=0.0%, buffer=healthy))
 [NvencNativeWrapper] Bitrate changed to 4000kbps
 [SIPSorcery] Track 0 bitrate → 4000kbps
@@ -1511,654 +395,337 @@ Device enabled successfully.
 [SIPSorcery] Track 1 bitrate → 4000kbps
 [SIPSorcery] Bitrate adjusted: 4000kbps (conditions_good (loss=0.0%, buffer=healthy))
 [Protocol] Bitrate adjusted: 4000kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (15438 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #5
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (13631 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #5
+[SIPSorcery] Track 1: P-frame via DataChannel (7538 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (5068 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (8247 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (9121 bytes, 1 chunks)
+[AdaptiveBitrate] Active content good (FPS 106%), recovering to 4250 kbps
+[AdaptiveBitrate] Adjusting: 4000 → 4250 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4250kbps
+[SIPSorcery] Track 0 bitrate → 4250kbps
+[NvencNativeWrapper] Bitrate changed to 4250kbps
+[SIPSorcery] Track 1 bitrate → 4250kbps
+[SIPSorcery] Bitrate adjusted: 4250kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4250kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (16223 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (17130 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (8058 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[SIPSorcery] Stats: m0:297f(enc=297),lat=5049us, m1:297f(enc=297),lat=5720us, audio:6538pkts (221.8/sec)
-[AdaptiveBitrate] Auto-recovery: 4000 → 4500 kbps (stable for 22.5s)
-[AdaptiveBitrate] Adjusting: 4000 → 4500 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (9181 bytes, 1 chunks)
+[AdaptiveBitrate] Active content good (FPS 101%), recovering to 4500 kbps
+[AdaptiveBitrate] Adjusting: 4250 → 4500 kbps (conditions_good (loss=0.0%, buffer=healthy))
 [NvencNativeWrapper] Bitrate changed to 4500kbps
 [SIPSorcery] Track 0 bitrate → 4500kbps
 [NvencNativeWrapper] Bitrate changed to 4500kbps
 [SIPSorcery] Track 1 bitrate → 4500kbps
 [SIPSorcery] Bitrate adjusted: 4500kbps (conditions_good (loss=0.0%, buffer=healthy))
 [Protocol] Bitrate adjusted: 4500kbps - conditions_good (loss=0.0%, buffer=healthy)
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1843691604 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1843691604 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1843691604 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Track 0 OnEncodedData: 16014 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 173 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 09 38 0F 0E 47 BC 0C 36 E0 4E 49 F7 36 26 72 CB 78 66 52 41 1D 60 67 95 46  | NAL types: 48(T48)
-[SIPSorcery] Track 1: Dropping stale P-frame before first IDR (173 bytes) - requesting keyframe
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Track 0 H264 frame #0: 16014 bytes → 16 RTP packets, ts=643410, seq=29158
-[SIPSorcery] Track 0 SESSION START: SSRC=296260908, First Seq=29158, First TS=643410
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Track 0 SESSION START: SSRC=296260908, First Seq=29161, First TS=643410
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 44:89:C7:48:DB:EA:1C:0D:13:31:20:D2:EE:09:66:54:FC:E5:62:A6:78:CF:BA:C3:85:7C:0E:84:34:29:F8:BF
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 44:89:C7:48:DB:EA:1C:0D:13:31:20:D2:EE:09:66:54:FC:E5:62:A6:78:CF:BA:C3:85:7C:0E:84:34:29:F8:BF
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 44:89:C7:48:DB:EA:1C:0D:13:31:20:D2:EE:09:66:54:FC:E5:62:A6:78:CF:BA:C3:85:7C:0E:84:34:29:F8:BF
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=1335825860
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=1953106823
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 61252 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 CC:FC:7E:1F:9F:04:9E:64:2A:07:50:9E:79:26:90:D0:92:48:6B:0C:A4:4E:D6:D4:AC:2C:A3:24:2B:F3:73:9B
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 CC:FC:7E:1F:9F:04:9E:64:2A:07:50:9E:79:26:90:D0:92:48:6B:0C:A4:4E:D6:D4:AC:2C:A3:24:2B:F3:73:9B
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 CC:FC:7E:1F:9F:04:9E:64:2A:07:50:9E:79:26:90:D0:92:48:6B:0C:A4:4E:D6:D4:AC:2C:A3:24:2B:F3:73:9B
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1611 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1611 to 1611 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 67648 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1660 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 61252 t...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 61252 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Stats: m0:0f(enc=0),lat=5052us, m1:0f(enc=0),lat=5696us, audio:6713pkts (17.5/sec)
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 16301 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 16429 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 16429 bytes → 16 RTP packets, ts=654390, seq=17426
-[SIPSorcery] Track 1 SESSION START: SSRC=1953106823, First Seq=17426, First TS=654390
-[SIPSorcery] Track 0 H264 frame #0: 16301 bytes → 16 RTP packets, ts=644910, seq=49993
-[SIPSorcery] Track 0 SESSION START: SSRC=1335825860, First Seq=49993, First TS=644910
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Track 0 OnEncodedData: 5814 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 0A 38 16 E9 40 8F 36 05 7D C0 51 CB F7 EF 11 2E 23 C4 78 8F 11 FB F7 EF DE  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 173 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 09 38 0F 0E 47 BC 0C 36 E0 4E 49 F5 5E 6C 4C E5 81 06 B0 33 CA A3 71 F0 5B  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 5814 bytes → 5 RTP packets, ts=646710, seq=50009
-[SIPSorcery] Track 1 H264 frame #1: 173 bytes → 1 RTP packets, ts=656190, seq=17442
-[SIPSorcery] Track 0 OnEncodedData: 7049 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 4E 02 A7 CC 5D 62 57 CD 0C 2F 9E 5C 3F 85 F3 4B D5 43 DB C0 8D E6 79 72  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 492 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 02 0E 04 CF 7E A0 5B EC AF 78 4F 52 57 89 CA A0 A7 CD 7E 2B B8 EC F2 BD B8  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 492 bytes → 1 RTP packets, ts=657630, seq=17443
-[SIPSorcery] Track 0 H264 frame #2: 7049 bytes → 6 RTP packets, ts=648150, seq=50014
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10643 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10666 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:1153f(enc=1153),lat=5238us, m1:1153f(enc=1153),lat=5498us, audio:11890pkts (638.0/sec)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11249 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[AdaptiveBitrate] Auto-recovery: 4500 → 5000 kbps (stable for 28.5s)
-[AdaptiveBitrate] Adjusting: 4500 → 5000 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11738 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (6552 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (8633 bytes, 1 chunks)
+[AdaptiveBitrate] Active content good (FPS 105%), recovering to 4750 kbps
+[AdaptiveBitrate] Adjusting: 4500 → 4750 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4750kbps
+[SIPSorcery] Track 0 bitrate → 4750kbps
+[NvencNativeWrapper] Bitrate changed to 4750kbps
+[SIPSorcery] Track 1 bitrate → 4750kbps
+[SIPSorcery] Bitrate adjusted: 4750kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4750kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11943 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10072 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (19985 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (18132 bytes, 1 chunks)
+[AdaptiveBitrate] Active content good (FPS 101%), recovering to 5000 kbps
+[AdaptiveBitrate] Adjusting: 4750 → 5000 kbps (conditions_good (loss=0.0%, buffer=healthy))
 [NvencNativeWrapper] Bitrate changed to 5000kbps
 [SIPSorcery] Track 0 bitrate → 5000kbps
 [NvencNativeWrapper] Bitrate changed to 5000kbps
 [SIPSorcery] Track 1 bitrate → 5000kbps
 [SIPSorcery] Bitrate adjusted: 5000kbps (conditions_good (loss=0.0%, buffer=healthy))
 [Protocol] Bitrate adjusted: 5000kbps - conditions_good (loss=0.0%, buffer=healthy)
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (15271 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10297 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10293 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[SIPSorcery] Stats: m0:392f(enc=393),lat=4929us, m1:392f(enc=392),lat=5423us, audio:7347pkts (63.4/sec)
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1490400320 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 17:55:69:F4:E1:A1:41:8A:F3:C2:8A:81:DC:6B:84:CF:E4:01:12:4D:F5:7D:B9:B6:41:13:4E:1C:CE:F9:8D:16
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 17:55:69:F4:E1:A1:41:8A:F3:C2:8A:81:DC:6B:84:CF:E4:01:12:4D:F5:7D:B9:B6:41:13:4E:1C:CE:F9:8D:16
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 17:55:69:F4:E1:A1:41:8A:F3:C2:8A:81:DC:6B:84:CF:E4:01:12:4D:F5:7D:B9:B6:41:13:4E:1C:CE:F9:8D:16
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=350938782
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=1488289380
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 59784 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 D2:63:AE:C0:74:5B:5F:CF:13:73:D3:13:28:F9:E5:B8:B2:B3:5A:5F:C4:2F:5D:F1:04:0D:6E:1B:3E:E6:F3:AA
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 D2:63:AE:C0:74:5B:5F:CF:13:73:D3:13:28:F9:E5:B8:B2:B3:5A:5F:C4:2F:5D:F1:04:0D:6E:1B:3E:E6:F3:AA
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 D2:63:AE:C0:74:5B:5F:CF:13:73:D3:13:28:F9:E5:B8:B2:B3:5A:5F:C4:2F:5D:F1:04:0D:6E:1B:3E:E6:F3:AA
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1610 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1610 to 1610 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 82094 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1659 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 59784 t...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1490400320 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:1490400320 1 udp 2122260223 10.190.178.1...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 59784 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Stats: m0:0f(enc=0),lat=4968us, m1:0f(enc=0),lat=5473us, audio:7402pkts (5.5/sec)
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 13700 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 18704 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 18704 bytes → 18 RTP packets, ts=1272660, seq=64483
-[SIPSorcery] Track 1 SESSION START: SSRC=1488289380, First Seq=64483, First TS=1272660
-[SIPSorcery] Track 0 H264 frame #0: 13700 bytes → 14 RTP packets, ts=1263180, seq=43024
-[SIPSorcery] Track 0 SESSION START: SSRC=350938782, First Seq=43024, First TS=1263180
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Track 0 OnEncodedData: 4460 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 09 3F 1A 33 DF 7F 1D D9 58 C3 88 E5 BB E0 44 E2 7B BC AC 6B 9A FC 47 17 67  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 227 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 08 38 13 3B F5 01 55 B8 76 DC 1F 6E 29 6D CF 66 81 26 77 02 0D 61 5A C3 D4  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 4460 bytes → 4 RTP packets, ts=1265340, seq=43038
-[SIPSorcery] Track 1 H264 frame #1: 227 bytes → 1 RTP packets, ts=1274820, seq=64501
-[SIPSorcery] Track 0 OnEncodedData: 5100 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 0E 60 A6 1C D2 FC 91 FD 1E 6F 2D CF F2 F1 E2 F4 F6 36 F0 20 78 BA 84 3F  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 642 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 07 38 12 7B 27 AB F7 EA 5F 36 B1 E3 87 B7 D6 05 5E CB CA A2 1F 5E F0 4D E6  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 642 bytes → 1 RTP packets, ts=1276350, seq=64502
-[SIPSorcery] Track 0 H264 frame #2: 5100 bytes → 5 RTP packets, ts=1266870, seq=43042
-[SIPSorcery] Stats: m0:64f(enc=65),lat=4983us, m1:64f(enc=64),lat=5495us, audio:7506pkts (10.4/sec)
-[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
-[SIPSorcery] Keyframe burst: monitor=1, count=1
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
-[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (19395 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:3137678771 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:3137678771 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:3137678771 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Track 0 OnEncodedData: 13646 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 9426 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 F1 20 3F D5 62 B6 3E BF C1 1D 0B F7 E0 9B A3 F4 7D 27 9B D8 D7 93 5F E2 3A 07 D7  | NAL types: 48(T48)
-[SIPSorcery] Track 1: Dropping stale P-frame before first IDR (9426 bytes) - requesting keyframe
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Track 0 H264 frame #0: 13646 bytes → 14 RTP packets, ts=1834470, seq=45975
-[SIPSorcery] Track 0 SESSION START: SSRC=350938782, First Seq=45975, First TS=1834470
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B8:03:4B:F5:33:F9:A7:18:3E:62:05:8B:D1:36:49:F0:54:53:E0:4A:83:B5:E6:E9:48:B8:D3:E7:B8:DB:DF:02
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B8:03:4B:F5:33:F9:A7:18:3E:62:05:8B:D1:36:49:F0:54:53:E0:4A:83:B5:E6:E9:48:B8:D3:E7:B8:DB:DF:02
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 B8:03:4B:F5:33:F9:A7:18:3E:62:05:8B:D1:36:49:F0:54:53:E0:4A:83:B5:E6:E9:48:B8:D3:E7:B8:DB:DF:02
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=1337427639
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=293159243
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 56164 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 15:AC:4D:22:72:76:99:92:7C:58:66:4B:01:D9:A7:35:69:BB:40:D1:21:D3:83:E6:AE:D9:AA:AF:55:83:98:E7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 15:AC:4D:22:72:76:99:92:7C:58:66:4B:01:D9:A7:35:69:BB:40:D1:21:D3:83:E6:AE:D9:AA:AF:55:83:98:E7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 15:AC:4D:22:72:76:99:92:7C:58:66:4B:01:D9:A7:35:69:BB:40:D1:21:D3:83:E6:AE:D9:AA:AF:55:83:98:E7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1610 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1610 to 1610 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 65476 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1659 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 56164 t...
-[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
-[SIPSorcery] Keyframe burst: monitor=0, count=1
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 56164 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
-[Cursor] Monochrome 32x32: black=0, white=0, inverse=26, transparent=998
-[Cursor] Converted MONOCHROME 32x32: opaque=90, transparent=934/1024
-[SIPSorcery] Stats: m0:0f(enc=0),lat=5129us, m1:0f(enc=0),lat=5724us, audio:8041pkts (53.5/sec)
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 15157 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 18711 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 18711 bytes → 18 RTP packets, ts=1843950, seq=56697
-[SIPSorcery] Track 1 SESSION START: SSRC=293159243, First Seq=56697, First TS=1843950
-[SIPSorcery] Track 0 H264 frame #0: 15157 bytes → 15 RTP packets, ts=1835970, seq=49367
-[SIPSorcery] Track 0 SESSION START: SSRC=1337427639, First Seq=49367, First TS=1835970
-[SIPSorcery] Track 0 OnEncodedData: 241 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 0A 38 9C F1 62 38 39 E5 EE D2 E6 EE 73 10 28 72 27 BC 09 59 A4 E6 2F 7E 2B  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 247 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 08 B8 2E B2 40 64 6E 3A E5 2E B1 F6 E0 D1 14 89 C5 6E 29 6D CF 66 92 94 08  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 241 bytes → 1 RTP packets, ts=1837410, seq=49382
-[SIPSorcery] Track 1 H264 frame #1: 247 bytes → 1 RTP packets, ts=1845390, seq=56715
-[SIPSorcery] Track 0 OnEncodedData: 1343 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 2E FC D5 66 38 77 4B E2 EB 7F 2A 97 B2 8B F0 45 BB 4B 78 6F D3 17 CA 73  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 632 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 07 B8 13 3D FA 81 6F B2 BC AA 21 F5 EF 04 DE 6B F2 79 3B C4 F7 02 06 8F 1E  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 632 bytes → 1 RTP packets, ts=1846830, seq=56716
-[SIPSorcery] Stats: m0:2f(enc=3),lat=5129us, m1:2f(enc=3),lat=5721us, audio:8041pkts (0.0/sec)
-[SIPSorcery] Track 0 H264 frame #2: 1343 bytes → 2 RTP packets, ts=1838850, seq=49383
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Stats: m0:77f(enc=77),lat=5134us, m1:77f(enc=77),lat=5721us, audio:8165pkts (12.4/sec)
-[SIPSorcery] Stats: m0:166f(enc=166),lat=5205us, m1:166f(enc=166),lat=5817us, audio:8313pkts (14.8/sec)
-[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
-[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10563 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (12074 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (7220 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (5759 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10563 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:110666356 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:110666356 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=candidate, len=161
-[SIPSorcery] Added remote ICE: candidate:110666356 1 udp 2122260223 10.190.178.10...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Track 0 OnEncodedData: 19554 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 F0 E0 14 FF 93 B5 F8 7F D1 C9 4F A3 5F 5A 1F E1 8B 6C 19 6E 1D F5 DA FF C5 FB 3A  | NAL types: 48(T48)
-[SIPSorcery] Track 0: Dropping stale P-frame before first IDR (19554 bytes) - requesting keyframe
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Track 1 H264 frame #0: 9897 bytes → 9 RTP packets, ts=2453040, seq=59818
-[SIPSorcery] Track 1 SESSION START: SSRC=293159243, First Seq=59818, First TS=2453040
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 79:F1:22:5C:0F:B7:F2:D3:6C:A1:BF:15:02:53:73:84:F0:60:FF:07:72:C2:D4:50:63:BC:8A:B8:B6:CF:32:EA
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 79:F1:22:5C:0F:B7:F2:D3:6C:A1:BF:15:02:53:73:84:F0:60:FF:07:72:C2:D4:50:63:BC:8A:B8:B6:CF:32:EA
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 79:F1:22:5C:0F:B7:F2:D3:6C:A1:BF:15:02:53:73:84:F0:60:FF:07:72:C2:D4:50:63:BC:8A:B8:B6:CF:32:EA
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=1968344696
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=452624915
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 55548 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 C7:46:F6:F6:01:A6:B1:08:B4:C7:6E:B0:4B:C9:3C:CF:7A:F7:0A:7D:9A:8B:3C:8F:CA:53:F7:17:C1:84:B5:1C
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 C7:46:F6:F6:01:A6:B1:08:B4:C7:6E:B0:4B:C9:3C:CF:7A:F7:0A:7D:9A:8B:3C:8F:CA:53:F7:17:C1:84:B5:1C
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 C7:46:F6:F6:01:A6:B1:08:B4:C7:6E:B0:4B:C9:3C:CF:7A:F7:0A:7D:9A:8B:3C:8F:CA:53:F7:17:C1:84:B5:1C
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1610 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1610 to 1610 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 56586 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1659 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 55548 t...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 55548 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Stats: m0:0f(enc=0),lat=5214us, m1:0f(enc=0),lat=5837us, audio:8718pkts (40.5/sec)
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] Track 0 OnEncodedData: 15233 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 OnEncodedData: 18694 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 18694 bytes → 18 RTP packets, ts=2454540, seq=17591
-[SIPSorcery] Track 1 SESSION START: SSRC=452624915, First Seq=17591, First TS=2454540
-[SIPSorcery] Track 0 H264 frame #0: 15233 bytes → 15 RTP packets, ts=2445060, seq=2175
-[SIPSorcery] Track 0 SESSION START: SSRC=1968344696, First Seq=2175, First TS=2445060
-[SIPSorcery] Track 0 OnEncodedData: 228 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 0B 38 57 9B C5 C1 EC 40 7C F5 F6 F8 09 FA 98 B7 C0 45 D3 BD C2 BA 82 DB C1  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 227 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 08 38 13 3B F5 01 55 B8 76 DC 1F 6E 29 6D CF 66 81 26 77 02 0D 61 5A C3 D4  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 228 bytes → 1 RTP packets, ts=2446500, seq=2190
-[SIPSorcery] Track 1 H264 frame #1: 227 bytes → 1 RTP packets, ts=2455980, seq=17609
-[SIPSorcery] Track 0 OnEncodedData: 1284 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 8F E1 7A F1 7B 4E 3C 98 F5 F9 79 88 35 E5 E6 62 4F 37 53 70 63 E6 E6 62  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 643 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 07 38 12 7B 27 AB F7 EA 5F 36 B1 E3 87 B7 D6 05 5E CB CA A2 1F 5E F0 4D E6  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 643 bytes → 1 RTP packets, ts=2457420, seq=17610
-[SIPSorcery] Track 0 H264 frame #2: 1284 bytes → 2 RTP packets, ts=2447940, seq=2191
-[SIPSorcery] Stats: m0:35f(enc=35),lat=5214us, m1:35f(enc=35),lat=5822us, audio:8776pkts (5.8/sec)
-[SIPSorcery] Stats: m0:82f(enc=83),lat=5168us, m1:82f(enc=82),lat=5772us, audio:8851pkts (7.5/sec)
-[SIPSorcery] Stats: m0:157f(enc=157),lat=5122us, m1:157f(enc=157),lat=5732us, audio:8971pkts (12.0/sec)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11918 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10329 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[SIPSorcery] Stats: m0:247f(enc=247),lat=5159us, m1:247f(enc=247),lat=5777us, audio:9120pkts (14.9/sec)
-[Protocol] Phase3 RX: type=skip_to_live, len=49
-[Protocol] Phase3 RX: type=skip_to_live, len=49
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10871 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:1769f(enc=1769),lat=5148us, m1:1769f(enc=1769),lat=5539us, audio:18270pkts (638.0/sec)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10863 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=request_keyframe_burst, len=60
 [SIPSorcery] Keyframe burst: monitor=1, count=1
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:4068067106 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:4068067106 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=candidate, len=162
-[SIPSorcery] Added remote ICE: candidate:4068067106 1 udp 2122260223 10.190.178.1...
-[Protocol] Phase3 RX: type=offer, len=8442
-[Protocol] Received reconnect offer during streaming (JSON format)
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 0 pending ICE candidates
-[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H264 PT from offer: 124
-[OpusEncoder] Disposed
-[SIPSorcery] Audio DataChannel closed
-[SIPSorcery] Cursor DataChannel closed
-[SIPSorcery] Peer state: closed
-[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer
-[SIPSorcery] Connection closed
-[SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 7E:08:6C:66:CF:6B:85:86:74:44:CB:11:BB:A0:B9:3C:DF:4F:E7:8A:38:FD:D2:3A:C4:D6:14:04:D3:7E:B1:7A
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 7E:08:6C:66:CF:6B:85:86:74:44:CB:11:BB:A0:B9:3C:DF:4F:E7:8A:38:FD:D2:3A:C4:D6:14:04:D3:7E:B1:7A
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 7E:08:6C:66:CF:6B:85:86:74:44:CB:11:BB:A0:B9:3C:DF:4F:E7:8A:38:FD:D2:3A:C4:D6:14:04:D3:7E:B1:7A
-[SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1280x720 (device=9BBE21FD), SSRC=449585635
-[SIPSorcery] Added track 1: 1280x720 (device=9BED155D), SSRC=781564631
-[SIPSorcery] Waiting for client audio/cursor DataChannels
-[SIPSorcery] ICE state: checking
-[SIPSorcery] Signaling state: have_remote_offer
-[SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 1933210398 1 udp 2113937663 10.190.178.241 63750 t...
-[SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 8C:C6:5E:19:4D:3F:F6:8F:8A:14:84:F3:70:39:84:9B:8B:C8:CD:A8:41:75:5C:6A:46:EE:C8:ED:F9:CC:09:C7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 8C:C6:5E:19:4D:3F:F6:8F:8A:14:84:F3:70:39:84:9B:8B:C8:CD:A8:41:75:5C:6A:46:EE:C8:ED:F9:CC:09:C7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 8C:C6:5E:19:4D:3F:F6:8F:8A:14:84:F3:70:39:84:9B:8B:C8:CD:A8:41:75:5C:6A:46:EE:C8:ED:F9:CC:09:C7
-[SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1609 bytes
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
-[Protocol] SDP kept: a=rtpmap:124 H264/90000
-[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
-[Protocol] Filtered SDP from 1609 to 1609 bytes
-[Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 22182 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
-[Protocol] Sent single answer, len=1658 bytes
-[Protocol] Sent extracted ICE candidate: candidate:1933210398 1 udp 2113937663 10.190.178.241 63750 t...
-[SIPSorcery] Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 63750 ty...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connecting
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Stats: m0:0f(enc=0),lat=5215us, m1:0f(enc=0),lat=5851us, audio:9406pkts (28.6/sec)
-[SIPSorcery] ICE state: connected
-[SIPSorcery] ICE CONNECTED - waiting for DTLS...
-[SIPSorcery] Peer state: connected
-[SIPSorcery] DTLS CONNECTED - initializing encoders now
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
-[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat
-[AudioCapture] Started: 48000Hz, 2ch
-[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)
-[Protocol] All 2 tracks ready, sending ice_ready
-[Protocol] Reconnect in Phase 3: requested streamer re-activation
-[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
-[Protocol] Starting early capture to prevent browser track timeout...
-[Protocol] Capture thread already running, skipping start
-[SIPSorcery] DataChannel received: label=audio, id=1
-[SIPSorcery] Audio DataChannel wired for sending
-[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
-[SIPSorcery] DataChannel received: label=cursor, id=3
-[SIPSorcery] Cursor DataChannel wired for sending
-[SIPSorcery] Track 0 OnEncodedData: 17712 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[Protocol] Phase3 RX: type=reconnect_ack, len=24
-[SIPSorcery] Track 1 OnEncodedData: 18709 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 67 42 C0 20 95 90 05 00 5B B0 11 00 00 03 03 E8 00 01 D4 C0 84 00 00 00 01 68 CB 8F  | NAL types: 51(T51) 52(T52) 50(T50)
-[SIPSorcery] Track 1 H264 frame #0: 18709 bytes → 18 RTP packets, ts=3071460, seq=1414
-[SIPSorcery] Track 1 SESSION START: SSRC=781564631, First Seq=1414, First TS=3071460
-[SIPSorcery] Track 0 H264 frame #0: 17712 bytes → 17 RTP packets, ts=3061980, seq=32786
-[SIPSorcery] Track 0 SESSION START: SSRC=449585635, First Seq=32786, First TS=3061980
-[SIPSorcery] Track 0 OnEncodedData: 5567 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 38 0A 38 0C 4A C0 9E C6 DE 06 A4 CB DD 61 4D 44 4B 82 19 B1 EC 86 E1 A0 AC E0  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 247 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 38 08 B8 2E B2 40 64 6E 3A E5 2E B1 F6 E0 D1 14 89 C5 6E 29 6D CF 66 92 94 08  | NAL types: 48(T48)
-[SIPSorcery] Track 0 H264 frame #1: 5567 bytes → 5 RTP packets, ts=3063780, seq=32803
-[SIPSorcery] Track 1 H264 frame #1: 247 bytes → 1 RTP packets, ts=3073260, seq=1432
-[SIPSorcery] Track 0 OnEncodedData: 6468 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 61 E0 54 02 6E 02 9F CA D6 B1 FC 49 B5 AF 9C BA E0 5A 11 2C 66 6C 9D BA F0 18 A8 A8  | NAL types: 48(T48)
-[SIPSorcery] Track 1 OnEncodedData: 639 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 61 E0 54 07 B8 13 3D FA 81 6F B2 BC AA 21 F5 EF 04 DE 6B F2 79 3B C4 F7 02 06 8F 1E  | NAL types: 48(T48)
-[SIPSorcery] Track 1 H264 frame #2: 639 bytes → 1 RTP packets, ts=3074610, seq=1433
-[SIPSorcery] Track 0 H264 frame #2: 6468 bytes → 6 RTP packets, ts=3065130, seq=32808
-[SIPSorcery] Stats: m0:40f(enc=40),lat=5227us, m1:40f(enc=40),lat=5872us, audio:9473pkts (6.7/sec)
-[SIPSorcery] Stats: m0:100f(enc=100),lat=5241us, m1:100f(enc=100),lat=5888us, audio:9571pkts (9.8/sec)
-[SIPSorcery] Stats: m0:145f(enc=145),lat=5256us, m1:145f(enc=145),lat=5906us, audio:9646pkts (7.5/sec)
-[SIPSorcery] Stats: m0:216f(enc=217),lat=5296us, m1:216f(enc=216),lat=5960us, audio:9767pkts (12.1/sec)
-[SIPSorcery] Stats: m0:306f(enc=307),lat=5304us, m1:306f(enc=306),lat=5961us, audio:9915pkts (14.8/sec)
-[SIPSorcery] Stats: m0:494f(enc=495),lat=5278us, m1:495f(enc=495),lat=5935us, audio:10224pkts (30.9/sec)
-[SIPSorcery] Stats: m0:567f(enc=567),lat=5302us, m1:567f(enc=567),lat=5976us, audio:10346pkts (12.2/sec)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10909 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (3490 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (6807 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10291 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10843 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9419 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #20
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10661 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #20
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (13202 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10843 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (5210 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (6744 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10443 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10909 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9678 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (13157 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Stats: m0:2389f(enc=2389),lat=5319us, m1:2389f(enc=2389),lat=5832us, audio:24670pkts (640.0/sec)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10647 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10647 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (7765 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (4715 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (16528 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11918 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10329 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10661 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (16327 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10871 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (4179 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (4809 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (16876 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10331 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (18921 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10331 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (13559 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (3954 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (10403 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10871 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:3009f(enc=3009),lat=5333us, m1:3008f(enc=3008),lat=5936us, audio:31070pkts (640.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (15191 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10781 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10431 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11061 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (10353 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (11060 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10431 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10553 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (13579 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10979 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9205 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (10457 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (7648 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (19892 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:3629f(enc=3629),lat=5217us, m1:3630f(enc=3630),lat=5798us, audio:37460pkts (639.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9115 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9361 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10562 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (10803 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (10536 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (11033 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11120 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10536 bytes, 1 chunks)
+[SIPSorcery] Track 0: IDR via DataChannel #40
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (10264 bytes, 1 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #40
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (12573 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (9217 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (11298 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9598 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11310 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:4252f(enc=4252),lat=5289us, m1:4252f(enc=4252),lat=5900us, audio:43860pkts (640.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10394 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10115 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (10804 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (8768 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (9695 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11310 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10280 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (10356 bytes, 1 chunks)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (11093 bytes, 1 chunks)
+[SIPSorcery] Track 0: P-frame via DataChannel (11145 bytes, 1 chunks)
+[SIPSorcery] Track 1: P-frame via DataChannel (9495 bytes, 1 chunks)
 [Protocol] Phase3 RX: type=pause_streaming, len=26
 [Protocol] Received pause_streaming
 [SIPSorcery] Streaming paused (connection maintained)
-[SIPSorcery] Stats: m0:588f(enc=588),lat=5308us, m1:588f(enc=588),lat=5988us, audio:10379pkts (3.3/sec)
-[SIPSorcery] Stats: m0:588f(enc=588),lat=5308us, m1:588f(enc=588),lat=5988us, audio:10379pkts (0.0/sec)
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
+[SIPSorcery] Stats: m0:4802f(enc=4802),lat=5364us, m1:4801f(enc=4801),lat=6035us, audio:49520pkts (566.0/sec)
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[Protocol] Phase3 RX: type=skip_to_live, len=49
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=60
+[SIPSorcery] Keyframe burst: monitor=1, count=1
 [Protocol] Phase3 RX: type=stop_streaming, len=25
 [Protocol] Received stop_streaming
 [Protocol] Cursor tracking stopped
 [Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
-[PerMonitorCapture] Monitor 1: Capture thread stopped
 [PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
 [MultimediaTimer] Timer resolution restored
 [PerMonitorCapture] All capture threads stopped
 [SIPSorcery] Stopping...
@@ -2180,7 +747,7 @@ Device enabled successfully.
 [Guard] ForceDisableVdd: Finding VDD instance...
 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
 [Guard] ForceDisableVdd: VDD is currently ENABLED
-[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY26
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY29
 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
 [Guard] ForceDisableVdd: Disabling VDD...
 [pnputil] /disable-device "ROOT\DISPLAY\0000"
@@ -2209,4 +776,4 @@ Device disabled successfully.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client 3e148cac-d395-4746-a5cc-e1ec58f95354 disconnected
+[Protocol] Client 62cd7acd-7d29-4c5c-acc2-20a12af751a6 disconnected

@@ -17,11 +17,15 @@ public partial class SIPSorceryStreamer
 {
     // H265 DataChannel flow control
     // SCTP message buffer can overflow when pushing 120+ msgs/sec through a single DC.
-    // Drop P-frames when buffer is high to prevent SCTP congestion collapse.
-    private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — drop P-frames above this
+    // Graduated dropping: start early to prevent congestion collapse.
+    private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — normal, all frames pass
+    private const ulong DC_BUFFER_MED_WATER  = 128_000;  // 128KB — drop 50% of P-frames
+    private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — drop all P-frames
     private const ulong DC_BUFFER_CRITICAL   = 512_000;  // 512KB — drop everything except periodic IDR
     private long _dcDroppedPFrames;  // counter for diagnostics
     private long _dcDroppedTotal;
+    private long _dcPFrameSeq;       // monotonic P-frame counter for 50% drop logic
+    private bool _dcWasAboveHigh;    // track transition from HIGH→LOW for IDR resync
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -611,19 +615,41 @@ public partial class SIPSorceryStreamer
         var dc = _cursorDc;
         if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
 
-        // Flow control: Drop P-frames when SCTP send buffer is high.
+        // Graduated flow control: Drop P-frames progressively as SCTP buffer grows.
         // This prevents congestion collapse where the reliable DC queues up
         // hundreds of frames, causing multi-second delivery stalls.
         ulong buffered = dc.bufferedAmount;
+        long pSeq = Interlocked.Increment(ref _dcPFrameSeq);
+
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
+            // HIGH: Drop all P-frames, force IDR for resync
+            _dcWasAboveHigh = true;
             long dropped = Interlocked.Increment(ref _dcDroppedPFrames);
             Interlocked.Increment(ref _dcDroppedTotal);
             if (dropped % 60 == 1)
-                Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer high ({buffered/1024}KB), dropping P-frame (total dropped: {dropped})");
-            // Force next keyframe so decoder can resync after dropped P-frames
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame (total dropped: {dropped})");
             track.ForceNextKeyframe = true;
             return;
+        }
+
+        if (buffered > DC_BUFFER_MED_WATER)
+        {
+            // MEDIUM: Drop 50% of P-frames to slow the bleed
+            if (pSeq % 2 == 0)
+            {
+                Interlocked.Increment(ref _dcDroppedPFrames);
+                Interlocked.Increment(ref _dcDroppedTotal);
+                return;
+            }
+        }
+
+        // Buffer drained after being high → force IDR for decoder resync
+        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
+        {
+            _dcWasAboveHigh = false;
+            track.ForceNextKeyframe = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), forcing IDR for resync");
         }
 
         try

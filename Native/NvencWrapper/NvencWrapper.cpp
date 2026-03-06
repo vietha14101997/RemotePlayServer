@@ -112,8 +112,10 @@ NVENCWRAPPER_API int NvencIsAvailable() {
 static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitrate, bool useHevc) {
     encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
     encodeConfig.rcParams.averageBitRate = bitrate * 1000;
-    encodeConfig.rcParams.maxBitRate = bitrate * 1200;
-    encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps;
+    encodeConfig.rcParams.maxBitRate = bitrate * 1000 * 12 / 10;  // 1.2x average
+    // H265 IDR frames need more room; use 2-frame VBV for HEVC, 1-frame for H264
+    int vbvFrames = useHevc ? 2 : 1;
+    encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps * vbvFrames;
     encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
     encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
     encodeConfig.frameIntervalP = 1;
