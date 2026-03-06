@@ -15,19 +15,11 @@ namespace RemotePlayServer.Application.Streaming;
 
 public partial class SIPSorceryStreamer
 {
-    // H265 DataChannel flow control
-    // SCTP message buffer can overflow when pushing 120+ msgs/sec through a single DC.
-    // Graduated dropping: start early to prevent congestion collapse.
-    private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — normal, all frames pass
-    private const ulong DC_BUFFER_MED_WATER  = 128_000;  // 128KB — drop 50% of P-frames
-    private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — drop all P-frames
-    private const ulong DC_BUFFER_CRITICAL   = 512_000;  // 512KB — drop everything except periodic IDR
-    private long _dcDroppedPFrames;  // counter for diagnostics
-    private long _dcDroppedTotal;
-    private long _dcPFrameSeq;       // monotonic P-frame counter for 50% drop logic
+    // H265 DataChannel flow control — only IDR keyframes use DC now.
+    // P-frames go via standard RTP. These thresholds protect IDR delivery.
+    private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — buffer drained
+    private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — defer IDR send
     private bool _dcWasAboveHigh;    // track transition from HIGH→LOW for IDR resync
-    private long _dcHighWaterSinceTicks; // when buffer first exceeded HIGH_WATER (0 = not congested)
-    private bool _dcBitrateReduced;  // whether we've already reduced bitrate for this congestion episode
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -301,34 +293,25 @@ public partial class SIPSorceryStreamer
                         SendH265ParamSetsViaDataChannel(track, nalData);
                     }
 
-                    SendH265IdrViaDataChannel(track, nalData);
-                    track.IdrViaDcCount++;
-                    if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
+                    if (SendH265IdrViaDataChannel(track, nalData))
                     {
-                        Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
-                    }
+                        track.IdrViaDcCount++;
+                        if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
+                            Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
 
-                    // IDR already sent via DC — skip RTP send for keyframes to avoid
-                    // double-sending large frames. P-frames fall through to RTP below.
-                    Interlocked.Increment(ref track.SentFrames);
+                        // IDR sent via DC — skip RTP for keyframes to avoid double-send.
+                        // P-frames fall through to RTP below.
+                        Interlocked.Increment(ref track.SentFrames);
+                        return;
+                    }
+                    // IDR deferred/failed — will retry on next keyframe
                     return;
                 }
             }
-            // H265 P-frames: Send via DataChannel (type 0x04).
-            // The Encoded Transform API delivers broken FU fragments for H265, not reassembled NALs.
-            // RTP path via SendRtpRaw never triggers client's Encoded Transform callback.
-            // DataChannel with flow control (drop when buffer high) is the only reliable path.
-            if (_negotiatedCodec == VideoCodec.H265 && !isKeyframe)
-            {
-                if (IsH265DataChannelReady())
-                {
-                    SendH265PFrameViaDataChannel(track, nalData);
-                    Interlocked.Increment(ref track.SentFrames);
-                    return;
-                }
-                // DC not ready — skip this P-frame, it's undecodable without RTP path anyway
-                return;
-            }
+            // H265 P-frames: Fall through to standard RTP path below.
+            // H265Fragmenter prepends a dummy byte that SIPSorcery strips, so
+            // the client receives intact 2-byte HEVC NAL headers via Encoded Transform.
+            // IDR keyframes are sent via DataChannel (above) for reliable decoder bootstrap.
 
             byte[] au = nalData;
             if (!ContainsAnnexBStartCode(au))
@@ -549,22 +532,28 @@ public partial class SIPSorceryStreamer
     /// For single-chunk: chunkIndex=0, totalChunks=1
     /// For multi-chunk: client reassembles all chunks before feeding to decoder.
     /// </summary>
-    private void SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
+    /// <returns>true if IDR was sent, false if deferred or failed</returns>
+    private bool SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
     {
         var dc = _cursorDc;
-        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return false;
+
+        ulong buffered = dc.bufferedAmount;
+
+        // Drain detection: DC was congested, now drained
+        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
+        {
+            _dcWasAboveHigh = false;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), IDR resync");
+        }
 
         // Flow control: Block IDR when buffer is already congested.
         // Sending a large IDR into a full buffer makes congestion WORSE.
-        ulong buffered = dc.bufferedAmount;
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
             Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
-            // DON'T set ForceNextKeyframe here — it causes a death spiral:
-            // defer IDR → force next IDR → also deferred → force again → infinite loop.
-            // _dcWasAboveHigh + drain logic will handle IDR resync when buffer clears.
             _dcWasAboveHigh = true;
-            return;
+            return false;
         }
 
         try
@@ -574,7 +563,7 @@ public partial class SIPSorceryStreamer
             if (idrData == null || idrData.Length == 0)
             {
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: No IDR NAL found in keyframe ({keyframeData.Length} bytes)");
-                return;
+                return false;
             }
 
             // SCTP message size limit is typically ~256KB, but some implementations
@@ -600,119 +589,17 @@ public partial class SIPSorceryStreamer
             }
 
             Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 IDR via DataChannel ({idrData.Length} bytes, {totalChunks} chunks)");
+            return true;
         }
         catch (Exception ex)
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 IDR: {ex.Message}");
+            return false;
         }
     }
 
-    /// <summary>
-    /// Send H265 P-frame data via reliable DataChannel.
-    /// The Encoded Transform API delivers broken FU fragments for H265 — not reassembled NALs.
-    /// All H265 frames (IDR + P) must go through DataChannel for reliable delivery.
-    ///
-    /// Message format: [type=0x04][trackIndex(1)][chunkIndex(1)][totalChunks(1)][P-frame Annex-B data...]
-    /// Same chunking as IDR (type=0x03) but with type=0x04 to distinguish.
-    /// </summary>
-    private void SendH265PFrameViaDataChannel(TrackInfo track, byte[] nalData)
-    {
-        var dc = _cursorDc;
-        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
-
-        // Graduated flow control: Drop P-frames progressively as SCTP buffer grows.
-        // This prevents congestion collapse where the reliable DC queues up
-        // hundreds of frames, causing multi-second delivery stalls.
-        ulong buffered = dc.bufferedAmount;
-        long pSeq = Interlocked.Increment(ref _dcPFrameSeq);
-
-        if (buffered > DC_BUFFER_HIGH_WATER)
-        {
-            // HIGH: Drop all P-frames. DON'T force IDR here — the IDR is larger
-            // than the P-frame we just dropped, making buffer congestion WORSE.
-            _dcWasAboveHigh = true;
-            long dropped = Interlocked.Increment(ref _dcDroppedPFrames);
-            Interlocked.Increment(ref _dcDroppedTotal);
-            if (dropped % 60 == 1)
-                Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame (total dropped: {dropped})");
-
-            // Track congestion duration. If HIGH for > 2 seconds, reduce bitrate
-            // to minimum so future frames are smaller when buffer finally drains.
-            long now = System.Diagnostics.Stopwatch.GetTimestamp();
-            if (_dcHighWaterSinceTicks == 0)
-                _dcHighWaterSinceTicks = now;
-
-            if (!_dcBitrateReduced)
-            {
-                double congestedMs = (now - _dcHighWaterSinceTicks) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
-                if (congestedMs > 2000)
-                {
-                    _dcBitrateReduced = true;
-                    ForceSetBitrate(_bitrateController.MinBitrateKbps);
-                    Logger.Warn($"[SIPSorcery] DC congested for {congestedMs/1000:F1}s, reducing bitrate to {_bitrateController.MinBitrateKbps}kbps");
-                }
-            }
-            return;
-        }
-
-        if (buffered > DC_BUFFER_MED_WATER)
-        {
-            // MEDIUM: Drop 50% of P-frames to slow the bleed
-            if (pSeq % 2 == 0)
-            {
-                Interlocked.Increment(ref _dcDroppedPFrames);
-                Interlocked.Increment(ref _dcDroppedTotal);
-                return;
-            }
-        }
-
-        // Buffer drained after being high → force IDR for decoder resync
-        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
-        {
-            _dcWasAboveHigh = false;
-            _dcHighWaterSinceTicks = 0;
-            _dcBitrateReduced = false;
-            track.ForceNextKeyframe = true;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), forcing IDR for resync");
-        }
-
-        try
-        {
-            // SCTP message size limit — chunk at 60KB to be safe
-            const int MAX_CHUNK = 60_000;
-            int totalChunks = (nalData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
-            if (totalChunks > 255)
-            {
-                Logger.Error($"[SIPSorcery] Track {track.Index}: P-frame too large for DC chunking ({nalData.Length} bytes, {totalChunks} chunks needed). Dropping.");
-                return;
-            }
-
-            for (int chunk = 0; chunk < totalChunks; chunk++)
-            {
-                int offset = chunk * MAX_CHUNK;
-                int len = Math.Min(MAX_CHUNK, nalData.Length - offset);
-
-                // Header: [type=0x04][trackIndex][chunkIndex][totalChunks]
-                var msg = new byte[4 + len];
-                msg[0] = 0x04; // message type: h265_pframe_data
-                msg[1] = (byte)track.Index;
-                msg[2] = (byte)chunk;
-                msg[3] = (byte)totalChunks;
-                Buffer.BlockCopy(nalData, offset, msg, 4, len);
-
-                dc.send(msg);
-            }
-
-            long sentFrames = Interlocked.Read(ref track.SentFrames);
-            if (sentFrames < 10 || sentFrames % 300 == 0)
-                Logger.Info($"[SIPSorcery] Track {track.Index}: P-frame via DataChannel ({nalData.Length} bytes, {totalChunks} chunks)");
-        }
-        catch (Exception ex)
-        {
-            if (Interlocked.Read(ref track.SentFrames) % 120 == 0)
-                Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 P-frame via DC: {ex.Message}");
-        }
-    }
+    // SendH265PFrameViaDataChannel removed — P-frames now go via RTP.
+    // IDR keyframes remain on DataChannel for reliable decoder bootstrap.
 
     /// <summary>
     /// Extract VPS(32), SPS(33), PPS(34) NAL units from Annex-B bitstream.

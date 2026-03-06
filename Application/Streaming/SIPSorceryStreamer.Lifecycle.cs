@@ -351,8 +351,7 @@ public partial class SIPSorceryStreamer
             }
 
             // Do NOT call _tracks.Clear() - we persist TrackInfo for encoder/device reuse (SSRC is refreshed above)
-            Interlocked.Exchange(ref _dcDroppedPFrames, 0);
-            Interlocked.Exchange(ref _dcDroppedTotal, 0);
+            _dcWasAboveHigh = false;
             _pendingDevices.Clear();
         }
 
@@ -483,9 +482,7 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
-                long dcDropped = Interlocked.Read(ref _dcDroppedTotal);
-                var dcInfo = dcDropped > 0 ? $", dc_dropped:{dcDropped}" : "";
-                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}{dcInfo}");
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
             }
         }
     }
