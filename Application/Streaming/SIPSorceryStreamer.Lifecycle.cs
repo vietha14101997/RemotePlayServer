@@ -361,6 +361,9 @@ public partial class SIPSorceryStreamer
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;
 
+        try { _h265VideoDc?.close(); } catch { }
+        _h265VideoDc = null;
+
         try { _pc?.close(); } catch { }
         _pc = null;
         // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995

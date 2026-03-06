@@ -471,13 +471,26 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Check if the DataChannel used for H265 frame delivery is open and ready.
-    /// On reconnect, there's a race between encoder producing the first keyframe
-    /// and the client-created DataChannel completing SCTP negotiation.
+    /// Prefers dedicated h265video DC (unreliable, unordered) to avoid SCTP HOL blocking on audio.
+    /// Falls back to cursor DC for backward compatibility.
     /// </summary>
     private bool IsH265DataChannelReady()
     {
-        var dc = _cursorDc;
+        var dc = _h265VideoDc ?? _cursorDc;
         return dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open;
+    }
+
+    /// <summary>
+    /// Get the best available DataChannel for H265 video frames.
+    /// Prefers h265video DC (unreliable, unordered) over cursor DC.
+    /// </summary>
+    private RTCDataChannel? GetH265VideoChannel()
+    {
+        var dc = _h265VideoDc;
+        if (dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open) return dc;
+        // Fallback to cursor DC (reliable, ordered) if h265video DC not available
+        dc = _cursorDc;
+        return dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open ? dc : null;
     }
 
     /// <summary>
@@ -486,8 +499,8 @@ public partial class SIPSorceryStreamer
     /// </summary>
     private void SendH265ParamSetsViaDataChannel(TrackInfo track, byte[] keyframeData)
     {
-        var dc = _cursorDc;
-        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+        var dc = GetH265VideoChannel();
+        if (dc == null) return;
 
         try
         {
@@ -544,8 +557,8 @@ public partial class SIPSorceryStreamer
     /// <returns>true if IDR was sent, false if deferred or failed</returns>
     private bool SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
     {
-        var dc = _cursorDc;
-        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return false;
+        var dc = GetH265VideoChannel();
+        if (dc == null) return false;
 
         ulong buffered = dc.bufferedAmount;
 
@@ -618,8 +631,8 @@ public partial class SIPSorceryStreamer
     /// <returns>true if P-frame was sent, false if deferred or failed</returns>
     private bool SendH265PFrameViaDataChannel(TrackInfo track, byte[] pframeData)
     {
-        var dc = _cursorDc;
-        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return false;
+        var dc = GetH265VideoChannel();
+        if (dc == null) return false;
 
         ulong buffered = dc.bufferedAmount;
 

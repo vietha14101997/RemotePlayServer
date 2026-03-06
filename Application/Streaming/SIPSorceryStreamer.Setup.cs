@@ -144,19 +144,28 @@ public partial class SIPSorceryStreamer
             else if (dc.label == "cursor")
             {
                 _cursorDc = dc;
-                _cursorDc.onopen += () => 
+                _cursorDc.onopen += () =>
                 {
-                    Logger.Info("[SIPSorcery] Cursor DataChannel opened - forcing keyframe for H265 bootstrap");
-                    // Force keyframe on all tracks once DataChannel is ready, 
-                    // ensuring H265 bootstrap (VPS/SPS/PPS + IDR) reaches the client reliably.
-                    RequestKeyframe(-1, force: true);
+                    Logger.Info("[SIPSorcery] Cursor DataChannel opened");
                 };
                 _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Cursor DataChannel closed"); _cursorDc = null; };
                 Logger.Info("[SIPSorcery] Cursor DataChannel wired for sending");
             }
+            else if (dc.label == "h265video")
+            {
+                _h265VideoDc = dc;
+                _h265VideoDc.onopen += () =>
+                {
+                    Logger.Info("[SIPSorcery] H265 Video DataChannel opened (unreliable, unordered) - forcing keyframe for bootstrap");
+                    // Force keyframe on all tracks once H265 video DC is ready
+                    RequestKeyframe(-1, force: true);
+                };
+                _h265VideoDc.onclose += () => { Logger.Info("[SIPSorcery] H265 Video DataChannel closed"); _h265VideoDc = null; };
+                Logger.Info("[SIPSorcery] H265 Video DataChannel wired for sending");
+            }
         };
         _hasAudioTrack = true;
-        Logger.Info("[SIPSorcery] Waiting for client audio/cursor DataChannels");
+        Logger.Info("[SIPSorcery] Waiting for client audio/cursor/h265video DataChannels");
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>

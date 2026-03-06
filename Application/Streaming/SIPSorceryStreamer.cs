@@ -67,6 +67,7 @@ public partial class SIPSorceryStreamer : IDisposable
     private bool _hasAudioTrack;
     private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
     private volatile RTCDataChannel? _cursorDc; // DataChannel for low-latency cursor position updates
+    private volatile RTCDataChannel? _h265VideoDc; // DataChannel for H.265 video (unreliable, unordered - avoids SCTP HOL blocking on audio)
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
