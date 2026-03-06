@@ -26,6 +26,8 @@ public partial class SIPSorceryStreamer
     private long _dcDroppedTotal;
     private long _dcPFrameSeq;       // monotonic P-frame counter for 50% drop logic
     private bool _dcWasAboveHigh;    // track transition from HIGH→LOW for IDR resync
+    private long _dcHighWaterSinceTicks; // when buffer first exceeded HIGH_WATER (0 = not congested)
+    private bool _dcBitrateReduced;  // whether we've already reduced bitrate for this congestion episode
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -552,13 +554,16 @@ public partial class SIPSorceryStreamer
         var dc = _cursorDc;
         if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
 
-        // Flow control: Only drop IDR at critical buffer level.
-        // IDRs are essential for decoder sync, so use higher threshold.
+        // Flow control: Block IDR when buffer is already congested.
+        // Sending a large IDR into a full buffer makes congestion WORSE.
         ulong buffered = dc.bufferedAmount;
-        if (buffered > DC_BUFFER_CRITICAL)
+        if (buffered > DC_BUFFER_HIGH_WATER)
         {
-            Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer CRITICAL ({buffered/1024}KB), deferring IDR");
-            track.ForceNextKeyframe = true;
+            Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
+            // DON'T set ForceNextKeyframe here — it causes a death spiral:
+            // defer IDR → force next IDR → also deferred → force again → infinite loop.
+            // _dcWasAboveHigh + drain logic will handle IDR resync when buffer clears.
+            _dcWasAboveHigh = true;
             return;
         }
 
@@ -623,13 +628,30 @@ public partial class SIPSorceryStreamer
 
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
-            // HIGH: Drop all P-frames, force IDR for resync
+            // HIGH: Drop all P-frames. DON'T force IDR here — the IDR is larger
+            // than the P-frame we just dropped, making buffer congestion WORSE.
             _dcWasAboveHigh = true;
             long dropped = Interlocked.Increment(ref _dcDroppedPFrames);
             Interlocked.Increment(ref _dcDroppedTotal);
             if (dropped % 60 == 1)
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame (total dropped: {dropped})");
-            track.ForceNextKeyframe = true;
+
+            // Track congestion duration. If HIGH for > 2 seconds, reduce bitrate
+            // to minimum so future frames are smaller when buffer finally drains.
+            long now = System.Diagnostics.Stopwatch.GetTimestamp();
+            if (_dcHighWaterSinceTicks == 0)
+                _dcHighWaterSinceTicks = now;
+
+            if (!_dcBitrateReduced)
+            {
+                double congestedMs = (now - _dcHighWaterSinceTicks) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+                if (congestedMs > 2000)
+                {
+                    _dcBitrateReduced = true;
+                    ForceSetBitrate(_bitrateController.MinBitrateKbps);
+                    Logger.Warn($"[SIPSorcery] DC congested for {congestedMs/1000:F1}s, reducing bitrate to {_bitrateController.MinBitrateKbps}kbps");
+                }
+            }
             return;
         }
 
@@ -648,6 +670,8 @@ public partial class SIPSorceryStreamer
         if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
+            _dcHighWaterSinceTicks = 0;
+            _dcBitrateReduced = false;
             track.ForceNextKeyframe = true;
             Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), forcing IDR for resync");
         }
