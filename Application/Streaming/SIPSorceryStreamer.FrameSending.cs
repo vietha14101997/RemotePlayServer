@@ -15,8 +15,8 @@ namespace RemotePlayServer.Application.Streaming;
 
 public partial class SIPSorceryStreamer
 {
-    // H265 DataChannel flow control — only IDR keyframes use DC now.
-    // P-frames go via standard RTP. These thresholds protect IDR delivery.
+    // H265 DataChannel flow control — ALL H265 frames (IDR + P) use DC.
+    // Unity WebRTC Encoded Transform never fires for H.265 RTP packets.
     private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — buffer drained
     private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — defer IDR send
     private bool _dcWasAboveHigh;    // track transition from HIGH→LOW for IDR resync
@@ -299,8 +299,7 @@ public partial class SIPSorceryStreamer
                         if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
                             Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
 
-                        // IDR sent via DC — skip RTP for keyframes to avoid double-send.
-                        // P-frames fall through to RTP below.
+                        // IDR sent via DC — P-frames also go via DC below.
                         Interlocked.Increment(ref track.SentFrames);
                         return;
                     }
@@ -308,10 +307,20 @@ public partial class SIPSorceryStreamer
                     return;
                 }
             }
-            // H265 P-frames: Fall through to standard RTP path below.
-            // H265Fragmenter prepends a dummy byte that SIPSorcery strips, so
-            // the client receives intact 2-byte HEVC NAL headers via Encoded Transform.
-            // IDR keyframes are sent via DataChannel (above) for reliable decoder bootstrap.
+            // H265 P-frames: Send via DataChannel (same as IDR).
+            // Unity WebRTC's Encoded Transform NEVER fires for H.265 RTP packets,
+            // so ALL H.265 frames must go through DataChannel for reliable delivery.
+            if (_negotiatedCodec == VideoCodec.H265)
+            {
+                if (SendH265PFrameViaDataChannel(track, nalData))
+                {
+                    Interlocked.Increment(ref track.SentFrames);
+                    return;
+                }
+                // P-frame send failed (DC not ready or congested) — drop it.
+                // Next IDR will resync the decoder.
+                return;
+            }
 
             byte[] au = nalData;
             if (!ContainsAnnexBStartCode(au))
@@ -598,8 +607,64 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    // SendH265PFrameViaDataChannel removed — P-frames now go via RTP.
-    // IDR keyframes remain on DataChannel for reliable decoder bootstrap.
+    /// <summary>
+    /// Send H265 P-frame data via reliable DataChannel.
+    /// The Encoded Transform API in Unity WebRTC NEVER fires for H.265 RTP packets,
+    /// so P-frames must also go through DataChannel (like IDR keyframes).
+    ///
+    /// Message format: [type=0x04][trackIndex(1)][chunkIndex(1)][totalChunks(1)][P-frame Annex-B data...]
+    /// Most P-frames fit in a single chunk (typically 1-35KB).
+    /// </summary>
+    /// <returns>true if P-frame was sent, false if deferred or failed</returns>
+    private bool SendH265PFrameViaDataChannel(TrackInfo track, byte[] pframeData)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return false;
+
+        ulong buffered = dc.bufferedAmount;
+
+        // Flow control: Skip P-frame when buffer is congested.
+        // Unlike IDR, dropping a P-frame is acceptable — next IDR will resync.
+        if (buffered > DC_BUFFER_HIGH_WATER)
+        {
+            if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame");
+            return false;
+        }
+
+        try
+        {
+            const int MAX_CHUNK = 60_000;
+            int totalChunks = (pframeData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
+            if (totalChunks > 255) totalChunks = 255;
+
+            for (int chunk = 0; chunk < totalChunks; chunk++)
+            {
+                int offset = chunk * MAX_CHUNK;
+                int len = Math.Min(MAX_CHUNK, pframeData.Length - offset);
+
+                // Header: [type=0x04][trackIndex][chunkIndex][totalChunks]
+                var msg = new byte[4 + len];
+                msg[0] = 0x04; // message type: h265_pframe_data
+                msg[1] = (byte)track.Index;
+                msg[2] = (byte)chunk;
+                msg[3] = (byte)totalChunks;
+                Buffer.BlockCopy(pframeData, offset, msg, 4, len);
+
+                dc.send(msg);
+            }
+
+            if (Interlocked.Read(ref track.SentFrames) < 5 || Interlocked.Read(ref track.SentFrames) % 300 == 0)
+                Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 P-frame via DataChannel ({pframeData.Length} bytes, {totalChunks} chunks)");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 P-frame: {ex.Message}");
+            return false;
+        }
+    }
 
     /// <summary>
     /// Extract VPS(32), SPS(33), PPS(34) NAL units from Annex-B bitstream.

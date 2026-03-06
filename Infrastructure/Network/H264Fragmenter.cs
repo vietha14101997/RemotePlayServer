@@ -47,19 +47,20 @@ public static class H264Fragmenter
 
         while (i < data.Length)
         {
-            // Check for 3-byte or 4-byte start codes
+            // Check for 4-byte or 3-byte start codes
             int startCodeLen = 0;
-            if (i + 3 < data.Length && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1)
+            if (i + 4 <= data.Length && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1)
                 startCodeLen = 4;
-            else if (i + 2 < data.Length && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 1)
+            else if (i + 3 <= data.Length && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 1)
                 startCodeLen = 3;
 
             if (startCodeLen > 0)
             {
-                if (start != -1)
+                if (start != -1 && start < i)
                 {
-                    byte[] nalU = new byte[i - start];
-                    Buffer.BlockCopy(data, start, nalU, 0, nalU.Length);
+                    int nalLength = i - start;
+                    byte[] nalU = new byte[nalLength];
+                    Buffer.BlockCopy(data, start, nalU, 0, nalLength);
                     result.Add(nalU);
                 }
                 i += startCodeLen;
@@ -73,9 +74,13 @@ public static class H264Fragmenter
 
         if (start != -1 && start < data.Length)
         {
-            byte[] nalU = new byte[data.Length - start];
-            Buffer.BlockCopy(data, start, nalU, 0, nalU.Length);
-            result.Add(nalU);
+            int nalLength = data.Length - start;
+            if (nalLength > 0)
+            {
+                byte[] nalU = new byte[nalLength];
+                Buffer.BlockCopy(data, start, nalU, 0, nalLength);
+                result.Add(nalU);
+            }
         }
 
         return result;
