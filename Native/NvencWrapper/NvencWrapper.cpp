@@ -126,7 +126,10 @@ static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitra
     } else {
         encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
         encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
-        encodeConfig.profileGUID = NV_ENC_H264_PROFILE_MAIN_GUID;
+        // Baseline profile: no B-frames, CAVLC only — matches what SDP advertises
+        // (profile-level-id=420028/42e01f both decode as Baseline). Avoids CABAC/B-frame
+        // decode stalls on Android MediaCodec when SDP promises Baseline.
+        encodeConfig.profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
     }
 }
 

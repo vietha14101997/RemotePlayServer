@@ -14,8 +14,16 @@ public static class H265Fragmenter
     private const int MAX_RTP_PAYLOAD_SIZE = 1200; // Safe MTU for UDP/WebRTC
 
     /// <summary>
-    /// Fragment an Annex B stream (multiple NALUs) into a list of RTP-ready payloads.
-    /// If a NALU is small, it stays as is. If large, it's converted to multiple FUs.
+    /// Prepare an Annex B stream for RTP sending via SIPSorcery.
+    ///
+    /// CRITICAL: SIPSorcery's SendRtpRaw strips byte[0] of every RTP payload
+    /// (it assumes H264's 1-byte NAL header). For H265's 2-byte header, this
+    /// breaks the NAL. FU fragmentation also fails because Unity WebRTC's
+    /// Encoded Transform only delivers the LAST FU fragment per timestamp.
+    ///
+    /// SOLUTION: Send each NAL as a single RTP packet with a dummy prefix byte.
+    /// SIPSorcery strips the dummy → client receives the complete H265 NAL intact.
+    /// Each NAL = one RTP packet with marker=1, so Encoded Transform delivers it.
     /// </summary>
     public static List<byte[]> FragmentAnnexB(byte[] data)
     {
@@ -24,14 +32,15 @@ public static class H265Fragmenter
 
         foreach (var nalU in nalUs)
         {
-            if (nalU.Length <= MAX_RTP_PAYLOAD_SIZE)
-            {
-                result.Add(nalU);
-            }
-            else
-            {
-                result.AddRange(CreateFUs(nalU));
-            }
+            if (nalU.Length < 2) continue;
+
+            // Prepend a dummy byte that SIPSorcery will strip.
+            // After stripping, the client receives the original NAL with
+            // its 2-byte HEVC header intact: [nalType<<1|layerId_hi, layerId_lo<<3|tid, payload...]
+            byte[] payload = new byte[1 + nalU.Length];
+            payload[0] = 0x00; // dummy — gets stripped by SIPSorcery
+            Buffer.BlockCopy(nalU, 0, payload, 1, nalU.Length);
+            result.Add(payload);
         }
 
         return result;

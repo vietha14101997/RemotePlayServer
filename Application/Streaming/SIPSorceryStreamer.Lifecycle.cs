@@ -341,9 +341,18 @@ public partial class SIPSorceryStreamer
                 track.IdrViaDcCount = 0;
                 track.IsDecodable = false;
                 track.IsSessionStarted = false;
+                Interlocked.Exchange(ref track.DcNotReadyCount, 0);
+
+                // Generate fresh SSRC + SeqNum to force client's jitter buffer to reset.
+                // Reusing the same SSRC with a sequence gap causes the client to hold frames
+                // waiting for "missing" packets from the previous session.
+                track.Ssrc = (uint)Random.Shared.Next(100000000, 2000000000);
+                track.SequenceNumber = (ushort)Random.Shared.Next(0, ushort.MaxValue);
             }
-            
-            // Do NOT call _tracks.Clear() anymore - we need to persist TrackInfo for SSRC persistence!
+
+            // Do NOT call _tracks.Clear() - we persist TrackInfo for encoder/device reuse (SSRC is refreshed above)
+            Interlocked.Exchange(ref _dcDroppedPFrames, 0);
+            Interlocked.Exchange(ref _dcDroppedTotal, 0);
             _pendingDevices.Clear();
         }
 
@@ -462,7 +471,11 @@ public partial class SIPSorceryStreamer
                 {
                     long encCount = Interlocked.Read(ref t.EncodeLatencyCount);
                     long avgUs = encCount > 0 ? Interlocked.Read(ref t.EncodeLatencySum) / encCount : 0;
-                    return $"m{t.Index}:{t.SentFrames}f,enc={avgUs}us";
+                    long encoded = Interlocked.Read(ref t.EncodedFrames);
+                    long sent = Interlocked.Read(ref t.SentFrames);
+                    long skipped = encoded - sent;
+                    string skipInfo = _negotiatedCodec == VideoCodec.H265 && skipped > 0 ? $",skip={skipped}" : "";
+                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}),lat={avgUs}us";
                 }));
                 var audioPkts = Interlocked.Read(ref _audioPacketsSent);
                 long lastInterval = _audioPacketsLastInterval;
@@ -470,7 +483,9 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
-                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
+                long dcDropped = Interlocked.Read(ref _dcDroppedTotal);
+                var dcInfo = dcDropped > 0 ? $", dc_dropped:{dcDropped}" : "";
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}{dcInfo}");
             }
         }
     }

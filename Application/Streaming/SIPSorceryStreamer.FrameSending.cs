@@ -15,6 +15,14 @@ namespace RemotePlayServer.Application.Streaming;
 
 public partial class SIPSorceryStreamer
 {
+    // H265 DataChannel flow control
+    // SCTP message buffer can overflow when pushing 120+ msgs/sec through a single DC.
+    // Drop P-frames when buffer is high to prevent SCTP congestion collapse.
+    private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — drop P-frames above this
+    private const ulong DC_BUFFER_CRITICAL   = 512_000;  // 512KB — drop everything except periodic IDR
+    private long _dcDroppedPFrames;  // counter for diagnostics
+    private long _dcDroppedTotal;
+
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
     /// </summary>
@@ -43,11 +51,17 @@ public partial class SIPSorceryStreamer
     {
         if (!_running || _disposed || !_connected || _isPaused) return;
         if (!_phase3Active) return;
-        
+
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
         if (track.Track == null || track.Encoder == null) return;
-        
+
+        // H265 hybrid mode: Only need DC for first IDR bootstrap.
+        // After that, P-frames go via RTP — no need to block on DC.
+        if (_negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
+            && Interlocked.Read(ref track.SentFrames) == 0)
+            return;
+
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
 
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
@@ -72,7 +86,9 @@ public partial class SIPSorceryStreamer
                 }
 
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
-                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
+                // Only force first frame as IDR to avoid flooding DataChannel with large keyframes.
+                // NVENC has infinite GOP, so P-frames follow naturally after the first IDR.
+                bool forceIdr = frameNum < 1 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
@@ -98,7 +114,13 @@ public partial class SIPSorceryStreamer
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
         if (track.Track == null || track.Encoder == null) return;
-        
+
+        // H265 hybrid mode: Only need DC for first IDR bootstrap.
+        // After that, P-frames go via RTP — no need to block on DC.
+        if (_negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
+            && Interlocked.Read(ref track.SentFrames) == 0)
+            return;
+
         if (monitorIndex < _monitorPaused.Length && _monitorPaused[monitorIndex]) return;
 
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
@@ -151,7 +173,8 @@ public partial class SIPSorceryStreamer
                 }
 
                 long frameNum = Interlocked.Read(ref track.EncodedFrames);
-                bool forceIdr = frameNum < 5 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
+                // Only force first frame as IDR to avoid flooding DataChannel with large keyframes.
+                bool forceIdr = frameNum < 1 || track.ForceNextKeyframe || track.KeyframeBurstRemaining > 0;
                 track.ForceNextKeyframe = false;
                 if (track.KeyframeBurstRemaining > 0) track.KeyframeBurstRemaining--;
 
@@ -250,24 +273,55 @@ public partial class SIPSorceryStreamer
                 track.IsDecodable = true;
                 track.H265FailureStreak = 0; // Reset streak on successful keyframe sent
 
-                // H265 side-channel: Send VPS/SPS/PPS + IDR data via reliable DataChannel
-                // because keyframes fragmented into many FU RTP packets are lost
-                // before reaching the client's Encoded Transform API.
+                // H265 HYBRID MODE: Send IDR via reliable DataChannel for decoder bootstrap.
+                // P-frames go via standard RTP (handled below in SendFrameImmediate).
                 if (_negotiatedCodec == VideoCodec.H265)
                 {
-                    // Always send codec config (small, 89 bytes)
-                    SendH265ParamSetsViaDataChannel(track, nalData);
-                    
-                    // Send full IDR data for every H265 keyframe.
-                    // In practice, some clients only receive partial RTP payload in Encoded Transform,
-                    // so limiting IDR side-channel to bootstrap-only can leave decoder unrecoverable.
+                    // If DataChannel isn't open yet (race on reconnect), skip this keyframe
+                    // and force the encoder to produce another one.
+                    if (!IsH265DataChannelReady())
+                    {
+                        long dcNotReadyCount = Interlocked.Increment(ref track.DcNotReadyCount);
+                        if (dcNotReadyCount <= 3 || dcNotReadyCount % 120 == 0)
+                            Logger.Warn($"[SIPSorcery] Track {track.Index}: DataChannel not ready, deferring IDR #{dcNotReadyCount} (will force next keyframe)");
+                        track.ForceNextKeyframe = true;
+                        Interlocked.Exchange(ref track.SentFrames, 0);
+                        return;
+                    }
+
+                    // Send codec config on first IDR after session start/reconnect.
+                    if (track.IdrViaDcCount == 0)
+                    {
+                        SendH265ParamSetsViaDataChannel(track, nalData);
+                    }
+
                     SendH265IdrViaDataChannel(track, nalData);
                     track.IdrViaDcCount++;
                     if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
                     {
                         Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
                     }
+
+                    // IDR already sent via DC — skip RTP send for keyframes to avoid
+                    // double-sending large frames. P-frames fall through to RTP below.
+                    Interlocked.Increment(ref track.SentFrames);
+                    return;
                 }
+            }
+            // H265 P-frames: Send via DataChannel (type 0x04).
+            // The Encoded Transform API delivers broken FU fragments for H265, not reassembled NALs.
+            // RTP path via SendRtpRaw never triggers client's Encoded Transform callback.
+            // DataChannel with flow control (drop when buffer high) is the only reliable path.
+            if (_negotiatedCodec == VideoCodec.H265 && !isKeyframe)
+            {
+                if (IsH265DataChannelReady())
+                {
+                    SendH265PFrameViaDataChannel(track, nalData);
+                    Interlocked.Increment(ref track.SentFrames);
+                    return;
+                }
+                // DC not ready — skip this P-frame, it's undecodable without RTP path anyway
+                return;
             }
 
             byte[] au = nalData;
@@ -418,6 +472,17 @@ public partial class SIPSorceryStreamer
     }
 
     /// <summary>
+    /// Check if the DataChannel used for H265 frame delivery is open and ready.
+    /// On reconnect, there's a race between encoder producing the first keyframe
+    /// and the client-created DataChannel completing SCTP negotiation.
+    /// </summary>
+    private bool IsH265DataChannelReady()
+    {
+        var dc = _cursorDc;
+        return dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open;
+    }
+
+    /// <summary>
     /// Extract VPS/SPS/PPS from H265 keyframe and send via reliable DataChannel.
     /// Message format: [type=0x02][trackIndex(1)][annexB VPS+SPS+PPS bytes...]
     /// </summary>
@@ -483,6 +548,16 @@ public partial class SIPSorceryStreamer
         var dc = _cursorDc;
         if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
 
+        // Flow control: Only drop IDR at critical buffer level.
+        // IDRs are essential for decoder sync, so use higher threshold.
+        ulong buffered = dc.bufferedAmount;
+        if (buffered > DC_BUFFER_CRITICAL)
+        {
+            Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer CRITICAL ({buffered/1024}KB), deferring IDR");
+            track.ForceNextKeyframe = true;
+            return;
+        }
+
         try
         {
             // Extract IDR NAL data (skip VPS/SPS/PPS — those are sent separately as type=0x02)
@@ -520,6 +595,72 @@ public partial class SIPSorceryStreamer
         catch (Exception ex)
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 IDR: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Send H265 P-frame data via reliable DataChannel.
+    /// The Encoded Transform API delivers broken FU fragments for H265 — not reassembled NALs.
+    /// All H265 frames (IDR + P) must go through DataChannel for reliable delivery.
+    ///
+    /// Message format: [type=0x04][trackIndex(1)][chunkIndex(1)][totalChunks(1)][P-frame Annex-B data...]
+    /// Same chunking as IDR (type=0x03) but with type=0x04 to distinguish.
+    /// </summary>
+    private void SendH265PFrameViaDataChannel(TrackInfo track, byte[] nalData)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+
+        // Flow control: Drop P-frames when SCTP send buffer is high.
+        // This prevents congestion collapse where the reliable DC queues up
+        // hundreds of frames, causing multi-second delivery stalls.
+        ulong buffered = dc.bufferedAmount;
+        if (buffered > DC_BUFFER_HIGH_WATER)
+        {
+            long dropped = Interlocked.Increment(ref _dcDroppedPFrames);
+            Interlocked.Increment(ref _dcDroppedTotal);
+            if (dropped % 60 == 1)
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer high ({buffered/1024}KB), dropping P-frame (total dropped: {dropped})");
+            // Force next keyframe so decoder can resync after dropped P-frames
+            track.ForceNextKeyframe = true;
+            return;
+        }
+
+        try
+        {
+            // SCTP message size limit — chunk at 60KB to be safe
+            const int MAX_CHUNK = 60_000;
+            int totalChunks = (nalData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
+            if (totalChunks > 255)
+            {
+                Logger.Error($"[SIPSorcery] Track {track.Index}: P-frame too large for DC chunking ({nalData.Length} bytes, {totalChunks} chunks needed). Dropping.");
+                return;
+            }
+
+            for (int chunk = 0; chunk < totalChunks; chunk++)
+            {
+                int offset = chunk * MAX_CHUNK;
+                int len = Math.Min(MAX_CHUNK, nalData.Length - offset);
+
+                // Header: [type=0x04][trackIndex][chunkIndex][totalChunks]
+                var msg = new byte[4 + len];
+                msg[0] = 0x04; // message type: h265_pframe_data
+                msg[1] = (byte)track.Index;
+                msg[2] = (byte)chunk;
+                msg[3] = (byte)totalChunks;
+                Buffer.BlockCopy(nalData, offset, msg, 4, len);
+
+                dc.send(msg);
+            }
+
+            long sentFrames = Interlocked.Read(ref track.SentFrames);
+            if (sentFrames < 10 || sentFrames % 300 == 0)
+                Logger.Info($"[SIPSorcery] Track {track.Index}: P-frame via DataChannel ({nalData.Length} bytes, {totalChunks} chunks)");
+        }
+        catch (Exception ex)
+        {
+            if (Interlocked.Read(ref track.SentFrames) % 120 == 0)
+                Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 P-frame via DC: {ex.Message}");
         }
     }
 
@@ -605,8 +746,8 @@ public partial class SIPSorceryStreamer
                 { nalEnd = j; break; }
             }
 
-            // Keep only IDR_W_RADL(19) and IDR_N_LP(20)
-            if (nalType == 19 || nalType == 20)
+            // Keep IDR_W_RADL(19), IDR_N_LP(20), and CRA(21)
+            if (nalType == 19 || nalType == 20 || nalType == 21)
             {
                 result.Write(annexB, nalStart, nalEnd - nalStart);
             }

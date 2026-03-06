@@ -475,6 +475,11 @@ namespace RemotePlayServer.Application.Protocol
 
                             Logger.Info($"[Protocol] codec_fallback received: {fromCodec} → {toCodec}, reason={reason}");
 
+                            // Invalidate any in-flight offer processing from stale H265 auto-heal reconnects.
+                            // The client will send a new offer with H264 preference after this ACK.
+                            _offerGeneration++;
+                            Logger.Info($"[Protocol] Offer generation bumped to {_offerGeneration} (stale H265 offers will be discarded)");
+
                             // Update server-side codec preference so the next reconnect offer
                             // is processed with H264 preference instead of H265.
                             if (toCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))

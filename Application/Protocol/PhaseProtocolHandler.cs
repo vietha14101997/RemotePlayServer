@@ -64,6 +64,7 @@ namespace RemotePlayServer.Application.Protocol
         // Client codec capabilities (received in hardware_info_ack)
         private ClientCodecCapability? _clientCodecCapability;
         private string _selectedCodec = "H264";
+        private volatile int _offerGeneration = 0; // Incremented on codec_fallback to invalidate stale offer processing
 
         // Client screen resolution (received in hardware_info_ack, used for resize decision)
         // Screens < 1440p get 50% resize; >= 1440p get original frame
@@ -80,6 +81,8 @@ namespace RemotePlayServer.Application.Protocol
         private readonly Dictionary<int, List<string>> _pendingIce = new();
         private readonly HashSet<int> _answersReady = new();
         private readonly object _iceLock = new();
+        // Cache all received client ICE candidates for re-application during DTLS retry
+        private readonly List<string> _allReceivedIceCandidates = new();
 
         // WebSocket send lock to prevent concurrent sends
         private readonly SemaphoreSlim _sendLock = new(1, 1);

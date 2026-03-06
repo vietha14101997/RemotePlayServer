@@ -177,6 +177,10 @@ public partial class SIPSorceryStreamer
         // Encoder init moved to onconnectionstatechange (after DTLS complete)
         _pc.oniceconnectionstatechange += (state) =>
         {
+            // Suppress duplicate "connected" events from ICE consent checks during active streaming
+            if (state == RTCIceConnectionState.connected && _connected)
+                return;
+
             Logger.Info($"[SIPSorcery] ICE state: {state}");
             if (state == RTCIceConnectionState.connected)
             {

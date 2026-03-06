@@ -399,6 +399,14 @@ namespace RemotePlayServer.Application.Protocol
                         // Reset DTLS completion gate
                         _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+                        // Re-populate pending ICE with all previously received client candidates
+                        // so they get re-applied to the new PeerConnection after offer processing
+                        lock (_iceLock)
+                        {
+                            _pendingIce[0] = new List<string>(_allReceivedIceCandidates);
+                            Logger.Info($"[Protocol] DTLS retry: re-queued {_allReceivedIceCandidates.Count} cached ICE candidates for new PC");
+                        }
+
                         // Re-process cached offer (creates new PC with fresh certificate)
                         await ProcessSingleOfferAsync(_lastOfferSdp);
 
@@ -619,12 +627,20 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
+            // Capture generation to detect if a codec_fallback invalidated this offer during processing
+            int gen = _offerGeneration;
+
             // Reset RTP sync and encoder state for new session/reconnect
             _streamer.ResetSyncState();
 
             // Cache offer for DTLS auto-retry
-            _lastOfferSdp = offerSdp;
-            _dtlsRetryCount = 0;
+            // Only reset retry count on a genuinely new offer (not during DTLS retry)
+            if (!_dtlsRetrying)
+            {
+                _lastOfferSdp = offerSdp;
+                _dtlsRetryCount = 0;
+                lock (_iceLock) { _allReceivedIceCandidates.Clear(); }
+            }
 
             Logger.Info("[Protocol] Received single offer for all monitors");
 
@@ -691,6 +707,14 @@ namespace RemotePlayServer.Application.Protocol
 
                 // Process offer with all dimensions at once
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
+
+                // Check if a codec_fallback arrived while we were processing this offer.
+                // If so, discard this stale answer — the client already sent/will send a new offer.
+                if (_offerGeneration != gen)
+                {
+                    Logger.Warn($"[Protocol] Discarding stale answer (gen={gen}, current={_offerGeneration}) — codec_fallback received during offer processing");
+                    return;
+                }
 
                 // Fix m-line order: SIPSorcery may reorder (audio before video) breaking strict WebRTC
                 var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);
@@ -1260,6 +1284,9 @@ namespace RemotePlayServer.Application.Protocol
 
             lock (_iceLock)
             {
+                // Cache for DTLS retry re-application
+                _allReceivedIceCandidates.Add(candidate);
+
                 // Single-PC mode: all candidates go to the same connection
                 if (_answersReady.Contains(0))
                 {
