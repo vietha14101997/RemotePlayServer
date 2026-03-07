@@ -21,6 +21,7 @@ public partial class SIPSorceryStreamer
     private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — buffer drained
     private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — defer IDR send
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
+    private volatile bool _congestionBitrateReduced; // true while bitrate is temporarily reduced due to DC congestion
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -580,18 +581,31 @@ public partial class SIPSorceryStreamer
         if (dc == null) return false;
 
         ulong buffered = dc.bufferedAmount;
+        bool perTrackMode = IsPerTrackDcMode();
+        long now = Environment.TickCount64;
+        const long CongestResyncCooldownMs = 2000; // Min 2s between forced IDR resyncs per track
 
-        // Per-track drain detection: this track's DC was congested, now drained → force IDR
+        // Per-track drain detection: this track's DC was congested, now drained → force IDR (with cooldown)
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
             track.PFramesDroppedDuringCongestion = false;
-            track.ForceNextKeyframe = true;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+            _congestionBitrateReduced = false; // Allow adaptive bitrate to recover naturally
+            if (now - track.LastCongestResyncTicks >= CongestResyncCooldownMs)
+            {
+                track.ForceNextKeyframe = true;
+                track.LastCongestResyncTicks = now;
+                Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+            }
+            else
+            {
+                Logger.Debug($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — IDR resync skipped (cooldown)");
+            }
         }
-        // Legacy single-DC drain detection
-        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
+        // Legacy single-DC drain detection (only in legacy mode to avoid cross-track contamination)
+        if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
+            _congestionBitrateReduced = false;
             Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), IDR resync");
             ForceIdrForDroppedTracks();
         }
@@ -602,7 +616,7 @@ public partial class SIPSorceryStreamer
         {
             Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
             track.PFramesDroppedDuringCongestion = true; // IDR deferred = track also needs resync
-            _dcWasAboveHigh = true;
+            if (!perTrackMode) _dcWasAboveHigh = true;
             return false;
         }
 
@@ -664,28 +678,56 @@ public partial class SIPSorceryStreamer
 
         ulong buffered = dc.bufferedAmount;
 
+        bool perTrackMode = IsPerTrackDcMode();
+        long now = Environment.TickCount64;
+        const long CongestResyncCooldownMs = 2000; // Min 2s between forced IDR resyncs per track
+
         // Flow control: Skip P-frame when buffer is congested.
         // Unlike IDR, dropping a P-frame is acceptable — next IDR will resync.
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
             track.PFramesDroppedDuringCongestion = true;
-            _dcWasAboveHigh = true;
+            if (!perTrackMode) _dcWasAboveHigh = true;
+            // Temporarily reduce bitrate so the next IDR frame is smaller and doesn't
+            // immediately re-fill the SCTP buffer (prevents IDR storm cycle).
+            if (!_congestionBitrateReduced)
+            {
+                _congestionBitrateReduced = true;
+                int currentBitrate = _bitrateController.TargetBitrateKbps;
+                int reducedBitrate = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 60 / 100); // -40%
+                if (reducedBitrate < currentBitrate)
+                {
+                    _bitrateController.ForceTarget(reducedBitrate);
+                    ApplyBitrateToAllEncoders(reducedBitrate);
+                    Logger.Info($"[SIPSorcery] DC congestion → bitrate reduced {currentBitrate} → {reducedBitrate}kbps (-40%) to shrink IDR frames");
+                }
+            }
             if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame");
             return false;
         }
 
-        // Per-track drain detection: this track's DC was congested, now drained → force IDR
+        // Per-track drain detection: this track's DC was congested, now drained → force IDR (with cooldown)
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
             track.PFramesDroppedDuringCongestion = false;
-            track.ForceNextKeyframe = true;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+            _congestionBitrateReduced = false; // Allow adaptive bitrate to recover naturally
+            if (now - track.LastCongestResyncTicks >= CongestResyncCooldownMs)
+            {
+                track.ForceNextKeyframe = true;
+                track.LastCongestResyncTicks = now;
+                Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+            }
+            else
+            {
+                Logger.Debug($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — IDR resync skipped (cooldown)");
+            }
         }
-        // Legacy single-DC drain detection
-        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
+        // Legacy single-DC drain detection (only in legacy mode)
+        if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
+            _congestionBitrateReduced = false;
             ForceIdrForDroppedTracks();
         }
 
@@ -724,9 +766,32 @@ public partial class SIPSorceryStreamer
     }
 
     /// <summary>
+    /// Apply bitrate to all track encoders. Used for congestion-based bitrate reduction.
+    /// </summary>
+    private void ApplyBitrateToAllEncoders(int bitrateKbps)
+    {
+        TrackInfo[] snapshot;
+        lock (_lock) { snapshot = _tracks.ToArray(); }
+        foreach (var t in snapshot)
+        {
+            lock (t.EncodeLock) { t.Encoder?.SetBitrate(bitrateKbps); }
+        }
+    }
+
+    /// <summary>
+    /// Check if per-track DataChannels are active (vs legacy single DC).
+    /// When per-track DCs are active, we must NOT use the global _dcWasAboveHigh flag
+    /// because it causes cross-track contamination (Track 1 congestion forces Track 0 IDR).
+    /// </summary>
+    private bool IsPerTrackDcMode()
+    {
+        lock (_h265VideoDcs) { return _h265VideoDcs.Count > 0; }
+    }
+
+    /// <summary>
     /// After DC buffer drains from congestion, force IDR for every track that had P-frames
-    /// silently dropped. Without this, the client decoder has a broken reference chain and
-    /// the track stays frozen until a coincidental keyframe request arrives.
+    /// silently dropped. Only used in legacy single-DC mode.
+    /// In per-track DC mode, each track handles its own drain detection independently.
     /// </summary>
     private void ForceIdrForDroppedTracks()
     {
