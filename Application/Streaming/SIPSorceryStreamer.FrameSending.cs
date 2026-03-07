@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Vortice.Direct3D11;
 using SIPSorcery.Net;
 using SIPSorcery.Media;
@@ -300,6 +301,31 @@ public partial class SIPSorceryStreamer
                         track.IdrViaDcCount++;
                         if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
                             Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
+
+                        // Bootstrap retry: On fresh SCTP connections, the congestion window is tiny
+                        // (~5KB) and the first IDR (60-100KB) may be silently dropped by SCTP.
+                        // Schedule a retry IDR after 500ms to cover this case.
+                        if (track.IdrViaDcCount == 1)
+                        {
+                            int retryTrackIdx = track.Index;
+                            Task.Delay(500).ContinueWith(_ =>
+                            {
+                                if (!_running || !_connected) return;
+                                lock (_lock)
+                                {
+                                    if (retryTrackIdx < _tracks.Count)
+                                    {
+                                        var t = _tracks[retryTrackIdx];
+                                        // Only retry if very few frames sent (bootstrap still in progress)
+                                        if (Interlocked.Read(ref t.SentFrames) < 10)
+                                        {
+                                            t.ForceNextKeyframe = true;
+                                            Logger.Info($"[SIPSorcery] Track {retryTrackIdx}: Bootstrap IDR retry (SCTP slow-start protection)");
+                                        }
+                                    }
+                                }
+                            });
+                        }
 
                         // IDR sent via DC — P-frames also go via DC below.
                         Interlocked.Increment(ref track.SentFrames);
