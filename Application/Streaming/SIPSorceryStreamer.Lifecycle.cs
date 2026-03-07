@@ -352,6 +352,8 @@ public partial class SIPSorceryStreamer
 
             // Do NOT call _tracks.Clear() - we persist TrackInfo for encoder/device reuse (SSRC is refreshed above)
             _dcWasAboveHigh = false;
+            foreach (var t in _tracks)
+                t.PFramesDroppedDuringCongestion = false;
             _pendingDevices.Clear();
         }
 

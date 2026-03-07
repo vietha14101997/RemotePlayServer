@@ -562,11 +562,12 @@ public partial class SIPSorceryStreamer
 
         ulong buffered = dc.bufferedAmount;
 
-        // Drain detection: DC was congested, now drained
+        // Drain detection: DC was congested, now drained — force IDR for tracks that lost P-frames
         if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
             Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB), IDR resync");
+            ForceIdrForDroppedTracks();
         }
 
         // Flow control: Block IDR when buffer is already congested.
@@ -574,6 +575,7 @@ public partial class SIPSorceryStreamer
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
             Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
+            track.PFramesDroppedDuringCongestion = true; // IDR deferred = track also needs resync
             _dcWasAboveHigh = true;
             return false;
         }
@@ -640,9 +642,18 @@ public partial class SIPSorceryStreamer
         // Unlike IDR, dropping a P-frame is acceptable — next IDR will resync.
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
+            track.PFramesDroppedDuringCongestion = true;
+            _dcWasAboveHigh = true;
             if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), dropping P-frame");
             return false;
+        }
+
+        // Drain detection: DC was congested, now drained — force IDR for tracks that lost P-frames
+        if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
+        {
+            _dcWasAboveHigh = false;
+            ForceIdrForDroppedTracks();
         }
 
         try
@@ -676,6 +687,27 @@ public partial class SIPSorceryStreamer
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 P-frame: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// After DC buffer drains from congestion, force IDR for every track that had P-frames
+    /// silently dropped. Without this, the client decoder has a broken reference chain and
+    /// the track stays frozen until a coincidental keyframe request arrives.
+    /// </summary>
+    private void ForceIdrForDroppedTracks()
+    {
+        lock (_lock)
+        {
+            foreach (var t in _tracks)
+            {
+                if (t.PFramesDroppedDuringCongestion)
+                {
+                    t.PFramesDroppedDuringCongestion = false;
+                    t.ForceNextKeyframe = true;
+                    Logger.Info($"[SIPSorcery] Track {t.Index}: DC congestion cleared — forcing IDR resync (P-frames were dropped)");
+                }
+            }
         }
     }
 

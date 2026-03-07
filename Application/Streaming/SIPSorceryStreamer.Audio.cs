@@ -42,26 +42,26 @@ public partial class SIPSorceryStreamer
                 if (!_phase3Active) return;
                 try
                 {
-                    // Primary: send Opus via DataChannel (same SCTP transport as H.265 video).
-                    // This keeps audio/video in sync — both travel the same path with similar latency.
-                    // RTP audio goes through Unity WebRTC's NetEQ jitter buffer (~500ms+) causing desync.
-                    var dc = _audioDc;
-                    if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    // Primary: send Opus via RTP (independent UDP transport).
+                    // With H.265 video on DataChannel, SCTP congestion starves audio DC
+                    // causing 300-500ms delay + distortion. RTP travels separate UDP path.
+                    var pc = _pc;
+                    if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                     {
                         var packet = new byte[opusLength];
                         Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-                        dc.send(packet);
+                        pc.SendAudio(rtpDuration, packet);
                         Interlocked.Increment(ref _audioPacketsSent);
                     }
                     else
                     {
-                        // Fallback: send Opus via RTP on main PC
-                        var pc = _pc;
-                        if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                        // Fallback: send Opus via DataChannel if RTP not available
+                        var dc = _audioDc;
+                        if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                         {
                             var packet = new byte[opusLength];
                             Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-                            pc.SendAudio(rtpDuration, packet);
+                            dc.send(packet);
                             Interlocked.Increment(ref _audioPacketsSent);
                         }
                     }
@@ -80,21 +80,21 @@ public partial class SIPSorceryStreamer
             {
                 if (audioPathLogged) return;
                 var dcCheck = _audioDc;
-                if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                if (_pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                 {
-                    Logger.Info("[SIPSorcery] Audio path: DataChannel (same SCTP as video, synced latency)");
+                    Logger.Info("[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)");
                     audioPathLogged = true;
                 }
-                else if (_pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                else if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                 {
-                    Logger.Info("[SIPSorcery] Audio path: RTP fallback (DC not open, using NetEQ path)");
+                    Logger.Info("[SIPSorcery] Audio path: DataChannel fallback (RTP not connected)");
                     audioPathLogged = true;
                 }
             };
 
             _audioCapture.Start();
 
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel primary)");
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)");
         }
         catch (Exception ex)
         {
