@@ -369,8 +369,15 @@ public partial class SIPSorceryStreamer
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;
 
-        try { _h265VideoDc?.close(); } catch { }
-        _h265VideoDc = null;
+        // Close per-track H265 video DataChannels
+        lock (_h265VideoDcs)
+        {
+            foreach (var dc in _h265VideoDcs.Values)
+                try { dc.close(); } catch { }
+            _h265VideoDcs.Clear();
+        }
+        try { _h265VideoDcLegacy?.close(); } catch { }
+        _h265VideoDcLegacy = null;
 
         try { _pc?.close(); } catch { }
         _pc = null;

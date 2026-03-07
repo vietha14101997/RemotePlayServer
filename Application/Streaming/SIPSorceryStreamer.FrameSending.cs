@@ -17,9 +17,10 @@ public partial class SIPSorceryStreamer
 {
     // H265 DataChannel flow control — ALL H265 frames (IDR + P) use DC.
     // Unity WebRTC Encoded Transform never fires for H.265 RTP packets.
+    // With per-track DCs, each track has its own SCTP buffer → no cross-track congestion.
     private const ulong DC_BUFFER_LOW_WATER  =  64_000;  //  64KB — buffer drained
     private const ulong DC_BUFFER_HIGH_WATER = 256_000;  // 256KB — defer IDR send
-    private bool _dcWasAboveHigh;    // track transition from HIGH→LOW for IDR resync
+    private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -470,27 +471,45 @@ public partial class SIPSorceryStreamer
     }
 
     /// <summary>
-    /// Check if the DataChannel used for H265 frame delivery is open and ready.
-    /// Prefers dedicated h265video DC (unreliable, unordered) to avoid SCTP HOL blocking on audio.
-    /// Falls back to cursor DC for backward compatibility.
+    /// Check if a DataChannel for H265 frame delivery is open and ready.
+    /// Checks per-track DC first, then legacy single DC, then cursor DC fallback.
     /// </summary>
     private bool IsH265DataChannelReady()
     {
-        var dc = _h265VideoDc ?? _cursorDc;
-        return dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open;
+        // Per-track DCs: if any exist, at least one should be open
+        lock (_h265VideoDcs)
+        {
+            if (_h265VideoDcs.Count > 0)
+                return _h265VideoDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open);
+        }
+        // Legacy single DC
+        var legacyDc = _h265VideoDcLegacy;
+        if (legacyDc?.readyState == RTCDataChannelState.open) return true;
+        // Cursor DC fallback
+        var cursorDc = _cursorDc;
+        return cursorDc?.readyState == RTCDataChannelState.open;
     }
 
     /// <summary>
-    /// Get the best available DataChannel for H265 video frames.
-    /// Prefers h265video DC (unreliable, unordered) over cursor DC.
+    /// Get the DataChannel for a specific track's H265 video frames.
+    /// Priority: per-track DC → legacy single DC → cursor DC fallback.
+    /// Per-track DCs give each track its own SCTP buffer, preventing cross-track congestion.
     /// </summary>
-    private RTCDataChannel? GetH265VideoChannel()
+    private RTCDataChannel? GetH265VideoChannel(int trackIndex)
     {
-        var dc = _h265VideoDc;
-        if (dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open) return dc;
-        // Fallback to cursor DC (reliable, ordered) if h265video DC not available
-        dc = _cursorDc;
-        return dc?.readyState == SIPSorcery.Net.RTCDataChannelState.open ? dc : null;
+        // 1. Per-track DC (best: isolated buffer per track)
+        lock (_h265VideoDcs)
+        {
+            if (_h265VideoDcs.TryGetValue(trackIndex, out var perTrackDc) &&
+                perTrackDc.readyState == RTCDataChannelState.open)
+                return perTrackDc;
+        }
+        // 2. Legacy single DC
+        var legacyDc = _h265VideoDcLegacy;
+        if (legacyDc?.readyState == RTCDataChannelState.open) return legacyDc;
+        // 3. Cursor DC fallback (reliable, ordered)
+        var cursorDc = _cursorDc;
+        return cursorDc?.readyState == RTCDataChannelState.open ? cursorDc : null;
     }
 
     /// <summary>
@@ -499,7 +518,7 @@ public partial class SIPSorceryStreamer
     /// </summary>
     private void SendH265ParamSetsViaDataChannel(TrackInfo track, byte[] keyframeData)
     {
-        var dc = GetH265VideoChannel();
+        var dc = GetH265VideoChannel(track.Index);
         if (dc == null) return;
 
         try
@@ -557,12 +576,19 @@ public partial class SIPSorceryStreamer
     /// <returns>true if IDR was sent, false if deferred or failed</returns>
     private bool SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
     {
-        var dc = GetH265VideoChannel();
+        var dc = GetH265VideoChannel(track.Index);
         if (dc == null) return false;
 
         ulong buffered = dc.bufferedAmount;
 
-        // Drain detection: DC was congested, now drained — force IDR for tracks that lost P-frames
+        // Per-track drain detection: this track's DC was congested, now drained → force IDR
+        if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
+        {
+            track.PFramesDroppedDuringCongestion = false;
+            track.ForceNextKeyframe = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+        }
+        // Legacy single-DC drain detection
         if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
@@ -633,7 +659,7 @@ public partial class SIPSorceryStreamer
     /// <returns>true if P-frame was sent, false if deferred or failed</returns>
     private bool SendH265PFrameViaDataChannel(TrackInfo track, byte[] pframeData)
     {
-        var dc = GetH265VideoChannel();
+        var dc = GetH265VideoChannel(track.Index);
         if (dc == null) return false;
 
         ulong buffered = dc.bufferedAmount;
@@ -649,7 +675,14 @@ public partial class SIPSorceryStreamer
             return false;
         }
 
-        // Drain detection: DC was congested, now drained — force IDR for tracks that lost P-frames
+        // Per-track drain detection: this track's DC was congested, now drained → force IDR
+        if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
+        {
+            track.PFramesDroppedDuringCongestion = false;
+            track.ForceNextKeyframe = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — forcing IDR resync");
+        }
+        // Legacy single-DC drain detection
         if (_dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;

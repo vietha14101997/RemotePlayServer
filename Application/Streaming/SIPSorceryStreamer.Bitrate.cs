@@ -94,11 +94,16 @@ public partial class SIPSorceryStreamer
     {
         // Initialization is now done in constructur / config changes
 
-        // Block bitrate increases while DC buffer is congested.
+        // Block bitrate increases while ANY DC buffer is congested.
         // AdaptiveBitrate sees "0% loss, healthy" because drops happen at DC layer,
         // invisible to the client feedback loop. Increasing bitrate during DC congestion
         // makes frames larger → buffer fills faster → congestion gets worse.
-        if (_dcWasAboveHigh)
+        bool anyTrackCongested = _dcWasAboveHigh; // legacy single-DC
+        if (!anyTrackCongested)
+        {
+            lock (_lock) { anyTrackCongested = _tracks.Any(t => t.PFramesDroppedDuringCongestion); }
+        }
+        if (anyTrackCongested)
         {
             // Don't even call ProcessFeedback — any increase would be harmful,
             // and the controller's recovery timer would advance incorrectly.

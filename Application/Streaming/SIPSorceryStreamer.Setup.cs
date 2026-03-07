@@ -166,19 +166,36 @@ public partial class SIPSorceryStreamer
             }
             else if (dc.label == "h265video")
             {
-                _h265VideoDc = dc;
-                _h265VideoDc.onopen += () =>
+                // Legacy single-DC mode (backward compat with older clients)
+                _h265VideoDcLegacy = dc;
+                _h265VideoDcLegacy.onopen += () =>
                 {
-                    Logger.Info("[SIPSorcery] H265 Video DataChannel opened (unreliable, unordered) - forcing keyframe for bootstrap");
-                    // Force keyframe on all tracks once H265 video DC is ready
+                    Logger.Info("[SIPSorcery] H265 Video DataChannel opened (legacy single-DC, unreliable, unordered) - forcing keyframe for bootstrap");
                     RequestKeyframe(-1, force: true);
                 };
-                _h265VideoDc.onclose += () => { Logger.Info("[SIPSorcery] H265 Video DataChannel closed"); _h265VideoDc = null; };
-                Logger.Info("[SIPSorcery] H265 Video DataChannel wired for sending");
+                _h265VideoDcLegacy.onclose += () => { Logger.Info("[SIPSorcery] H265 Video DataChannel closed (legacy)"); _h265VideoDcLegacy = null; };
+                Logger.Info("[SIPSorcery] H265 Video DataChannel wired (legacy single-DC mode)");
+            }
+            else if (dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int trackIdx))
+            {
+                // Per-track DC mode: each track has its own buffer → no cross-track congestion
+                lock (_h265VideoDcs) { _h265VideoDcs[trackIdx] = dc; }
+                dc.onopen += () =>
+                {
+                    Logger.Info($"[SIPSorcery] H265 Video DataChannel opened for track {trackIdx} (per-track, unreliable, unordered)");
+                    RequestKeyframe(trackIdx, force: true);
+                };
+                int closedIdx = trackIdx; // capture for closure
+                dc.onclose += () =>
+                {
+                    Logger.Info($"[SIPSorcery] H265 Video DataChannel closed for track {closedIdx}");
+                    lock (_h265VideoDcs) { _h265VideoDcs.Remove(closedIdx); }
+                };
+                Logger.Info($"[SIPSorcery] H265 Video DataChannel wired for track {trackIdx}");
             }
         };
         _hasAudioTrack = true;
-        Logger.Info("[SIPSorcery] Waiting for client audio/cursor/h265video DataChannels");
+        Logger.Info("[SIPSorcery] Waiting for client audio/cursor/h265video DataChannels (per-track or legacy)");
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>

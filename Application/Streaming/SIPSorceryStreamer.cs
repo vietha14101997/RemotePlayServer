@@ -68,7 +68,12 @@ public partial class SIPSorceryStreamer : IDisposable
     private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
     private RTCPeerConnection? _audioPc; // Dedicated PeerConnection for audio RTP (isolated from H.265 video SCTP congestion)
     private volatile RTCDataChannel? _cursorDc; // DataChannel for low-latency cursor position updates
-    private volatile RTCDataChannel? _h265VideoDc; // DataChannel for H.265 video (unreliable, unordered - avoids SCTP HOL blocking on audio)
+    // Per-track DataChannels for H.265 video (unreliable, unordered).
+    // Each track has its own DC to prevent cross-track congestion (e.g., Track 1 video filling
+    // the shared buffer and starving Track 0). Labels: "h265video-0", "h265video-1", etc.
+    // Falls back to single "h265video" DC for backward compatibility with older clients.
+    private readonly Dictionary<int, RTCDataChannel> _h265VideoDcs = new();
+    private volatile RTCDataChannel? _h265VideoDcLegacy; // Single "h265video" DC for backward compat
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
