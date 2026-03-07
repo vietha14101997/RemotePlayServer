@@ -19,8 +19,8 @@ public partial class SIPSorceryStreamer
     // H265 DataChannel flow control — ALL H265 frames (IDR + P) use DC.
     // Unity WebRTC Encoded Transform never fires for H.265 RTP packets.
     // With per-track DCs, each track has its own SCTP buffer → no cross-track congestion.
-    private const ulong DC_BUFFER_LOW_WATER  = 256_000;  // 256KB — buffer drained
-    private const ulong DC_BUFFER_HIGH_WATER = 1_048_576;  // 1MB — must accommodate periodic GOP IDR frames
+    private const ulong DC_BUFFER_LOW_WATER  = 128_000;  // 128KB — buffer drained
+    private const ulong DC_BUFFER_HIGH_WATER = 512_000;  // 512KB — keep low for cursor/input latency
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     private volatile bool _congestionBitrateReduced; // true while bitrate is temporarily reduced due to DC congestion
 

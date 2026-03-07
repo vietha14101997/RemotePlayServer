@@ -93,10 +93,15 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
 
-    // Quality floor: prevent encoder from using too-high QP on P-frames (causes text smearing)
-    // QP range: 0 (best quality) - 51 (worst). Cap at 30 for decent text readability.
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)26);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)30);
+    // Full range color: BGRA input is 0-255 (sRGB/BT.709 full range).
+    // Default studio range (16-235) loses precision → worse chroma bleeding on colored text.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INPUT_COLOR_PROFILE, (amf_int64)AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INPUT_FULL_RANGE_COLOR, true);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_OUTPUT_FULL_RANGE_COLOR, (amf_int64)AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE_FULL);
+
+    // Quality floor: prevent encoder from using too-high QP on colored text regions.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)22);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)24);
 
     // Intra Refresh: gradually refresh CTBs (64x64 blocks) across frames.
     // Prevents temporal artifact accumulation without large IDR spikes.
