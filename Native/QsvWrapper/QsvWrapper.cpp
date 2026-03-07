@@ -606,10 +606,8 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
         }
     }
 
-    // Force keyframe after bitrate change
-    var.vt = VT_UI4;
-    var.ulVal = 1;
-    ctx->codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
+    // Do NOT force keyframe on bitrate change — encoder applies new bitrate
+    // to the next P-frame. Forcing IDR causes DC congestion death spiral.
 
     ctx->bitrate = bitrateKbps;
 

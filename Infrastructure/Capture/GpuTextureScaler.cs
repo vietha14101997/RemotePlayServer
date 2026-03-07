@@ -10,7 +10,9 @@ namespace RemotePlayServer.Infrastructure.Capture
 {
     /// <summary>
     /// GPU-accelerated texture scaler using Compute Shader.
-    /// Performs bilinear scaling from source BGRA texture to target BGRA texture.
+    /// Performs Mitchell-Netravali (B=1/3, C=1/3) scaling from source BGRA texture to target BGRA texture.
+    /// Mitchell-Netravali is sharper than bilinear with zero ringing artifacts,
+    /// ideal for text-heavy desktop streaming where Lanczos causes color fringing.
     /// Each instance is tied to a single D3D11 device.
     /// </summary>
     public class GpuTextureScaler : IDisposable
@@ -43,13 +45,16 @@ namespace RemotePlayServer.Infrastructure.Capture
             public uint DstHeight;
         }
 
-        // HLSL Compute Shader for bilinear scaling
+        // HLSL Compute Shader for Mitchell-Netravali scaling
+        // Mitchell-Netravali (B=1/3, C=1/3) balances sharpness and ringing.
+        // Sharper than bilinear but NO ringing artifacts like Lanczos,
+        // which is critical for text-heavy desktop streaming (white text on dark bg).
         private const string ScaleShaderSource = @"
 // Input: Source BGRA texture
 Texture2D<float4> srcTexture : register(t0);
 SamplerState linearSampler : register(s0);
 
-// Output: Destination BGRA texture  
+// Output: Destination BGRA texture
 RWTexture2D<float4> dstTexture : register(u0);
 
 // Parameters
@@ -61,22 +66,86 @@ cbuffer ScaleParams : register(b0)
     uint dstHeight;
 };
 
+// Mitchell-Netravali cubic filter (B=1/3, C=1/3)
+// Support radius = 2 pixels. No ringing, good sharpness.
+static const float MN_B = 1.0f / 3.0f;
+static const float MN_C = 1.0f / 3.0f;
+
+float mitchellWeight(float x)
+{
+    float ax = abs(x);
+    if (ax >= 2.0f) return 0.0f;
+
+    float ax2 = ax * ax;
+    float ax3 = ax2 * ax;
+
+    if (ax < 1.0f)
+    {
+        return ((12.0f - 9.0f * MN_B - 6.0f * MN_C) * ax3
+              + (-18.0f + 12.0f * MN_B + 6.0f * MN_C) * ax2
+              + (6.0f - 2.0f * MN_B)) / 6.0f;
+    }
+    else // 1 <= ax < 2
+    {
+        return ((-MN_B - 6.0f * MN_C) * ax3
+              + (6.0f * MN_B + 30.0f * MN_C) * ax2
+              + (-12.0f * MN_B - 48.0f * MN_C) * ax
+              + (8.0f * MN_B + 24.0f * MN_C)) / 6.0f;
+    }
+}
+
 [numthreads(16, 16, 1)]
 void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Check bounds
     if (dispatchThreadId.x >= dstWidth || dispatchThreadId.y >= dstHeight)
         return;
-    
-    // Calculate source UV coordinates (0-1 range)
-    float u = (float(dispatchThreadId.x) + 0.5f) / float(dstWidth);
-    float v = (float(dispatchThreadId.y) + 0.5f) / float(dstHeight);
-    
-    // Sample source texture with bilinear filtering
-    float4 color = srcTexture.SampleLevel(linearSampler, float2(u, v), 0);
-    
-    // Write to destination
-    dstTexture[dispatchThreadId.xy] = color;
+
+    // Source coordinate (center of destination pixel mapped to source)
+    float srcX = (float(dispatchThreadId.x) + 0.5f) * float(srcWidth) / float(dstWidth) - 0.5f;
+    float srcY = (float(dispatchThreadId.y) + 0.5f) * float(srcHeight) / float(dstHeight) - 0.5f;
+
+    // Scale ratio for kernel window (use wider window when downscaling)
+    float scaleX = max(1.0f, float(srcWidth) / float(dstWidth));
+    float scaleY = max(1.0f, float(srcHeight) / float(dstHeight));
+    float invScaleX = 1.0f / scaleX;
+    float invScaleY = 1.0f / scaleY;
+
+    // Mitchell-Netravali has support radius = 2
+    static const int RADIUS = 2;
+
+    // Kernel window bounds
+    int x0 = int(floor(srcX - RADIUS * scaleX));
+    int x1 = int(ceil(srcX + RADIUS * scaleX));
+    int y0 = int(floor(srcY - RADIUS * scaleY));
+    int y1 = int(ceil(srcY + RADIUS * scaleY));
+
+    // Clamp to source bounds
+    x0 = max(x0, 0); x1 = min(x1, int(srcWidth) - 1);
+    y0 = max(y0, 0); y1 = min(y1, int(srcHeight) - 1);
+
+    float4 colorSum = float4(0, 0, 0, 0);
+    float weightSum = 0.0f;
+
+    for (int iy = y0; iy <= y1; iy++)
+    {
+        float wy = mitchellWeight((float(iy) - srcY) * invScaleY);
+        for (int ix = x0; ix <= x1; ix++)
+        {
+            float wx = mitchellWeight((float(ix) - srcX) * invScaleX);
+            float w = wx * wy;
+            float4 s = srcTexture[int2(ix, iy)];
+            colorSum += s * w;
+            weightSum += w;
+        }
+    }
+
+    if (weightSum > 0.0f)
+        colorSum /= weightSum;
+
+    // Mitchell-Netravali has minimal overshoot, but clamp for safety
+    colorSum = saturate(colorSum);
+
+    dstTexture[dispatchThreadId.xy] = colorSum;
 }
 ";
 

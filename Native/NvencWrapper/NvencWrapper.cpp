@@ -112,7 +112,7 @@ NVENCWRAPPER_API int NvencIsAvailable() {
 static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitrate, bool useHevc) {
     encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
     encodeConfig.rcParams.averageBitRate = bitrate * 1000;
-    encodeConfig.rcParams.maxBitRate = bitrate * 1000 * 12 / 10;  // 1.2x average
+    encodeConfig.rcParams.maxBitRate = bitrate * 1000 * 15 / 10;  // 1.5x average (headroom for text/desktop burst)
     // H265 IDR frames need more room; use 2-frame VBV for HEVC, 1-frame for H264
     int vbvFrames = useHevc ? 2 : 1;
     encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps * vbvFrames;
@@ -650,7 +650,10 @@ static void BuildReconfigParams(
 {
     reconfigParams = {};
     reconfigParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
-    reconfigParams.forceIDR = 1;
+    // Do NOT force IDR on bitrate/FPS change — encoder applies new settings
+    // to the next P-frame. Forcing IDR causes DC congestion death spiral
+    // (IDR too large → SCTP overflow → reduce bitrate → another IDR → repeat).
+    reconfigParams.forceIDR = 0;
 
     GUID encodeGuid = ctx->useHevc ? NV_ENC_CODEC_HEVC_GUID : NV_ENC_CODEC_H264_GUID;
 

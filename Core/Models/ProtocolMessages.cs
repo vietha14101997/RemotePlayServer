@@ -223,6 +223,14 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("networkInfo")]
         public NetworkInfoDto? NetworkInfo { get; set; }
+
+        /// <summary>
+        /// Maximum native resolution height across all physical monitors on the server.
+        /// Client should use this to restrict resolution dropdown options:
+        /// e.g., if maxNativeHeight < 1440, the 1440p option should be disabled.
+        /// </summary>
+        [JsonPropertyName("maxNativeHeight")]
+        public int MaxNativeHeight { get; set; }
     }
 
     /// <summary>

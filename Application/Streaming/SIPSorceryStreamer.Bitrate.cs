@@ -277,21 +277,21 @@ public partial class SIPSorceryStreamer
     {
         if (resolutionHeight <= 720)
         {
-            if (fps <= 30) return (2500, 4000);
-            if (fps <= 60) return (3500, 5000);
-            return (6000, 8000); // 120 fps
+            if (fps <= 30) return (2000, 5000);
+            if (fps <= 60) return (3000, 7000);
+            return (5000, 10000); // 120 fps
         }
         else if (resolutionHeight <= 1080)
         {
-            if (fps <= 30) return (3500, 5000);
-            if (fps <= 60) return (4500, 9000);
-            return (10000, 15000); // 120 fps
+            if (fps <= 30) return (4000, 8000);
+            if (fps <= 60) return (6000, 15000);
+            return (12000, 25000); // 120 fps
         }
         else // 1440p+
         {
-            if (fps <= 30) return (6000, 13000);
-            if (fps <= 60) return (9000, 18000);
-            return (18000, 30000); // 120 fps
+            if (fps <= 30) return (6000, 15000);
+            if (fps <= 60) return (10000, 25000);
+            return (20000, 40000); // 120 fps
         }
     }
 

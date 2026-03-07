@@ -49,41 +49,63 @@ static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
 }
 
 // Configure common encoder properties for low-latency streaming (H.264)
-static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int bitrate) {
+static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
     encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_BASELINE);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 40);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_QUALITY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_MAIN);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 42);
     encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1200);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1500);
     encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, 0); // Infinite GOP (match Nvenc)
+    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 5); // 5 second GOP
     encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
+
+    // Intra Refresh: gradually refresh MBs (16x16 blocks) across frames.
+    int mbCols = (width + 15) / 16;
+    int mbRows = (height + 15) / 16;
+    int totalMbs = mbCols * mbRows;
+    int mbsPerSlot = (totalMbs + fps - 1) / fps;
+    if (mbsPerSlot < 1) mbsPerSlot = 1;
+    encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)mbsPerSlot);
 }
 
 // Configure encoder properties for low-latency streaming (H.265/HEVC)
-static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int bitrate) {
+static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, AMF_VIDEO_ENCODER_HEVC_USAGE_LOW_LATENCY);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_BALANCED);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_QUALITY);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE, AMF_VIDEO_ENCODER_HEVC_PROFILE_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TIER, AMF_VIDEO_ENCODER_HEVC_TIER_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE_LEVEL, AMF_LEVEL_5_1);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrate * 1000);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1200);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1500);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, 0); // Infinite GOP (match Nvenc)
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, 0); // Infinite GOP — rely on intra refresh for quality
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
+
+    // Quality floor: prevent encoder from using too-high QP on P-frames (causes text smearing)
+    // QP range: 0 (best quality) - 51 (worst). Cap at 30 for decent text readability.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)26);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)30);
+
+    // Intra Refresh: gradually refresh CTBs (64x64 blocks) across frames.
+    // Prevents temporal artifact accumulation without large IDR spikes.
+    int ctbCols = (width + 63) / 64;
+    int ctbRows = (height + 63) / 64;
+    int totalCtbs = ctbCols * ctbRows;
+    int ctbsPerSlot = (totalCtbs + fps - 1) / fps; // Refresh entire frame in ~1 second
+    if (ctbsPerSlot < 1) ctbsPerSlot = 1;
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)ctbsPerSlot);
 }
 
 // Encoder context structure
@@ -182,9 +204,9 @@ static int AmfCreateEncoderInternal(
 
     // Configure encoder properties
     if (useHevc) {
-        ConfigureAmfEncoderHEVC(ctx->encoder, fps, bitrate);
+        ConfigureAmfEncoderHEVC(ctx->encoder, fps, bitrate, width, height);
     } else {
-        ConfigureAmfEncoderH264(ctx->encoder, fps, bitrate);
+        ConfigureAmfEncoderH264(ctx->encoder, fps, bitrate, width, height);
     }
 
     // Initialize encoder with appropriate surface format
@@ -464,6 +486,22 @@ AMFWRAPPER_API int AmfEncodeTexture(AmfEncoderHandle handle, ID3D11Texture2D* nv
     return AmfSubmitAndDrain(ctx, surface, forceKeyframe);
 }
 
+// SEH-safe helper: SetProperty can throw SEH/COM exceptions that try/catch won't catch.
+// __try/__except cannot coexist with C++ destructors, so isolate the call here.
+static int AmfSetBitrateProperty(amf::AMFComponent* encoder, bool useHevc, amf_int64 bitrateBps) {
+    __try {
+        AMF_RESULT res;
+        if (useHevc) {
+            res = encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrateBps);
+        } else {
+            res = encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrateBps);
+        }
+        return (int)res;
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
+        return -1; // SEH caught
+    }
+}
+
 // Dynamically change encoder bitrate (codec-aware)
 AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
     if (!handle) {
@@ -484,33 +522,16 @@ AMFWRAPPER_API int AmfSetBitrate(AmfEncoderHandle handle, int bitrateKbps) {
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
-    AMF_RESULT res;
-
-    if (ctx->useHevc) {
-        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrateKbps * 1000);
-        if (res != AMF_OK) {
-            g_lastError = "SetProperty HEVC_TARGET_BITRATE failed: " + std::to_string(res);
-            return AMF_WRAPPER_FAIL;
-        }
-        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrateKbps * 1200);
-        if (res != AMF_OK) {
-            g_lastError = "SetProperty HEVC_PEAK_BITRATE failed: " + std::to_string(res);
-            return AMF_WRAPPER_FAIL;
-        }
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
-    } else {
-        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrateKbps * 1000);
-        if (res != AMF_OK) {
-            g_lastError = "SetProperty TARGET_BITRATE failed: " + std::to_string(res);
-            return AMF_WRAPPER_FAIL;
-        }
-        res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrateKbps * 1200);
-        if (res != AMF_OK) {
-            g_lastError = "SetProperty PEAK_BITRATE failed: " + std::to_string(res);
-            return AMF_WRAPPER_FAIL;
-        }
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+    // Only change TARGET_BITRATE at runtime. PEAK_BITRATE (set at init to 1.5x)
+    // throws COM/SEH exception when changed dynamically in CBR mode.
+    int propResult = AmfSetBitrateProperty(ctx->encoder.GetPtr(), ctx->useHevc, (amf_int64)bitrateKbps * 1000);
+    if (propResult == -1) {
+        g_lastError = "SetProperty TARGET_BITRATE threw SEH exception";
+        return AMF_WRAPPER_FAIL;
+    }
+    if (propResult != AMF_OK) {
+        g_lastError = "SetProperty TARGET_BITRATE failed: " + std::to_string(propResult);
+        return AMF_WRAPPER_FAIL;
     }
 
     ctx->bitrate = bitrateKbps;

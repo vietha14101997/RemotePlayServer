@@ -70,21 +70,26 @@ namespace RemotePlayServer.Application.Streaming
         public DateTime LastAdjustmentTime => _lastAdjustmentTime;
 
         /// <summary>
-        /// Initialize controller with starting bitrate.
+        /// Initialize controller with separate min, initial, and max bitrates.
+        /// Strategy: "Start High, Adjust Down" - initial is set to 80% of max by default.
         /// </summary>
-        /// <param name="initialBitrateKbps">Initial target bitrate in kbps.</param>
-        /// <param name="maxBitrateKbps">Maximum allowed bitrate (optional, defaults to 50Mbps).</param>
-        public void Initialize(int initialBitrateKbps, int? maxBitrateKbps = null)
+        /// <param name="minBitrateKbps">Minimum allowed bitrate (floor).</param>
+        /// <param name="maxBitrateKbps">Maximum allowed bitrate (ceiling).</param>
+        /// <param name="initialBitrateKbps">Starting bitrate (optional, defaults to 80% of max).</param>
+        public void Initialize(int minBitrateKbps, int maxBitrateKbps, int? initialBitrateKbps = null)
         {
-            InitialBitrateKbps = initialBitrateKbps;
-            MinBitrateKbps = initialBitrateKbps;
-            TargetBitrateKbps = initialBitrateKbps;
+            MinBitrateKbps = minBitrateKbps;
+            MaxBitrateKbps = maxBitrateKbps;
 
-            if (maxBitrateKbps.HasValue)
-                MaxBitrateKbps = maxBitrateKbps.Value;
+            // "Start High, Adjust Down": default initial = 80% of max
+            int initial = initialBitrateKbps ?? (int)(maxBitrateKbps * 0.8);
+            initial = Math.Clamp(initial, minBitrateKbps, maxBitrateKbps);
+
+            InitialBitrateKbps = initial;
+            TargetBitrateKbps = initial;
 
             // Initialize EWMA with current values
-            _ewmaBandwidth = initialBitrateKbps;
+            _ewmaBandwidth = initial;
             _ewmaPacketLoss = 0;
             _ewmaRtt = 30;
 
@@ -92,7 +97,7 @@ namespace RemotePlayServer.Application.Streaming
             _streamStartTime = DateTime.UtcNow;
             _lastNetworkIssueTime = DateTime.UtcNow; // Avoid "stable for 2025 years" when no issue has occurred yet
 
-            Logger.Info($"[AdaptiveBitrate] Initialized: target={initialBitrateKbps}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
+            Logger.Info($"[AdaptiveBitrate] Initialized: target={initial}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
         }
 
         /// <summary>
@@ -328,14 +333,16 @@ namespace RemotePlayServer.Application.Streaming
             float currentFpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 0f;
             bool isActiveContent = currentFpsRatio > 0.6f;  // At least 60% of target FPS = active streaming
 
-            // Only increase if we're below max AND conditions are good
-            // We proactively try to reach the max bitrate when conditions allow
+            // Only increase if we're below max AND conditions are good AND enough time
+            // has passed since last network issue. Without this delay, bitrate yo-yos:
+            // congestion → drop → immediately climb back → congestion again.
             bool canIncrease =
-                current < MaxBitrateKbps &&  // Only increase up to max, not beyond
+                current < MaxBitrateKbps &&
                 feedback.PacketLossRate < PACKET_LOSS_DECREASE_THRESHOLD &&
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
                 !hasNetworkIssue &&
-                isActiveContent;  // Must have active content to know bandwidth is sufficient
+                isActiveContent &&
+                timeSinceLastIssue > recoveryCooldownMs;  // Must wait after congestion before climbing
 
             if (canIncrease)
             {

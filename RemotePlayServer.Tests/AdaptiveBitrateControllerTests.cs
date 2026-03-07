@@ -7,14 +7,15 @@ namespace RemotePlayServer.Tests;
 public class AdaptiveBitrateControllerTests
 {
     private AdaptiveBitrateController CreateController(
-        int initialBitrate = 20000,
-        int? maxBitrate = null,
+        int minBitrate = 2000,
+        int maxBitrate = 50000,
+        int? initialBitrate = null,
         bool wifiMode = false,
         bool skipWarmup = true)
     {
         var controller = new AdaptiveBitrateController();
         controller.IsWiFiMode = wifiMode;
-        controller.Initialize(initialBitrate, maxBitrate);
+        controller.Initialize(minBitrate, maxBitrate, initialBitrate);
 
         if (skipWarmup)
             BypassWarmup(controller);
@@ -133,43 +134,54 @@ public class AdaptiveBitrateControllerTests
     // ==================== Initialization Tests ====================
 
     [Fact]
-    public void Initialize_SetsCorrectTargetBitrate()
+    public void Initialize_SetsCorrectTargetBitrate_At80PercentOfMax()
     {
         var controller = new AdaptiveBitrateController();
-        controller.Initialize(15000);
+        controller.Initialize(2000, 50000);
+
+        // Default initial = 80% of max = 40000
+        Assert.Equal(40000, controller.TargetBitrateKbps);
+        Assert.Equal(40000, controller.InitialBitrateKbps);
+    }
+
+    [Fact]
+    public void Initialize_CustomInitialBitrate()
+    {
+        var controller = new AdaptiveBitrateController();
+        controller.Initialize(2000, 50000, initialBitrateKbps: 15000);
 
         Assert.Equal(15000, controller.TargetBitrateKbps);
         Assert.Equal(15000, controller.InitialBitrateKbps);
     }
 
     [Fact]
-    public void Initialize_SetsCustomMaxBitrate()
+    public void Initialize_SetsMinAndMaxBitrate()
     {
         var controller = new AdaptiveBitrateController();
-        controller.Initialize(15000, maxBitrateKbps: 30000);
+        controller.Initialize(3000, 30000);
 
+        Assert.Equal(3000, controller.MinBitrateKbps);
         Assert.Equal(30000, controller.MaxBitrateKbps);
     }
 
     [Fact]
-    public void Initialize_DefaultMaxBitrate_Is50000()
+    public void Initialize_InitialClampedToRange()
     {
         var controller = new AdaptiveBitrateController();
-        controller.Initialize(15000);
+        // Initial exceeds max - should be clamped
+        controller.Initialize(2000, 10000, initialBitrateKbps: 99999);
 
-        Assert.Equal(50000, controller.MaxBitrateKbps);
+        Assert.Equal(10000, controller.TargetBitrateKbps);
     }
 
     [Fact]
     public void Initialize_DoesNotResetAdjustmentCount()
     {
-        // Initialize only sets bitrate/EWMA state, not statistics.
-        // Use Reset() to clear AdjustmentCount.
-        var controller = CreateController();
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         controller.ProcessFeedback(HighPacketLossFeedback()); // Force an adjustment
         Assert.True(controller.AdjustmentCount > 0);
 
-        controller.Initialize(20000); // Re-initialize
+        controller.Initialize(2000, 50000, 20000); // Re-initialize
         Assert.True(controller.AdjustmentCount > 0); // Count persists
     }
 
@@ -178,7 +190,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_HighPacketLoss_DecreasesBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(HighPacketLossFeedback());
 
         Assert.True(decision.Changed);
@@ -188,7 +200,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_HighPacketLoss_DecreasesByAtLeast10Percent()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(HighPacketLossFeedback());
 
         // 10% of 20000 = 2000, so new bitrate should be <= 18000
@@ -199,7 +211,7 @@ public class AdaptiveBitrateControllerTests
     public void ProcessFeedback_HighPacketLoss_WorksEvenDuringWarmup()
     {
         // Don't skip warmup
-        var controller = CreateController(initialBitrate: 20000, skipWarmup: false);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000, skipWarmup: false);
         var decision = controller.ProcessFeedback(HighPacketLossFeedback());
 
         Assert.True(decision.Changed);
@@ -211,7 +223,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_CriticalFpsWithDrops_DecreasesAggressively()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(CriticalFpsWithDropsFeedback());
 
         Assert.True(decision.Changed);
@@ -223,7 +235,7 @@ public class AdaptiveBitrateControllerTests
     public void ProcessFeedback_CriticalFpsWithoutDrops_NoDecrease()
     {
         // Static content scenario: low FPS but no dropped frames
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(CriticalFpsNoDrop());
 
         // Should NOT decrease because no actual network problems
@@ -235,10 +247,9 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_DuringWarmup_NormalIssuesDontDecrease()
     {
-        var controller = CreateController(initialBitrate: 20000, skipWarmup: false);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000, skipWarmup: false);
 
         // Buffer starving with drops - normally would decrease, but warmup blocks it
-        // Note: the drops must not trigger the critical FPS or high packet loss paths
         var feedback = new QualityFeedbackMessage
         {
             EffectiveFps = 50,
@@ -262,7 +273,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_BufferStarvingWithDrops_DecreasesBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(BufferStarvingWithDrops());
 
         Assert.True(decision.Changed);
@@ -272,7 +283,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_BufferStarvingWithoutDrops_NoDecrease()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var feedback = new QualityFeedbackMessage
         {
             EffectiveFps = 50,
@@ -294,7 +305,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_FpsDropWithNetworkIssues_DecreasesBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(FpsDropWithNetworkIssues());
 
         Assert.True(decision.Changed);
@@ -304,9 +315,9 @@ public class AdaptiveBitrateControllerTests
     // ==================== Increase Conditions ====================
 
     [Fact]
-    public void ProcessFeedback_GoodConditions_BelowInitial_IncreasesBitrate()
+    public void ProcessFeedback_GoodConditions_BelowMax_IncreasesBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // First: force a decrease
         controller.ProcessFeedback(HighPacketLossFeedback());
@@ -323,46 +334,42 @@ public class AdaptiveBitrateControllerTests
     }
 
     [Fact]
-    public void ProcessFeedback_NeverExceedsInitialBitrate()
+    public void ProcessFeedback_NeverExceedsMaxBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 25000, initialBitrate: 20000);
 
-        // Force decrease
-        controller.ProcessFeedback(HighPacketLossFeedback());
-        BypassCooldown(controller);
-
-        // Try to increase multiple times
+        // Try to increase multiple times with good feedback
         for (int i = 0; i < 50; i++)
         {
             controller.ProcessFeedback(GoodFeedback());
             BypassCooldown(controller);
         }
 
-        // Should never exceed initial bitrate
-        Assert.True(controller.TargetBitrateKbps <= 20000);
+        // Should never exceed max bitrate
+        Assert.True(controller.TargetBitrateKbps <= 25000);
     }
 
     [Fact]
-    public void ProcessFeedback_AtInitialBitrate_GoodConditions_NoChange()
+    public void ProcessFeedback_AtMaxBitrate_GoodConditions_NoChange()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        // Initial = max, so already at max
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 20000, initialBitrate: 20000);
         var decision = controller.ProcessFeedback(GoodFeedback());
 
-        // Already at initial bitrate, no increase needed
+        // Already at max bitrate, no increase needed
         Assert.False(decision.Changed);
     }
 
     [Fact]
     public void ProcessFeedback_StaticContent_NoIncrease()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // Force decrease first
         controller.ProcessFeedback(HighPacketLossFeedback());
         BypassCooldown(controller);
 
         // Mark recent network issue to prevent auto-recovery from firing
-        // (HighPacketLoss returns early in CalculateNewBitrate before setting _lastNetworkIssueTime)
         ReflectionHelper.SetPrivateField(controller, "_lastNetworkIssueTime", DateTime.UtcNow);
 
         // Low FPS (static content) - isActiveContent check fails (FPS ratio < 0.6)
@@ -390,8 +397,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_NeverGoesBelowMinBitrate()
     {
-        var controller = CreateController(initialBitrate: 3000); // Close to floor
-        controller.MinBitrateKbps = 2000;
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 5000, initialBitrate: 3000);
 
         // Repeated high loss
         for (int i = 0; i < 10; i++)
@@ -406,8 +412,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_CustomMinBitrate_Respected()
     {
-        var controller = CreateController(initialBitrate: 10000);
-        controller.MinBitrateKbps = 5000;
+        var controller = CreateController(minBitrate: 5000, maxBitrate: 50000, initialBitrate: 10000);
 
         for (int i = 0; i < 20; i++)
         {
@@ -423,7 +428,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_DuringCooldown_NoChange()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // First adjustment - succeeds
         var decision1 = controller.ProcessFeedback(HighPacketLossFeedback());
@@ -438,7 +443,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_AfterCooldown_CanAdjust()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         controller.ProcessFeedback(HighPacketLossFeedback());
         BypassCooldown(controller); // Simulate time passing
@@ -452,8 +457,8 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_WiFiMode_FasterCooldown()
     {
-        var controllerWifi = CreateController(initialBitrate: 20000, wifiMode: true);
-        var controllerNormal = CreateController(initialBitrate: 20000, wifiMode: false);
+        var controllerWifi = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000, wifiMode: true);
+        var controllerNormal = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000, wifiMode: false);
 
         // Both make first adjustment
         controllerWifi.ProcessFeedback(HighPacketLossFeedback());
@@ -478,7 +483,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_AutoRecovery_AfterStablePeriod()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // Force decrease
         controller.ProcessFeedback(HighPacketLossFeedback());
@@ -493,7 +498,7 @@ public class AdaptiveBitrateControllerTests
         var feedback = GoodFeedback();
         var decision = controller.ProcessFeedback(feedback);
 
-        // Should recover (increase) toward initial bitrate
+        // Should recover (increase) toward max bitrate
         Assert.True(decision.NewBitrate >= afterDecrease);
     }
 
@@ -502,7 +507,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void Reset_RestoresInitialBitrate()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // Force decrease
         controller.ProcessFeedback(HighPacketLossFeedback());
@@ -515,7 +520,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void Reset_ClearsAdjustmentCount()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         controller.ProcessFeedback(HighPacketLossFeedback());
         Assert.True(controller.AdjustmentCount > 0);
 
@@ -528,7 +533,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_DecreaseStepIsLargerThanIncreaseStep()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
 
         // Decrease
         controller.ProcessFeedback(HighPacketLossFeedback());
@@ -546,9 +551,47 @@ public class AdaptiveBitrateControllerTests
         {
             int increaseAmount = increaseDecision.NewBitrate - controller.TargetBitrateKbps + (increaseDecision.NewBitrate - decreased);
             // The key property: decrease step (10%) > increase step (5%)
-            // Decrease: max(500, current/10), Increase: max(250, current/20)
             Assert.True(decreaseAmount > 0);
         }
+    }
+
+    // ==================== Start High Strategy ====================
+
+    [Fact]
+    public void Initialize_DefaultInitial_Is80PercentOfMax()
+    {
+        var controller = new AdaptiveBitrateController();
+        controller.Initialize(6000, 15000); // 1080p@60fps range
+
+        // 80% of 15000 = 12000
+        Assert.Equal(12000, controller.TargetBitrateKbps);
+        Assert.Equal(12000, controller.InitialBitrateKbps);
+        Assert.Equal(6000, controller.MinBitrateKbps);
+        Assert.Equal(15000, controller.MaxBitrateKbps);
+    }
+
+    [Fact]
+    public void ProcessFeedback_CanRecoverAboveInitial_UpToMax()
+    {
+        // Initial = 12000 (80% of 15000), should be able to recover to 15000
+        var controller = CreateController(minBitrate: 6000, maxBitrate: 15000);
+        // Default initial = 12000
+
+        // Force decrease
+        controller.ProcessFeedback(HighPacketLossFeedback());
+        BypassCooldown(controller);
+        BypassRecoveryDelay(controller);
+
+        // Recover multiple times
+        for (int i = 0; i < 50; i++)
+        {
+            controller.ProcessFeedback(GoodFeedback());
+            BypassCooldown(controller);
+            BypassRecoveryDelay(controller);
+        }
+
+        // Should have recovered up to max (or close)
+        Assert.True(controller.TargetBitrateKbps <= 15000);
     }
 
     // ==================== Edge Cases ====================
@@ -556,7 +599,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_ZeroTargetFps_DoesNotCrash()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var feedback = new QualityFeedbackMessage
         {
             EffectiveFps = 0,
@@ -574,7 +617,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void ProcessFeedback_NullMonitors_DoesNotCrash()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var feedback = new QualityFeedbackMessage
         {
             EffectiveFps = 60,
@@ -592,7 +635,7 @@ public class AdaptiveBitrateControllerTests
     [Fact]
     public void GetStats_ReturnsNonEmptyString()
     {
-        var controller = CreateController(initialBitrate: 20000);
+        var controller = CreateController(minBitrate: 2000, maxBitrate: 50000, initialBitrate: 20000);
         var stats = controller.GetStats();
 
         Assert.NotNull(stats);
