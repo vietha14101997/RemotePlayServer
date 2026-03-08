@@ -148,6 +148,16 @@ public partial class SIPSorceryStreamer : IDisposable
         public VideoCodec? LastUsedCodec; // Track which codec the encoder was initialized with
         public long DcNotReadyCount; // Throttle counter for "DataChannel not ready" warnings
 
+        // Per-track DC congestion state (isolated from other tracks)
+        public volatile bool DcSoftCongestion;
+        public long DcSoftCongestionEntryTicks; // Sustained entry timer
+        public long DcSoftCongestionClearTicks; // Hold timer for recovery
+        public volatile bool CongestionBitrateReduced; // Track-local bitrate reduction flag
+        public int TrackBitrateKbps; // Per-track bitrate (0 = use global)
+
+        // Deferred bitrate change: set from OnEncodedData callback (which runs inside EncodeLock),
+        // applied by next PushBgraTexture call. Prevents calling AMF SetBitrate while encode is active.
+        public volatile int PendingBitrateKbps; // 0 = no pending change
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending
         public volatile PendingFrameData? PendingFrame;

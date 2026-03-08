@@ -116,13 +116,14 @@ public sealed class PerMonitorCapture : IDisposable
     private Barrier? _captureBarrier;
     private long _syncedTimestamp; // Shared timestamp for all monitors in a frame (use Interlocked for access)
 
-    // Post-encode barrier: sync all monitors after encoding, before sending RTP
-    // Prevents consistent jitter asymmetry where one track's packets always arrive first
-    private Barrier? _postEncodeBarrier;
+    // Post-encode barrier: REMOVED — was the primary cause of cross-track interference.
+    // When Track 1 (video) took longer to encode, Track 0 (VSCode) was BLOCKED at barrier,
+    // delaying its next capture cycle and causing animation stutter.
+    // Each track now sends immediately after encoding (independent pipeline).
 
     /// <summary>
-    /// Fired once after all monitors complete encoding for a frame.
-    /// The post-phase action sends all buffered frames in alternating track order.
+    /// Fired after each monitor completes encoding for a frame (per-track, non-blocking).
+    /// Previously fired once after all monitors completed (barrier-synced).
     /// </summary>
     public event Action? OnPostEncodeSync;
 
@@ -492,13 +493,7 @@ public sealed class PerMonitorCapture : IDisposable
                 }
             });
 
-            // Post-encode barrier: after all tracks finish encoding, one designated thread
-            // (mon.Index == 0) flushes all buffered frames in alternating track order.
-            // No post-phase action — flush runs AFTER SignalAndWait returns, avoiding
-            // stalling the barrier while SRTP send is in progress.
-            _postEncodeBarrier = new Barrier(activeMonitors);
-
-            Logger.Info($"[PerMonitorCapture] Created frame sync barrier for {activeMonitors} monitors (capture + post-encode)");
+            Logger.Info($"[PerMonitorCapture] Created frame sync barrier for {activeMonitors} monitors (capture sync only, no post-encode barrier)");
         }
 
         // Start SEPARATE capture thread for EACH monitor (true parallelism!)
@@ -528,11 +523,9 @@ public sealed class PerMonitorCapture : IDisposable
             mon.Running = false;
         }
 
-        // Dispose barriers to unblock any waiting threads
+        // Dispose barrier to unblock any waiting threads
         try { _captureBarrier?.Dispose(); } catch { }
         _captureBarrier = null;
-        try { _postEncodeBarrier?.Dispose(); } catch { }
-        _postEncodeBarrier = null;
 
         // Wait for threads to finish
         foreach (var mon in Monitors)
@@ -825,28 +818,15 @@ public sealed class PerMonitorCapture : IDisposable
                 }
 
                 PostEncode:
-                // POST-ENCODE SYNC: Wait for all monitors to finish encoding,
-                // then the designated thread (mon.Index == 0) sends all buffered
-                // frames in alternating order via OnPostEncodeSync.
-                if (_postEncodeBarrier != null)
+                // POST-ENCODE: Each track sends immediately after encoding (non-blocking).
+                // Previously used a barrier that forced all tracks to wait for the slowest
+                // encoder — this was the primary cause of cross-track interference.
+                // Now each track is fully independent: encode → send → next frame.
                 {
-                    try
+                    try { OnPostEncodeSync?.Invoke(); }
+                    catch (Exception ex)
                     {
-                        _postEncodeBarrier.SignalAndWait();
-                        // Only one thread flushes — avoids SRTP lock contention
-                        // and ensures predictable send timing
-                        if (mon.Index == 0)
-                        {
-                            try { OnPostEncodeSync?.Invoke(); }
-                            catch (Exception ex)
-                            {
-                                Logger.Error($"[PerMonitorCapture] PostEncodeSync error: {ex.Message}");
-                            }
-                        }
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        break;
+                        Logger.Error($"[PerMonitorCapture] PostEncodeSync error (mon{mon.Index}): {ex.Message}");
                     }
                 }
 

@@ -351,11 +351,17 @@ public partial class SIPSorceryStreamer
 
             // Do NOT call _tracks.Clear() - we persist TrackInfo for encoder/device reuse (SSRC is refreshed above)
             _dcWasAboveHigh = false;
-            _congestionBitrateReduced = false;
             foreach (var t in _tracks)
             {
                 t.PFramesDroppedDuringCongestion = false;
                 t.LastCongestResyncTicks = 0;
+                // Reset per-track congestion state
+                t.DcSoftCongestion = false;
+                t.DcSoftCongestionEntryTicks = 0;
+                t.DcSoftCongestionClearTicks = 0;
+                t.CongestionBitrateReduced = false;
+                t.TrackBitrateKbps = 0;
+                t.PendingBitrateKbps = 0;
             }
             _pendingDevices.Clear();
         }

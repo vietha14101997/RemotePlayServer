@@ -96,19 +96,16 @@ public partial class SIPSorceryStreamer
     {
         // Initialization is now done in constructur / config changes
 
-        // Block bitrate increases while ANY DC buffer is congested.
-        // AdaptiveBitrate sees "0% loss, healthy" because drops happen at DC layer,
-        // invisible to the client feedback loop. Increasing bitrate during DC congestion
-        // makes frames larger → buffer fills faster → congestion gets worse.
-        bool anyTrackCongested = _congestionBitrateReduced || _dcWasAboveHigh; // congestion bitrate reduction active or legacy single-DC
+        // Block global bitrate increases while ANY DC buffer is congested.
+        // Per-track congestion is handled independently, but global ABC should still
+        // be conservative when any track is struggling.
+        bool anyTrackCongested = _dcWasAboveHigh; // legacy single-DC
         if (!anyTrackCongested)
         {
-            lock (_lock) { anyTrackCongested = _tracks.Any(t => t.PFramesDroppedDuringCongestion); }
+            lock (_lock) { anyTrackCongested = _tracks.Any(t => t.PFramesDroppedDuringCongestion || t.CongestionBitrateReduced); }
         }
         if (anyTrackCongested)
         {
-            // Don't even call ProcessFeedback — any increase would be harmful,
-            // and the controller's recovery timer would advance incorrectly.
             return null;
         }
 
@@ -117,21 +114,28 @@ public partial class SIPSorceryStreamer
 
         if (decision.Changed)
         {
-            // Apply new bitrate to all track encoders.
-            // Snapshot tracks under _lock, then SetBitrate under each track's EncodeLock
-            // to serialize with encode path and prevent concurrent native P/Invoke calls.
+            // Apply new bitrate to all track encoders, respecting per-track congestion.
+            // Tracks in per-track congestion keep their own reduced bitrate.
             TrackInfo[] snapshot;
             lock (_lock) { snapshot = _tracks.ToArray(); }
 
             int successCount = 0;
             foreach (var track in snapshot)
             {
+                // Skip tracks that are in per-track congestion — they manage their own bitrate
+                if (track.CongestionBitrateReduced)
+                {
+                    Logger.Debug($"[SIPSorcery] Track {track.Index} skipped ABC bitrate change → track has own congestion bitrate {track.TrackBitrateKbps}kbps");
+                    continue;
+                }
+
                 lock (track.EncodeLock)
                 {
                     if (track.Encoder != null)
                     {
                         if (track.Encoder.SetBitrate(decision.NewBitrate))
                         {
+                            track.TrackBitrateKbps = decision.NewBitrate;
                             successCount++;
                             Logger.Info($"[SIPSorcery] Track {track.Index} bitrate → {decision.NewBitrate}kbps");
                         }
@@ -227,7 +231,16 @@ public partial class SIPSorceryStreamer
         // Cap to 1 IDR per burst in H265/DC mode, and skip if DC is already congested.
         if (_negotiatedCodec == VideoCodec.H265)
         {
-            if (_dcSoftCongestion)
+            // Check per-track congestion: skip burst if the target track is congested
+            bool anyCongested = false;
+            lock (_lock)
+            {
+                if (monitorIndex == -1)
+                    anyCongested = _tracks.Any(t => t.DcSoftCongestion);
+                else if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
+                    anyCongested = _tracks[monitorIndex].DcSoftCongestion;
+            }
+            if (anyCongested)
             {
                 Logger.Warn($"[SIPSorcery] Keyframe burst SKIPPED (DC congested, monitor={monitorIndex}, requested={count})");
                 return;
@@ -462,6 +475,8 @@ public partial class SIPSorceryStreamer
             {
                 track.Encoder?.SetBitrate(clampedKbps);
             }
+            track.TrackBitrateKbps = clampedKbps;
+            track.CongestionBitrateReduced = false; // Stall escalation overrides per-track congestion
         }
         Logger.Info($"[SIPSorcery] Forced bitrate → {clampedKbps}kbps (stall escalation)");
     }
