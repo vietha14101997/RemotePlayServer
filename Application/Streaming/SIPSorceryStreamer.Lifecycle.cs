@@ -504,7 +504,18 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
-                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
+                // Log DC buffer depth for H265 latency diagnosis
+                var dcInfo = "";
+                if (_negotiatedCodec == VideoCodec.H265)
+                {
+                    var dcBuffers = _tracks.Select(t =>
+                    {
+                        var dc = GetH265VideoChannel(t.Index);
+                        return dc != null ? $"dc{t.Index}={dc.bufferedAmount / 1024}KB" : null;
+                    }).Where(s => s != null);
+                    dcInfo = $", {string.Join(", ", dcBuffers)}";
+                }
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}{dcInfo}");
             }
         }
     }

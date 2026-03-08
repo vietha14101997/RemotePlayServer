@@ -70,6 +70,8 @@ public partial class SIPSorceryStreamer
 
         // Pre-encode throttling for H265/DataChannel: skip frames BEFORE encoding
         // when DC buffer is filling up. Alternating pattern (not consecutive) to avoid stutter.
+        // LOW thresholds for low latency: at 15Mbps, 100KB = ~53ms, 200KB = ~107ms.
+        // All DCs share one SCTP association → total queuing affects ALL tracks.
         if (_negotiatedCodec == VideoCodec.H265)
         {
             long captureCount = Interlocked.Increment(ref track.CaptureFrameCount);
@@ -80,13 +82,21 @@ public partial class SIPSorceryStreamer
                 if (dc != null)
                 {
                     ulong buffered = dc.bufferedAmount;
-                    // Progressive skip: higher buffer → skip more frames (alternating pattern)
-                    // 512KB+: skip every 2nd frame (50% throughput)
-                    // 768KB+: skip 2 of 3 frames (33% throughput)
-                    if (buffered > 768_000 && captureCount % 3 != 0)
-                        return;
-                    if (buffered > 512_000 && captureCount % 2 != 0)
-                        return;
+                    // Progressive skip with LOW thresholds for minimal latency:
+                    // At 15Mbps: 100KB ≈ 53ms, 200KB ≈ 107ms, 400KB ≈ 213ms queuing delay.
+                    // Must use if-else to avoid cascading skips (all frames dropped).
+                    if (buffered > 400_000)
+                    {
+                        if (captureCount % 3 != 0) return; // keep 1 in 3 (33% throughput)
+                    }
+                    else if (buffered > 200_000)
+                    {
+                        if (captureCount % 2 != 0) return; // keep 1 in 2 (50% throughput)
+                    }
+                    else if (buffered > 100_000)
+                    {
+                        if (captureCount % 3 == 0) return; // keep 2 in 3 (67% throughput)
+                    }
                 }
             }
         }
