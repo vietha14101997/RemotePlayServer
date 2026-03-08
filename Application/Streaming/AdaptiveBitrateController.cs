@@ -58,12 +58,12 @@ namespace RemotePlayServer.Application.Streaming
 
         // DC congestion ceiling: prevents sawtooth oscillation (8000→6400→8000→6400...)
         // When DC soft congestion fires at bitrate X, we cap recovery at X * 90%.
-        // The ceiling slowly relaxes (+5% every 60s) to probe for more bandwidth.
+        // The ceiling slowly relaxes (+3% every 120s) to probe for more bandwidth.
         private int _dcCongestionCeilingKbps;          // 0 = no ceiling (unlimited)
         private DateTime _lastDcCongestionTime = DateTime.MinValue;
-        private const int DC_CEILING_RELAX_INTERVAL_MS = 60000; // Relax ceiling every 60s
+        private const int DC_CEILING_RELAX_INTERVAL_MS = 120000; // Relax ceiling every 120s (was 60s — slower probe = fewer congestion cycles)
         private const float DC_CEILING_SAFETY_FACTOR = 0.90f;   // Cap at 90% of congestion trigger point
-        private const float DC_CEILING_RELAX_STEP = 0.05f;      // +5% per relaxation
+        private const float DC_CEILING_RELAX_STEP = 0.03f;      // +3% per relaxation (was 5% — gentler probe to avoid overshooting sustainable bandwidth)
 
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease
@@ -349,12 +349,15 @@ namespace RemotePlayServer.Application.Streaming
             // If no network issues for RECOVERY_DELAY_MS and bitrate is below effective max, recover gradually
             double timeSinceLastIssue = (DateTime.UtcNow - _lastNetworkIssueTime).TotalMilliseconds;
             double timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
+            // DC congestion cooldown: after DC congestion, wait at least recoveryDelayMs before any recovery
+            double timeSinceDcCongestion = (DateTime.UtcNow - _lastDcCongestionTime).TotalMilliseconds;
 
             int recoveryDelayMs = IsWiFiMode ? WIFI_RECOVERY_DELAY_MS : RECOVERY_DELAY_MS;
             int recoveryCooldownMs = IsWiFiMode ? WIFI_RECOVERY_COOLDOWN_MS : RECOVERY_COOLDOWN_MS;
             if (current < effectiveMax &&
                 timeSinceLastIssue > recoveryDelayMs &&
                 timeSinceLastAdjustment > recoveryCooldownMs &&
+                timeSinceDcCongestion > recoveryDelayMs &&  // Must also wait after DC congestion
                 !hasNetworkIssue)
             {
                 // Gradually recover toward effective max (respects DC congestion ceiling)
@@ -380,7 +383,8 @@ namespace RemotePlayServer.Application.Streaming
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
                 !hasNetworkIssue &&
                 isActiveContent &&
-                timeSinceLastIssue > recoveryCooldownMs;  // Must wait after congestion before climbing
+                timeSinceLastIssue > recoveryCooldownMs &&     // Must wait after network issue
+                timeSinceDcCongestion > recoveryCooldownMs;    // Must wait after DC congestion too
 
             if (canIncrease)
             {
@@ -444,6 +448,8 @@ namespace RemotePlayServer.Application.Streaming
         public void MarkDcCongestion(int congestionBitrateKbps)
         {
             int newCeiling = (int)(congestionBitrateKbps * DC_CEILING_SAFETY_FACTOR);
+            // Floor: ceiling must not drop below MinBitrateKbps (prevents ratchet-down to unusable levels)
+            newCeiling = Math.Max(newCeiling, MinBitrateKbps);
             // Only lower the ceiling, never raise it from a congestion event
             if (_dcCongestionCeilingKbps == 0 || newCeiling < _dcCongestionCeilingKbps)
             {

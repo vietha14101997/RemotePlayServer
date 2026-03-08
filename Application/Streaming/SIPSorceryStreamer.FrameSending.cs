@@ -139,13 +139,17 @@ public partial class SIPSorceryStreamer
                 }
                 else if (now - _dcSoftCongestionClearTicks > 500) // 500ms hold
                 {
-                    _dcSoftCongestion = false;
-                    _dcSoftCongestionClearTicks = 0;
-                    // Reset ABC recovery timer from NOW (not from congestion start).
-                    // Without this, ABC starts recovering immediately because _lastNetworkIssueTime
-                    // was set when congestion started, and 3-5s has already elapsed during congestion.
-                    _bitrateController.MarkCongestionCleared();
-                    Logger.Info($"[SIPSorcery] DC soft congestion cleared ({totalBuffered/1024}KB total) → ABC will recover after cooldown");
+                    // Guard: use CAS to ensure only one track clears the flag (prevents duplicate log/callback)
+                    if (_dcSoftCongestion)
+                    {
+                        _dcSoftCongestion = false;
+                        _dcSoftCongestionClearTicks = 0;
+                        // Reset ABC recovery timer from NOW (not from congestion start).
+                        // Without this, ABC starts recovering immediately because _lastNetworkIssueTime
+                        // was set when congestion started, and 3-5s has already elapsed during congestion.
+                        _bitrateController.MarkCongestionCleared();
+                        Logger.Info($"[SIPSorcery] DC soft congestion cleared ({totalBuffered/1024}KB total) → ABC will recover after cooldown");
+                    }
                 }
             }
             else if (_dcSoftCongestion && totalBuffered >= 100_000)
