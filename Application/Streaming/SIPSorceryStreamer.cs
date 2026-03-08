@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,7 +44,10 @@ public partial class SIPSorceryStreamer : IDisposable
     }
     private ID3D11Device? _sharedDevice;
 
-    private RTCPeerConnection? _pc;
+    private RTCPeerConnection? _mainPc; // Renamed from _pc: carries audio RTP + cursor/audio DCs (always)
+    private readonly ConcurrentDictionary<int, RTCPeerConnection> _videoPcs = new(); // Per-track PeerConnections (per-track mode only)
+    private readonly ConcurrentDictionary<int, RTCDataChannel> _videoDcs = new(); // DC per video PC (per-track mode only)
+    private bool _perTrackPcMode; // When true: N+1 PCs (1 main + N video PCs). When false: legacy single PC
     private readonly List<TrackInfo> _tracks = new();
     private readonly object _lock = new();
     private readonly Dictionary<int, ID3D11Device> _pendingDevices = new();
@@ -185,6 +189,16 @@ public partial class SIPSorceryStreamer : IDisposable
     // Event for dedicated audio PeerConnection ICE candidates
     public event Action<string>? OnAudioIceCandidate;
 
+    // Event for per-track video PeerConnection ICE candidates (per-track mode only)
+    // Parameters: (monitorIndex, candidate)
+    public event Action<int, string>? OnVideoIceCandidate;
+
+    /// <summary>Whether per-track PeerConnection mode is active.</summary>
+    public bool PerTrackPcMode => _perTrackPcMode;
+
+    /// <summary>Per-track video PeerConnections (per-track mode only). Key = monitorIndex.</summary>
+    public ConcurrentDictionary<int, RTCPeerConnection> VideoPcs => _videoPcs;
+
     /// <summary>
     /// Activate Phase 3 from barrier-synced context.
     /// Called by PerMonitorCapture's barrier post-phase action to ensure
@@ -290,8 +304,20 @@ public partial class SIPSorceryStreamer : IDisposable
     public void ForceReinitializeEncoders()
     {
         Logger.Info("[SIPSorcery] Forcing re-initialization of encoders...");
-        try 
+        try
         {
+            // Reset DC state for all tracks so codec config (VPS/SPS/PPS) is re-sent
+            // on the first IDR after reinit. Without this, resolution/codec changes
+            // cause client decoder failure because it never receives updated params.
+            lock (_lock)
+            {
+                foreach (var track in _tracks)
+                {
+                    track.IdrViaDcCount = 0;
+                    track.DcNotReadyCount = 0;
+                    Interlocked.Exchange(ref track.SentFrames, 0);
+                }
+            }
             InitializeEncoders();
         }
         catch (Exception ex)

@@ -141,6 +141,10 @@ namespace RemotePlayServer.Application.Protocol
         private string? _lastOfferSdp;
         private volatile bool _dtlsRetrying;
 
+        // Per-track PeerConnection mode: client requests separate video PC per monitor
+        private bool _perTrackPc = false;
+        private Action<int, string>? _videoIceCandidateHandler; // stored to prevent double-subscription on reconnect
+
         // Phase 2 restart limit: prevent infinite restart_phase2 ↔ reconnect_required loop
         private int _phase2RestartCount;
         private const int MAX_PHASE2_RESTARTS = 3;

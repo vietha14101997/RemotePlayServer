@@ -63,6 +63,13 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("clientCodecs")]
         public ClientCodecCapability? ClientCodecs { get; set; }
+
+        /// <summary>
+        /// Client requests per-track PeerConnection mode (one PC per monitor for video,
+        /// separate main PC for audio/DataChannel). Defaults to false for backward compat.
+        /// </summary>
+        [JsonPropertyName("perTrackPc")]
+        public bool PerTrackPc { get; set; } = false;
     }
 
     /// <summary>

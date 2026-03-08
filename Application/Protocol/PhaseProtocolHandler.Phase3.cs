@@ -51,6 +51,54 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
+            // Per-track PC mode: also wait for all video PCs to reach connected state
+            if (_perTrackPc && _streamer != null)
+            {
+                Logger.Info("[Protocol] Phase 3: perTrackPc=true — waiting for all video PCs to connect...");
+                try
+                {
+                    var timeout = TimeSpan.FromSeconds(15);
+                    var start = DateTime.UtcNow;
+                    bool allVideoConnected = false;
+
+                    while (DateTime.UtcNow - start < timeout)
+                    {
+                        var videoPcs = _streamer.VideoPcs;
+                        int monitorCount = _streamer.MonitorCount;
+
+                        if (videoPcs.Count >= monitorCount && monitorCount > 0)
+                        {
+                            bool allConnected = true;
+                            foreach (var kvp in videoPcs)
+                            {
+                                if (kvp.Value.connectionState != SIPSorcery.Net.RTCPeerConnectionState.connected)
+                                {
+                                    allConnected = false;
+                                    break;
+                                }
+                            }
+
+                            if (allConnected)
+                            {
+                                allVideoConnected = true;
+                                break;
+                            }
+                        }
+
+                        await Task.Delay(100, _ct);
+                    }
+
+                    if (allVideoConnected)
+                        Logger.Info("[Protocol] Phase 3: Tất cả video PCs đã kết nối!");
+                    else
+                        Logger.Warn("[Protocol] Phase 3: Timeout chờ video PCs kết nối — tiếp tục streaming");
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.Info("[Protocol] Phase 3: Bị hủy khi chờ video PCs");
+                }
+            }
+
             SetPhase(ConnectionPhase.Phase3_Streaming);
             Logger.Info("[Protocol] Phase 3: Starting stream...");
 
@@ -223,6 +271,38 @@ namespace RemotePlayServer.Application.Protocol
                     if (msgType == "audio_candidate")
                     {
                         HandleAudioIceCandidate(text);
+                        continue;
+                    }
+
+                    // Handle per-track video PC signaling (perTrackPc=true mode)
+                    if (msgType == "video_answer" && _perTrackPc)
+                    {
+                        await HandleVideoAnswerAsync(text);
+                        continue;
+                    }
+                    if (msgType == "video_candidate" && _perTrackPc)
+                    {
+                        HandleVideoIceCandidate(text);
+                        continue;
+                    }
+
+                    // Handle per-track video PC reconnection request
+                    if (msgType == "reconnect_video" && _perTrackPc && _streamer != null)
+                    {
+                        try
+                        {
+                            var doc = System.Text.Json.JsonDocument.Parse(text);
+                            int monitorIndex = doc.RootElement.TryGetProperty("monitorIndex", out var mi) ? mi.GetInt32() : -1;
+                            if (monitorIndex >= 0)
+                            {
+                                Logger.Info($"[Protocol] reconnect_video for monitor {monitorIndex} — recreating video PC and sending new offer");
+                                await HandleReconnectVideoAsync(monitorIndex);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"[Protocol] reconnect_video error: {ex.Message}");
+                        }
                         continue;
                     }
 
@@ -628,6 +708,45 @@ namespace RemotePlayServer.Application.Protocol
             })
             { IsBackground = true, Name = "Protocol-Capture" };
             _captureThread.Start();
+        }
+
+        /// <summary>
+        /// Handle per-track video PC reconnection: close old video PC, create new one, send offer.
+        /// Called when client sends reconnect_video during Phase 3 streaming.
+        /// </summary>
+        private async Task HandleReconnectVideoAsync(int monitorIndex)
+        {
+            if (_streamer == null) return;
+
+            try
+            {
+                // Close and recreate the video PC for this monitor
+                _streamer.RecreateVideoPc(monitorIndex);
+
+                // Generate and send new video offer for THIS monitor ONLY
+                // CRITICAL: Do NOT call GetVideoPcOffersAsync() here — it regenerates offers for ALL
+                // video PCs, which breaks the DTLS sessions of other connected video PCs.
+                var offer = await _streamer.GetSingleVideoPcOfferAsync(monitorIndex);
+                if (offer != null)
+                {
+                    var msg = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        type = "video_offer",
+                        monitorIndex = offer.Value.monitorIndex,
+                        sdp = offer.Value.offerSdp
+                    });
+                    await SendTextAsync(msg);
+                    Logger.Info($"[Protocol] Sent reconnect video_offer for monitor {monitorIndex}");
+                }
+                else
+                {
+                    Logger.Warn($"[Protocol] No video offer generated for monitor {monitorIndex} reconnect");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] HandleReconnectVideoAsync error for monitor {monitorIndex}: {ex.Message}");
+            }
         }
 
         private Task StartTimingSyncTask()

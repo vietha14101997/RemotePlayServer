@@ -16,7 +16,7 @@ public partial class SIPSorceryStreamer
     private void InitializeAudio()
     {
         // Only init if we added an audio track during SDP negotiation
-        if (_pc == null || !_hasAudioTrack)
+        if (_mainPc == null || !_hasAudioTrack)
         {
             if (!_hasAudioTrack)
                 Logger.Info("[SIPSorcery] Audio pipeline skipped (no audio track negotiated)");
@@ -37,7 +37,7 @@ public partial class SIPSorceryStreamer
 
             _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
             {
-                if (!_connected || !_running || _pc == null) return;
+                if (!_connected || !_running || _mainPc == null) return;
                 // Don't send audio during early capture — contributes to WiFi congestion
                 if (!_phase3Active) return;
                 try
@@ -45,7 +45,7 @@ public partial class SIPSorceryStreamer
                     // Primary: send Opus via RTP (independent UDP transport).
                     // With H.265 video on DataChannel, SCTP congestion starves audio DC
                     // causing 300-500ms delay + distortion. RTP travels separate UDP path.
-                    var pc = _pc;
+                    var pc = _mainPc;
                     if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                     {
                         var packet = new byte[opusLength];
@@ -80,7 +80,7 @@ public partial class SIPSorceryStreamer
             {
                 if (audioPathLogged) return;
                 var dcCheck = _audioDc;
-                if (_pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                if (_mainPc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                 {
                     Logger.Info("[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)");
                     audioPathLogged = true;
