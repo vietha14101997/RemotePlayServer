@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using RemotePlayServer.Infrastructure.Encoding;
 using System.Runtime.InteropServices;
 using Vortice.Direct3D11;
 using RemotePlayServer.Core.Interfaces;
@@ -9,7 +10,7 @@ namespace RemotePlayServer.Infrastructure.Encoding;
 
 /// <summary>
 /// C# wrapper for native NvencWrapper.dll
-/// Provides true zero-copy H.264 encoding from D3D11 textures on NVIDIA GPUs
+/// Provides true zero-copy H.264/H.265 encoding from D3D11 textures on NVIDIA GPUs
 /// </summary>
 public unsafe class NvencNativeWrapper : ITextureEncoder
 {
@@ -93,6 +94,29 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
         int forceKeyframe
     );
 
+    // H.265/HEVC Extended APIs
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencCreateEncoderEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int NvencCreateEncoderBgraEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
     #endregion
 
     #region Fields
@@ -107,6 +131,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     private int _fps;
     private int _bitrate;
     private bool _useBgraMode;
+    private bool _useHevc;
 
     #endregion
 
@@ -117,11 +142,17 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
+    public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
 
     /// <summary>
     /// NVENC supports BGRA input directly (no NV12 conversion needed)
     /// </summary>
     public bool SupportsBgraInput => true;
+
+    /// <summary>
+    /// Set to true before Initialize to use H.265/HEVC codec instead of H.264
+    /// </summary>
+    public bool UseHevc { get => _useHevc; set => _useHevc = value; }
 
     /// <summary>
     /// True if encoder was initialized in BGRA mode (no color conversion needed)
@@ -133,7 +164,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     #region Events
 
     /// <summary>
-    /// Event fired when encoded H.264 data is available
+    /// Event fired when encoded data is available
     /// Parameters: (byte[] nalData, bool isKeyFrame, long pts)
     /// </summary>
     public event Action<byte[], bool, long>? OnEncodedData;
@@ -181,16 +212,11 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
             _fps = fps;
             _bitrate = bitrate;
 
-            Logger.Info($"[NvencNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[NvencNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
 
-            int result = NvencCreateEncoder(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? NvencCreateEncoderEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : NvencCreateEncoder(out _handle, device.NativePointer, width, height, fps, bitrate);
 
             if (result != NVENC_WRAPPER_OK)
             {
@@ -212,7 +238,8 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[NvencNativeWrapper] Initialized successfully (zero-copy enabled)");
+            string codecStr = _useHevc ? "HEVC" : "H264";
+            Logger.Info($"[NvencNativeWrapper] Initialized successfully (zero-copy, codec={codecStr})");
             return true;
         }
         catch (Exception ex)
@@ -239,16 +266,11 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
             _bitrate = bitrate;
             _useBgraMode = true;
 
-            Logger.Info($"[NvencNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[NvencNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
 
-            int result = NvencCreateEncoderBgra(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? NvencCreateEncoderBgraEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : NvencCreateEncoderBgra(out _handle, device.NativePointer, width, height, fps, bitrate);
 
             if (result != NVENC_WRAPPER_OK)
             {
@@ -272,7 +294,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)");
+            Logger.Info($"[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec={(_useHevc ? "HEVC" : "H264")})");
             return true;
         }
         catch (Exception ex)

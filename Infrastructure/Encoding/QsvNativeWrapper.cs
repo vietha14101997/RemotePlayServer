@@ -9,7 +9,7 @@ namespace RemotePlayServer.Infrastructure.Encoding;
 
 /// <summary>
 /// C# wrapper for native QsvWrapper.dll
-/// Provides true zero-copy H.264 encoding from D3D11 textures on Intel GPUs (Quick Sync Video)
+/// Provides true zero-copy H.264/H.265 encoding from D3D11 textures on Intel GPUs (Quick Sync Video)
 /// </summary>
 public unsafe class QsvNativeWrapper : ITextureEncoder
 {
@@ -76,6 +76,18 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     private static extern int QsvSetFps(IntPtr handle, int fps);
 
+    // H.265/HEVC Extended API
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvCreateEncoderEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
     #endregion
 
     #region Fields
@@ -89,6 +101,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     private int _height;
     private int _fps;
     private int _bitrate;
+    private bool _useHevc;
 
     #endregion
 
@@ -99,8 +112,16 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
+    public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
+    public bool SupportsBgraInput => false; // QSV native wrapper doesn't support BGRA yet
+    public bool UsingBgraMode => false;
 
     #endregion
+
+    /// <summary>
+    /// Set to true before Initialize to use H.265/HEVC codec instead of H.264
+    /// </summary>
+    public bool UseHevc { get => _useHevc; set => _useHevc = value; }
 
     #region Events
 
@@ -153,16 +174,11 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
             _fps = fps;
             _bitrate = bitrate;
 
-            Logger.Info($"[QsvNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[QsvNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
 
-            int result = QsvCreateEncoder(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? QsvCreateEncoderEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : QsvCreateEncoder(out _handle, device.NativePointer, width, height, fps, bitrate);
 
             if (result != QSV_WRAPPER_OK)
             {
@@ -184,7 +200,7 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[QsvNativeWrapper] Initialized successfully (zero-copy enabled)");
+            Logger.Info($"[QsvNativeWrapper] Initialized successfully (zero-copy, codec={(_useHevc ? "HEVC" : "H264")})");
             return true;
         }
         catch (Exception ex)
@@ -238,11 +254,30 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     /// </summary>
     public bool SetBitrate(int bitrateKbps)
     {
-        // QSV encoder through Media Foundation doesn't reliably support runtime bitrate changes
-        // Attempting to change bitrate mid-stream can cause "incompatible video parameters" errors
-        // Return false to let the adaptive bitrate controller know this encoder doesn't support it
-        Logger.Warn($"[QsvNativeWrapper] Runtime bitrate change not supported (requested: {bitrateKbps}kbps)");
-        return false;
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (bitrateKbps <= 0) return false;
+
+        try
+        {
+            int result = QsvSetBitrate(_handle, bitrateKbps);
+            if (result == QSV_WRAPPER_OK)
+            {
+                _bitrate = bitrateKbps;
+                Logger.Info($"[QsvNativeWrapper] Bitrate changed to {bitrateKbps}kbps");
+                return true;
+            }
+            else
+            {
+                string error = GetLastError();
+                Logger.Error($"[QsvNativeWrapper] SetBitrate failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] SetBitrate exception: {ex.Message}");
+            return false;
+        }
     }
 
     /// <summary>
@@ -252,10 +287,31 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     /// </summary>
     public bool SetFps(int fps)
     {
-        // QSV encoder through Media Foundation doesn't reliably support runtime FPS changes
-        // Return false to let the caller know this encoder doesn't support it
-        Logger.Warn($"[QsvNativeWrapper] Runtime FPS change not supported (requested: {fps}fps)");
-        return false;
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (fps <= 0) return false;
+
+        try
+        {
+            int result = QsvSetFps(_handle, fps);
+            if (result == QSV_WRAPPER_OK)
+            {
+                _fps = fps;
+                Logger.Info($"[QsvNativeWrapper] FPS changed to {fps}");
+                return true;
+            }
+            else
+            {
+                // Note: QSV encoder currently returns FAIL for runtime FPS changes
+                string error = GetLastError();
+                Logger.Warn($"[QsvNativeWrapper] SetFps not supported or failed: {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] SetFps exception: {ex.Message}");
+            return false;
+        }
     }
 
     #endregion

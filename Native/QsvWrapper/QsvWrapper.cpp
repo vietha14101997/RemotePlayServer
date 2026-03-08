@@ -1,5 +1,5 @@
 // QsvWrapper.cpp - Intel Quick Sync Video Wrapper Implementation
-// Uses Media Foundation Hardware MFT for H.264 encoding with Intel QSV acceleration
+// Uses Media Foundation Hardware MFT for H.264/H.265 encoding with Intel QSV acceleration
 
 #include "QsvWrapper.h"
 
@@ -50,12 +50,26 @@ void SafeRelease(T** ppT) {
     }
 }
 
-// Detect keyframe by scanning for SPS (NAL type 7) or IDR (NAL type 5)
-static int DetectKeyframe(const uint8_t* data, size_t size) {
+// Detect keyframe for H.264: SPS (NAL type 7) or IDR (NAL type 5)
+static int DetectKeyframeH264(const uint8_t* data, size_t size) {
     for (size_t i = 0; i + 4 < size; i++) {
         if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
             int nalType = data[i+4] & 0x1F;
             if (nalType == 7 || nalType == 5) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// Detect keyframe for H.265: VPS (32), SPS (33), IDR_W_RADL (19), IDR_N_LP (20)
+static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
+    for (size_t i = 0; i + 5 < size; i++) {
+        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+            int nalType = (data[i+4] >> 1) & 0x3F;
+            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
+            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
                 return 1;
             }
         }
@@ -94,18 +108,22 @@ struct QsvEncoderContext {
     std::atomic<bool> initialized{ false };
     std::mutex encodeMutex;
 
+    bool useHevc = false;
+
     // Output buffer
     std::vector<uint8_t> outputBuffer;
 };
 
-// Find Intel QSV hardware encoder MFT
-static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* deviceManager) {
+// Find Intel QSV hardware encoder MFT (codec-aware)
+static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* deviceManager, bool useHevc) {
     HRESULT hr = S_OK;
     IMFActivate** ppActivate = nullptr;
     UINT32 count = 0;
 
+    GUID outputSubtype = useHevc ? MFVideoFormat_HEVC : MFVideoFormat_H264;
+
     MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Video, MFVideoFormat_NV12 };
-    MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Video, MFVideoFormat_H264 };
+    MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Video, outputSubtype };
 
     hr = MFTEnumEx(
         MFT_CATEGORY_VIDEO_ENCODER,
@@ -117,7 +135,7 @@ static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* de
     );
 
     if (FAILED(hr) || count == 0) {
-        g_lastError = "No hardware H.264 encoder found";
+        g_lastError = useHevc ? "No hardware H.265 encoder found" : "No hardware H.264 encoder found";
         return E_FAIL;
     }
 
@@ -199,14 +217,15 @@ QSVWRAPPER_API int QsvIsAvailable() {
     return (count > 0) ? 1 : 0;
 }
 
-// Create encoder
-QSVWRAPPER_API int QsvCreateEncoder(
+// Internal: Create encoder with codec selection
+static int QsvCreateEncoderInternal(
     QsvEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width,
     int height,
     int fps,
-    int bitrate)
+    int bitrate,
+    bool useHevc)
 {
     if (!outHandle || !d3d11Device || width <= 0 || height <= 0) {
         g_lastError = "Invalid parameters";
@@ -231,6 +250,7 @@ QSVWRAPPER_API int QsvCreateEncoder(
     ctx->height = height;
     ctx->fps = fps;
     ctx->bitrate = bitrate;
+    ctx->useHevc = useHevc;
 
     // Create DXGI device manager
     hr = MFCreateDXGIDeviceManager(&ctx->deviceResetToken, &ctx->deviceManager);
@@ -239,10 +259,10 @@ QSVWRAPPER_API int QsvCreateEncoder(
     hr = ctx->deviceManager->ResetDevice(d3d11Device, ctx->deviceResetToken);
     CHECK_HR(hr, "ResetDevice failed");
 
-    // Find and create hardware encoder
-    hr = FindQsvEncoder(&ctx->encoder, ctx->deviceManager);
+    // Find and create hardware encoder (codec-aware)
+    hr = FindQsvEncoder(&ctx->encoder, ctx->deviceManager, useHevc);
     if (FAILED(hr)) {
-        g_lastError = "Failed to find Intel QSV encoder";
+        g_lastError = useHevc ? "Failed to find Intel QSV HEVC encoder" : "Failed to find Intel QSV encoder";
         SafeRelease(&ctx->deviceManager);
         ctx->d3dDevice->Release();
         ctx->d3dContext->Release();
@@ -251,37 +271,44 @@ QSVWRAPPER_API int QsvCreateEncoder(
         return QSV_WRAPPER_FAIL;
     }
 
-    // Set output media type (H.264)
-    IMFMediaType* outputType = nullptr;
-    hr = MFCreateMediaType(&outputType);
+    // Set output media type (H.264 or H.265)
+    GUID outputSubtype = useHevc ? MFVideoFormat_HEVC : MFVideoFormat_H264;
+
+    IMFMediaType* outputMediaType = nullptr;
+    hr = MFCreateMediaType(&outputMediaType);
     CHECK_HR(hr, "MFCreateMediaType output failed");
 
-    hr = outputType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-    hr = outputType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
-    hr = outputType->SetUINT32(MF_MT_AVG_BITRATE, bitrate * 1000);
-    hr = MFSetAttributeSize(outputType, MF_MT_FRAME_SIZE, width, height);
-    hr = MFSetAttributeRatio(outputType, MF_MT_FRAME_RATE, fps, 1);
-    hr = outputType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-    hr = outputType->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_Base);
-    hr = outputType->SetUINT32(MF_MT_MPEG2_LEVEL, eAVEncH264VLevel4);
+    hr = outputMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    hr = outputMediaType->SetGUID(MF_MT_SUBTYPE, outputSubtype);
+    hr = outputMediaType->SetUINT32(MF_MT_AVG_BITRATE, bitrate * 1000);
+    hr = MFSetAttributeSize(outputMediaType, MF_MT_FRAME_SIZE, width, height);
+    hr = MFSetAttributeRatio(outputMediaType, MF_MT_FRAME_RATE, fps, 1);
+    hr = outputMediaType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
 
-    hr = ctx->encoder->SetOutputType(0, outputType, 0);
-    SafeRelease(&outputType);
+    if (useHevc) {
+        hr = outputMediaType->SetUINT32(MF_MT_MPEG2_PROFILE, 1);  // Main profile for HEVC
+    } else {
+        hr = outputMediaType->SetUINT32(MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_Base);
+        hr = outputMediaType->SetUINT32(MF_MT_MPEG2_LEVEL, eAVEncH264VLevel4);
+    }
+
+    hr = ctx->encoder->SetOutputType(0, outputMediaType, 0);
+    SafeRelease(&outputMediaType);
     CHECK_HR(hr, "SetOutputType failed");
 
     // Set input media type (NV12)
-    IMFMediaType* inputType = nullptr;
-    hr = MFCreateMediaType(&inputType);
+    IMFMediaType* inputMediaType = nullptr;
+    hr = MFCreateMediaType(&inputMediaType);
     CHECK_HR(hr, "MFCreateMediaType input failed");
 
-    hr = inputType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-    hr = inputType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
-    hr = MFSetAttributeSize(inputType, MF_MT_FRAME_SIZE, width, height);
-    hr = MFSetAttributeRatio(inputType, MF_MT_FRAME_RATE, fps, 1);
-    hr = inputType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
+    hr = inputMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    hr = inputMediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
+    hr = MFSetAttributeSize(inputMediaType, MF_MT_FRAME_SIZE, width, height);
+    hr = MFSetAttributeRatio(inputMediaType, MF_MT_FRAME_RATE, fps, 1);
+    hr = inputMediaType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
 
-    hr = ctx->encoder->SetInputType(0, inputType, 0);
-    SafeRelease(&inputType);
+    hr = ctx->encoder->SetInputType(0, inputMediaType, 0);
+    SafeRelease(&inputMediaType);
     CHECK_HR(hr, "SetInputType failed");
 
     // Cache ICodecAPI and configure for low latency
@@ -299,7 +326,7 @@ QSVWRAPPER_API int QsvCreateEncoder(
         ctx->codecApi->SetValue(&CODECAPI_AVEncCommonRateControlMode, &var);
 
         var.vt = VT_UI4;
-        var.ulVal = fps * 2;
+        var.ulVal = 0; // Infinite GOP (match Nvenc)
         ctx->codecApi->SetValue(&CODECAPI_AVEncMPVGOPSize, &var);
     }
 
@@ -331,6 +358,27 @@ QSVWRAPPER_API int QsvCreateEncoder(
     return QSV_WRAPPER_OK;
 }
 
+// Create encoder (H.264)
+QSVWRAPPER_API int QsvCreateEncoder(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate)
+{
+    return QsvCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false);
+}
+
+// Create encoder with codec selection
+QSVWRAPPER_API int QsvCreateEncoderEx(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return QsvCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, useHevc != 0);
+}
+
 // Set callback
 QSVWRAPPER_API int QsvSetEncodedDataCallback(
     QsvEncoderHandle handle,
@@ -346,7 +394,7 @@ QSVWRAPPER_API int QsvSetEncodedDataCallback(
     return QSV_WRAPPER_OK;
 }
 
-// Encode texture
+// Encode texture (codec-aware keyframe detection)
 QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv12Texture, int forceKeyframe)
 {
     if (!handle || !nv12Texture) {
@@ -438,7 +486,7 @@ QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv
         hr = outputBuffer->Lock(&data, nullptr, &dataLen);
 
         if (SUCCEEDED(hr) && dataLen > 0) {
-            int isKeyFrame = DetectKeyframe(data, dataLen);
+            int isKeyFrame = ctx->useHevc ? DetectKeyframeHEVC(data, dataLen) : DetectKeyframeH264(data, dataLen);
 
             if (ctx->callback) {
                 ctx->callback(data, dataLen, sampleTime, isKeyFrame, ctx->userData);
@@ -558,10 +606,8 @@ QSVWRAPPER_API int QsvSetBitrate(QsvEncoderHandle handle, int bitrateKbps) {
         }
     }
 
-    // Force keyframe after bitrate change
-    var.vt = VT_UI4;
-    var.ulVal = 1;
-    ctx->codecApi->SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &var);
+    // Do NOT force keyframe on bitrate change — encoder applies new bitrate
+    // to the next P-frame. Forcing IDR causes DC congestion death spiral.
 
     ctx->bitrate = bitrateKbps;
 

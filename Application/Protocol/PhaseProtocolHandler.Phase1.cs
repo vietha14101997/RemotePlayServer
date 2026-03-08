@@ -124,6 +124,11 @@ namespace RemotePlayServer.Application.Protocol
                 UsbEstimatedBandwidthMbps = usbLatency?.EstimatedBandwidthMbps ?? 0
             };
 
+            // Determine max native resolution height across all physical monitors
+            int maxNativeHeight = _monitors.Count > 0
+                ? _monitors.Max(m => m.height)
+                : 1080;
+
             var sugMsg = new SuggestedConfigMessage
             {
                 Monitors = suggested.Monitors,
@@ -134,7 +139,8 @@ namespace RemotePlayServer.Application.Protocol
                 Reason = suggested.Reason + transportNote,
                 SelectedCodec = _selectedCodec,
                 ConnectionType = connectionType,
-                NetworkInfo = networkInfo
+                NetworkInfo = networkInfo,
+                MaxNativeHeight = maxNativeHeight
             };
 
             Logger.Info($"[Protocol] Sending suggested_config: {suggested.Monitors}x{suggested.ResolutionWidth}x{suggested.ResolutionHeight}@{suggested.Fps}fps, bitrate={finalBitrate}kbps, codec={_selectedCodec}, transport={(_isUsbTransport ? "USB" : "WiFi")}");

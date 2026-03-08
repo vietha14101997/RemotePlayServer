@@ -98,7 +98,7 @@ namespace RemotePlayServer.Application.Protocol
 
         /// <summary>
         /// Negotiate codec based on server and client capabilities.
-        /// Priority order: H264 (hardware) > H265 > VP9 > VP8
+        /// Priority order: H265 (best quality) > H264 > VP9 > VP8
         /// </summary>
         private void NegotiateCodec()
         {
@@ -124,8 +124,8 @@ namespace RemotePlayServer.Application.Protocol
             var clientCodecs = _clientCodecCapability?.SupportedCodecs ?? new[] { "H264" };
             Logger.Info($"[Protocol] Client supported codecs: [{string.Join(", ", clientCodecs)}]");
 
-            // Find best mutual codec (priority: H264 first for hardware acceleration)
-            string[] priority = { "H264", "H265", "VP9", "VP8" };
+            // Find best mutual codec (priority: H265 for better quality/compression, then H264)
+            string[] priority = { "H265", "H264", "VP9", "VP8" };
 
             foreach (var codec in priority)
             {
@@ -323,11 +323,26 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_ws.State != WebSocketState.Open) return;
 
-            await _sendLock.WaitAsync(_ct);
+            if (!await _sendLock.WaitAsync(5000, _ct))
+            {
+                Logger.Error($"[Protocol] SendTextAsync timed out waiting for lock (len={text.Length})");
+                return;
+            }
+
             try
             {
                 var bytes = System.Text.Encoding.UTF8.GetBytes(text);
-                await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, _ct);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                cts.CancelAfter(5000); // 5 sec timeout
+                await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Warn($"[Protocol] SendTextAsync timed out or cancelled (len={text.Length})");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] SendTextAsync error: {ex.Message}");
             }
             finally
             {

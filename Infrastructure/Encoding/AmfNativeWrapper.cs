@@ -9,7 +9,7 @@ namespace RemotePlayServer.Infrastructure.Encoding;
 
 /// <summary>
 /// C# wrapper for native AmfWrapper.dll
-/// Provides true zero-copy H.264 encoding from D3D11 textures on AMD GPUs
+/// Provides true zero-copy H.264/H.265 encoding from D3D11 textures on AMD GPUs
 /// </summary>
 public unsafe class AmfNativeWrapper : ITextureEncoder
 {
@@ -101,6 +101,29 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
         int forceKeyframe
     );
 
+    // H.265/HEVC Extended APIs
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfCreateEncoderEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int AmfCreateEncoderBgraEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
     #endregion
     
     #region Fields
@@ -115,6 +138,7 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     private int _fps;
     private int _bitrate;
     private bool _useBgraMode;
+    private bool _useHevc;
 
     #endregion
 
@@ -125,11 +149,17 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     public int Height => _height;
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
+    public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
 
     /// <summary>
     /// AMF supports BGRA input directly (internal color conversion)
     /// </summary>
     public bool SupportsBgraInput => true;
+
+    /// <summary>
+    /// Set to true before Initialize to use H.265/HEVC codec instead of H.264
+    /// </summary>
+    public bool UseHevc { get => _useHevc; set => _useHevc = value; }
 
     /// <summary>
     /// True if encoder was initialized in BGRA mode
@@ -189,16 +219,11 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
             _fps = fps;
             _bitrate = bitrate;
             
-            Logger.Info($"[AmfNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[AmfNativeWrapper] Initializing {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
             
-            int result = AmfCreateEncoder(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? AmfCreateEncoderEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : AmfCreateEncoder(out _handle, device.NativePointer, width, height, fps, bitrate);
             
             if (result != AMF_WRAPPER_OK)
             {
@@ -220,7 +245,7 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[AmfNativeWrapper] Initialized successfully (zero-copy enabled)");
+            Logger.Info($"[AmfNativeWrapper] Initialized successfully (zero-copy, codec={(_useHevc ? "HEVC" : "H264")})");
             return true;
         }
         catch (Exception ex)
@@ -368,16 +393,11 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
             _bitrate = bitrate;
             _useBgraMode = true;
 
-            Logger.Info($"[AmfNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps");
+            Logger.Info($"[AmfNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
 
-            int result = AmfCreateEncoderBgra(
-                out _handle,
-                device.NativePointer,
-                width,
-                height,
-                fps,
-                bitrate
-            );
+            int result = _useHevc
+                ? AmfCreateEncoderBgraEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : AmfCreateEncoderBgra(out _handle, device.NativePointer, width, height, fps, bitrate);
 
             if (result != AMF_WRAPPER_OK)
             {
@@ -401,7 +421,7 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
                 return false;
             }
 
-            Logger.Info("[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, no color conversion)");
+            Logger.Info($"[AmfNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec={(_useHevc ? "HEVC" : "H264")})");
             return true;
         }
         catch (Exception ex)

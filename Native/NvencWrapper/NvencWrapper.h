@@ -1,5 +1,5 @@
 // NvencWrapper.h - NVIDIA NVENC SDK Wrapper for C# Interop
-// Provides simple C API for zero-copy H.264 encoding from D3D11 textures
+// Provides simple C API for zero-copy H.264/H.265 encoding from D3D11 textures
 
 #pragma once
 
@@ -41,15 +41,8 @@ typedef void (*NvencEncodedDataCallback)(
 NVENCWRAPPER_API int NvencIsAvailable();
 
 /// <summary>
-/// Create an NVENC encoder instance
+/// Create an NVENC encoder instance (H.264)
 /// </summary>
-/// <param name="outHandle">Output encoder handle</param>
-/// <param name="d3d11Device">D3D11 device to use for encoding (shared device)</param>
-/// <param name="width">Video width</param>
-/// <param name="height">Video height</param>
-/// <param name="fps">Frames per second</param>
-/// <param name="bitrate">Target bitrate in kbps</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencCreateEncoder(
     NvencEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -71,10 +64,6 @@ NVENCWRAPPER_API int NvencSetEncodedDataCallback(
 /// <summary>
 /// Encode a D3D11 NV12 texture (zero-copy)
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="texture">D3D11 NV12 texture to encode</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencEncodeTexture(
     NvencEncoderHandle handle,
     ID3D11Texture2D* texture,
@@ -99,30 +88,16 @@ NVENCWRAPPER_API const char* NvencGetLastError();
 /// <summary>
 /// Dynamically change encoder bitrate without reinitialization
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="bitrateKbps">New target bitrate in kbps</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps);
 
 /// <summary>
 /// Dynamically change encoder FPS without reinitialization
 /// </summary>
-/// <param name="handle">Encoder handle</param>
-/// <param name="fps">New target FPS</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencSetFps(NvencEncoderHandle handle, int fps);
 
 /// <summary>
-/// Create an NVENC encoder instance that accepts BGRA input directly.
-/// This eliminates the need for CPU/GPU color conversion, NVENC handles it internally.
+/// Create an NVENC encoder instance with BGRA input (H.264)
 /// </summary>
-/// <param name="outHandle">Output encoder handle</param>
-/// <param name="d3d11Device">D3D11 device to use for encoding (shared device)</param>
-/// <param name="width">Video width</param>
-/// <param name="height">Video height</param>
-/// <param name="fps">Frames per second</param>
-/// <param name="bitrate">Target bitrate in kbps</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencCreateEncoderBgra(
     NvencEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -133,17 +108,42 @@ NVENCWRAPPER_API int NvencCreateEncoderBgra(
 );
 
 /// <summary>
-/// Encode a D3D11 BGRA texture directly (zero-copy, no color conversion needed)
-/// Use with encoder created by NvencCreateEncoderBgra
+/// Encode a D3D11 BGRA texture directly (zero-copy)
 /// </summary>
-/// <param name="handle">Encoder handle (created with NvencCreateEncoderBgra)</param>
-/// <param name="bgraTexture">D3D11 BGRA texture (B8G8R8A8_UNORM) to encode</param>
-/// <param name="forceKeyframe">Force IDR frame</param>
-/// <returns>NVENC_WRAPPER_OK on success</returns>
 NVENCWRAPPER_API int NvencEncodeBgraTexture(
     NvencEncoderHandle handle,
     ID3D11Texture2D* bgraTexture,
     int forceKeyframe
+);
+
+// ── H.265/HEVC Extended APIs ──────────────────────────────────────────────
+
+/// <summary>
+/// Create an NVENC encoder instance with codec selection (H.264 or H.265)
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+NVENCWRAPPER_API int NvencCreateEncoderEx(
+    NvencEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
+);
+
+/// <summary>
+/// Create an NVENC encoder with BGRA input and codec selection
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+NVENCWRAPPER_API int NvencCreateEncoderBgraEx(
+    NvencEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
 );
 
 #ifdef __cplusplus

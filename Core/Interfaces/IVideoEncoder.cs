@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Vortice.Direct3D11;
+using RemotePlayServer.Core;
 
 namespace RemotePlayServer.Core.Interfaces;
 
@@ -18,6 +19,7 @@ public interface IVideoEncoder : IDisposable
     bool IsInitialized { get; }
     int Width { get; }
     int Height { get; }
+    VideoCodec CurrentCodec { get; }
 
     bool Initialize(int width, int height, int fps, int bitrate, ID3D11Device device);
     bool EncodeTexture(ID3D11Texture2D texture, bool forceKeyframe = false);

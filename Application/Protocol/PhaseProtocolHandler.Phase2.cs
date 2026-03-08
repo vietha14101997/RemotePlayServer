@@ -240,19 +240,21 @@ namespace RemotePlayServer.Application.Protocol
                         await Task.Run(() => VirtualDisplayManager.EnsureVddResolutionThenToggleDriver());
                         await Task.Delay(2000); // Allow Windows to stabilize VDD resolution
 
-                        await SendProgressAsync("topology", 60, "Setting up display topology...");
-
-                        await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
-                        await Task.Delay(1000); // Allow Windows to apply topology change
-
-                        DisplayGuard.SpawnWatchdog();
                         _displayModified = true;
                     }
                     else
                     {
-                        // Enough physical monitors — no VDD needed, keep original layout
-                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) >= requested ({requested}), no VDD needed");
+                        // Enough physical monitors — no VDD needed, but still ensure scaling
+                        Logger.Info($"[Protocol] Physical monitors ({physicalCount}) >= requested ({requested}), using physical monitors");
                     }
+
+                    // ALWAYS ensure topology and scaling are applied (for both physical and virtual monitors)
+                    await SendProgressAsync("topology", 60, "Configuring display layout and scaling...");
+                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
+                    await Task.Delay(1000); // Allow Windows to apply changes
+
+                    _displayModified = true;
+                    DisplayGuard.SpawnWatchdog();
                 }
             }
 
@@ -281,16 +283,15 @@ namespace RemotePlayServer.Application.Protocol
             _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             // Create SIPSorcery streamer with negotiated codec
-            // BitrateKbps from client is TOTAL for all monitors - divide by count for per-encoder bitrate
             var negotiatedCodec = ParseVideoCodec(_selectedCodec);
-            int perEncoderBitrate = config.BitrateKbps / Math.Max(1, actualMonitors);
-            Logger.Info($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, bitrate={perEncoderBitrate}kbps per encoder (total={config.BitrateKbps}kbps)");
+            int resolutionHeight = config.Resolution?.Height > 0 ? config.Resolution.Height : TextureResizer.DEFAULT_TARGET_HEIGHT;
+            Logger.Info($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, resolution={resolutionHeight}p");
             _streamer = new SIPSorceryStreamer(
-                actualMonitors, config.Fps, perEncoderBitrate, _capture.Device, negotiatedCodec);
+                actualMonitors, config.Fps, resolutionHeight, _capture.Device, negotiatedCodec);
 
-            // Create texture resizer with target output height (default 1080p)
-            _textureResizer = new TextureResizer(actualMonitors, TextureResizer.DEFAULT_TARGET_HEIGHT);
-            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {TextureResizer.DEFAULT_TARGET_HEIGHT}p, type: {DisplayConfig.MonitorType})");
+            // Create texture resizer with target output height
+            _textureResizer = new TextureResizer(actualMonitors, resolutionHeight);
+            Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {resolutionHeight}p, type: {DisplayConfig.MonitorType})");
 
             // Wire up per-monitor devices
             for (int i = 0; i < actualMonitors; i++)
@@ -315,23 +316,71 @@ namespace RemotePlayServer.Application.Protocol
                 catch { }
             };
 
-            // ICE ready notification
+            // Dedicated audio PeerConnection ICE candidate forwarding
+            _streamer.OnAudioIceCandidate += async (candidate) =>
+            {
+                try
+                {
+                    if (_ws.State != WebSocketState.Open) return;
+                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
+                    await SendTextAsync(json);
+                }
+                catch { }
+            };
+
+            // H264 Fallback subscription: detect H.265 instability and request downgrade
+            _streamer.OnH264FallbackSuggested += async () =>
+            {
+                Logger.Warn("[Protocol] SIPSorceryStreamer suggested H.264 fallback due to H.265 instability.");
+                _selectedCodec = "H264";
+                var msg = new ReconnectRequestMessage 
+                { 
+                    Reason = "h265_instability",
+                    SuggestedCodec = "H264"
+                };
+                await SendMessageAsync(msg);
+            };
             _streamer.OnAllTracksReady += async () =>
             {
                 try
                 {
                     _allConnectedTcs?.TrySetResult(true);
                     if (_ws.State != WebSocketState.Open) return;
-                    Logger.Info($"[Protocol] All {actualMonitors} tracks ready, sending ice_ready");
+                    var streamer = _streamer;
+                    if (streamer == null) return;
+
+                    int negotiatedMonitors = actualMonitors;
+                    if (!string.IsNullOrEmpty(_lastOfferSdp))
+                    {
+                        int offerVideoCount = CountVideoMLines(_lastOfferSdp);
+                        if (offerVideoCount > 0)
+                            negotiatedMonitors = Math.Min(actualMonitors, offerVideoCount);
+                    }
+                    Logger.Info($"[Protocol] All {negotiatedMonitors} tracks ready, sending ice_ready");
+
+                    // Reconnect during Phase 3 resets streamer sync state to "pending activation".
+                    // If we don't re-activate here, video/audio frames are dropped indefinitely.
+                    if (_phase == ConnectionPhase.Phase3_Streaming)
+                    {
+                        if (_capture != null && _capture.HasBarrierSync)
+                        {
+                            _capture.OnNextBarrierSync = () => streamer.ActivatePhase3();
+                        }
+                        else
+                        {
+                            streamer.ActivatePhase3();
+                        }
+                        Logger.Info("[Protocol] Reconnect in Phase 3: requested streamer re-activation");
+                    }
 
                     // Check if encoder supports BGRA mode (skip color conversion)
-                    if (_streamer.AnyTrackRequiresBgraInput())
+                    if (streamer.AnyTrackRequiresBgraInput() && _capture != null)
                     {
                         Logger.Info("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
                         _capture.UseBgraMode = true;
                     }
 
-                    var msg = new IceReadyMessage { MonitorCount = actualMonitors };
+                    var msg = new IceReadyMessage { MonitorCount = negotiatedMonitors };
                     await SendMessageAsync(msg);
                     Logger.Info("[Protocol] Starting early capture to prevent browser track timeout...");
                     StartCaptureThread();
@@ -342,50 +391,35 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Connection failed - auto-retry DTLS before requesting full client reconnect
+            // Connection failed - immediately request client reconnect.
+            // Server-side auto-retry (creating new PC + sending new answer) doesn't work because
+            // the client's old PeerConnection is already in Stable state and rejects the second answer.
+            // The only way to recover is for the client to create a fresh PeerConnection.
             _streamer.OnConnectionFailed += async () =>
             {
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
-                    if (_dtlsRetrying) return; // Ignore events from old PC during retry
+                    if (_dtlsRetrying) return;
+                    _dtlsRetrying = true;
 
-                    if (_dtlsRetryCount < MAX_DTLS_RETRIES && _lastOfferSdp != null)
+                    if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
                     {
-                        _dtlsRetrying = true;
-                        _dtlsRetryCount++;
-                        Logger.Info($"[Protocol] DTLS failed, auto-retry {_dtlsRetryCount}/{MAX_DTLS_RETRIES} in 500ms...");
-
-                        // Delay to exit PeerConnection event handler + allow socket cleanup
-                        await Task.Delay(500);
-
-                        // Reset DTLS completion gate
-                        _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                        // Re-process cached offer (creates new PC with fresh certificate)
-                        await ProcessSingleOfferAsync(_lastOfferSdp);
-
-                        _dtlsRetrying = false;
+                        Logger.Error($"[Protocol] DTLS failed, all {MAX_PHASE2_RESTARTS} restarts exhausted — sending terminal error");
+                        await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
                     }
                     else
                     {
-                        // All DTLS retries exhausted — check if phase2 restarts are also exhausted
-                        if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
-                        {
-                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries x {_phase2RestartCount} restarts — sending terminal error");
-                            await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
-                        }
-                        else
-                        {
-                            Logger.Error($"[Protocol] DTLS failed after {MAX_DTLS_RETRIES} retries, requesting reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
-                            await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
-                        }
+                        Logger.Error($"[Protocol] DTLS failed, requesting client reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
+                        await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
                     }
+
+                    _dtlsRetrying = false;
                 }
                 catch (Exception ex)
                 {
                     _dtlsRetrying = false;
-                    Logger.Error($"[Protocol] DTLS retry error: {ex.Message}");
+                    Logger.Error($"[Protocol] DTLS reconnect request error: {ex.Message}");
                 }
             };
 
@@ -457,6 +491,14 @@ namespace RemotePlayServer.Application.Protocol
                         await ProcessIceCandidateAsync(cand.MonitorIndex, cand.Candidate);
                     break;
 
+                case "audio_offer":
+                    await HandleAudioOfferAsync(json);
+                    break;
+
+                case "audio_candidate":
+                    HandleAudioIceCandidate(json);
+                    break;
+
                 case "proceed":
                     var proceed = ProtocolMessageParser.Parse<ProceedMessage>(json);
                     if (proceed?.Phase == 3)
@@ -474,7 +516,7 @@ namespace RemotePlayServer.Application.Protocol
                             Logger.Info("[Protocol] Received proceed phase 3, waiting for DTLS to complete...");
                             try
                             {
-                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
                                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts.Token, _ct);
                                 var dtlsTask = _allConnectedTcs.Task;
                                 var timeoutTask = Task.Delay(Timeout.Infinite, linkedCts.Token);
@@ -486,7 +528,7 @@ namespace RemotePlayServer.Application.Protocol
                                 }
                                 else
                                 {
-                                    Logger.Error("[Protocol] DTLS timeout (10s) - requesting client to reconnect");
+                                    Logger.Error("[Protocol] DTLS timeout (6s) - requesting client to reconnect");
                                     try
                                     {
                                         await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_timeout\"}");
@@ -530,6 +572,60 @@ namespace RemotePlayServer.Application.Protocol
                     break;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Handle audio_offer from client's dedicated audio PeerConnection.
+        /// Creates a second RTCPeerConnection on the server side with isolated SCTP.
+        /// </summary>
+        private async Task HandleAudioOfferAsync(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                string? sdp = doc.RootElement.TryGetProperty("sdp", out var sp) ? sp.GetString() : null;
+                if (string.IsNullOrEmpty(sdp))
+                {
+                    Logger.Error("[Protocol] audio_offer has empty SDP");
+                    return;
+                }
+
+                var answerSdp = await _streamer.ProcessAudioOfferAsync(sdp!);
+                if (!string.IsNullOrEmpty(answerSdp))
+                {
+                    var answerJson = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_answer", sdp = answerSdp });
+                    await SendTextAsync(answerJson);
+                    Logger.Info("[Protocol] Audio PC answer sent");
+
+                    // Flush server-side ICE candidates AFTER the answer is sent
+                    // so the client has the remote description before receiving candidates
+                    _streamer.FlushAudioLocalCandidates();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] audio_offer handling failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle audio_candidate from client's dedicated audio PeerConnection.
+        /// </summary>
+        private void HandleAudioIceCandidate(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                string? candidate = doc.RootElement.TryGetProperty("candidate", out var cp) ? cp.GetString() : null;
+                if (!string.IsNullOrEmpty(candidate))
+                    _streamer.AddAudioIceCandidate(candidate!);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] audio_candidate handling failed: {ex.Message}");
+            }
         }
 
         private async Task HandleLegacyMessageAsync(string text)
@@ -582,9 +678,15 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
-            // Cache offer for DTLS auto-retry
+            // Capture generation to detect if a codec_fallback invalidated this offer during processing
+            int gen = _offerGeneration;
+
+            // Reset RTP sync and encoder state for new session/reconnect
+            _streamer.ResetSyncState();
+
+            // Cache offer for video m-line counting
             _lastOfferSdp = offerSdp;
-            _dtlsRetryCount = 0;
+            lock (_iceLock) { _allReceivedIceCandidates.Clear(); }
 
             Logger.Info("[Protocol] Received single offer for all monitors");
 
@@ -645,18 +747,26 @@ namespace RemotePlayServer.Application.Protocol
                     }
                 }
 
-                // Parse offer to find H264 PT (must match what the streamer uses)
-                var h264PayloadType = ParseH264PayloadType(offerSdp);
-                Logger.Info($"[Protocol] Parsed H264 PT from offer: {h264PayloadType}");
+                // Parse offer to find codec PT (must match what the streamer uses)
+                var codecPayloadType = ParseCodecPayloadType(offerSdp, _selectedCodec);
+                Logger.Info($"[Protocol] Parsed {_selectedCodec} PT from offer: {codecPayloadType}");
 
                 // Process offer with all dimensions at once
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
+
+                // Check if a codec_fallback arrived while we were processing this offer.
+                // If so, discard this stale answer — the client already sent/will send a new offer.
+                if (_offerGeneration != gen)
+                {
+                    Logger.Warn($"[Protocol] Discarding stale answer (gen={gen}, current={_offerGeneration}) — codec_fallback received during offer processing");
+                    return;
+                }
 
                 // Fix m-line order: SIPSorcery may reorder (audio before video) breaking strict WebRTC
                 var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);
 
                 // Filter SDP answer to only include selected codec
-                var filteredSdp = FilterSdpForCodec(reorderedSdp, h264PayloadType);
+                var filteredSdp = FilterSdpForCodec(reorderedSdp, codecPayloadType, _selectedCodec);
                 Logger.Info($"[Protocol] Filtered SDP from {answerSdp.Length} to {filteredSdp.Length} bytes");
 
                 // Extract embedded ICE candidates from filtered SDP
@@ -827,12 +937,12 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
-        /// Filter SDP to only include H264 codec per m=video section.
-        /// Three-pass: 1) build PT→codec map, 2) rewrite each section with its actual H264 PT,
+        /// Filter SDP to only include selected codec per m=video section.
+        /// Three-pass: 1) build PT→codec map, 2) rewrite each section with its actual codec PT,
         /// 3) inject missing rtpmap/fmtp for video sections SIPSorcery didn't generate.
         /// SIPSorcery assigns different PTs per monitor track (96, 97, ...).
         /// </summary>
-        private string FilterSdpForCodec(string sdp, int payloadType)
+        private string FilterSdpForCodec(string sdp, int payloadType, string targetCodec)
         {
             if (string.IsNullOrEmpty(sdp))
                 return sdp;
@@ -846,7 +956,7 @@ namespace RemotePlayServer.Application.Protocol
                 if (!line.StartsWith("a=rtpmap:")) continue;
                 var pt = ExtractPayloadTypeFromLine(line);
                 if (pt < 0) continue;
-                // "a=rtpmap:96 H264/90000" → codec = "H264"
+                // "a=rtpmap:96 H264/90000" → codec = "H264" (or H265, etc.)
                 var colonIdx = line.IndexOf(':');
                 var rest = line.Substring(colonIdx + 1);
                 var spaceIdx = rest.IndexOf(' ');
@@ -858,7 +968,7 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
-            // Pass 2: Filter SDP, using actual H264 PT per m=video section
+            // Pass 2: Filter SDP, using actual codec PT per m=video section
             // Audio sections must preserve all codec attributes (rtpmap/fmtp/rtcp-fb)
             var filtered = new List<string>();
             int currentSectionPt = payloadType; // fallback to offer PT
@@ -872,30 +982,30 @@ namespace RemotePlayServer.Application.Protocol
                     var parts = line.Split(' ');
                     if (parts.Length >= 4)
                     {
-                        // Find the H264 PT among PTs listed in this m=video line
-                        int h264Pt = -1;
+                        // Find the target codec PT among PTs listed in this m=video line
+                        int targetedPt = -1;
                         for (int i = 3; i < parts.Length; i++)
                         {
                             if (int.TryParse(parts[i], out var pt) &&
                                 ptCodecMap.TryGetValue(pt, out var codec) &&
-                                codec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                                codec.Equals(targetCodec, StringComparison.OrdinalIgnoreCase))
                             {
-                                h264Pt = pt;
+                                targetedPt = pt;
                                 break;
                             }
                         }
 
-                        // Fallback: if no H264 found in map, use first PT from line
-                        if (h264Pt < 0 && int.TryParse(parts[3], out var firstPt))
-                            h264Pt = firstPt;
-                        if (h264Pt < 0)
-                            h264Pt = payloadType;
+                        // Fallback: if no target codec found in map, use first PT from line
+                        if (targetedPt < 0 && int.TryParse(parts[3], out var firstPt))
+                            targetedPt = firstPt;
+                        if (targetedPt < 0)
+                            targetedPt = payloadType;
 
-                        currentSectionPt = h264Pt;
+                        currentSectionPt = targetedPt;
                         var protocol = parts[2].EndsWith("/SAVP") ? parts[2] + "F" : parts[2];
                         var newLine = $"m=video {parts[1]} {protocol} {currentSectionPt}";
                         filtered.Add(newLine);
-                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine} (H264 PT={currentSectionPt})");
+                        Logger.Info($"[Protocol] SDP filtered m=video: {newLine} ({targetCodec} PT={currentSectionPt})");
                         continue;
                     }
                 }
@@ -922,7 +1032,7 @@ namespace RemotePlayServer.Application.Protocol
                     continue;
                 }
 
-                // Keep only rtpmap for current section's H264 PT
+                // Keep only rtpmap for current section's codec PT
                 if (line.StartsWith("a=rtpmap:"))
                 {
                     var pt = ExtractPayloadTypeFromLine(line);
@@ -939,9 +1049,21 @@ namespace RemotePlayServer.Application.Protocol
                     var pt = ExtractPayloadTypeFromLine(line);
                     if (pt == currentSectionPt)
                     {
-                        // Update profile-level-id to match AMF encoder output
-                        var fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
+                        string fixedLine = line;
+                        // Update profile-level-id to match AMF/NVENC encoder output
+                        if (targetCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                        {
+                            fixedLine = line.Replace("profile-level-id=42e01f", "profile-level-id=420428")
                                             .Replace("profile-level-id=42001f", "profile-level-id=420428");
+                        }
+                        else if (targetCodec.Equals("H265", StringComparison.OrdinalIgnoreCase))
+                        {
+                            fixedLine = line.TrimEnd() + (line.TrimEnd().EndsWith(";") ? "" : ";");
+                            if (!line.Contains("profile-id=")) fixedLine += "profile-id=1;";
+                            if (!line.Contains("tier-flag=")) fixedLine += "tier-flag=0;";
+                            if (!line.Contains("level-id="))  fixedLine += "level-id=123;"; // Level 4.1
+                            fixedLine = fixedLine.TrimEnd(';');
+                        }
                         filtered.Add(fixedLine);
                         Logger.Info($"[Protocol] SDP kept: {fixedLine}");
                     }
@@ -964,23 +1086,23 @@ namespace RemotePlayServer.Application.Protocol
 
             // Pass 3: Inject missing rtpmap/fmtp for video sections
             // SIPSorcery may only generate codec attributes for the last video track
-            string? h264RtpmapSuffix = null; // e.g., "H264/90000"
-            string? h264FmtpSuffix = null;   // e.g., "packetization-mode=1;..."
+            string? codecRtpmapSuffix = null; // e.g., "H265/90000" or "H264/90000"
+            string? codecFmtpSuffix = null;   // e.g., "packetization-mode=1;..."
             foreach (var line in filtered)
             {
-                if (h264RtpmapSuffix == null && line.StartsWith("a=rtpmap:") && line.Contains("H264"))
+                if (codecRtpmapSuffix == null && line.StartsWith("a=rtpmap:") && line.Contains(targetCodec, StringComparison.OrdinalIgnoreCase))
                 {
                     var spIdx = line.IndexOf(' ');
-                    if (spIdx > 0) h264RtpmapSuffix = line.Substring(spIdx + 1);
+                    if (spIdx > 0) codecRtpmapSuffix = line.Substring(spIdx + 1);
                 }
-                if (h264FmtpSuffix == null && line.StartsWith("a=fmtp:"))
+                if (codecFmtpSuffix == null && line.StartsWith("a=fmtp:"))
                 {
                     var spIdx = line.IndexOf(' ');
-                    if (spIdx > 0) h264FmtpSuffix = line.Substring(spIdx + 1);
+                    if (spIdx > 0) codecFmtpSuffix = line.Substring(spIdx + 1);
                 }
             }
 
-            if (h264RtpmapSuffix != null)
+            if (codecRtpmapSuffix != null)
             {
                 // Identify video sections missing rtpmap and inject after a=mid: line
                 var final = new List<string>();
@@ -1033,9 +1155,9 @@ namespace RemotePlayServer.Application.Protocol
                     if (!injected && vidPt >= 0 && line.StartsWith("a=mid:")
                         && sectionNeedsInjection.TryGetValue(vidPt, out var needs) && needs)
                     {
-                        final.Add($"a=rtpmap:{vidPt} {h264RtpmapSuffix}");
-                        if (h264FmtpSuffix != null)
-                            final.Add($"a=fmtp:{vidPt} {h264FmtpSuffix}");
+                        final.Add($"a=rtpmap:{vidPt} {codecRtpmapSuffix}");
+                        if (codecFmtpSuffix != null)
+                            final.Add($"a=fmtp:{vidPt} {codecFmtpSuffix}");
                         Logger.Info($"[Protocol] Injected missing codec attrs for PT {vidPt}");
                         injected = true;
                     }
@@ -1081,27 +1203,40 @@ namespace RemotePlayServer.Application.Protocol
             return count;
         }
 
-        private int ParseH264PayloadType(string sdp)
+        /// <summary>
+        /// Parse SDP to find the best payload type for the given codec
+        /// </summary>
+        private int ParseCodecPayloadType(string sdp, string codec)
         {
             if (string.IsNullOrEmpty(sdp)) return 96; // Fallback
 
+            // Determine the rtpmap encoding name for the codec
+            string codecRtpName;
+            switch (codec?.ToUpperInvariant())
+            {
+                case "H265": codecRtpName = "H265/90000"; break;
+                case "VP9":  codecRtpName = "VP9/90000"; break;
+                case "VP8":  codecRtpName = "VP8/90000"; break;
+                default:     codecRtpName = "H264/90000"; break;
+            }
+
             var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-            // First pass: find H264 payload types
-            var h264PayloadTypes = new Dictionary<int, string>(); // PT -> fmtp line
+            // First pass: find codec payload types
+            var codecPayloadTypes = new Dictionary<int, string>(); // PT -> fmtp line
             foreach (var line in lines)
             {
-                if (line.StartsWith("a=rtpmap:") && line.Contains("H264/90000"))
+                if (line.StartsWith("a=rtpmap:") && line.Contains(codecRtpName))
                 {
                     var parts = line.Substring(9).Split(' ');
                     if (parts.Length >= 1 && int.TryParse(parts[0], out int pt))
                     {
-                        h264PayloadTypes[pt] = "";
+                        codecPayloadTypes[pt] = "";
                     }
                 }
             }
 
-            // Second pass: get fmtp for each H264 PT
+            // Second pass: get fmtp for each PT
             foreach (var line in lines)
             {
                 if (line.StartsWith("a=fmtp:"))
@@ -1110,38 +1245,41 @@ namespace RemotePlayServer.Application.Protocol
                     if (spaceIdx > 7)
                     {
                         var ptStr = line.Substring(7, spaceIdx - 7);
-                        if (int.TryParse(ptStr, out int pt) && h264PayloadTypes.ContainsKey(pt))
+                        if (int.TryParse(ptStr, out int pt) && codecPayloadTypes.ContainsKey(pt))
                         {
-                            h264PayloadTypes[pt] = line.Substring(spaceIdx + 1);
+                            codecPayloadTypes[pt] = line.Substring(spaceIdx + 1);
                         }
                     }
                 }
             }
 
-            // Find best match
-            // Priority 1: Constrained Baseline (42e01f) with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
+            // For H264, prefer specific profiles; for others, first match
+            if (codec?.ToUpperInvariant() == "H264")
             {
-                if (kv.Value.Contains("profile-level-id=42e01f") && kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
+                // Priority 1: Constrained Baseline (42e01f) with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("profile-level-id=42e01f") && kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
+
+                // Priority 2: Baseline (42001f) with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("profile-level-id=42001f") && kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
+
+                // Priority 3: Any H264 with packetization-mode=1
+                foreach (var kv in codecPayloadTypes)
+                {
+                    if (kv.Value.Contains("packetization-mode=1"))
+                        return kv.Key;
+                }
             }
 
-            // Priority 2: Baseline (42001f) with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
-            {
-                if (kv.Value.Contains("profile-level-id=42001f") && kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
-            }
-
-            // Priority 3: Any H264 with packetization-mode=1
-            foreach (var kv in h264PayloadTypes)
-            {
-                if (kv.Value.Contains("packetization-mode=1"))
-                    return kv.Key;
-            }
-
-            // Priority 4: First H264 found
-            foreach (var kv in h264PayloadTypes)
+            // Return first match for any codec
+            foreach (var kv in codecPayloadTypes)
             {
                 return kv.Key;
             }
@@ -1192,6 +1330,9 @@ namespace RemotePlayServer.Application.Protocol
 
             lock (_iceLock)
             {
+                // Cache for DTLS retry re-application
+                _allReceivedIceCandidates.Add(candidate);
+
                 // Single-PC mode: all candidates go to the same connection
                 if (_answersReady.Contains(0))
                 {

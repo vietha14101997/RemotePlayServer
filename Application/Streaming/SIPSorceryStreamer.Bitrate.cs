@@ -1,7 +1,9 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core;
 
@@ -71,12 +73,14 @@ public partial class SIPSorceryStreamer
 
             ProcessQualityFeedback(syntheticFeedback);
 
-            // Force keyframe burst on severe conditions
+            // Force keyframe on severe conditions — but NOT for H265/DataChannel.
+            // H265 IDR frames are 200-400KB; bursting them into SCTP causes congestion death spiral.
+            // Intra refresh handles H265 recovery gradually without bandwidth spikes.
             bool severe = fpsRatio < 0.3f || dropRate > 0.5f;
-            if (severe)
+            if (severe && _negotiatedCodec != VideoCodec.H265)
             {
                 Logger.Info($"[FpsBitrateAction] Severe condition → keyframe burst mon={monitorIndex}");
-                RequestKeyframeBurst(monitorIndex, 3);
+                RequestKeyframeBurst(monitorIndex, 1);
             }
         }
     }
@@ -90,10 +94,22 @@ public partial class SIPSorceryStreamer
     /// <returns>BitrateAdjustedMessage if bitrate was changed, null otherwise.</returns>
     public BitrateAdjustedMessage? ProcessQualityFeedback(QualityFeedbackMessage feedback)
     {
-        // Initialize controller on first feedback if not already done
-        if (_bitrateController.TargetBitrateKbps == 0)
+        // Initialization is now done in constructur / config changes
+
+        // Block bitrate increases while ANY DC buffer is congested.
+        // AdaptiveBitrate sees "0% loss, healthy" because drops happen at DC layer,
+        // invisible to the client feedback loop. Increasing bitrate during DC congestion
+        // makes frames larger → buffer fills faster → congestion gets worse.
+        bool anyTrackCongested = _congestionBitrateReduced || _dcWasAboveHigh; // congestion bitrate reduction active or legacy single-DC
+        if (!anyTrackCongested)
         {
-            _bitrateController.Initialize(_bitrateKbps, _bitrateKbps * 2);
+            lock (_lock) { anyTrackCongested = _tracks.Any(t => t.PFramesDroppedDuringCongestion); }
+        }
+        if (anyTrackCongested)
+        {
+            // Don't even call ProcessFeedback — any increase would be harmful,
+            // and the controller's recovery timer would advance incorrectly.
+            return null;
         }
 
         // Process feedback through adaptive bitrate controller
@@ -206,6 +222,19 @@ public partial class SIPSorceryStreamer
 
     public void RequestKeyframeBurst(int monitorIndex = -1, int count = 3)
     {
+        // H265 via DataChannel: IDR frames are huge (~200KB each).
+        // Burst of 5 IDR × 2 tracks = ~2MB flooding SCTP → instant death spiral.
+        // Cap to 1 IDR per burst in H265/DC mode, and skip if DC is already congested.
+        if (_negotiatedCodec == VideoCodec.H265)
+        {
+            if (_dcSoftCongestion)
+            {
+                Logger.Warn($"[SIPSorcery] Keyframe burst SKIPPED (DC congested, monitor={monitorIndex}, requested={count})");
+                return;
+            }
+            count = 1; // Single IDR is sufficient for H265 resync
+        }
+
         lock (_lock)
         {
             if (monitorIndex == -1)
@@ -224,39 +253,76 @@ public partial class SIPSorceryStreamer
     {
         var types = new List<int>();
         int i = 0;
-        while (i + 4 <= au.Length)
+        int len = au.Length;
+        while (i + 3 < len)
         {
-            int sc = (au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ? 3 :
-                     (i + 4 <= au.Length && au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 0 && au[i + 3] == 1) ? 4 : 0;
-            if (sc == 0) break;
-            i += sc;
-            if (i >= au.Length) break;
-            types.Add(au[i] & 0x1F);
-            // Find next start code
-            int j = i + 1;
-            for (; j + 3 < au.Length; j++)
+            // Scan for 00 00 01 or 00 00 00 01
+            int sc = 0;
+            if (au[i] == 0 && au[i + 1] == 0)
             {
-                if ((au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 1) ||
-                    (j + 4 <= au.Length && au[j] == 0 && au[j + 1] == 0 && au[j + 2] == 0 && au[j + 3] == 1))
-                    break;
+                if (au[i + 2] == 1) sc = 3;
+                else if (i + 3 < len && au[i + 2] == 0 && au[i + 3] == 1) sc = 4;
             }
-            i = j;
+
+            if (sc > 0)
+            {
+                i += sc;
+                if (i < len)
+                {
+                    int type;
+                    if (_negotiatedCodec == VideoCodec.H265)
+                        type = (au[i] >> 1) & 0x3F;
+                    else
+                        type = au[i] & 0x1F;
+                    
+                    types.Add(type);
+                }
+            }
+            else
+            {
+                i++;
+            }
         }
-        return types;
+        var uniqueTypes = new List<int>();
+        foreach (var t in types) if (!uniqueTypes.Contains(t)) uniqueTypes.Add(t);
+        return uniqueTypes;
+    }
+
+    public (int MinBitrate, int MaxBitrate) GetBitrateRange(int resolutionHeight, int fps)
+    {
+        if (resolutionHeight <= 720)
+        {
+            if (fps <= 30) return (2000, 5000);
+            if (fps <= 60) return (3000, 7000);
+            return (5000, 10000); // 120 fps
+        }
+        else if (resolutionHeight <= 1080)
+        {
+            if (fps <= 30) return (4000, 8000);
+            if (fps <= 60) return (6000, 15000);
+            return (12000, 25000); // 120 fps
+        }
+        else // 1440p+
+        {
+            if (fps <= 30) return (6000, 15000);
+            if (fps <= 60) return (10000, 25000);
+            return (20000, 40000); // 120 fps
+        }
     }
 
     /// <summary>
     /// Dynamically update streaming configuration during Phase 3.
     /// </summary>
     /// <param name="fps">New target FPS (optional, null = no change). Note: FPS change may not take effect until reconnect.</param>
-    /// <param name="totalBitrateKbps">New TOTAL bitrate in kbps for ALL monitors (optional, null = no change).</param>
-    /// <returns>Tuple of (success, appliedFps, appliedTotalBitrate, message)</returns>
-    public (bool Success, int Fps, int BitrateKbps, string Message) UpdateConfig(int? fps, int? totalBitrateKbps)
+    /// <param name="resolutionHeight">New resolution height (optional, null = no change).</param>
+    /// <returns>Tuple of (success, appliedFps, appliedResolutionHeight, message)</returns>
+    public (bool Success, int Fps, int ResolutionHeight, string Message) UpdateConfig(int? fps, int? resolutionHeight)
     {
         var messages = new List<string>();
         int appliedFps = _fps;
-        int appliedBitrate = _bitrateKbps;
+        int appliedResolutionHeight = _resolutionHeight;
         bool anySuccess = false;
+        bool configChanged = false;
 
         // FPS change - apply to all encoders
         // Snapshot tracks under _lock, then SetFps under track.EncodeLock to serialize with encode path.
@@ -287,6 +353,7 @@ public partial class SIPSorceryStreamer
                 appliedFps = fps.Value;
                 messages.Add($"FPS: {fps.Value} ({successCount}/{trackCount} encoders updated)");
                 anySuccess = true;
+                configChanged = true;
             }
             else if (trackCount > 0)
             {
@@ -296,56 +363,62 @@ public partial class SIPSorceryStreamer
                 appliedFps = fps.Value;
                 messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
                 anySuccess = true;
+                configChanged = true;
             }
         }
 
-        // Bitrate change - apply to all encoders
-        // Snapshot tracks under _lock, then SetBitrate under track.EncodeLock to serialize with encode path.
-        if (totalBitrateKbps.HasValue && totalBitrateKbps.Value > 0)
+        // Resolution Height change
+        if (resolutionHeight.HasValue && resolutionHeight.Value > 0 && resolutionHeight.Value != _resolutionHeight)
         {
-            int perMonitorBitrate = totalBitrateKbps.Value / Math.Max(1, _monitorCount);
-            Logger.Info($"[SIPSorcery] Bitrate update: total={totalBitrateKbps.Value}kbps, per-monitor={perMonitorBitrate}kbps");
+            Logger.Info($"[SIPSorcery] Resolution Height update: {_resolutionHeight} → {resolutionHeight.Value}");
+            _resolutionHeight = resolutionHeight.Value;
+            appliedResolutionHeight = resolutionHeight.Value;
+            messages.Add($"Resolution: {resolutionHeight.Value}p");
+            anySuccess = true;
+            configChanged = true;
 
+            // CRITICAL: When resolution changes, do NOT update FPS/Bitrate synchronously here.
+            // This prevents deadlocks between the message loop (this thread) and the capture thread.
+            // The capture thread will detect the resolution change in the next PushBgraTexture call
+            // and recreate the encoder safely via EnsureEncoderMatchesResolution.
+            Logger.Info("[SIPSorcery] Resolution changed, deferred encoder update to capture thread");
+            
+            // Still update the bitrate controller so the next encoder gets the right initial values
+            var range = GetBitrateRange(_resolutionHeight, _fps);
+            _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+            messages.Add($"Bitrate controller re-initialized for {appliedResolutionHeight}p");
+            
+            return (true, appliedFps, appliedResolutionHeight, string.Join(", ", messages));
+        }
+
+        if (configChanged)
+        {
+            var range = GetBitrateRange(_resolutionHeight, _fps);
+            _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+            
+            int newTargetBitrate = _bitrateController.TargetBitrateKbps;
+            
             TrackInfo[] brSnapshot;
-            int trackCount;
-            lock (_lock) { brSnapshot = _tracks.ToArray(); trackCount = _tracks.Count; }
+            lock (_lock) { brSnapshot = _tracks.ToArray(); }
 
-            int successCount = 0;
             foreach (var track in brSnapshot)
             {
                 lock (track.EncodeLock)
                 {
                     if (track.Encoder != null)
                     {
-                        if (track.Encoder.SetBitrate(perMonitorBitrate))
-                        {
-                            successCount++;
-                            Logger.Info($"[SIPSorcery] Track {track.Index} bitrate → {perMonitorBitrate}kbps");
-                        }
-                        else
-                        {
-                            Logger.Error($"[SIPSorcery] Track {track.Index} SetBitrate failed (encoder may not support runtime change)");
-                        }
+                        track.Encoder.SetBitrate(newTargetBitrate);
                     }
                 }
             }
-
-            if (successCount > 0)
-            {
-                appliedBitrate = totalBitrateKbps.Value;
-                messages.Add($"Bitrate: {totalBitrateKbps.Value}kbps ({successCount}/{trackCount} encoders updated)");
-                anySuccess = true;
-            }
-            else if (trackCount > 0)
-            {
-                messages.Add("Bitrate change not supported by current encoder(s)");
-            }
+            
+            messages.Add($"Target Bitrate reset to {newTargetBitrate}kbps based on {appliedResolutionHeight}p @ {appliedFps}fps");
         }
 
         string message = messages.Count > 0 ? string.Join(", ", messages) : "No changes applied";
         Logger.Info($"[SIPSorcery] UpdateConfig result: {message}");
 
-        return (anySuccess, appliedFps, appliedBitrate, message);
+        return (anySuccess, appliedFps, appliedResolutionHeight, message);
     }
 
     /// <summary>
@@ -354,11 +427,11 @@ public partial class SIPSorceryStreamer
     /// </summary>
     public (int Fps, int TotalBitrateKbps, int MonitorCount) GetCurrentConfig()
     {
-        // Use adaptive controller's current target if initialized, otherwise fall back to initial config
+        // Use adaptive controller's current target
         int currentBitrate = _bitrateController.TargetBitrateKbps > 0
             ? _bitrateController.TargetBitrateKbps
-            : _bitrateKbps;
-        return (_fps, currentBitrate, _monitorCount);
+            : 0;
+        return (_fps, currentBitrate * Math.Max(1, _monitorCount), _monitorCount);
     }
 
     /// <summary>

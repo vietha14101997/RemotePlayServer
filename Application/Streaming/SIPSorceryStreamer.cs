@@ -14,6 +14,7 @@ using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -23,10 +24,23 @@ namespace RemotePlayServer.Application.Streaming;
 /// </summary>
 public partial class SIPSorceryStreamer : IDisposable
 {
+    public event Action? OnH264FallbackSuggested;
+    public event Action<string>? OnFatalError;
+
+    public void RequestH264Fallback()
+    {
+        OnH264FallbackSuggested?.Invoke();
+    }
+
     private readonly int _monitorCount;
     private int _fps;
-    private int _bitrateKbps;
-    private readonly VideoCodec _negotiatedCodec;
+    private int _resolutionHeight;
+    private VideoCodec _negotiatedCodec;
+    public VideoCodec NegotiatedCodec
+    {
+        get => _negotiatedCodec;
+        set => _negotiatedCodec = value;
+    }
     private ID3D11Device? _sharedDevice;
 
     private RTCPeerConnection? _pc;
@@ -52,7 +66,14 @@ public partial class SIPSorceryStreamer : IDisposable
     private OpusAudioEncoder? _opusEncoder;
     private bool _hasAudioTrack;
     private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
+    private RTCPeerConnection? _audioPc; // Dedicated PeerConnection for audio RTP (isolated from H.265 video SCTP congestion)
     private volatile RTCDataChannel? _cursorDc; // DataChannel for low-latency cursor position updates
+    // Per-track DataChannels for H.265 video (unreliable, unordered).
+    // Each track has its own DC to prevent cross-track congestion (e.g., Track 1 video filling
+    // the shared buffer and starving Track 0). Labels: "h265video-0", "h265video-1", etc.
+    // Falls back to single "h265video" DC for backward compatibility with older clients.
+    private readonly Dictionary<int, RTCDataChannel> _h265VideoDcs = new();
+    private volatile RTCDataChannel? _h265VideoDcLegacy; // Single "h265video" DC for backward compat
     private long _audioPacketsSent;
     private long _audioPacketsLastInterval; // Snapshot for per-interval rate calculation
 
@@ -62,8 +83,6 @@ public partial class SIPSorceryStreamer : IDisposable
     // Audio sync: last absolute audio RTP timestamp (protected by _audioSyncLock)
     private readonly object _audioSyncLock = new();
     private uint _lastAbsoluteAudioRtp;
-    private bool _audioClockInitialized;
-
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
 
@@ -79,9 +98,12 @@ public partial class SIPSorceryStreamer : IDisposable
     {
         public int Index { get; set; }
         public MediaStreamTrack? Track { get; set; }
+        public uint Ssrc { get; set; } // Persisted SSRC across reconnections
         public string Mid { get; set; } = "";
         public int Width { get; set; }
         public int Height { get; set; }
+        public int PayloadType { get; set; } // Negotiated payload type
+        public ushort SequenceNumber; // Manual sequence number for SendRtpRaw
 
         // Encoder per track (supports AMF, NVENC, QSV)
         public ITextureEncoder? Encoder { get; set; }
@@ -98,7 +120,8 @@ public partial class SIPSorceryStreamer : IDisposable
         public int KeyframeBurstRemaining; // Send N consecutive keyframes for WiFi resilience
         public long LastKeyframeRequestTicks; // Throttle: last time a keyframe was requested for this track
         public int KeyframeStaggerCountdown; // Frames to wait before forcing keyframe (stagger between tracks)
-
+        public volatile bool PFramesDroppedDuringCongestion; // DC buffer was full → P-frames were dropped → need IDR resync when drained
+        public long LastCongestResyncTicks; // Cooldown: last time IDR was forced after congestion drain (Environment.TickCount64)
         // Shared-clock sync: capture-time-based RTP (replaces encoder-PTS-based)
         public uint LastAbsoluteRtp;
         public bool CaptureClockInitialized;
@@ -114,12 +137,17 @@ public partial class SIPSorceryStreamer : IDisposable
         public long EncodeLatencySum;
         public long EncodeLatencyCount;
 
-        // NAL accumulator: collects data across multiple encoder callbacks per encode cycle.
-        // AMF's drain loop may fire 0-2+ callbacks per SubmitInput — accumulate all NAL data
-        // during encoding, then create PendingFrame after encode returns.
-        public byte[]? NalAccumulator;
-        public uint NalAccumulatorRtpStep;
-        public bool NalAccumulatorIsKeyframe;
+        // Diagnostic: flag to ensure session-start log only fires once per session
+        public bool IsSessionStarted;
+
+        // Codec Stability: Track consecutive failures/stalls in H.265 mode
+        public int H265FailureStreak;
+        public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
+        public int IdrViaDcCount; // Number of IDR frames sent via DataChannel for this session
+        public byte[]? LastH265ParamSets; // Cached VPS/SPS/PPS for H265 bootstrap recovery
+        public VideoCodec? LastUsedCodec; // Track which codec the encoder was initialized with
+        public long DcNotReadyCount; // Throttle counter for "DataChannel not ready" warnings
+
 
         // Deferred send: buffer encoded frame for coordinated multi-track sending
         public volatile PendingFrameData? PendingFrame;
@@ -143,6 +171,9 @@ public partial class SIPSorceryStreamer : IDisposable
     public event Action? OnAllTracksReady;
     public event Action<string>? OnIceCandidate;
     public event Action? OnConnectionFailed;
+
+    // Event for dedicated audio PeerConnection ICE candidates
+    public event Action<string>? OnAudioIceCandidate;
 
     /// <summary>
     /// Activate Phase 3 from barrier-synced context.
@@ -215,20 +246,48 @@ public partial class SIPSorceryStreamer : IDisposable
         }
     }
 
-    public SIPSorceryStreamer(int monitorCount, int fps, int kbps, ID3D11Device? device = null, VideoCodec codec = VideoCodec.H264)
+    public SIPSorceryStreamer(int monitorCount, int fps, int resolutionHeight, ID3D11Device? device = null, VideoCodec codec = VideoCodec.H264)
     {
         _monitorCount = monitorCount;
         _fps = fps;
-        _bitrateKbps = kbps;
+        _resolutionHeight = resolutionHeight;
         _negotiatedCodec = codec;
         _sharedDevice = device;
 
-        Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {kbps}kbps, codec={codec}");
+        var range = GetBitrateRange(_resolutionHeight, _fps);
+        int maxBitrate = range.MaxBitrate;
+        // H265 via DataChannel/SCTP has lower throughput ceiling than H264 via RTP/UDP.
+        // Cap per-encoder bitrate to prevent SCTP buffer saturation (2 encoders × 8Mbps = 16Mbps total).
+        // H265 is ~35% more efficient, so 8Mbps H265 ≈ 12Mbps H264 quality.
+        // Log shows sustainable ceiling ~7-7.5Mbps before DC congestion — 8Mbps cap reduces
+        // the constant congestion→recovery→congestion cycle while maintaining quality.
+        if (codec == VideoCodec.H265)
+            maxBitrate = Math.Min(maxBitrate, 8000);
+        _bitrateController.Initialize(range.MinBitrate, maxBitrate);
+
+        Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {_resolutionHeight}p, codec={codec}");
     }
 
     public void SetDevice(ID3D11Device device)
     {
         _sharedDevice = device;
+    }
+
+    /// <summary>
+    /// Forces re-initialization of all encoders.
+    /// Useful when dynamically switching codecs (e.g., H.265 fallback to H.264)
+    /// </summary>
+    public void ForceReinitializeEncoders()
+    {
+        Logger.Info("[SIPSorcery] Forcing re-initialization of encoders...");
+        try 
+        {
+            InitializeEncoders();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Error during forced encoder re-initialization: {ex.Message}");
+        }
     }
 
     public void SetDeviceForMonitor(int monitorIndex, ID3D11Device device)
@@ -241,6 +300,7 @@ public partial class SIPSorceryStreamer : IDisposable
             if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
             {
                 _tracks[monitorIndex].Device = device;
+                _tracks[monitorIndex].IsSessionStarted = false;
                 Logger.Info($"[SIPSorcery] Set device for existing track {monitorIndex}");
             }
             else

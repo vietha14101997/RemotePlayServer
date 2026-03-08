@@ -62,6 +62,13 @@ public sealed class DesktopAudioCapture : IDisposable
         _running = true;
         _lastDataTimeTicks = Environment.TickCount64;
 
+        // Reset silence watchdog state for clean start (mirrors Resume() pattern).
+        // Prevents stale accumulator/tick values from causing incorrect frame pacing
+        // after codec fallback reconnection.
+        _silenceActive = false;
+        _silenceAccumulatorMs = 0;
+        _lastSilenceFrameTicks = Environment.TickCount64;
+
         // Silence watchdog: fires every 10ms (matching Opus frame duration).
         // Uses 100ms detection threshold before entering silence mode — safe from
         // WASAPI callback delays caused by CPU-intensive video encoding (30ms was too low,

@@ -223,6 +223,14 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("networkInfo")]
         public NetworkInfoDto? NetworkInfo { get; set; }
+
+        /// <summary>
+        /// Maximum native resolution height across all physical monitors on the server.
+        /// Client should use this to restrict resolution dropdown options:
+        /// e.g., if maxNativeHeight < 1440, the 1440p option should be disabled.
+        /// </summary>
+        [JsonPropertyName("maxNativeHeight")]
+        public int MaxNativeHeight { get; set; }
     }
 
     /// <summary>
@@ -320,6 +328,12 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("monitorType")]
         public string MonitorType { get; set; } = "standard";
+
+        /// <summary>
+        /// True if connection is via USB Tethering (RNDIS).
+        /// </summary>
+        [JsonPropertyName("isUsbMode")]
+        public bool IsUsbMode { get; set; }
     }
 
     /// <summary>
@@ -418,6 +432,21 @@ namespace RemotePlayServer.Core.Models
         public int MonitorCount { get; set; }
     }
 
+    /// <summary>
+    /// Server -> Client: Request client to trigger a reconnect.
+    /// Used for dynamic codec fallback or recovery from fatal streaming errors.
+    /// </summary>
+    public class ReconnectRequestMessage : ProtocolMessage
+    {
+        public override string Type => "reconnect_request";
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+
+        [JsonPropertyName("suggestedCodec")]
+        public string? SuggestedCodec { get; set; }
+    }
+
     // ==================== Phase 3 Messages ====================
 
     /// <summary>
@@ -509,13 +538,6 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("fps")]
         public int? Fps { get; set; }
-
-        /// <summary>
-        /// New TOTAL bitrate in kbps for ALL monitors combined (optional, null = no change).
-        /// Server will divide by monitor count for per-encoder bitrate.
-        /// </summary>
-        [JsonPropertyName("bitrateKbps")]
-        public int? BitrateKbps { get; set; }
 
         /// <summary>
         /// New target output resolution height in pixels (optional, null = no change).

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\AmfWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common\AMFFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common\AMFSTL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common\TraceAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\amf\public\common\Windows\ThreadWindows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\AmfWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Native\AmfWrapper\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{FD489CB3-701A-39B6-BDBA-F9F019972A8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{DB78B863-6037-398B-933C-5E82DEE3F9B5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

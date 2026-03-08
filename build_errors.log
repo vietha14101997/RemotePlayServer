@@ -1,0 +1,579 @@
+Build started 3/3/2026 9:33:47 PM.
+Logging verbosity is set to: Detailed.     0>Process = "C:\Program Files\dotnet\dotnet.exe"
+       MSBuild executable path = "C:\Program Files\dotnet\sdk\9.0.311\MSBuild.dll"
+       Command line arguments = "C:\Program Files\dotnet\sdk\9.0.311\MSBuild.dll -maxcpucount -verbosity:m -tlp:default=auto -nologo -nologo -consoleloggerparameters:Summary --property:BuildInParallel=false --property:Platform=x64 -property:TargetFramework=net8.0 RemotePlayServer.csproj /clp:ErrorsOnly /fl /flp:LogFile=build_errors.log -distributedlogger:Microsoft.DotNet.Tools.MSBuild.MSBuildLogger,C:\Program Files\dotnet\sdk\9.0.311\dotnet.dll*Microsoft.DotNet.Tools.MSBuild.MSBuildForwardingLogger,C:\Program Files\dotnet\sdk\9.0.311\dotnet.dll"
+       Current directory = "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer"
+       MSBuild version = "17.14.41+6f6d310b4"
+       Based on the Windows registry key LongPathsEnabled, the LongPaths feature is disabled.
+       Based on the Windows registry key VerifiedAndReputablePolicyState, SAC state = 0: turned off.
+       The SDK "Microsoft.NET.Sdk" was successfully resolved by the "DefaultSdkResolver" resolver to location "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\Sdk" and version "".
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\Sdk\Sdk.props(49,11): message : Property 'MSBuildExtensionsPath' with value 'C:\Program Files\dotnet\sdk\9.0.311\' expanded from the environment.
+       C:\Program Files\dotnet\sdk\9.0.311\Current\Microsoft.Common.props(60,5): message : Property reassignment: $(MSBuildProjectExtensionsPath)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\" (previous value: "obj\") at C:\Program Files\dotnet\sdk\9.0.311\Current\Microsoft.Common.props (60,5)
+       C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\RemotePlayServer.csproj.nuget.g.props(7,5): message : Property 'USERPROFILE' with value 'C:\Users\super' expanded from the environment.
+       C:\Program Files\dotnet\sdk\9.0.311\Current\Microsoft.Common.props(84,119): message : Property 'MSBuildUserExtensionsPath' with value 'C:\Users\super\AppData\Local\Microsoft\MSBuild' expanded from the environment.
+       The "Platform" property is a global property, and cannot be modified.
+       The "Platform" property is a global property, and cannot be modified.
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props(90,5): message : Property reassignment: $(AssemblySearchPaths)="{CandidateAssemblyFiles};{HintPathFromItem}" (previous value: "{CandidateAssemblyFiles}") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props (90,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props(91,5): message : Property reassignment: $(AssemblySearchPaths)="{CandidateAssemblyFiles};{HintPathFromItem};{TargetFrameworkDirectory}" (previous value: "{CandidateAssemblyFiles};{HintPathFromItem}") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props (91,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props(92,5): message : Property reassignment: $(AssemblySearchPaths)="{CandidateAssemblyFiles};{HintPathFromItem};{TargetFrameworkDirectory};{RawFileName}" (previous value: "{CandidateAssemblyFiles};{HintPathFromItem};{TargetFrameworkDirectory}") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.props (92,5)
+       The "DefaultSdkResolver" resolver attempted to resolve the SDK "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator".
+       Warnings: null
+       Errors: MSB4276: The default SDK resolver failed to resolve SDK "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator" because directory "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.SDK.WorkloadAutoImportPropsLocator\Sdk" did not exist.
+       The SDK "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator" was successfully resolved by the "Microsoft.DotNet.MSBuildWorkloadSdkResolver" resolver to location "C:\Program Files\dotnet\packs\Microsoft.NET.Runtime.WebAssembly.Sdk\9.0.13\Sdk" and version "null".
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackProjectTool.props(15,5): message : Property reassignment: $(TargetsForTfmSpecificContentInPackage)=";PackTool;_PackProjectToolValidation" (previous value: ";PackTool") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackProjectTool.props (15,5)
+       The "TargetFramework" property is a global property, and cannot be modified.
+       C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj(5,5): message : Property reassignment: $(AllowUnsafeBlocks)="true" (previous value: "false") at C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj (5,5)
+       C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj(6,5): message : Property reassignment: $(OutputType)="Exe" (previous value: "Library") at C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj (6,5)
+       The "Platform" property is a global property, and cannot be modified.
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.ImportPublishProfile.targets(28,5): message : Property reassignment: $(PublishProfileImported)="false" (previous value: "true") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.ImportPublishProfile.targets (28,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.TargetFrameworkInference.targets(69,5): message : Property reassignment: $(TargetPlatformVersion)="" (previous value: "0.0") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.TargetFrameworkInference.targets (69,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets(122,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**" (previous value: ";bin\x64\Debug\/**") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets (122,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets(137,5): message : Property reassignment: $(OutputPath)="bin\x64\Debug\net8.0\" (previous value: "bin\x64\Debug\") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets (137,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets(142,5): message : Property reassignment: $(IntermediateOutputPath)="obj\x64\Debug\net8.0\" (previous value: "obj\x64\Debug\") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets (142,5)
+       The "DefaultSdkResolver" resolver attempted to resolve the SDK "Microsoft.NET.SDK.WorkloadManifestTargetsLocator".
+       Warnings: null
+       Errors: MSB4276: The default SDK resolver failed to resolve SDK "Microsoft.NET.SDK.WorkloadManifestTargetsLocator" because directory "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.SDK.WorkloadManifestTargetsLocator\Sdk" did not exist.
+       The SDK "Microsoft.NET.SDK.WorkloadManifestTargetsLocator" was successfully resolved by the "Microsoft.DotNet.MSBuildWorkloadSdkResolver" resolver to location "C:\Program Files\dotnet\sdk-manifests\9.0.100\microsoft.net.sdk.android\35.0.105" and version "null".
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets(187,5): message : Property reassignment: $(_FrameworkIdentifierForImplicitDefine)="NET" (previous value: "NETCOREAPP") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets (187,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets(192,5): message : Property reassignment: $(_FrameworkVersionForImplicitDefine)="8_0" (previous value: "8.0") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets (192,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Roslyn\Microsoft.CSharp.Core.targets(200,5): message : Property reassignment: $(CommandLineArgsForDesignTimeEvaluation)="-langversion:12.0 -define:TRACE" (previous value: "-langversion:12.0") at C:\Program Files\dotnet\sdk\9.0.311\Roslyn\Microsoft.CSharp.Core.targets (200,5)
+       The "Platform" property is a global property, and cannot be modified.
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(175,5): message : Property reassignment: $(_DebugSymbolsProduced)="true" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (175,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(185,5): message : Property reassignment: $(_DocumentationFileProduced)="false" (previous value: "true") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (185,5)
+       The "BuildInParallel" property is a global property, and cannot be modified.
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(392,5): message : Property reassignment: $(MSBuildCopyMarkerName)="RemotePl.ED6E7B80" (previous value: "RemotePlayServer.csproj") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (392,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(393,5): message : Property reassignment: $(MSBuildCopyMarkerName)="RemotePl.ED6E7B80.Up2Date" (previous value: "RemotePl.ED6E7B80") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (393,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(528,5): message : Property reassignment: $(ProcessorArchitecture)="amd64" (previous value: "x64") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (528,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(580,5): message : Property reassignment: $(DelaySign)="" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (580,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(2619,5): message : Property 'LOCALAPPDATA' with value 'C:\Users\super\AppData\Local' expanded from the environment.
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(3947,5): message : Property reassignment: $(_SGenGenerateSerializationAssembliesConfig)="Auto" (previous value: "") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (3947,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(3948,5): message : Property reassignment: $(_SGenGenerateSerializationAssembliesConfig)="Off" (previous value: "Auto") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (3948,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5159,5): message : Property reassignment: $(_TargetsThatPrepareProjectReferences)="
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5159,5): message :       AssignProjectConfiguration;
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5159,5): message :       _SplitProjectReferencesByFileExistence
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5159,5): message :     " (previous value: "_SplitProjectReferencesByFileExistence") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (5159,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(6954,5): message : Property 'MSBuildExtensionsPath32' with value 'C:\Program Files\dotnet\sdk\9.0.311' expanded from the environment.
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message : Property reassignment: $(ResolveAssemblyReferencesDependsOn)="
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ResolveProjectReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       FindInvalidProjectReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       GetFrameworkPaths;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       GetReferenceAssemblyPaths;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       PrepareForBuild;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ResolveSDKReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ExpandSDKReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :     ;CsWinRTRemoveWindowsReference" (previous value: "
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ResolveProjectReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       FindInvalidProjectReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       GetFrameworkPaths;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       GetReferenceAssemblyPaths;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       PrepareForBuild;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ResolveSDKReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :       ExpandSDKReferences;
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(11,5): message :     ") at C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets (11,5)
+       C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets(19,5): message : Property reassignment: $(CoreCompileDependsOn)="ResolveAssemblyReferences;CsWinRTIncludeProjection;CsWinRTRemoveWinMDReferences;;_ComputeNonExistentFileProperty;ResolveCodeAnalysisRuleSet" (previous value: ";_ComputeNonExistentFileProperty;ResolveCodeAnalysisRuleSet") at C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.targets (19,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(29,5): message : Property reassignment: $(ProjectAssetsCacheFile)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.assets.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.assets.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets (29,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message : Property reassignment: $(ResolveAssemblyReferencesDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ResolveProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       FindInvalidProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       GetFrameworkPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       GetReferenceAssemblyPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ResolveSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ExpandSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :     ;CsWinRTRemoveWindowsReference;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ResolvePackageDependenciesForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       _HandlePackageFileConflicts;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ResolveProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       FindInvalidProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       GetFrameworkPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       GetReferenceAssemblyPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ResolveSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :       ExpandSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(80,5): message :     ;CsWinRTRemoveWindowsReference") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets (80,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message : Property reassignment: $(PrepareResourcesDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       ResolvePackageDependenciesForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       _HandlePackageFileConflicts;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       PrepareResourceNames;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       ResGen;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       CompileLicxFiles
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :     
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       PrepareResourceNames;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       ResGen;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :       CompileLicxFiles
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(86,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets (86,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(27,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (27,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(29,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (29,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(32,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (32,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(33,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (33,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(34,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (34,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(35,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln;**/*.slnx" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (35,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(36,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln;**/*.slnx;**/*.vssscc" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln;**/*.slnx") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (36,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets(37,5): message : Property reassignment: $(DefaultItemExcludes)=";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln;**/*.slnx;**/*.vssscc;**/.DS_Store" (previous value: ";bin\x64\Debug\/**;obj\x64\Debug\/**;bin\/**;obj\/**;**/*.user;**/*.*proj;**/*.sln;**/*.slnx;**/*.vssscc") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.targets (37,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message : Property reassignment: $(ResolveAssemblyReferencesDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolveProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       FindInvalidProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       GetFrameworkPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       GetReferenceAssemblyPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolveSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ExpandSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :     ;CsWinRTRemoveWindowsReference;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolvePackageDependenciesForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       _HandlePackageFileConflicts;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :     ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolveTargetingPackAssets;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolveProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       FindInvalidProjectReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       GetFrameworkPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       GetReferenceAssemblyPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolveSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ExpandSDKReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :     ;CsWinRTRemoveWindowsReference;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       ResolvePackageDependenciesForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :       _HandlePackageFileConflicts;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(14,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets (14,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(44,5): message : Property reassignment: $(_GenerateRuntimeConfigurationPropertyInputsCache)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.genruntimeconfig.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.genruntimeconfig.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (44,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(46,5): message : Property reassignment: $(_GeneratePublishDependencyFilePropertyInputsCache)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.genpublishdeps.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.genpublishdeps.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (46,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(48,5): message : Property reassignment: $(_GenerateSingleFileBundlePropertyInputsCache)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.genbundle.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.genbundle.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (48,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(81,5): message : Property reassignment: $(GenerateRuntimeConfigDevFile)="false" (previous value: "true") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (81,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(97,5): message : Property reassignment: $(_DefaultUserProfileRuntimeStorePath)="C:\Users\super" (previous value: "") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (97,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(98,5): message : Property reassignment: $(_DefaultUserProfileRuntimeStorePath)="C:\Users\super\.dotnet\store" (previous value: "C:\Users\super") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (98,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(140,5): message : Property reassignment: $(AvailablePlatforms)="Any CPU,x86,x64,ARM32" (previous value: "Any CPU,x86,x64") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (140,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(144,5): message : Property reassignment: $(AvailablePlatforms)="Any CPU,x86,x64,ARM32,ARM64" (previous value: "Any CPU,x86,x64,ARM32") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (144,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message : Property reassignment: $(CoreBuildDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       _CheckForBuildWithNoBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       BuildOnlySettings;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PreBuildEvent;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ResolveReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareResources;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ResolveKeySource;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       Compile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ExportWindowsMDFile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       UnmanagedUnregistration;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateSerializationAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       CreateSatelliteAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateManifests;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GetTargetPath;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareForRun;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       UnmanagedRegistration;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       IncrementalClean;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PostBuildEvent
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :     ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateBuildDependencyFile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateBuildRuntimeConfigurationFiles
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       BuildOnlySettings;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PreBuildEvent;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ResolveReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareResources;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ResolveKeySource;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       Compile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       ExportWindowsMDFile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       UnmanagedUnregistration;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateSerializationAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       CreateSatelliteAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GenerateManifests;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       GetTargetPath;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PrepareForRun;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       UnmanagedRegistration;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       IncrementalClean;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :       PostBuildEvent
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(201,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (201,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(210,5): message : Property reassignment: $(CoreCleanDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(210,5): message :       _SdkBeforeClean;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(210,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(210,5): message :     " (previous value: "") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (210,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message : Property reassignment: $(RebuildDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       _SdkBeforeRebuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       BeforeRebuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       Clean;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       Build;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       AfterRebuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :     
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       BeforeRebuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       Clean;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       Build;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :       AfterRebuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(217,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (217,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message : Property reassignment: $(CompileDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       ResolveReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       ResolveKeySource;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       SetWin32ManifestProperties;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _SetPreferNativeArm64Win32ManifestProperties;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       FindReferenceAssembliesForReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _GenerateCompileInputs;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       BeforeCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _TimeStampBeforeCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _GenerateCompileDependencyCache;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       CoreCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _TimeStampAfterCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       AfterCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :     ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _CreateAppHost;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _CreateComHost;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _GetIjwHostPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       ResolveReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       ResolveKeySource;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       SetWin32ManifestProperties;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _SetPreferNativeArm64Win32ManifestProperties;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       FindReferenceAssembliesForReferences;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _GenerateCompileInputs;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       BeforeCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _TimeStampBeforeCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _GenerateCompileDependencyCache;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       CoreCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       _TimeStampAfterCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :       AfterCompile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(784,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (784,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message : Property reassignment: $(CreateSatelliteAssembliesDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       _GenerateSatelliteAssemblyInputs;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       ComputeIntermediateSatelliteAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       GenerateSatelliteAssemblies
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :     ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       CoreGenerateSatelliteAssemblies
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       _GenerateSatelliteAssemblyInputs;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       ComputeIntermediateSatelliteAssemblies;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :       GenerateSatelliteAssemblies
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(1184,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets (1184,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.GitLab\build\Microsoft.SourceLink.GitLab.targets(12,5): message : Property reassignment: $(SourceLinkUrlInitializerTargets)=";_InitializeGitHubSourceLinkUrl;_InitializeGitLabSourceLinkUrl" (previous value: ";_InitializeGitHubSourceLinkUrl") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.GitLab\build\Microsoft.SourceLink.GitLab.targets (12,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.GitLab\build\Microsoft.SourceLink.GitLab.targets(13,5): message : Property reassignment: $(SourceControlManagerUrlTranslationTargets)=";TranslateGitHubUrlsInSourceControlInformation;TranslateGitLabUrlsInSourceControlInformation" (previous value: ";TranslateGitHubUrlsInSourceControlInformation") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.GitLab\build\Microsoft.SourceLink.GitLab.targets (13,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.AzureRepos.Git\build\Microsoft.SourceLink.AzureRepos.Git.targets(12,5): message : Property reassignment: $(SourceLinkUrlInitializerTargets)=";_InitializeGitHubSourceLinkUrl;_InitializeGitLabSourceLinkUrl;_InitializeAzureReposGitSourceLinkUrl" (previous value: ";_InitializeGitHubSourceLinkUrl;_InitializeGitLabSourceLinkUrl") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.AzureRepos.Git\build\Microsoft.SourceLink.AzureRepos.Git.targets (12,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.AzureRepos.Git\build\Microsoft.SourceLink.AzureRepos.Git.targets(13,5): message : Property reassignment: $(SourceControlManagerUrlTranslationTargets)=";TranslateGitHubUrlsInSourceControlInformation;TranslateGitLabUrlsInSourceControlInformation;TranslateAzureReposGitUrlsInSourceControlInformation" (previous value: ";TranslateGitHubUrlsInSourceControlInformation;TranslateGitLabUrlsInSourceControlInformation") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.AzureRepos.Git\build\Microsoft.SourceLink.AzureRepos.Git.targets (13,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.Bitbucket.Git\build\Microsoft.SourceLink.Bitbucket.Git.targets(12,5): message : Property reassignment: $(SourceLinkUrlInitializerTargets)=";_InitializeGitHubSourceLinkUrl;_InitializeGitLabSourceLinkUrl;_InitializeAzureReposGitSourceLinkUrl;_InitializeBitbucketGitSourceLinkUrl" (previous value: ";_InitializeGitHubSourceLinkUrl;_InitializeGitLabSourceLinkUrl;_InitializeAzureReposGitSourceLinkUrl") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.Bitbucket.Git\build\Microsoft.SourceLink.Bitbucket.Git.targets (12,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.Bitbucket.Git\build\Microsoft.SourceLink.Bitbucket.Git.targets(13,5): message : Property reassignment: $(SourceControlManagerUrlTranslationTargets)=";TranslateGitHubUrlsInSourceControlInformation;TranslateGitLabUrlsInSourceControlInformation;TranslateAzureReposGitUrlsInSourceControlInformation;TranslateBitbucketGitUrlsInSourceControlInformation" (previous value: ";TranslateGitHubUrlsInSourceControlInformation;TranslateGitLabUrlsInSourceControlInformation;TranslateAzureReposGitUrlsInSourceControlInformation") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.SourceLink.Bitbucket.Git\build\Microsoft.SourceLink.Bitbucket.Git.targets (13,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message : Property reassignment: $(DesignerRuntimeImplementationProjectOutputGroupDependsOn)="
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       BuildOnlySettings;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       AssignTargetPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ResolveReferences
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :     
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :     ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       _GenerateDesignerDepsFile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       _GenerateDesignerRuntimeConfigFile;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       GetCopyToOutputDirectoryItems;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       _GatherDesignerShadowCopyFiles;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :     " (previous value: "
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       BuildOnlySettings;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       PrepareForBuild;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       AssignTargetPaths;
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :       ResolveReferences
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :     
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets(21,5): message :     ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets (21,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets(68,5): message : Property reassignment: $(_GenerateToolsSettingsFileCacheFile)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.toolssettingsinput.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.toolssettingsinput.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets (68,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets(137,5): message : Property reassignment: $(_ShimInputCacheFile)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.shiminput.cache" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.shiminput.cache") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets (137,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets(139,5): message : Property reassignment: $(_ShimCreatedSentinelFile)="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\RemotePlayServer.shimcreated.sentinel" (previous value: "obj\x64\Debug\net8.0\RemotePlayServer.shimcreated.sentinel") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.PackTool.targets (139,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets(31,5): message : Property reassignment: $(DefineConstants)="TRACE;DEBUG" (previous value: "TRACE") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets (31,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets(34,5): message : Property reassignment: $(DefineConstants)="TRACE;DEBUG;NET;NET8_0;NETCOREAPP" (previous value: "TRACE;DEBUG") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets (34,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets(48,5): message : Property reassignment: $(WarningsAsErrors)=";NU1605;SYSLIB0011" (previous value: ";NU1605") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CSharp.targets (48,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\NuGet.Build.Tasks.Pack\build\NuGet.Build.Tasks.Pack.targets(34,5): message : Property reassignment: $(PackageDescription)="Package Description" (previous value: "") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\NuGet.Build.Tasks.Pack\build\NuGet.Build.Tasks.Pack.targets (34,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\NuGet.Build.Tasks.Pack\build\NuGet.Build.Tasks.Pack.targets(59,5): message : Property reassignment: $(GenerateNuspecDependsOn)="Build;_LoadPackInputItems; _GetTargetFrameworksOutput; _WalkEachTargetPerFramework; _GetPackageFiles; " (previous value: "_LoadPackInputItems; _GetTargetFrameworksOutput; _WalkEachTargetPerFramework; _GetPackageFiles; ") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\NuGet.Build.Tasks.Pack\build\NuGet.Build.Tasks.Pack.targets (59,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\Sdk\Sdk.targets(60,5): message : Property reassignment: $(_IsNotSetContainersTargetsDir)="true" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\Sdk\Sdk.targets (60,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Containers\build\Microsoft.NET.Build.Containers.targets(5,5): message : Property reassignment: $(_IsSDKContainerAllowedVersion)="true" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Containers\build\Microsoft.NET.Build.Containers.targets (5,5)
+       C:\Program Files\dotnet\sdk\9.0.311\Containers\build\Microsoft.NET.Build.Containers.targets(15,5): message : Property reassignment: $(_ContainerIsTargetingNet8TFM)="true" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Containers\build\Microsoft.NET.Build.Containers.targets (15,5)
+       Overriding target "ResolveFrameworkReferences" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "ResolveFrameworkReferences" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets".
+       Overriding target "Run" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "Run" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets".
+       Overriding target "GenerateSupportedTargetFrameworkAlias" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "GenerateSupportedTargetFrameworkAlias" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets".
+       Overriding target "GetReferenceAssemblyPaths" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "GetReferenceAssemblyPaths" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DisableStandardFrameworkResolution.targets".
+       Overriding target "GetFrameworkPaths" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "GetFrameworkPaths" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DisableStandardFrameworkResolution.targets".
+       Overriding target "DesignerRuntimeImplementationProjectOutputGroup" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "DesignerRuntimeImplementationProjectOutputGroup" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DesignerSupport.targets".
+       Overriding target "Publish" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "Publish" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Publish.targets".
+       Overriding target "ResolveReadyToRunCompilers" in project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.CrossGen.targets" with target "ResolveReadyToRunCompilers" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Publish.targets".
+       Overriding target "GetCopyToPublishDirectoryItems" in project "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" with target "GetCopyToPublishDirectoryItems" from project "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Publish.targets".
+       The target "ResolveNuGetPackageAssets" listed in an AfterTargets attribute at "C:\Users\super\.nuget\packages\microsoft.extensions.logging.abstractions\9.0.0\buildTransitive\net8.0\Microsoft.Extensions.Logging.Abstractions.targets (11,11)" does not exist in the project, and will be ignored.
+       The target "ResolveNuGetPackageAssets" listed in an AfterTargets attribute at "C:\Users\super\.nuget\packages\microsoft.extensions.logging.abstractions\9.0.0\buildTransitive\net8.0\Microsoft.Extensions.Logging.Abstractions.targets (23,11)" does not exist in the project, and will be ignored.
+       The target "Link" listed in a BeforeTargets attribute at "C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.IIDOptimizer.targets (55,11)" does not exist in the project, and will be ignored.
+       The target "Link" listed in a BeforeTargets attribute at "C:\Users\super\.nuget\packages\microsoft.windows.cswinrt\2.1.5\build\Microsoft.Windows.CsWinRT.IIDOptimizer.targets (71,11)" does not exist in the project, and will be ignored.
+     1>Project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" on node 1 (default targets).
+     1>Target "_CheckForUnsupportedTargetFramework" skipped, due to false condition; ('$(_UnsupportedTargetFrameworkError)' == 'true') was evaluated as ('' == 'true').
+     1>Target "_CollectTargetFrameworkForTelemetry" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.TargetFrameworkInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Using "AllowEmptyTelemetry" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "AllowEmptyTelemetry"
+       Done executing task "AllowEmptyTelemetry".
+     1>Done building target "_CollectTargetFrameworkForTelemetry" in project "RemotePlayServer.csproj".
+       Target "_CheckForUnsupportedTargetPlatformIdentifier" skipped, due to false condition; ('$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) And ('$(DesignTimeBuild)' != 'true' Or '@(MissingWorkloadPack)' == '')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True And ('' != 'true' Or '' == '')).
+       Target "_CheckForMissingWorkload" skipped, due to false condition; ('@(MissingWorkloadPack)' != '' And '$(DesignTimeBuild)' != 'true') was evaluated as ('' != '' And '' != 'true').
+     1>Target "_CheckForUnsupportedNETCoreVersion" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.TargetFrameworkInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkError" skipped, due to false condition; ('$(_TargetFrameworkVersionWithoutV)' > '$(NETCoreAppMaximumVersion)' and '$(DisplayVSMessage)' != 'true') was evaluated as ('8.0' > '9.0' and '' != 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(DisplayVSMessage)' == 'true') was evaluated as ('' == 'true').
+     1>Done building target "_CheckForUnsupportedNETCoreVersion" in project "RemotePlayServer.csproj".
+       Target "_CheckForEolTargetFrameworks" skipped, due to false condition; ('@(_EolNetCoreTargetFrameworkVersions->AnyHaveMetadataValue('Identity', '$(_TargetFrameworkVersionWithoutV)'))' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(CheckEolTargetFramework)' == 'true') was evaluated as ('false' and '.NETCoreApp' == '.NETCoreApp' and 'true' == 'true').
+       Target "_CheckForEolWorkloads" skipped, due to false condition; ('@(EolWorkload)' != '' and '$(CheckEolWorkloads)' == 'true') was evaluated as ('' != '' and 'true' == 'true').
+       Target "_CheckForNotRecommendedNETStandardVersion" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETStandard' and $([MSBuild]::VersionLessThan($(TargetFrameworkVersion), '2.0'))) was evaluated as ('.NETCoreApp' == '.NETStandard' and False).
+     1>Target "_CheckForUnsupportedCppNETCoreVersion" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.TargetFrameworkInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkError" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(_TargetFrameworkVersionWithoutV)' < '3.1' and ('$(Language)' == 'C++' and '$(_EnablePackageReferencesInVCProjects)' != 'true')) was evaluated as ('.NETCoreApp' == '.NETCoreApp' and '8.0' < '3.1' and ('C#' == 'C++' and '' != 'true')).
+     1>Done building target "_CheckForUnsupportedCppNETCoreVersion" in project "RemotePlayServer.csproj".
+       Target "_CheckForUnsupportedNETStandardVersion" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETStandard' And '$(NETStandardMaximumVersion)' != '') was evaluated as ('.NETCoreApp' == '.NETStandard' And '' != '').
+       Target "_CheckForUnsupportedTargetFrameworkAndFeatureCombination" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETFramework') was evaluated as ('.NETCoreApp' == '.NETFramework').
+       Target "_CheckForSupportedOSPlatformVersionHigherThanTargetPlatformVersion" skipped, due to false condition; ('$(TargetPlatformVersion)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0))) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True).
+       Target "_CheckForInvalidTargetPlatformVersion" skipped, due to false condition; ('$(TargetPlatformVersion)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) and ('$(Language)' != 'C++' or '$(_EnablePackageReferencesInVCProjects)' == 'true')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True and ('C#' != 'C++' or '' == 'true')).
+     1>Target "_CheckForUnsupportedArtifactsPath" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DefaultOutputPaths.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NetSdkError" skipped, due to false condition; ('$(UseArtifactsOutput)' == 'true' and '$(_ArtifactsPathSetEarly)' != 'true') was evaluated as ('' == 'true' and '' != 'true').
+       Task "NetSdkError" skipped, due to false condition; ('$(_ArtifactsPathLocationType)' == 'ProjectFolder') was evaluated as ('' == 'ProjectFolder').
+     1>Done building target "_CheckForUnsupportedArtifactsPath" in project "RemotePlayServer.csproj".
+       Target "_CheckForMissingWorkload" skipped, due to false condition; ('@(MissingWorkloadPack)' != '' And '$(DesignTimeBuild)' != 'true') was evaluated as ('' != '' And '' != 'true').
+     1>Target "_CheckForUnsupportedAppHostUsage" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkError" skipped, due to false condition; ('$(SelfContained)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(AllowSelfContainedWithoutRuntimeIdentifier)' != 'true') was evaluated as ('false' == 'true' and '' == '' and '' != 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(_IsPublishing)' == 'true') was evaluated as ('' == 'true' and '' == '' and '' == 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(PublishSingleFile)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(_IsPublishing)' == 'true') was evaluated as ('' == 'true' and '' == '' and '' == 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(_IsPublishing)' == 'true' and '$(AllowPublishAotWithoutRuntimeIdentifier)' != 'true') was evaluated as ('' == 'true' and '' == '' and '' == 'true' and '' != 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(PublishSelfContained)' != 'true' and '$(PublishSelfContained)' != 'false' and '$(PublishSelfContained)' != '') was evaluated as ('' != 'true' and '' != 'false' and '' != '').
+       Task "NETSdkError" skipped, due to false condition; ('$(SelfContained)' == 'true' and '$(UseAppHost)' != 'true' and '$(_RuntimeIdentifierUsesAppHost)' == 'true') was evaluated as ('false' == 'true' and 'true' != 'true' and 'true' == 'true').
+       Task "NETSdkError" skipped, due to false condition; ('$(SelfContained)' != 'true' and '$(UseAppHost)' == 'true' and '$(_TargetFrameworkVersionWithoutV)' < '2.1') was evaluated as ('false' != 'true' and 'true' == 'true' and '8.0' < '2.1').
+       Task "NETSdkError" skipped, due to false condition; ('$(PublishSingleFile)' == 'true' and '$(_TargetFrameworkVersionWithoutV)' < '3.0') was evaluated as ('' == 'true' and '8.0' < '3.0').
+       Task "NETSdkWarning" skipped, due to false condition; ('$(PublishReadyToRun)' == 'true' and '$(_TargetFrameworkVersionWithoutV)' < '3.0') was evaluated as ('' == 'true' and '8.0' < '3.0').
+       Task "NETSdkWarning" skipped, due to false condition; ('$(RuntimeIdentifier)' != '' and '$(_TargetFrameworkVersionWithoutV)' != '' and $([MSBuild]::VersionLessThan($(_TargetFrameworkVersionWithoutV), '8.0')) and '$(_SelfContainedWasSpecified)' != 'true') was evaluated as ('' != '' and '8.0' != '' and False and '' != 'true').
+       Task "NetSdkError" skipped, due to false condition; (('$(UseWindowsForms)' == 'true') and ('$(PublishTrimmed)' == 'true') and ('$(_SuppressWinFormsTrimError)' != 'true')) was evaluated as (('' == 'true') and ('' == 'true') and ('' != 'true')).
+       Task "NetSdkError" skipped, due to false condition; (('$(UseWpf)' == 'true') and ('$(PublishTrimmed)' == 'true') and ('$(_SuppressWpfTrimError)' != 'true')) was evaluated as (('' == 'true') and ('' == 'true') and ('' != 'true')).
+     1>Done building target "_CheckForUnsupportedAppHostUsage" in project "RemotePlayServer.csproj".
+     1>Target "_CheckForUnsupportedHostingUsage" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkWarning" skipped, due to false condition; ('$(SelfContained)' == 'true' and '$(EnableComHosting)' == 'true') was evaluated as ('false' == 'true' and '' == 'true').
+     1>Done building target "_CheckForUnsupportedHostingUsage" in project "RemotePlayServer.csproj".
+     1>Target "_CheckAndUnsetUnsupportedPrefer32Bit" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkWarning" skipped, due to false condition; ('$(Prefer32Bit)' == 'true') was evaluated as ('false' == 'true').
+     1>Done building target "_CheckAndUnsetUnsupportedPrefer32Bit" in project "RemotePlayServer.csproj".
+       Target "_CheckAndUnsetUnsupportedPreferNativeArm64" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(PreferNativeArm64)' == 'true') was evaluated as ('.NETCoreApp' == '.NETCoreApp' and 'false' == 'true').
+       Target "_CheckForMismatchingPlatform" skipped, due to false condition; ('$(RuntimeIdentifier)' != '' and '$(PlatformTarget)' != '') was evaluated as ('' != '' and 'x64' != '').
+     1>Target "_CheckForLanguageAndFeatureCombinationSupport" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Task "NETSdkError" skipped, due to false condition; (('$(Language)' == 'C++' and '$(_EnablePackageReferencesInVCProjects)' != 'true') and $(OutputType) != 'library' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp') was evaluated as (('C#' == 'C++' and '' != 'true') and Exe != 'library' and '.NETCoreApp' == '.NETCoreApp').
+       Task "NETSdkError" skipped, due to false condition; (('$(Language)' == 'C++' and '$(_EnablePackageReferencesInVCProjects)' != 'true') and $(EnableComHosting) == 'true') was evaluated as (('C#' == 'C++' and '' != 'true') and  == 'true').
+       Task "NETSdkError" skipped, due to false condition; (('$(Language)' == 'C++' and '$(_EnablePackageReferencesInVCProjects)' != 'true') and $(SelfContained) == 'true') was evaluated as (('C#' == 'C++' and '' != 'true') and false == 'true').
+     1>Done building target "_CheckForLanguageAndFeatureCombinationSupport" in project "RemotePlayServer.csproj".
+       Target "_CheckForNETCoreSdkIsPreview" skipped, due to false condition; ( '$(_NETCoreSdkIsPreview)' == 'true' AND '$(SuppressNETCoreSdkPreviewMessage)' != 'true' ) was evaluated as ( 'false' == 'true' AND '' != 'true' ).
+     1>Target "_GetProjectJsonPath" in file "C:\Program Files\dotnet\sdk\9.0.311\NuGet.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_GetRestoreProjectStyle" depends on it):
+       Task "GetRestoreProjectJsonPathTask" skipped, due to false condition; ( '$(RestoreProjectStyle)' == 'ProjectJson' OR '$(RestoreProjectStyle)' == '' ) was evaluated as ( 'PackageReference' == 'ProjectJson' OR 'PackageReference' == '' ).
+     1>Done building target "_GetProjectJsonPath" in project "RemotePlayServer.csproj".
+       Target "_CheckForUnsupportedTargetPlatformIdentifier" skipped, due to false condition; ('$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) And ('$(DesignTimeBuild)' != 'true' Or '@(MissingWorkloadPack)' == '')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True And ('' != 'true' Or '' == '')).
+       Target "_CheckForMissingWorkload" skipped, due to false condition; ('@(MissingWorkloadPack)' != '' And '$(DesignTimeBuild)' != 'true') was evaluated as ('' != '' And '' != 'true').
+       Target "_CheckForNotRecommendedNETStandardVersion" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETStandard' and $([MSBuild]::VersionLessThan($(TargetFrameworkVersion), '2.0'))) was evaluated as ('.NETCoreApp' == '.NETStandard' and False).
+       Target "_CheckForUnsupportedNETStandardVersion" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETStandard' And '$(NETStandardMaximumVersion)' != '') was evaluated as ('.NETCoreApp' == '.NETStandard' And '' != '').
+       Target "_CheckForUnsupportedTargetFrameworkAndFeatureCombination" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETFramework') was evaluated as ('.NETCoreApp' == '.NETFramework').
+     1>Target "UpdateAspNetToFrameworkReference" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ApplyImplicitVersions" depends on it):
+       Using "CheckIfPackageReferenceShouldBeFrameworkReference" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "CheckIfPackageReferenceShouldBeFrameworkReference"
+       Done executing task "CheckIfPackageReferenceShouldBeFrameworkReference".
+       Task "NETSdkError" skipped, due to false condition; ('$(_ShouldRemoveAspNetCoreAll)' == 'true') was evaluated as ('False' == 'true').
+       Task "CheckIfPackageReferenceShouldBeFrameworkReference"
+       Done executing task "CheckIfPackageReferenceShouldBeFrameworkReference".
+       Task "NETSdkWarning" skipped, due to false condition; ('$(_ShouldRemoveAspNetCoreApp)' == 'true') was evaluated as ('False' == 'true').
+     1>Done building target "UpdateAspNetToFrameworkReference" in project "RemotePlayServer.csproj".
+       Target "IncludeTargetingPackReference" skipped, due to false condition; ('$(TargetFrameworkMoniker)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(AutomaticallyUseReferenceAssemblyPackages)' == 'true') was evaluated as ('.NETCoreApp,Version=v8.0' != '' and '.NETCoreApp' == '.NETFramework' and 'true' == 'true').
+     1>Target "CheckForImplicitPackageReferenceOverrides" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ApplyImplicitVersions" depends on it):
+       Using "CheckForImplicitPackageReferenceOverrides" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "CheckForImplicitPackageReferenceOverrides"
+       Done executing task "CheckForImplicitPackageReferenceOverrides".
+     1>Done building target "CheckForImplicitPackageReferenceOverrides" in project "RemotePlayServer.csproj".
+     1>Target "ApplyImplicitVersions" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CollectPackageReferences" depends on it):
+       Using "ApplyImplicitVersions" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "ApplyImplicitVersions"
+       Done executing task "ApplyImplicitVersions".
+     1>Done building target "ApplyImplicitVersions" in project "RemotePlayServer.csproj".
+       Target "CheckForImplicitPackageReferenceOverrides" skipped. Previously built successfully.
+       Target "AddWindowsSdkKnownFrameworkReferences" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetPlatformIdentifier)' == 'Windows'
+                            And ('$(Language)' != 'C++' Or '$(IncludeWindowsSDKRefFrameworkReferences)' == 'true')) was evaluated as ('.NETCoreApp' == '.NETCoreApp' And '' == 'Windows'
+                            And ('C#' != 'C++' Or '' == 'true')).
+       Target "_NormalizeTargetPlatformVersion" skipped, due to false condition; ('$(TargetPlatformVersion)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) and ('$(Language)' != 'C++' or '$(_EnablePackageReferencesInVCProjects)' == 'true')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True and ('C#' != 'C++' or '' == 'true')).
+     1>Target "_ComputeToolPackInputsToProcessFrameworkReferences" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Publish.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ProcessFrameworkReferences" depends on it):
+     1>Done building target "_ComputeToolPackInputsToProcessFrameworkReferences" in project "RemotePlayServer.csproj".
+     1>Target "ProcessFrameworkReferences" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CollectPackageReferences" depends on it):
+       Using "CheckForDuplicateFrameworkReferences" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "CheckForDuplicateFrameworkReferences"
+       Done executing task "CheckForDuplicateFrameworkReferences".
+       Using "ProcessFrameworkReferences" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "ProcessFrameworkReferences"
+       Done executing task "ProcessFrameworkReferences".
+       Using "ResolveAppHosts" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "ResolveAppHosts"
+       Done executing task "ResolveAppHosts".
+     1>Done building target "ProcessFrameworkReferences" in project "RemotePlayServer.csproj".
+       Target "IncludeTargetingPackReference" skipped, due to false condition; ('$(TargetFrameworkMoniker)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(AutomaticallyUseReferenceAssemblyPackages)' == 'true') was evaluated as ('.NETCoreApp,Version=v8.0' != '' and '.NETCoreApp' == '.NETFramework' and 'true' == 'true').
+       Target "_CheckMicrosoftNetCompilersToolsetFrameworkPackageReference" skipped, due to false condition; ('$(MSBuildRuntimeType)' == 'Full') was evaluated as ('Core' == 'Full').
+     1>Target "_CheckForObsoleteDotNetCliToolReferences" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.ObsoleteReferences.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CollectPackageReferences" depends on it):
+       Task "NETSdkWarning" skipped, due to false condition; ( '%(_ReferenceToObsoleteDotNetCliTool.Identity)' != '' ) was evaluated as ( '' != '' ).
+     1>Done building target "_CheckForObsoleteDotNetCliToolReferences" in project "RemotePlayServer.csproj".
+     1>Target "CollectPackageReferences" in file "C:\Program Files\dotnet\sdk\9.0.311\NuGet.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_GetRestoreProjectStyle" depends on it):
+       Using "CheckForDuplicateNuGetItemsTask" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\NuGet.Build.Tasks.dll".
+       Task "CheckForDuplicateNuGetItemsTask"
+       Done executing task "CheckForDuplicateNuGetItemsTask".
+     1>Done building target "CollectPackageReferences" in project "RemotePlayServer.csproj".
+     1>Target "_GetRestoreProjectStyle" in file "C:\Program Files\dotnet\sdk\9.0.311\NuGet.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "EnableIntermediateOutputPathMismatchWarning" depends on it):
+       Using "GetRestoreProjectStyleTask" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\NuGet.Build.Tasks.dll".
+       Task "GetRestoreProjectStyleTask"
+       Done executing task "GetRestoreProjectStyleTask".
+     1>Done building target "_GetRestoreProjectStyle" in project "RemotePlayServer.csproj".
+     1>Target "EnableIntermediateOutputPathMismatchWarning" in file "C:\Program Files\dotnet\sdk\9.0.311\NuGet.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+     1>Done building target "EnableIntermediateOutputPathMismatchWarning" in project "RemotePlayServer.csproj".
+       Target "ApplyImplicitVersions" skipped. Previously built successfully.
+       Target "CheckForImplicitPackageReferenceOverrides" skipped. Previously built successfully.
+     1>Target "CheckForDuplicateItems" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CheckForInvalidConfigurationAndPlatform" depends on it):
+       Using "CheckForDuplicateItems" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "CheckForDuplicateItems"
+       Done executing task "CheckForDuplicateItems".
+       Task "CheckForDuplicateItems"
+       Done executing task "CheckForDuplicateItems".
+       Task "CheckForDuplicateItems"
+       Done executing task "CheckForDuplicateItems".
+     1>Done building target "CheckForDuplicateItems" in project "RemotePlayServer.csproj".
+       Target "WarnForExplicitVersions" skipped, due to false condition; ('@(SdkBuildWarning)' != '') was evaluated as ('' != '').
+       Target "_CheckForFailedSDKResolution" skipped, due to false condition; ('$(SdkResolverHonoredGlobalJson)' == 'false') was evaluated as ('' == 'false').
+       Target "_WarnWhenUsingNET9AndVSPriorTo1712" skipped, due to false condition; ($([MSBuild]::VersionLessThan($(MSBuildVersion), '17.12.0')) and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(_TargetFrameworkVersionWithoutV), '9.0'))) was evaluated as (False and '.NETCoreApp' == '.NETCoreApp' and False).
+       Target "_CheckForInvalidWindowsDesktopTargetingConfiguration" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(_TargetFrameworkVersionWithoutV), '5.0')) and ('$(UseWindowsForms)' == 'true' or '$(UseWPF)' == 'true')) was evaluated as ('.NETCoreApp' == '.NETCoreApp' and True and ('' == 'true' or '' == 'true')).
+       Target "_CheckForUnnecessaryWindowsDesktopSDK" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(_TargetFrameworkVersionWithoutV), '5.0')) and '$(_MicrosoftWindowsDesktopSdkImported)' == 'true' and '$(TargetFrameworks)' == '') was evaluated as ('.NETCoreApp' == '.NETCoreApp' and True and '' == 'true' and '' == '').
+       Target "ProcessFrameworkReferences" skipped. Previously built successfully.
+       Target "IncludeTargetingPackReference" skipped, due to false condition; ('$(TargetFrameworkMoniker)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(AutomaticallyUseReferenceAssemblyPackages)' == 'true') was evaluated as ('.NETCoreApp,Version=v8.0' != '' and '.NETCoreApp' == '.NETFramework' and 'true' == 'true').
+     1>Target "_CheckForInvalidConfigurationAndPlatform" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "BeforeBuild" depends on it):
+       Task "MSBuildInternalMessage" skipped, due to false condition; ('$(_InvalidConfigurationMessageSeverity)' != '') was evaluated as ('' != '').
+       Using "Message" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "Message"
+         Configuration=Debug
+       Done executing task "Message".
+       Task "Message"
+         Platform=x64
+       Done executing task "Message".
+       Task "MSBuildInternalMessage" skipped, due to false condition; ('$(OutDir)' != '' and !HasTrailingSlash('$(OutDir)')) was evaluated as ('bin\x64\Debug\net8.0\' != '' and !HasTrailingSlash('bin\x64\Debug\net8.0\')).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ('$(IntermediateOutputPath)' != '' and !HasTrailingSlash('$(IntermediateOutputPath)')) was evaluated as ('obj\x64\Debug\net8.0\' != '' and !HasTrailingSlash('obj\x64\Debug\net8.0\')).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ('$(BaseIntermediateOutputPath)' != '' and !HasTrailingSlash('$(BaseIntermediateOutputPath)')) was evaluated as ('obj\' != '' and !HasTrailingSlash('obj\')).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ( '$(Prefer32Bit)' == 'true' and '$(PreferNativeArm64)' == 'true' ) was evaluated as ( 'false' == 'true' and 'false' == 'true' ).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ( '$(NoWin32Manifest)' == 'true' and '$(PreferNativeArm64)' == 'true' ) was evaluated as ( '' == 'true' and 'false' == 'true' ).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ( '$(PreferNativeArm64)' == 'true' and '$(Platform)' != 'AnyCPU' ) was evaluated as ( 'false' == 'true' and 'x64' != 'AnyCPU' ).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ( '$(_InitialMSBuildProjectExtensionsPath)' != '' And '$(MSBuildProjectExtensionsPath)' != '$(_InitialMSBuildProjectExtensionsPath)' ) was evaluated as ( 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\' != '' And 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\' != 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\' ).
+       Task "MSBuildInternalMessage" skipped, due to false condition; ( '$(EnableBaseIntermediateOutputPathMismatchWarning)' == 'true' And '$(_InitialBaseIntermediateOutputPath)' != '$(BaseIntermediateOutputPath)' And '$(BaseIntermediateOutputPath)' != '$(MSBuildProjectExtensionsPath)' ) was evaluated as ( 'true' == 'true' And 'obj\' != 'obj\' And 'obj\' != 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\' ).
+     1>Done building target "_CheckForInvalidConfigurationAndPlatform" in project "RemotePlayServer.csproj".
+     1>Target "ValidateCommandLineProperties" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "BeforeBuild" depends on it):
+     1>Done building target "ValidateCommandLineProperties" in project "RemotePlayServer.csproj".
+     1>Target "BeforeBuild" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "Build" depends on it):
+     1>Done building target "BeforeBuild" in project "RemotePlayServer.csproj".
+       Target "_CheckForBuildWithNoBuild" skipped, due to false condition; ('$(NoBuild)' == 'true' and '$(GeneratePackageOnBuild)' != 'true') was evaluated as ('' == 'true' and 'false' != 'true').
+     1>Target "BuildOnlySettings" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CoreBuild" depends on it):
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(1168,7): message : Property reassignment: $(BuildingProject)="true" (previous value: "false") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (1168,7) [C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj]
+     1>Done building target "BuildOnlySettings" in project "RemotePlayServer.csproj".
+       Target "_CheckForUnsupportedTargetFramework" skipped, due to false condition; ('$(_UnsupportedTargetFrameworkError)' == 'true') was evaluated as ('' == 'true').
+       Target "_CheckForUnsupportedTargetPlatformIdentifier" skipped, due to false condition; ('$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) And ('$(DesignTimeBuild)' != 'true' Or '@(MissingWorkloadPack)' == '')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True And ('' != 'true' Or '' == '')).
+       Target "_CheckForMissingWorkload" skipped, due to false condition; ('@(MissingWorkloadPack)' != '' And '$(DesignTimeBuild)' != 'true') was evaluated as ('' != '' And '' != 'true').
+     1>Target "GetFrameworkPaths" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DisableStandardFrameworkResolution.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "PrepareForBuild" depends on it):
+     1>Done building target "GetFrameworkPaths" in project "RemotePlayServer.csproj".
+       Target "_CheckForUnsupportedTargetFramework" skipped, due to false condition; ('$(_UnsupportedTargetFrameworkError)' == 'true') was evaluated as ('' == 'true').
+       Target "_CheckForUnsupportedTargetPlatformIdentifier" skipped, due to false condition; ('$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) And ('$(DesignTimeBuild)' != 'true' Or '@(MissingWorkloadPack)' == '')) was evaluated as ('' != '' and '.NETCoreApp' == '.NETCoreApp' and True And ('' != 'true' Or '' == '')).
+       Target "_CheckForMissingWorkload" skipped, due to false condition; ('@(MissingWorkloadPack)' != '' And '$(DesignTimeBuild)' != 'true') was evaluated as ('' != '' And '' != 'true').
+     1>Target "GetReferenceAssemblyPaths" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.DisableStandardFrameworkResolution.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "PrepareForBuild" depends on it):
+     1>Done building target "GetReferenceAssemblyPaths" in project "RemotePlayServer.csproj".
+       Target "AssignLinkMetadata" skipped, due to false condition; ( '$(SynthesizeLinkMetadata)' == 'true' ) was evaluated as ( '' == 'true' ).
+       Target "_VerifyPackReleaseConfigurations" skipped, due to false condition; ('$(_IsPacking)' == 'true' and '$(DOTNET_CLI_DISABLE_PUBLISH_AND_PACK_RELEASE)' != 'true' and '$(DOTNET_CLI_LAZY_PUBLISH_AND_PACK_RELEASE_FOR_SOLUTIONS)' == 'true') was evaluated as ('' == 'true' and '' != 'true' and '' == 'true').
+     1>Target "PrepareForBuild" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CoreBuild" depends on it):
+       Using "FindAppConfigFile" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "FindAppConfigFile"
+       Done executing task "FindAppConfigFile".
+       Using "MakeDir" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "MakeDir"
+         Creating directory "bin\x64\Debug\net8.0\".
+         Creating directory "obj\x64\Debug\net8.0\".
+         Creating directory "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\x64\Debug\net8.0\refint\".
+         Creating directory "obj\x64\Debug\net8.0\ref".
+       Done executing task "MakeDir".
+     1>Done building target "PrepareForBuild" in project "RemotePlayServer.csproj".
+       Target "GenerateTargetPlatformDefineConstants" skipped, due to false condition; ( '$(DisableImplicitFrameworkDefines)' != 'true' and '$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) ) was evaluated as ( '' != 'true' and '' != '' and '.NETCoreApp' == '.NETCoreApp' and True ).
+     1>Target "GenerateNETCompatibleDefineConstants" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "AddImplicitDefineConstants" depends on it):
+     1>Done building target "GenerateNETCompatibleDefineConstants" in project "RemotePlayServer.csproj".
+       Target "GeneratePlatformCompatibleDefineConstants" skipped, due to false condition; ( '$(DisableImplicitFrameworkDefines)' != 'true' and '$(TargetPlatformIdentifier)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 5.0)) ) was evaluated as ( '' != 'true' and '' != '' and '.NETCoreApp' == '.NETCoreApp' and True ).
+       Target "_DisableDiagnosticTracing" skipped, due to false condition; ('$(DisableDiagnosticTracing)' == 'true') was evaluated as ('' == 'true').
+     1>Target "AddImplicitDefineConstants" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CoreBuild" depends on it):
+       C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets(267,7): message : Property reassignment: $(DefineConstants)="TRACE;DEBUG;NET;NET8_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER" (previous value: "TRACE;DEBUG;NET;NET8_0;NETCOREAPP") at C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.BeforeCommon.targets (267,7) [C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj]
+     1>Done building target "AddImplicitDefineConstants" in project "RemotePlayServer.csproj".
+       Target "GenerateGlobalUsings" skipped, due to false condition; (@(Using->Count()) != 0) was evaluated as (0 != 0).
+       Target "PreBuildEvent" skipped, due to false condition; ('$(PreBuildEvent)'!='') was evaluated as (''!='').
+     1>Target "BeforeResolveReferences" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ResolveReferences" depends on it):
+     1>Done building target "BeforeResolveReferences" in project "RemotePlayServer.csproj".
+       Target "AssignProjectConfiguration" skipped, due to false condition; ('$(CurrentSolutionConfigurationContents)' != '' or '@(ProjectReference)'!='') was evaluated as ('' != '' or ''!='').
+     1>Target "IgnoreJavaScriptOutputAssembly" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "AssignProjectConfiguration" depends on it):
+     1>Done building target "IgnoreJavaScriptOutputAssembly" in project "RemotePlayServer.csproj".
+       Target "ProcessFrameworkReferences" skipped. Previously built successfully.
+     1>Target "_DefaultMicrosoftNETPlatformLibrary" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ResolvePackageAssets" depends on it):
+     1>Done building target "_DefaultMicrosoftNETPlatformLibrary" in project "RemotePlayServer.csproj".
+     1>Target "_ComputePackageReferencePublish" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.Shared.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ResolvePackageAssets" depends on it):
+     1>Done building target "_ComputePackageReferencePublish" in project "RemotePlayServer.csproj".
+       Target "_ResolveCompilerVersion" skipped, due to false condition; ('$(CompilerApiVersion)' == '' And
+                            ('$(Language)' == 'C#' Or '$(Language)' == 'VB') And
+                            Exists('$(RoslynTargetsPath)\Microsoft.Build.Tasks.CodeAnalysis.dll')) was evaluated as ('roslyn4.14' == '' And
+                            ('C#' == 'C#' Or 'C#' == 'VB') And
+                            Exists('C:\Program Files\dotnet\sdk\9.0.311\Roslyn\Microsoft.Build.Tasks.CodeAnalysis.dll')).
+     1>Target "ResolvePackageAssets" in file "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "ResolveLockFileReferences" depends on it):
+       Using "ResolvePackageAssets" task from assembly "C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\..\tools\net9.0\Microsoft.NET.Build.Tasks.dll".
+       Task "ResolvePackageAssets"
+     1>C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\project.assets.json' doesn't have a target for 'net8.0'. Ensure that restore has run and that you have included 'net8.0' in the TargetFrameworks for your project. [C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj]
+       Done executing task "ResolvePackageAssets" -- FAILED.
+     1>Done building target "ResolvePackageAssets" in project "RemotePlayServer.csproj" -- FAILED.
+     1>Target "_CheckForCompileOutputs" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CleanGetCurrentAndPriorFileWrites" depends on it):
+       C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets(5589,7): message : Property reassignment: $(_DebugSymbolsProduced)="false" (previous value: "true") at C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets (5589,7) [C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj]
+     1>Done building target "_CheckForCompileOutputs" in project "RemotePlayServer.csproj".
+       Target "_SGenCheckForOutputs" skipped, due to false condition; ('$(_SGenGenerateSerializationAssembliesConfig)' == 'On' or ('@(WebReferenceUrl)'!='' and '$(_SGenGenerateSerializationAssembliesConfig)' == 'Auto')) was evaluated as ('Off' == 'On' or (''!='' and 'Off' == 'Auto')).
+     1>Target "_CleanGetCurrentAndPriorFileWrites" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "_CleanRecordFileWrites" depends on it):
+       Using "ReadLinesFromFile" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "ReadLinesFromFile"
+       Done executing task "ReadLinesFromFile".
+       Using "ConvertToAbsolutePath" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "ConvertToAbsolutePath"
+       Done executing task "ConvertToAbsolutePath".
+       Using "FindUnderPath" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "FindUnderPath"
+         Comparison path is "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer".
+       Done executing task "FindUnderPath".
+       Task "FindUnderPath"
+         Comparison path is "bin\x64\Debug\net8.0\".
+       Done executing task "FindUnderPath".
+       Task "FindUnderPath"
+         Comparison path is "obj\x64\Debug\net8.0\".
+       Done executing task "FindUnderPath".
+       Using "RemoveDuplicates" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "RemoveDuplicates"
+       Done executing task "RemoveDuplicates".
+     1>Done building target "_CleanGetCurrentAndPriorFileWrites" in project "RemotePlayServer.csproj".
+     1>Target "_CleanRecordFileWrites" in file "C:\Program Files\dotnet\sdk\9.0.311\Microsoft.Common.CurrentVersion.targets" from project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (target "CoreBuild" depends on it):
+       Task "RemoveDuplicates"
+       Done executing task "RemoveDuplicates".
+       Task "MakeDir"
+       Done executing task "MakeDir".
+       Using "WriteLinesToFile" task from assembly "Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a".
+       Task "WriteLinesToFile"
+       Done executing task "WriteLinesToFile".
+     1>Done building target "_CleanRecordFileWrites" in project "RemotePlayServer.csproj".
+     1>Done Building Project "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (default targets) -- FAILED.
+
+Build FAILED.
+
+       "C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj" (default target) (1) ->
+       (ResolvePackageAssets target) -> 
+         C:\Program Files\dotnet\sdk\9.0.311\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\obj\project.assets.json' doesn't have a target for 'net8.0'. Ensure that restore has run and that you have included 'net8.0' in the TargetFrameworks for your project. [C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\RemotePlayServer.csproj]
+
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.25

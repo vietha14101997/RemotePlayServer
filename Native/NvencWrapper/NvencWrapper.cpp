@@ -1,5 +1,5 @@
 // NvencWrapper.cpp - NVIDIA NVENC SDK Wrapper Implementation
-// Provides zero-copy H.264 encoding from D3D11 textures using NVIDIA Video Codec SDK
+// Provides zero-copy H.264/H.265 encoding from D3D11 textures using NVIDIA Video Codec SDK
 
 #include "NvencWrapper.h"
 
@@ -20,12 +20,25 @@ static thread_local std::string g_lastError;
 // NVENC API function pointers
 typedef NVENCSTATUS(NVENCAPI* PNVENCODEAPICREATEINSTANCE)(NV_ENCODE_API_FUNCTION_LIST*);
 
-// Detect keyframe by scanning for SPS (NAL type 7) or IDR (NAL type 5)
-static int DetectKeyframe(const uint8_t* data, size_t size) {
+// Detect keyframe by scanning NAL units (supports both H.264 and H.265)
+static int DetectKeyframeH264(const uint8_t* data, size_t size) {
     for (size_t i = 0; i + 4 < size; i++) {
         if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
             int nalType = data[i+4] & 0x1F;
-            if (nalType == 7 || nalType == 5) {
+            if (nalType == 7 || nalType == 5) {  // SPS or IDR
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
+    for (size_t i = 0; i + 5 < size; i++) {
+        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
+            int nalType = (data[i+4] >> 1) & 0x3F;
+            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
+            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
                 return 1;
             }
         }
@@ -72,6 +85,7 @@ struct NvencEncoderContext {
     std::mutex encodeMutex;
 
     bool useBgraInput = false;
+    bool useHevc = false;  // H.265 mode
 };
 
 // Helper: Load NVENC library
@@ -94,22 +108,31 @@ NVENCWRAPPER_API int NvencIsAvailable() {
     return 0;
 }
 
-// Configure encode config with common settings
-static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitrate) {
+// Configure encode config with common settings (codec-aware)
+static void ConfigureNvencConfig(NV_ENC_CONFIG& encodeConfig, int fps, int bitrate, bool useHevc) {
     encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
     encodeConfig.rcParams.averageBitRate = bitrate * 1000;
-    encodeConfig.rcParams.maxBitRate = bitrate * 1200;
-    encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps;
+    encodeConfig.rcParams.maxBitRate = bitrate * 1000 * 15 / 10;  // 1.5x average (headroom for text/desktop burst)
+    // H265 IDR frames need more room; use 2-frame VBV for HEVC, 1-frame for H264
+    int vbvFrames = useHevc ? 2 : 1;
+    encodeConfig.rcParams.vbvBufferSize = bitrate * 1000 / fps * vbvFrames;
     encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
-    // INFINITE GOP: only produce keyframes when explicitly requested via forceKeyframe=1.
-    // Previous fps/2 (30 frames @ 60fps) caused 2 simultaneous keyframe bursts every 500ms,
-    // saturating WiFi and consistently dropping Track 1's packets (Track 0 sent first = wins).
-    // With infinite GOP, our C# code controls keyframe timing with per-track staggering.
     encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
     encodeConfig.frameIntervalP = 1;
-    encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
-    encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
-    encodeConfig.profileGUID = NV_ENC_H264_PROFILE_MAIN_GUID;
+
+    if (useHevc) {
+        encodeConfig.encodeCodecConfig.hevcConfig.idrPeriod = NVENC_INFINITE_GOPLENGTH;
+        encodeConfig.encodeCodecConfig.hevcConfig.repeatSPSPPS = 1;
+        encodeConfig.encodeCodecConfig.hevcConfig.enableIntraRefresh = 0;
+        encodeConfig.profileGUID = NV_ENC_HEVC_PROFILE_MAIN_GUID;
+    } else {
+        encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
+        encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
+        // Baseline profile: no B-frames, CAVLC only — matches what SDP advertises
+        // (profile-level-id=420028/42e01f both decode as Baseline). Avoids CABAC/B-frame
+        // decode stalls on Android MediaCodec when SDP promises Baseline.
+        encodeConfig.profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
+    }
 }
 
 // Internal: Create encoder with specified mode
@@ -117,7 +140,7 @@ static int NvencCreateEncoderInternal(
     NvencEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate,
-    bool useBgra)
+    bool useBgra, bool useHevc)
 {
     if (!outHandle || !d3d11Device || width <= 0 || height <= 0) {
         g_lastError = "Invalid parameters";
@@ -135,6 +158,7 @@ static int NvencCreateEncoderInternal(
     ctx->fps = fps;
     ctx->bitrate = bitrate;
     ctx->useBgraInput = useBgra;
+    ctx->useHevc = useHevc;
 
     NVENCSTATUS nvStatus;
 
@@ -180,8 +204,8 @@ static int NvencCreateEncoderInternal(
         return NVENC_WRAPPER_FAIL;
     }
 
-    // Get encoder GUID for H.264
-    GUID encodeGuid = NV_ENC_CODEC_H264_GUID;
+    // Select codec GUID based on useHevc flag
+    GUID encodeGuid = useHevc ? NV_ENC_CODEC_HEVC_GUID : NV_ENC_CODEC_H264_GUID;
     GUID presetGuid = NV_ENC_PRESET_P1_GUID;
 
     // Get preset config with tuning info (SDK 12+)
@@ -218,7 +242,7 @@ static int NvencCreateEncoderInternal(
 
     // Configure encoder settings
     NV_ENC_CONFIG encodeConfig = presetConfig.presetCfg;
-    ConfigureNvencConfig(encodeConfig, fps, bitrate);
+    ConfigureNvencConfig(encodeConfig, fps, bitrate, useHevc);
     initParams.encodeConfig = &encodeConfig;
 
     nvStatus = ctx->nvenc.nvEncInitializeEncoder(ctx->encoder, &initParams);
@@ -299,22 +323,40 @@ static int NvencCreateEncoderInternal(
     return NVENC_WRAPPER_OK;
 }
 
-// Create encoder (NV12 input)
+// Create encoder (NV12 input, H.264)
 NVENCWRAPPER_API int NvencCreateEncoder(
     NvencEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate)
 {
-    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false);
+    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false, false);
 }
 
-// Create encoder with BGRA input support
+// Create encoder with BGRA input support (H.264)
 NVENCWRAPPER_API int NvencCreateEncoderBgra(
     NvencEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
     int width, int height, int fps, int bitrate)
 {
-    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true);
+    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true, false);
+}
+
+// Create encoder with codec selection (NV12 input)
+NVENCWRAPPER_API int NvencCreateEncoderEx(
+    NvencEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false, useHevc != 0);
+}
+
+// Create encoder with BGRA input and codec selection
+NVENCWRAPPER_API int NvencCreateEncoderBgraEx(
+    NvencEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return NvencCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, true, useHevc != 0);
 }
 
 // Set callback
@@ -347,7 +389,7 @@ static void NvencRetrieveOutput(NvencEncoderContext* ctx) {
 
         // Fallback: also check NAL units in case pictureType doesn't reflect IDR
         if (!isKeyFrame && size > 5) {
-            isKeyFrame = DetectKeyframe(data, size);
+            isKeyFrame = ctx->useHevc ? DetectKeyframeHEVC(data, size) : DetectKeyframeH264(data, size);
         }
 
         if (ctx->callback) {
@@ -599,7 +641,7 @@ NVENCWRAPPER_API const char* NvencGetLastError() {
     return g_lastError.c_str();
 }
 
-// Internal: Build reconfigure params with current settings
+// Internal: Build reconfigure params with current settings (codec-aware)
 static void BuildReconfigParams(
     NvencEncoderContext* ctx,
     NV_ENC_RECONFIGURE_PARAMS& reconfigParams,
@@ -608,11 +650,16 @@ static void BuildReconfigParams(
 {
     reconfigParams = {};
     reconfigParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
-    reconfigParams.forceIDR = 1;
+    // Do NOT force IDR on bitrate/FPS change — encoder applies new settings
+    // to the next P-frame. Forcing IDR causes DC congestion death spiral
+    // (IDR too large → SCTP overflow → reduce bitrate → another IDR → repeat).
+    reconfigParams.forceIDR = 0;
+
+    GUID encodeGuid = ctx->useHevc ? NV_ENC_CODEC_HEVC_GUID : NV_ENC_CODEC_H264_GUID;
 
     NV_ENC_INITIALIZE_PARAMS& reInitParams = reconfigParams.reInitEncodeParams;
     reInitParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
-    reInitParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
+    reInitParams.encodeGUID = encodeGuid;
     reInitParams.presetGUID = NV_ENC_PRESET_P1_GUID;
     reInitParams.encodeWidth = ctx->width;
     reInitParams.encodeHeight = ctx->height;
@@ -625,7 +672,7 @@ static void BuildReconfigParams(
     reInitParams.maxEncodeHeight = ctx->height;
     reInitParams.tuningInfo = NV_ENC_TUNING_INFO_LOW_LATENCY;
 
-    ConfigureNvencConfig(encodeConfig, newFps, newBitrate);
+    ConfigureNvencConfig(encodeConfig, newFps, newBitrate, ctx->useHevc);
     reInitParams.encodeConfig = &encodeConfig;
 }
 
@@ -644,13 +691,15 @@ NVENCWRAPPER_API int NvencSetBitrate(NvencEncoderHandle handle, int bitrateKbps)
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
+    GUID encodeGuid = ctx->useHevc ? NV_ENC_CODEC_HEVC_GUID : NV_ENC_CODEC_H264_GUID;
+
     // Get preset config for the new settings
     NV_ENC_PRESET_CONFIG presetConfig = {};
     presetConfig.version = NV_ENC_PRESET_CONFIG_VER;
     presetConfig.presetCfg.version = NV_ENC_CONFIG_VER;
 
     NVENCSTATUS nvStatus = ctx->nvenc.nvEncGetEncodePresetConfigEx(
-        ctx->encoder, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P1_GUID,
+        ctx->encoder, encodeGuid, NV_ENC_PRESET_P1_GUID,
         NV_ENC_TUNING_INFO_LOW_LATENCY, &presetConfig);
 
     if (nvStatus != NV_ENC_SUCCESS) {
@@ -687,13 +736,15 @@ NVENCWRAPPER_API int NvencSetFps(NvencEncoderHandle handle, int fps) {
 
     std::lock_guard<std::mutex> lock(ctx->encodeMutex);
 
+    GUID encodeGuid = ctx->useHevc ? NV_ENC_CODEC_HEVC_GUID : NV_ENC_CODEC_H264_GUID;
+
     // Get preset config
     NV_ENC_PRESET_CONFIG presetConfig = {};
     presetConfig.version = NV_ENC_PRESET_CONFIG_VER;
     presetConfig.presetCfg.version = NV_ENC_CONFIG_VER;
 
     NVENCSTATUS nvStatus = ctx->nvenc.nvEncGetEncodePresetConfigEx(
-        ctx->encoder, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P1_GUID,
+        ctx->encoder, encodeGuid, NV_ENC_PRESET_P1_GUID,
         NV_ENC_TUNING_INFO_LOW_LATENCY, &presetConfig);
 
     if (nvStatus != NV_ENC_SUCCESS) {

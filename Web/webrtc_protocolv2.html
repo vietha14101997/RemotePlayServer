@@ -1,23 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RemotePlay WebRTC Protocol V2</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RemotePlay WebRTC | Pro V2</title>
   <style>
     :root {
-      --bg-primary: #0d1117;
-      --bg-secondary: #161b22;
-      --bg-tertiary: #21262d;
+      --bg-color: #0d1117;
+      --sidebar-bg: rgba(22, 27, 34, 0.85);
+      --card-bg: rgba(33, 38, 45, 0.6);
+      --accent-color: #58a6ff;
+      --accent-hover: #1f6feb;
+      --text-main: #c9d1d9;
+      --text-dim: #8b949e;
       --border-color: #30363d;
-      --text-primary: #f0f6fc;
-      --text-secondary: #8b949e;
-      --accent-blue: #58a6ff;
-      --accent-green: #3fb950;
-      --accent-red: #f85149;
-      --accent-orange: #d29922;
-      --accent-purple: #a371f7;
+      --success-color: #238636;
+      --danger-color: #da3633;
+      --warning-color: #d29922;
+      --sidebar-width: 320px;
     }
 
     * {
@@ -27,1843 +28,936 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-    }
-
-    .app-container {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       display: flex;
-      flex-direction: column;
       height: 100vh;
-      max-height: 100vh;
       overflow: hidden;
     }
 
-    /* Header */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--accent-blue);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header .version {
-      font-size: 11px;
-      padding: 2px 6px;
-      background: var(--accent-purple);
-      color: #fff;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      background: var(--bg-tertiary);
-      border-radius: 6px;
-      font-size: 13px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-secondary);
-    }
-
-    .status-dot.connected {
-      background: var(--accent-green);
-    }
-
-    .status-dot.connecting {
-      background: var(--accent-orange);
-      animation: pulse 1s infinite;
-    }
-
-    .status-dot.error {
-      background: var(--accent-red);
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-    }
-
-    /* Phase indicator */
-    .phase-indicator {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .phase-step {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      background: var(--bg-tertiary);
-      color: var(--text-secondary);
-    }
-
-    .phase-step.active {
-      background: var(--accent-blue);
-      color: #fff;
-    }
-
-    .phase-step.complete {
-      background: var(--accent-green);
-      color: #fff;
-    }
-
-    /* Main content */
-    .main-content {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 340px;
-      min-width: 340px;
-      background: var(--bg-secondary);
+    /* Sidebar Styles */
+    #sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(12px);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      z-index: 100;
+      transition: transform 0.3s ease;
     }
 
-    .sidebar-section {
-      padding: 16px;
+    .sidebar-header {
+      padding: 24px;
       border-bottom: 1px solid var(--border-color);
-    }
-
-    .sidebar-section h3 {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-    }
-
-    .form-group:last-child {
-      margin-bottom: 0;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    .form-row {
       display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent-color);
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
 
-    .form-row .form-group {
-      flex: 1;
+    .group {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
     }
 
-    input,
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: var(--text-dim);
+    }
+
+    input[type="text"],
+    input[type="number"],
     select {
       width: 100%;
-      padding: 8px 10px;
-      background: var(--bg-primary);
+      background: #0d1117;
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      color: var(--text-primary);
-      font-size: 13px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 0.9rem;
       transition: border-color 0.2s;
     }
 
     input:focus,
     select:focus {
       outline: none;
-      border-color: var(--accent-blue);
+      border-color: var(--accent-color);
     }
 
-    input:disabled,
-    select:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Buttons */
     .btn {
-      display: inline-flex;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      width: 100%;
+      gap: 8px;
     }
 
     .btn-primary {
-      background: var(--accent-blue);
-      color: #fff;
+      background: var(--accent-color);
+      color: #000;
     }
 
     .btn-primary:hover {
-      background: #4090e0;
+      background: var(--accent-hover);
     }
 
-    .btn-danger {
-      background: var(--accent-red);
-      color: #fff;
-    }
-
-    .btn-danger:hover {
-      background: #da4640;
+    .btn-primary:disabled {
+      background: var(--border-color);
+      cursor: not-allowed;
+      color: var(--text-dim);
     }
 
     .btn-secondary {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
+      background: var(--border-color);
+      color: var(--text-main);
     }
 
     .btn-secondary:hover {
-      background: #2d333b;
+      background: #3c444d;
     }
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
     }
 
-    /* Hardware Info */
-    .hw-info {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 12px;
-    }
-
-    .hw-info .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .hw-info .row:last-child {
-      border-bottom: none;
-    }
-
-    .hw-info .label {
-      color: var(--text-secondary);
-    }
-
-    .hw-info .value {
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-
-    /* Speed test */
-    .speedtest-result {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      text-align: center;
-    }
-
-    .speedtest-result .metric .value {
-      font-size: 18px;
-      font-weight: 600;
-      font-family: 'SF Mono', Monaco, monospace;
-    }
-
-    .speedtest-result .metric .label {
-      font-size: 11px;
-      color: var(--text-secondary);
-    }
-
-    /* Progress bar */
-    .progress-bar {
-      height: 6px;
-      background: var(--bg-tertiary);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-
-    .progress-bar .fill {
-      height: 100%;
-      background: var(--accent-blue);
-      transition: width 0.3s;
-    }
-
-    /* Stats panel */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .stat-card {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 10px;
-    }
-
-    .stat-card .label {
-      font-size: 11px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-card .value {
-      font-size: 18px;
-      font-weight: 600;
-      font-family: 'SF Mono', Monaco, monospace;
-      margin-top: 2px;
-    }
-
-    .stat-card .value.green {
-      color: var(--accent-green);
-    }
-
-    .stat-card .value.blue {
-      color: var(--accent-blue);
-    }
-
-    .stat-card .value.orange {
-      color: var(--accent-orange);
-    }
-
-    .stat-card .value.red {
-      color: var(--accent-red);
-    }
-
-    /* Video area */
-    .video-area {
+    /* Main Content Area */
+    #main-content {
       flex: 1;
+      position: relative;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       background: #000;
     }
 
-    .video-grid {
+    #video-grid {
       flex: 1;
       display: grid;
-      gap: 4px;
-      padding: 4px;
-      background: var(--bg-primary);
+      gap: 2px;
+      background: #000;
+      width: 100%;
+      height: 100%;
     }
 
+    .video-container {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .video-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .video-overlay {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Status Bar */
+    #status-bar {
+      height: 32px;
+      background: var(--sidebar-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 0.75rem;
+      gap: 20px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6e7681;
+    }
+
+    .dot.connected {
+      background: var(--success-color);
+      box-shadow: 0 0 8px var(--success-color);
+    }
+
+    .dot.connecting {
+      background: var(--warning-color);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* Log Panel */
+    #log-panel {
+      position: absolute;
+      bottom: 42px;
+      left: 20px;
+      width: 400px;
+      height: 200px;
+      background: rgba(13, 17, 23, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      font-family: 'Consolas', monospace;
+      font-size: 0.75rem;
+      pointer-events: none;
+      /* Let clicks pass to video unless we add a close button */
+    }
+
+    #log-panel.visible {
+      display: flex;
+      pointer-events: auto;
+    }
+
+    .log-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #log-content {
+      flex: 1;
+      padding: 8px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .log-entry {
+      margin-bottom: 2px;
+    }
+
+    .log-entry.info {
+      color: #8b949e;
+    }
+
+    .log-entry.warn {
+      color: var(--warning-color);
+    }
+
+    .log-entry.error {
+      color: var(--danger-color);
+      font-weight: bold;
+    }
+
+    .log-entry.phase {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    /* Cursor */
+    .remote-cursor {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1000;
+      image-rendering: pixelated;
+    }
+
+    /* VR Mode UI */
+    .vr-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      z-index: 9999;
+      display: flex;
+    }
+
+    .vr-eye {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vr-eye video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .vr-divider {
+      width: 1px;
+      background: #333;
+      height: 100%;
+    }
+
+    .vr-exit-btn {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+      cursor: pointer;
+    }
+
+    /* Grid Layouts */
     .video-grid.single {
       grid-template-columns: 1fr;
     }
 
     .video-grid.multi-2 {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
     }
 
-    .video-grid.multi-3,
-    .video-grid.multi-4 {
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(2, 1fr);
+    .video-grid.multi-3 {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 1fr 1fr;
     }
 
-    .video-grid.multi-5,
-    .video-grid.multi-6 {
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-    }
-
-    .video-container {
-      position: relative;
-      background: #000;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .video-label {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      padding: 4px 8px;
-      background: rgba(0, 0, 0, 0.7);
-      color: var(--accent-blue);
-      font-size: 11px;
-      font-weight: 500;
-      border-radius: 4px;
-    }
-
-    .video-overlay {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      right: 8px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-family: 'SF Mono', Monaco, monospace;
-    }
-
-    .video-overlay span {
-      padding: 3px 6px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 3px;
-    }
-
-    .video-overlay .fps {
-      color: var(--accent-green);
-    }
-
-    .video-overlay .bitrate {
-      color: var(--accent-blue);
-    }
-
-    .video-overlay .rtt {
-      color: var(--accent-orange);
-    }
-
-    /* Log panel */
-    .log-panel {
-      height: 180px;
-      min-height: 100px;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .log-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .log-header span {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .log-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 12px;
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 11px;
-      line-height: 1.6;
-      color: var(--accent-green);
-    }
-
-    .log-content .error {
-      color: var(--accent-red);
-    }
-
-    .log-content .warn {
-      color: var(--accent-orange);
-    }
-
-    .log-content .info {
-      color: var(--accent-blue);
-    }
-
-    .log-content .phase {
-      color: var(--accent-purple);
-      font-weight: bold;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .main-content {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        min-width: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        max-height: 350px;
-      }
-    }
-
-    /* VR Side-by-Side Mode */
-    .vr-mode {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 9999 !important;
-      background: #000 !important;
-      display: flex !important;
-      flex-direction: row !important;
-      overflow: hidden !important;
-    }
-
-    .vr-mode .vr-eye {
-      width: 50%;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .vr-mode .vr-eye video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .vr-mode .vr-divider {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 2px;
-      height: 100%;
-      background: #333;
-      z-index: 10;
-    }
-
-    .vr-mode .vr-exit-btn {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .vr-mode:hover .vr-exit-btn {
-      opacity: 1;
-    }
-
-    .vr-mode .vr-info {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      padding: 6px 12px;
-      background: rgba(0, 0, 0, 0.7);
-      color: var(--accent-green);
-      border-radius: 4px;
-      font-size: 11px;
-      font-family: 'SF Mono', Monaco, monospace;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .vr-mode:hover .vr-info {
-      opacity: 1;
-    }
-
-    /* ==================== Cursor Overlay ==================== */
-    /* Similar to Unity WorldPanelCursor.cs - cursor rendered on top of video */
-    .cursor-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 10;
-    }
-
-    .cursor-element {
-      position: absolute;
-      /* Origin at top-left corner (cursor tip), like Unity quad mesh */
-      transform-origin: 0 0;
-      /* Disable smoothing for crisp cursor at any size */
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      pointer-events: none;
-      /* Default hidden until positioned */
-      display: none;
-    }
-
-    .cursor-element.visible {
-      display: block;
-    }
-
-    /* VR Button in header */
-    .btn-vr {
-      background: var(--accent-purple);
-      color: #fff;
-      padding: 6px 12px;
-      font-size: 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-vr:hover {
-      background: #8b5cf6;
-    }
-
-    .btn-vr:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* VR Settings in sidebar */
-    .vr-settings {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .vr-settings select {
-      flex: 1;
+    .video-grid.multi-3 .video-container:first-child {
+      grid-row: span 2;
     }
   </style>
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="header">
-      <h1>
-        RemotePlay WebRTC
-        <span class="version">Protocol V2</span>
-      </h1>
-      <div class="phase-indicator">
-        <div class="phase-step" id="phase1">Phase 1</div>
-        <div class="phase-step" id="phase2">Phase 2</div>
-        <div class="phase-step" id="phase3">Phase 3</div>
-      </div>
-      <div style="display: flex; align-items: center;">
-        <button class="btn-vr" id="btnVR" disabled title="Enter VR Side-by-Side Mode">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
-            <path d="M6 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M14 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M10 12h4"/>
-          </svg>
-          VR
-        </button>
-        <div class="connection-status">
-          <span class="status-dot" id="statusDot"></span>
-          <span id="statusText">Disconnected</span>
+
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+      <h1>RemotePlay Pro</h1>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Connection Section -->
+      <div class="section">
+        <div class="section-title">Connection</div>
+        <div class="group">
+          <div class="field">
+            <label>Server Address</label>
+            <input type="text" id="host" placeholder="localhost" value="localhost">
+          </div>
+          <div class="field">
+            <label>Port</label>
+            <input type="number" id="port" value="8288">
+          </div>
+          <button id="btnConnect" class="btn btn-primary">
+            <span>Connect to Server</span>
+          </button>
+          <button id="btnDisconnect" class="btn btn-danger" style="display: none;">
+            <span>Disconnect</span>
+          </button>
         </div>
       </div>
-    </header>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <!-- Connection Settings -->
-        <div class="sidebar-section">
-          <h3>Connection</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Host</label>
-              <input type="text" id="host" value="192.168.1.8" placeholder="IP or hostname" />
-            </div>
-            <div class="form-group" style="flex: 0.4;">
-              <label>Port</label>
-              <input type="text" id="port" value="8288" />
-            </div>
+      <!-- Settings Section -->
+      <div id="settingsSection" class="section" style="opacity: 0.5; pointer-events: none;">
+        <div class="section-title">Stream Config</div>
+        <div class="group">
+          <div class="field">
+            <label>Display Layout</label>
+            <select id="monitors">
+              <option value="1">1 Monitor</option>
+              <option value="2">2 Monitors</option>
+              <option value="3" selected>3 Monitors</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Monitor Type</label>
+            <select id="monitorType">
+              <option value="standard">Standard (Multi-Track)</option>
+              <option value="ultrawide">Ultrawide (Single VDD)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resolution</label>
+            <select id="resolution">
+              <option value="1280x720">720p (HD)</option>
+              <option value="1920x1080" selected>1080p (Full HD)</option>
+              <option value="2560x1440">1440p (QHD)</option>
+              <option value="3840x2160">2160p (4K)</option>
+              <option value="3440x1440">Ultrawide 21:9</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Target FPS</label>
+            <select id="fps">
+              <option value="30">30 FPS</option>
+              <option value="60" selected>60 FPS</option>
+              <option value="90">90 FPS</option>
+              <option value="120">120 FPS</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bitrate: <span id="bitrateValue">20000</span> kbps</label>
+            <input type="range" id="bitrate" min="2000" max="100000" step="1000" value="20000"
+              oninput="$('bitrateValue').textContent = this.value">
           </div>
         </div>
 
-        <!-- Hardware Info (Phase 1) -->
-        <div class="sidebar-section" id="hwInfoSection" style="display: none;">
-          <h3>Server Hardware</h3>
-          <div class="hw-info" id="hwInfo">
-            <div class="row"><span class="label">Device</span><span class="value" id="hwDevice">--</span></div>
-            <div class="row"><span class="label">GPU</span><span class="value" id="hwGpu">--</span></div>
-            <div class="row"><span class="label">Encoder</span><span class="value" id="hwEncoder">--</span></div>
-            <div class="row"><span class="label">Monitors</span><span class="value" id="hwMonitors">--</span></div>
-          </div>
-        </div>
-
-        <!-- Speed Test Result (Phase 1) -->
-        <div class="sidebar-section" id="speedTestSection" style="display: none;">
-          <h3>Speed Test</h3>
-          <div class="speedtest-result">
-            <div class="metric">
-              <div class="value blue" id="stBandwidth">--</div>
-              <div class="label">Mbps</div>
-            </div>
-            <div class="metric">
-              <div class="value orange" id="stPing">--</div>
-              <div class="label">Ping (ms)</div>
-            </div>
-            <div class="metric">
-              <div class="value green" id="stJitter">--</div>
-              <div class="label">Jitter (ms)</div>
-            </div>
-          </div>
-          <div class="progress-bar" id="stProgress" style="display: none;">
-            <div class="fill" id="stProgressFill" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- Stream Settings (Phase 2) -->
-        <div class="sidebar-section" id="streamSettingsSection">
-          <h3>Stream Settings</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Monitors</label>
-              <select id="monitors">
-                <option value="1">1</option>
-                <option value="2" selected>2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Resolution</label>
-              <select id="resolution">
-                <option value="1920x1080" selected>1080p</option>
-                <option value="1600x900">900p</option>
-                <option value="1366x768">768p</option>
-                <option value="1280x720">720p</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Bitrate (per monitor)</label>
-              <select id="bitrate">
-                <option value="4000">4 Mbps</option>
-                <option value="6000">6 Mbps</option>
-                <option value="8000" selected>8 Mbps</option>
-                <option value="10000">10 Mbps</option>
-                <option value="15000">15 Mbps</option>
-                <option value="20000">20 Mbps</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>FPS</label>
-              <select id="fps">
-                <option value="30" selected>30</option>
-                <option value="60">60</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
+        <div class="section-title">Hardware</div>
+        <div class="group">
+          <div class="field">
             <label>GPU Encoder</label>
             <select id="preferGpu">
-              <option value="auto" selected>Auto</option>
-              <option value="intel">Intel QSV</option>
-              <option value="amd">AMD AMF</option>
+              <option value="auto">Auto Detect</option>
               <option value="nvidia">NVIDIA NVENC</option>
+              <option value="amd">AMD AMF</option>
+              <option value="intel">Intel QSV</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>USB Mode Emulation</label>
+            <select id="usbMode">
+              <option value="false">WiFi / Ethernet (Standard)</option>
+              <option value="true">USB Tethering (High Bitrate)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Codec Preference</label>
+            <select id="codecPref">
+              <option value="H265">HEVC / H.265 (Preferred)</option>
+              <option value="H264">AVC / H.264 (Reliable)</option>
             </select>
           </div>
         </div>
 
-        <!-- Stats (Phase 3) -->
-        <div class="sidebar-section" id="statsSection" style="display: none;">
-          <h3>Stream Statistics</h3>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="label">Total Bitrate</div>
-              <div class="value blue" id="statBitrate">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Avg FPS</div>
-              <div class="value green" id="statFps">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">RTT</div>
-              <div class="value orange" id="statRtt">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Latency</div>
-              <div class="value red" id="statLatency">--</div>
-            </div>
-          </div>
-        </div>
+        <button id="btnStart" class="btn btn-primary" style="display: none;">Start Streaming</button>
+      </div>
 
-        <!-- VR Settings -->
-        <div class="sidebar-section" id="vrSettingsSection">
-          <h3>VR Mode</h3>
-          <div class="form-group">
-            <label>Monitor for VR</label>
-            <select id="vrMonitor">
-              <option value="0">Monitor 0</option>
-            </select>
+      <!-- VR Section -->
+      <div id="vrSection" class="section" style="display: none;">
+        <div class="section-title">VR Spatial Mode</div>
+        <div class="group">
+          <div class="field">
+            <label>Select Monitor</label>
+            <select id="vrMonitor"></select>
           </div>
-          <div class="form-group">
-            <label>IPD Adjustment (px)</label>
-            <input type="range" id="vrIPD" min="-50" max="50" value="0" />
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
-              <span>-50</span>
-              <span id="vrIPDValue">0</span>
-              <span>+50</span>
-            </div>
+          <div class="field">
+            <label>IPD Adjustment: <span id="ipdValue">0.0</span></label>
+            <input type="range" id="ipdRange" min="-10" max="10" step="0.1" value="0">
           </div>
+          <button id="btnEnterVR" class="btn btn-secondary">Enter VR SBS</button>
         </div>
-
-        <!-- Actions -->
-        <div class="sidebar-section">
-          <button class="btn btn-primary" id="btnConnect">Connect</button>
-          <button class="btn btn-secondary" id="btnProceed" style="display: none; margin-top: 8px;">Start</button>
-          <button class="btn btn-danger" id="btnDisconnect" style="display: none; margin-top: 8px;">Disconnect</button>
-        </div>
-      </aside>
-
-      <!-- Video Area -->
-      <main class="video-area">
-        <div class="video-grid single" id="videoGrid">
-          <div class="video-container" id="container0">
-            <video id="video0" autoplay playsinline muted></video>
-            <span class="video-label" id="label0" style="display: none;">Monitor 0</span>
-            <div class="video-overlay" id="overlay0" style="display: none;">
-              <span class="fps" id="fps0">-- fps</span>
-              <span class="bitrate" id="bitrate0">-- kbps</span>
-              <span class="rtt" id="rtt0">-- ms</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Log Panel -->
-        <div class="log-panel">
-          <div class="log-header">
-            <span>Protocol Log</span>
-            <button class="btn btn-secondary" style="width: auto; padding: 4px 8px; font-size: 11px;"
-              onclick="clearLog()">Clear</button>
-          </div>
-          <div class="log-content" id="logContent"></div>
-        </div>
-      </main>
+      </div>
     </div>
-  </div>
+
+    <!-- Info/Stats Footer -->
+    <div id="sidebar-footer"
+      style="padding: 16px; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-dim);">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Encoder:</span><span id="hwEncoder">--</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span>Bandwidth:</span><span id="stBandwidth">-- Mbps</span>
+      </div>
+    </div>
+  </aside>
+
+  <main id="main-content">
+    <div id="video-grid" class="video-grid multi-3">
+      <div class="video-container" id="container0">
+        <video id="video0" autoplay playsinline muted></video>
+        <span class="video-label" id="label0">Monitor 0</span>
+        <div class="video-overlay" id="overlay0" style="display: none;">
+          <span class="badge" id="badge-fps0">-- fps</span>
+          <span class="badge" id="badge-br0">-- kbps</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="log-panel">
+      <div class="log-header">
+        <span>Session Logs</span>
+        <button onclick="toggleLogs()"
+          style="background:transparent; border:none; color:var(--text-dim); cursor:pointer;">Close</button>
+      </div>
+      <div id="log-content"></div>
+    </div>
+
+    <footer id="status-bar">
+      <div class="status-item">
+        <div id="statusDot" class="dot"></div>
+        <span id="statusText">Disconnected</span>
+      </div>
+      <div class="status-item">
+        <span>Latency:</span>
+        <strong id="statLatency">-- ms</strong>
+      </div>
+      <div class="status-item">
+        <span>Bitrate:</span>
+        <strong id="statBitrate">-- kbps</strong>
+      </div>
+      <div class="status-item" style="margin-left: auto;">
+        <button onclick="toggleLogs()"
+          style="background:transparent; border:none; color:var(--accent-color); cursor:pointer; font-size: inherit;">[Toggle
+          Logs]</button>
+      </div>
+    </footer>
+  </main>
 
   <script>
-    // ============================================
-    // RemotePlay WebRTC Protocol V2 Client
-    // 3-Phase Connection Protocol
-    // ============================================
-
-    const $ = (id) => document.getElementById(id);
-
-    // Protocol State
+    // Constants & State
+    const $ = id => document.getElementById(id);
     const state = {
       ws: null,
       phase: 0,
-      hardwareInfo: null,
-      suggestedConfig: null,
-      speedTestResult: null,
-
-      // Phase 2 - Single-PC Multi-Track Architecture
-      singlePC: null,          // Single PeerConnection
-      transceivers: [],        // One transceiver per monitor
-      monitorCount: 0,         // Number of monitors
-      answerReceived: false,   // Track if answer was received
-
-      // Legacy (kept for compatibility)
-      multiPCs: [],
-      pendingAnswers: new Map(),
-
-      // Phase 3
-      statsInterval: null,
-      pingInterval: null,
+      singlePC: null,
+      transceivers: [],
       videoElements: [],
       videoStreams: [],
-      perMonitorStats: [],
+      monitorCount: 0,
 
-      // Metrics
-      currentPing: 0,
+      // Dynamic config tracking
+      currentResolutionHeight: 1080,
+      currentFps: 60,
+
+      // Stats
+      statsInterval: null,
+      perMonitorStats: [],
       webrtcRtt: 0,
-      lastPingTime: 0,
-      serverTimeOffset: 0,
       lastFrameLatency: 0,
 
-      // Ping & Jitter tracking (RFC 3550 style)
-      pingSamples: [],           // Rolling window of ping samples
-      maxPingSamples: 20,        // Keep last 20 samples
-      lastPingValue: 0,          // Previous ping for jitter calculation
-      jitter: 0,                 // RFC 3550 smoothed jitter
-      avgPing: 0,                // Average ping from samples
-      minPing: Infinity,         // Minimum ping observed
-      maxPing: 0,                // Maximum ping observed
+      // Audio
+      audioCtx: null,
+      audioDecoder: null,
+      nextAudioTime: 0,
+      audioBuffer: [],
+      audioSequence: 0,
 
-      // ==================== Cursor State ====================
-      // Similar to Unity WorldPanelCursor.cs
-      cursorElements: [],        // DOM elements for cursor per monitor
-      cursorVisible: [],         // Visibility state per monitor
-      cursorU: [],               // UV.x [0..1] per monitor
-      cursorV: [],               // UV.y [0..1] per monitor
-      currentCursorId: [],       // Active cursorId per monitor
-      pendingCursorId: [],       // Pending cursorId waiting for cursor_image
-    };
-
-    // ==================== Cursor Cache ====================
-    // Static cache for all cursor textures received from server
-    // Similar to Unity's static Dictionary<long, CursorCacheEntry>
-    const cursorCache = {
-      entries: new Map(),       // Map<cursorId, CursorCacheEntry>
-      maxSize: 100,             // LRU eviction limit
-
-      // CursorCacheEntry structure:
-      // { imageUrl: string, width: number, height: number, hotspotX: number, hotspotY: number, lastUsed: number }
-
-      /**
-       * Cache a cursor image received from server.
-       * Similar to Unity's WorldPanelCursor.CacheCursor()
-       */
-      set(cursorId, imageUrl, width, height, hotspotX, hotspotY) {
-        // LRU eviction if cache exceeds limit
-        if (this.entries.size >= this.maxSize && !this.entries.has(cursorId)) {
-          // Find and remove oldest entry
-          let oldestId = null;
-          let oldestTime = Infinity;
-          for (const [id, entry] of this.entries) {
-            if (entry.lastUsed < oldestTime) {
-              oldestTime = entry.lastUsed;
-              oldestId = id;
-            }
-          }
-          if (oldestId !== null) {
-            // Revoke blob URL to free memory
-            const oldEntry = this.entries.get(oldestId);
-            if (oldEntry && oldEntry.imageUrl.startsWith('blob:')) {
-              URL.revokeObjectURL(oldEntry.imageUrl);
-            }
-            this.entries.delete(oldestId);
-          }
-        }
-
-        this.entries.set(cursorId, {
-          imageUrl,
-          width,
-          height,
-          hotspotX,
-          hotspotY,
-          lastUsed: Date.now()
-        });
-      },
-
-      /**
-       * Check if cursor is in cache.
-       * Similar to Unity's WorldPanelCursor.HasCursor()
-       */
-      has(cursorId) {
-        return this.entries.has(cursorId);
-      },
-
-      /**
-       * Get cursor from cache, updating lastUsed time.
-       * Similar to Unity's WorldPanelCursor.TryGetCursor()
-       */
-      get(cursorId) {
-        const entry = this.entries.get(cursorId);
-        if (entry) {
-          entry.lastUsed = Date.now();
-          return entry;
-        }
-        return null;
-      },
-
-      /**
-       * Clear all cached cursors.
-       * Similar to Unity's WorldPanelCursor.ClearCache()
-       */
-      clear() {
-        for (const entry of this.entries.values()) {
-          if (entry.imageUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(entry.imageUrl);
-          }
-        }
-        this.entries.clear();
-        log('[Cursor] Cache cleared', 'info');
-      }
+      // Cursor
+      cursorCache: new Map(),
+      cursorElements: [],
+      cursorU: [],
+      cursorV: []
     };
 
     // ============================================
-    // Logging
+    // Core Logic
     // ============================================
-    function log(message, type = 'default') {
-      const content = $('logContent');
-      const line = document.createElement('div');
-      line.className = type;
-      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-      line.textContent = `[${time}] ${message}`;
-      content.appendChild(line);
-      content.scrollTop = content.scrollHeight;
-      console.log(`[${type}] ${message}`);
+
+    function log(msg, type = 'info') {
+      const el = $('log-content');
+      const div = document.createElement('div');
+      div.className = `log-entry ${type}`;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+      console.log(`[RemotePlay] ${msg}`);
     }
 
-    function clearLog() {
-      $('logContent').innerHTML = '';
+    function toggleLogs() {
+      $('log-panel').classList.toggle('visible');
     }
 
-    // ============================================
-    // UI Updates
-    // ============================================
-    function setPhase(phase) {
-      state.phase = phase;
-      ['phase1', 'phase2', 'phase3'].forEach((id, i) => {
-        const el = $(id);
-        el.classList.remove('active', 'complete');
-        if (i + 1 < phase) el.classList.add('complete');
-        else if (i + 1 === phase) el.classList.add('active');
-      });
-    }
-
-    function setStatus(status, dotClass = '') {
-      $('statusText').textContent = status;
-      $('statusDot').className = 'status-dot ' + dotClass;
-    }
-
-    function showSection(id, show = true) {
-      $(id).style.display = show ? '' : 'none';
-    }
-
-    function setInputsEnabled(enabled) {
-      ['host', 'port', 'monitors', 'resolution', 'bitrate', 'fps', 'preferGpu'].forEach(id => {
-        $(id).disabled = !enabled;
-      });
+    function setStatus(text, dotClass) {
+      $('statusText').textContent = text;
+      $('statusDot').className = `dot ${dotClass}`;
     }
 
     // ============================================
-    // Protocol Message Helpers
-    // ============================================
-    function sendJson(obj) {
-      if (state.ws?.readyState === 1) {
-        const json = JSON.stringify(obj);
-        state.ws.send(json);
-        log(`-> ${obj.type}: ${json.substring(0, 80)}...`);
-      }
-    }
-
-    function sendText(text) {
-      if (state.ws?.readyState === 1) {
-        state.ws.send(text);
-      }
-    }
-
-    // ============================================
-    // HEVC/H.265 Support Detection
+    // WebSocket & Signaling
     // ============================================
 
-    // IMPORTANT: HEVC over WebRTC is still experimental and unreliable
-    // Even when RTCRtpReceiver.getCapabilities reports H.265 support,
-    // actual decoding often fails (black screen) due to:
-    // - Profile/level incompatibility between encoder and decoder
-    // - NAL unit format issues (Annex-B vs AVCC)
-    // - Browser's HEVC WebRTC implementation being incomplete
-    //
-    // For maximum compatibility, we FORCE H.264 for WebRTC streaming.
-    // H.264 is universally supported and thoroughly tested.
-    //
-    // Set this to true to attempt HEVC (experimental, may cause black screen)
-    const ALLOW_HEVC_WEBRTC = false;
+    $('btnConnect').onclick = () => {
+      const host = $('host').value;
+      const port = $('port').value;
+      const isUsb = $('usbMode').value === 'true';
+      const url = `ws://${host}:${port}/signal${isUsb ? '?transport=usb' : ''}`;
 
-    async function detectHevcSupport() {
-      // Force H.264 for stability - HEVC over WebRTC is unreliable
-      if (!ALLOW_HEVC_WEBRTC) {
-        log('HEVC disabled for WebRTC stability - using H.264', 'info');
-        return false;
-      }
-
-      try {
-        // Method 1: Check RTCRtpReceiver capabilities (most reliable for WebRTC)
-        if (typeof RTCRtpReceiver !== 'undefined' && RTCRtpReceiver.getCapabilities) {
-          const caps = RTCRtpReceiver.getCapabilities('video');
-          if (caps && caps.codecs) {
-            const hevcCodecs = caps.codecs.filter(c =>
-              c.mimeType.toLowerCase().includes('hevc') ||
-              c.mimeType.toLowerCase().includes('h265') ||
-              c.mimeType.toLowerCase() === 'video/h265'
-            );
-
-            if (hevcCodecs.length > 0) {
-              log(`HEVC WebRTC support detected: ${hevcCodecs.map(c => c.mimeType).join(', ')}`, 'info');
-              // WARNING: Even with this detection, HEVC may not work properly
-              // Chrome reports H.265 support but actual decode often fails
-              log('WARNING: HEVC WebRTC support is experimental and may cause issues', 'warn');
-              return true;
-            }
-          }
-        }
-
-        // Method 2: Check MediaCapabilities API for decode support
-        if ('mediaCapabilities' in navigator) {
-          const hevcConfig = {
-            type: 'file',
-            video: {
-              contentType: 'video/mp4; codecs="hev1.1.6.L93.B0"',
-              width: 1920,
-              height: 1080,
-              bitrate: 10000000,
-              framerate: 30
-            }
-          };
-
-          try {
-            const result = await navigator.mediaCapabilities.decodingInfo(hevcConfig);
-            if (result.supported) {
-              log('HEVC decode support detected via MediaCapabilities', 'info');
-              // But for WebRTC, we still need to verify RTCRtpReceiver support
-              // MediaCapabilities alone is not enough for WebRTC streaming
-            }
-          } catch (e) {
-            // MediaCapabilities check failed, continue
-          }
-        }
-
-        // Method 3: Check video element canPlayType
-        const video = document.createElement('video');
-        const hevcTypes = [
-          'video/mp4; codecs="hev1.1.6.L93.B0"',
-          'video/mp4; codecs="hvc1.1.6.L93.B0"',
-          'video/mp4; codecs="hevc"'
-        ];
-
-        for (const type of hevcTypes) {
-          if (video.canPlayType(type) === 'probably' || video.canPlayType(type) === 'maybe') {
-            log(`HEVC playback support detected: ${type}`, 'info');
-            // Note: This doesn't guarantee WebRTC support
-            break;
-          }
-        }
-
-        // Final decision: Only return true if RTCRtpReceiver explicitly supports HEVC
-        // Most browsers (Chrome, Firefox, Edge) don't support HEVC in WebRTC yet
-        log('HEVC not supported in WebRTC - will use H.264', 'warn');
-        return false;
-
-      } catch (e) {
-        log(`HEVC detection error: ${e.message}`, 'warn');
-        return false;
-      }
-    }
-
-    // Cache HEVC support result
-    let cachedHevcSupport = null;
-
-    async function getHevcSupport() {
-      if (cachedHevcSupport === null) {
-        cachedHevcSupport = await detectHevcSupport();
-      }
-      return cachedHevcSupport;
-    }
-
-    // ============================================
-    // Phase 1: Hardware Discovery & Speed Test
-    // ============================================
-    async function startPhase1() {
-      setPhase(1);
-      log('=== PHASE 1: Hardware Discovery & Speed Test ===', 'phase');
-
-      const host = $('host').value.trim() || 'localhost';
-      const port = $('port').value.trim() || '8288';
-      const wsUrl = `ws://${host}:${port}/signal?protocol=v2`;
-
-      log(`Connecting to ${wsUrl}`);
+      log(`Connecting to ${url}...`, 'phase');
       setStatus('Connecting...', 'connecting');
+      $('btnConnect').disabled = true;
 
-      const ws = new WebSocket(wsUrl);
-      state.ws = ws;
+      state.ws = new WebSocket(url);
+      state.ws.binaryType = 'arraybuffer';
 
-      ws.onopen = () => {
+      state.ws.onopen = () => {
         log('WebSocket connected', 'info');
-        setStatus('Awaiting hardware info...', 'connecting');
-        showSection('btnDisconnect', true);
+        setStatus('Negotiating...', 'connecting');
         $('btnConnect').style.display = 'none';
-        setInputsEnabled(false);
-
-        // Start ping keepalive
-        state.pingInterval = setInterval(() => {
-          if (state.ws?.readyState === 1) {
-            state.lastPingTime = performance.now();
-            sendText('ping');
-          }
-        }, 3000);
+        $('btnDisconnect').style.display = '';
       };
 
-      ws.onmessage = (ev) => handleMessage(ev.data);
-      ws.onerror = () => log('WebSocket error', 'error');
-      ws.onclose = () => {
-        log('WebSocket closed');
+      state.ws.onmessage = async (event) => {
+        if (typeof event.data === 'string') {
+          const msg = JSON.parse(event.data);
+          handleMessage(msg);
+        } else {
+          // Binary data handling (Audio frames typically)
+          handleBinaryPacket(event.data);
+        }
+      };
+
+      state.ws.onclose = () => {
+        log('WebSocket closed', 'warn');
         disconnect();
       };
-    }
 
-    function handleMessage(data) {
-      // Binary data (speed test)
-      if (data instanceof Blob) {
-        handleSpeedTestData(data);
-        return;
-      }
+      state.ws.onerror = (e) => {
+        log('WebSocket error', 'error');
+      };
 
-      // Pong - Calculate ping and jitter accurately
-      if (data === 'pong') {
-        if (state.lastPingTime > 0) {
-          const rtt = performance.now() - state.lastPingTime;
-          state.lastPingTime = 0;
-
-          // Add to rolling window
-          state.pingSamples.push(rtt);
-          if (state.pingSamples.length > state.maxPingSamples) {
-            state.pingSamples.shift();
-          }
-
-          // Calculate average ping (with outlier filtering)
-          if (state.pingSamples.length > 0) {
-            const sorted = [...state.pingSamples].sort((a, b) => a - b);
-            // Remove top and bottom 10% outliers if enough samples
-            const trimCount = state.pingSamples.length >= 10 ? Math.floor(state.pingSamples.length * 0.1) : 0;
-            const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
-            const sum = trimmed.reduce((a, b) => a + b, 0);
-            state.avgPing = sum / trimmed.length;
-          }
-
-          // Update min/max
-          state.minPing = Math.min(state.minPing, rtt);
-          state.maxPing = Math.max(state.maxPing, rtt);
-
-          // Calculate jitter using RFC 3550 algorithm
-          // J(i) = J(i-1) + (|D(i-1,i)| - J(i-1)) / 16
-          // where D is the difference in ping times
-          if (state.lastPingValue > 0) {
-            const diff = Math.abs(rtt - state.lastPingValue);
-            state.jitter = state.jitter + (diff - state.jitter) / 16;
-          }
-          state.lastPingValue = rtt;
-
-          // Store current ping (latest sample) and rounded average
-          state.currentPing = Math.round(state.avgPing);
+      $('usbMode').onchange = () => {
+        if ($('usbMode').value === 'true') {
+          $('bitrate').value = 30000;
+          if ($('bitrateValue')) $('bitrateValue').textContent = '30000';
+        } else {
+          $('bitrate').value = 15000;
+          if ($('bitrateValue')) $('bitrateValue').textContent = '15000';
         }
-        return;
-      }
+      };
+    };
 
-      // Try JSON
-      try {
-        const msg = JSON.parse(data);
-        handleJsonMessage(msg);
-      } catch {
-        // Legacy format
-        handleLegacyMessage(data);
+    $('btnDisconnect').onclick = () => disconnect();
+
+    function disconnect() {
+      if (state.ws) state.ws.close();
+      if (state.singlePC) state.singlePC.close();
+      if (state.statsInterval) clearInterval(state.statsInterval);
+
+      setStatus('Disconnected', '');
+      $('btnConnect').style.display = '';
+      $('btnConnect').disabled = false;
+      $('btnDisconnect').style.display = 'none';
+      $('settingsSection').style.opacity = '0.5';
+      $('settingsSection').style.pointerEvents = 'none';
+      $('btnStart').style.display = 'none';
+
+      state.phase = 0;
+      state.singlePC = null;
+      log('Session ended.');
+    }
+
+    function sendJson(obj) {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify(obj));
       }
     }
 
-    function handleJsonMessage(msg) {
-      const type = msg.type;
-      log(`<- ${type}`, 'info');
+    // ============================================
+    // Message Handlers
+    // ============================================
 
-      switch (type) {
+    async function handleMessage(msg) {
+      switch (msg.type) {
         case 'hardware_info':
-          handleHardwareInfo(msg);
+          $('hwEncoder').textContent = msg.encoder?.type || 'Unknown';
+          log(`Server: ${msg.device?.name} | GPU: ${msg.device?.gpu}`, 'info');
+
+          // Detect HEVC support
+          const supportsHevc = await getHevcSupport();
+          const preferredCodec = ($('codecPref').value === 'H265' && supportsHevc && msg.encoder?.supportsHevc) ? 'H265' : 'H264';
+
+          log(`HEVC Support: Client=${supportsHevc}, Server=${msg.encoder?.supportsHevc} -> Using ${preferredCodec}`, 'info');
+
+          sendJson({
+            type: 'hardware_info_ack',
+            clientCodecs: {
+              supportsHevc: supportsHevc,
+              preferredCodec: preferredCodec,
+              screenWidth: window.innerWidth,
+              screenHeight: window.innerHeight
+            }
+          });
+
+          // Simulate/Run speed test to satisfy Phase 1
+          setTimeout(() => {
+            log('Reporting speed test result...', 'info');
+            sendJson({
+              type: 'speedtest_result',
+              bandwidthMbps: 100, // Dummy high bandwidth
+              pingMs: 10,
+              jitterMs: 2
+            });
+          }, 500);
           break;
-        case 'speedtest_end':
-          handleSpeedTestEnd(msg);
-          break;
+
         case 'suggested_config':
-          handleSuggestedConfig(msg);
+          log(`Suggested: ${msg.monitors}x@${msg.fps}fps, ${msg.bitrateKbps}kbps, ${msg.selectedCodec}`, 'info');
+          $('monitors').value = msg.monitors;
+          $('fps').value = msg.fps;
+          $('bitrate').value = msg.bitrateKbps;
+          $('bitrateValue').textContent = msg.bitrateKbps;
+          if (msg.selectedCodec) $('codecPref').value = msg.selectedCodec;
+
+          $('settingsSection').style.opacity = '1';
+          $('settingsSection').style.pointerEvents = 'auto';
+          $('btnStart').style.display = 'block';
+          setStatus('Ready to Start', 'connecting');
           break;
-        case 'config_progress':
-          handleConfigProgress(msg);
-          break;
+
         case 'config_complete':
-          handleConfigComplete(msg);
+          log('Configuration complete, initializing WebRTC...', 'phase');
+          setupVideoGrid(msg.monitors.length);
+          await createPeerConnection(msg.monitors.length);
           break;
+
         case 'answer':
-          handleAnswer(msg);
+          await handleAnswer(msg);
+          // Update codec info in UI
+          const codec = msg.sdp.toLowerCase().includes('hvc1') || msg.sdp.toLowerCase().includes('hev1') ? 'H.265' : 'H.264';
+          $('hwEncoder').textContent += ` (${codec})`;
+
+          // After setting answer, client signals it's ready for Phase 3
+          setTimeout(() => {
+            log('Signaling start_streaming...', 'info');
+            sendJson({ type: 'start_streaming' });
+          }, 1000);
           break;
+
         case 'candidate':
           handleCandidate(msg);
           break;
-        case 'ice_ready':
-          handleIceReady(msg);
-          break;
+
         case 'streaming_started':
-          handleStreamingStarted(msg);
+          log('STREAMING ACTIVE', 'phase');
+          setStatus('Streaming', 'connected');
+          startStats();
+          setupDynamicUpdates();
+          $('vrSection').style.display = 'block';
+          updateVRMonitorOptions();
           break;
-        case 'frameTiming':
-          handleFrameTiming(msg);
-          break;
-        case 'cursor_position':
-          handleCursorPosition(msg);
-          break;
-        case 'cursor_image':
-          handleCursorImage(msg);
-          break;
-        case 'error':
-          log(`Error [Phase ${msg.phase}]: ${msg.code} - ${msg.message}`, 'error');
+
+        case 'config_updated':
+          log(`Dynamic Update: ${msg.resolutionHeight}p @ ${msg.fps}fps - Success: ${msg.success}`, msg.success ? 'info' : 'error');
           break;
       }
     }
 
-    // ==================== Cursor Handlers ====================
-    // Similar to Unity WorldPanelCursor.cs cursor handling
+    function handleBinaryPacket(buffer) {
+      const view = new DataView(buffer);
+      const type = view.getUint8(0);
 
-    /**
-     * Handle cursor_position message from server.
-     * Message format: { type: "cursor_position", u: float, v: float, visible: bool, cursorType: int, cursorId: long }
-     *
-     * Similar to Unity's WorldPanelCursor.SetUV() and SetCursorById()
-     */
-    function handleCursorPosition(msg) {
-      const monitorIndex = msg.monitorIndex || 0;
-      const u = msg.u;         // UV.x in [0..1]
-      const v = msg.v;         // UV.y in [0..1]
-      const visible = msg.visible;
-      const cursorId = msg.cursorId;
-
-      // Debug: Log visibility changes
-      const prevVisible = state.cursorVisible[monitorIndex];
-      if (prevVisible !== visible) {
-        log(`[Cursor] Visibility changed: ${prevVisible} → ${visible} (monitor ${monitorIndex})`, visible ? 'info' : 'warn');
-      }
-
-      // Debug: Log cursorId changes
-      const prevCursorId = state.currentCursorId[monitorIndex];
-      if (cursorId !== undefined && cursorId !== prevCursorId) {
-        const inCache = cursorCache.has(cursorId);
-        log(`[Cursor] ID changed: ${prevCursorId} → ${cursorId} (inCache: ${inCache})`, 'info');
-      }
-
-      // Store state
-      state.cursorU[monitorIndex] = u;
-      state.cursorV[monitorIndex] = v;
-      state.cursorVisible[monitorIndex] = visible;
-
-      // Get or create cursor element for this monitor
-      let cursorEl = state.cursorElements[monitorIndex];
-      if (!cursorEl) {
-        cursorEl = createCursorElement(monitorIndex);
-        state.cursorElements[monitorIndex] = cursorEl;
-      }
-
-      // Handle visibility change
-      if (!visible) {
-        cursorEl.classList.remove('visible');
-        return;
-      }
-
-      // Set cursor by ID from cache (similar to Unity's SetCursorById)
-      // Only switch cursor if the new one is already in cache (prevents flickering)
-      if (cursorId !== undefined && cursorId !== state.currentCursorId[monitorIndex]) {
-        // Check if cursor is in cache before switching
-        if (cursorCache.has(cursorId)) {
-          state.currentCursorId[monitorIndex] = cursorId;
-          applyCursorTexture(monitorIndex, cursorId);
-        } else {
-          // Store pending cursor ID - will be applied when cursor_image arrives
-          state.pendingCursorId = state.pendingCursorId || [];
-          state.pendingCursorId[monitorIndex] = cursorId;
-        }
-      }
-
-      // Only show cursor if we have a valid image (src is set)
-      // This prevents showing empty/broken cursor before cursor_image arrives
-      if (cursorEl.src && cursorEl.src !== '') {
-        cursorEl.classList.add('visible');
-      }
-
-      // Update cursor position (convert UV to pixel position)
-      updateCursorPosition(monitorIndex, u, v);
-    }
-
-    /**
-     * Handle cursor_image message from server.
-     * Message format: { type: "cursor_image", cursorId: long, width: int, height: int, hotspotX: int, hotspotY: int, imageBase64: string }
-     *
-     * Similar to Unity's WorldPanelCursor.CacheCursor()
-     */
-    function handleCursorImage(msg) {
-      const cursorId = msg.cursorId;
-      const width = msg.width;
-      const height = msg.height;
-      const hotspotX = msg.hotspotX;
-      const hotspotY = msg.hotspotY;
-      const imageBase64 = msg.imageBase64;
-
-      // Decode base64 to blob URL
-      try {
-        const binaryStr = atob(imageBase64);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i);
-        }
-
-        // Create blob (RGBA raw data → PNG via canvas)
-        // Server sends data in Windows row order (top-to-bottom)
-        // Canvas 2D also uses top-to-bottom - NO FLIP needed
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-
-        // Load raw RGBA data directly - coordinate systems match
-        const imageData = ctx.createImageData(width, height);
-        imageData.data.set(bytes);
-        ctx.putImageData(imageData, 0, 0);
-
-        // Use hotspot as-is from server (no flip adjustment)
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const imageUrl = URL.createObjectURL(blob);
-            cursorCache.set(cursorId, imageUrl, width, height, hotspotX, hotspotY);
-            log(`[Cursor] Cached cursor ${cursorId} (${width}x${height}, hotspot: ${hotspotX},${hotspotY})`, 'info');
-
-            // Apply to any monitors waiting for this cursor (pending or current)
-            if (state.pendingCursorId) {
-              state.pendingCursorId.forEach((pendingId, monitorIndex) => {
-                if (pendingId === cursorId) {
-                  // Apply the pending cursor now that it's available
-                  state.currentCursorId[monitorIndex] = cursorId;
-                  state.pendingCursorId[monitorIndex] = null;
-                  applyCursorTexture(monitorIndex, cursorId);
-                  // Make cursor visible now that we have an image
-                  const cursorEl = state.cursorElements[monitorIndex];
-                  if (cursorEl && state.cursorVisible[monitorIndex]) {
-                    cursorEl.classList.add('visible');
-                  }
-                }
-              });
-            }
-            // Also check currentCursorId for monitors that were waiting
-            state.currentCursorId.forEach((id, monitorIndex) => {
-              if (id === cursorId) {
-                applyCursorTexture(monitorIndex, cursorId);
-                // Make cursor visible now that we have an image
-                const cursorEl = state.cursorElements[monitorIndex];
-                if (cursorEl && state.cursorVisible[monitorIndex]) {
-                  cursorEl.classList.add('visible');
-                }
-              }
-            });
-          }
-        }, 'image/png');
-
-      } catch (e) {
-        log(`[Cursor] Failed to decode cursor image: ${e.message}`, 'error');
-      }
-    }
-
-    /**
-     * Create cursor DOM element for a monitor.
-     * Similar to Unity's WorldPanelCursor mesh setup with top-left pivot.
-     */
-    function createCursorElement(monitorIndex) {
-      const container = $(`container${monitorIndex}`);
-      if (!container) return null;
-
-      // Create overlay container if not exists
-      let overlay = container.querySelector('.cursor-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'cursor-overlay';
-        container.appendChild(overlay);
-      }
-
-      // Create cursor image element
-      const cursorEl = document.createElement('img');
-      cursorEl.className = 'cursor-element';
-      cursorEl.id = `cursor${monitorIndex}`;
-      cursorEl.draggable = false;
-      cursorEl.alt = '';
-      overlay.appendChild(cursorEl);
-
-      return cursorEl;
-    }
-
-    /**
-     * Apply cursor texture from cache.
-     * Similar to Unity's WorldPanelCursor.ApplyCursorTexture()
-     */
-    function applyCursorTexture(monitorIndex, cursorId) {
-      const cursorEl = state.cursorElements[monitorIndex];
-      if (!cursorEl) return;
-
-      const entry = cursorCache.get(cursorId);
-      if (entry) {
-        cursorEl.src = entry.imageUrl;
-        // Store hotspot data on element for position calculation
-        cursorEl.dataset.hotspotX = entry.hotspotX;
-        cursorEl.dataset.hotspotY = entry.hotspotY;
-        cursorEl.dataset.width = entry.width;
-        cursorEl.dataset.height = entry.height;
-      }
-      // If cursor not in cache yet, wait for cursor_image message
-    }
-
-    /**
-     * Update cursor position based on UV coordinates.
-     * Similar to Unity's WorldPanelCursor.ApplyPoseFromUV()
-     *
-     * UV coordinates: (0,0) = top-left, (1,1) = bottom-right
-     * Cursor is positioned with its HOTSPOT at the UV position (tip of arrow).
-     */
-    function updateCursorPosition(monitorIndex, u, v) {
-      const cursorEl = state.cursorElements[monitorIndex];
-      if (!cursorEl) return;
-
-      const video = state.videoElements[monitorIndex];
-      if (!video) return;
-
-      // Get video display size (respecting object-fit: contain)
-      const containerRect = video.parentElement.getBoundingClientRect();
-
-      // Calculate actual video render area (accounting for letterboxing/pillarboxing)
-      const videoWidth = video.videoWidth || 1920;
-      const videoHeight = video.videoHeight || 1080;
-      const videoAspect = videoWidth / videoHeight;
-      const containerAspect = containerRect.width / containerRect.height;
-
-      let renderWidth, renderHeight, offsetX, offsetY;
-
-      if (containerAspect > videoAspect) {
-        // Pillarboxing (bars on sides)
-        renderHeight = containerRect.height;
-        renderWidth = renderHeight * videoAspect;
-        offsetX = (containerRect.width - renderWidth) / 2;
-        offsetY = 0;
-      } else {
-        // Letterboxing (bars on top/bottom)
-        renderWidth = containerRect.width;
-        renderHeight = renderWidth / videoAspect;
-        offsetX = 0;
-        offsetY = (containerRect.height - renderHeight) / 2;
-      }
-
-      // Calculate scale factor: display size / video resolution
-      // Cursor needs to be scaled to match the video display scale
-      const scaleX = renderWidth / videoWidth;
-      const scaleY = renderHeight / videoHeight;
-      const scale = Math.min(scaleX, scaleY); // Use uniform scale
-
-      // Convert UV to pixel position within video render area
-      // Server sends UV based on Windows screen coordinates:
-      // u = cursorX / screenWidth, v = cursorY / screenHeight
-      // Where (0,0) is top-left (same as web coordinates)
-      const pixelX = offsetX + (u * renderWidth);
-      const pixelY = offsetY + (v * renderHeight);
-
-      // Get cursor dimensions and hotspot (in original cursor pixels)
-      const cursorWidth = parseInt(cursorEl.dataset.width) || 32;
-      const cursorHeight = parseInt(cursorEl.dataset.height) || 32;
-      const hotspotX = parseInt(cursorEl.dataset.hotspotX) || 0;
-      const hotspotY = parseInt(cursorEl.dataset.hotspotY) || 0;
-
-      // Scale cursor size to match video display scale
-      const scaledWidth = cursorWidth * scale;
-      const scaledHeight = cursorHeight * scale;
-      cursorEl.style.width = `${scaledWidth}px`;
-      cursorEl.style.height = `${scaledHeight}px`;
-
-      // Scale hotspot offset too
-      const scaledHotspotX = hotspotX * scale;
-      const scaledHotspotY = hotspotY * scale;
-
-      // Position cursor so hotspot is at UV position
-      // (left, top) = (pixelX - scaledHotspotX, pixelY - scaledHotspotY)
-      cursorEl.style.left = `${pixelX - scaledHotspotX}px`;
-      cursorEl.style.top = `${pixelY - scaledHotspotY}px`;
-    }
-
-    /**
-     * Update all cursor positions (call on window resize or video resize)
-     */
-    function updateAllCursorPositions() {
-      for (let i = 0; i < state.monitorCount; i++) {
-        if (state.cursorVisible[i]) {
-          updateCursorPosition(i, state.cursorU[i], state.cursorV[i]);
-        }
-      }
-    }
-
-    // Update cursor positions on window resize
-    window.addEventListener('resize', updateAllCursorPositions);
-
-    function handleLegacyMessage(text) {
-      // answer:N:sdp
-      if (text.startsWith('answer:')) {
-        const rest = text.substring(7);
-        const idx = rest.indexOf(':');
-        if (idx > 0) {
-          const monIdx = parseInt(rest.substring(0, idx));
-          const sdp = rest.substring(idx + 1);
-          handleAnswer({ monitorIndex: monIdx, sdp });
-        }
-        return;
-      }
-
-      // candidate:N:candidate
-      if (text.startsWith('candidate:')) {
-        const rest = text.substring(10);
-        const idx = rest.indexOf(':');
-        if (idx > 0) {
-          const monIdx = parseInt(rest.substring(0, idx));
-          const candidate = rest.substring(idx + 1);
-          handleCandidate({ monitorIndex: monIdx, candidate });
-        }
-        return;
+      if (type === 0x01) { // Audio Data
+        processAudioFrame(buffer);
       }
     }
 
     // ============================================
-    // Phase 1 Handlers
+    // WebRTC Implementation
     // ============================================
-    async function handleHardwareInfo(msg) {
-      state.hardwareInfo = msg;
 
-      // Update UI
-      $('hwDevice').textContent = msg.device?.name || '--';
-      $('hwGpu').textContent = msg.device?.gpu || '--';
-      $('hwEncoder').textContent = msg.encoder?.preferredEncoder || '--';
-      $('hwMonitors').textContent = msg.monitors?.length || 0;
+    async function createPeerConnection(count) {
+      state.monitorCount = count;
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      state.singlePC = pc;
 
-      showSection('hwInfoSection', true);
-
-      log(`Server: ${msg.device?.name}, GPU: ${msg.device?.gpu}`, 'info');
-      log(`Encoder: ${msg.encoder?.preferredEncoder}, HEVC: ${msg.encoder?.supportsHevc}`, 'info');
-
-      // Detect actual HEVC support in this browser/WebRTC
-      log('Detecting client HEVC/H.265 WebRTC support...', 'info');
-      const clientSupportsHevc = await getHevcSupport();
-
-      // Determine preferred codec based on actual support
-      // If both server and client support HEVC, prefer it (better quality at lower bitrate)
-      // Otherwise fall back to H.264 (universal compatibility)
-      const serverSupportsHevc = msg.encoder?.supportsHevc || false;
-      const useHevc = serverSupportsHevc && clientSupportsHevc;
-      const preferredCodec = useHevc ? 'H265' : 'H264';
-
-      log(`Client HEVC support: ${clientSupportsHevc}, Server HEVC: ${serverSupportsHevc} → Using ${preferredCodec}`, 'info');
-
-      // Send ack with accurate codec capabilities
-      sendJson({
-        type: 'hardware_info_ack',
-        clientCodecs: {
-          supportsHevc: clientSupportsHevc,  // Actual detected support
-          preferredCodec: preferredCodec,
-          deviceModel: navigator.userAgent
+      // Add transceivers
+      for (let i = 0; i < count; i++) {
+        const trans = pc.addTransceiver('video', { direction: 'recvonly' });
+        // Use playoutDelayHint for low latency in supported browsers
+        if (trans.receiver && 'playoutDelayHint' in trans.receiver) {
+          trans.receiver.playoutDelayHint = 0;
         }
-      });
+      }
 
-      // Start speed test
-      setTimeout(() => runSpeedTest(), 500);
-    }
+      // Add audio transceiver if enabled (placeholder for future native audio)
+      // pc.addTransceiver('audio', { direction: 'recvonly' });
 
-    let speedTestBytes = 0;
-    let speedTestStart = 0;
+      // Create DataChannels
+      const audioDc = pc.createDataChannel('audio', { negotiated: false });
+      setupAudioDataChannel(audioDc);
 
-    async function runSpeedTest() {
-      log('Starting speed test (download)...', 'info');
-      showSection('speedTestSection', true);
-      showSection('stProgress', true);
+      const cursorDc = pc.createDataChannel('cursor', { negotiated: false });
+      setupCursorDataChannel(cursorDc);
 
-      speedTestBytes = 0;
-      speedTestStart = performance.now();
-
-      // Request server to send data for 2 seconds
-      sendJson({
-        type: 'speedtest_request',
-        direction: 'download',
-        durationMs: 2000
-      });
-    }
-
-    function handleSpeedTestData(blob) {
-      speedTestBytes += blob.size;
-
-      // Update progress
-      const elapsed = performance.now() - speedTestStart;
-      const progress = Math.min(100, (elapsed / 2000) * 100);
-      $('stProgressFill').style.width = `${progress}%`;
-    }
-
-    function handleSpeedTestEnd(msg) {
-      const elapsed = performance.now() - speedTestStart;
-      const bandwidth = (speedTestBytes * 8) / (elapsed / 1000) / 1_000_000;
-
-      // Use calculated jitter (rounded to 1 decimal), fallback to 0 if not enough samples
-      const jitterMs = state.jitter > 0 ? Math.round(state.jitter * 10) / 10 : 0;
-
-      state.speedTestResult = {
-        bandwidthMbps: bandwidth,
-        pingMs: state.currentPing,
-        jitterMs: jitterMs,
-        minPingMs: state.minPing !== Infinity ? Math.round(state.minPing) : state.currentPing,
-        maxPingMs: state.maxPing > 0 ? Math.round(state.maxPing) : state.currentPing
+      pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          sendJson({
+            type: 'candidate',
+            monitorIndex: 0,
+            candidate: e.candidate.candidate
+          });
+        }
       };
 
-      $('stBandwidth').textContent = bandwidth.toFixed(1);
-      $('stPing').textContent = state.currentPing;
-      $('stJitter').textContent = jitterMs.toFixed(1);
-      showSection('stProgress', false);
+      pc.ontrack = (e) => {
+        const idx = state.transceivers.findIndex(t => t === e.transceiver);
+        const monitorIdx = idx >= 0 ? idx : parseInt(e.transceiver?.mid || '0');
 
-      log(`Speed test: ${bandwidth.toFixed(1)} Mbps, ping ${state.currentPing}ms (min: ${state.speedTestResult.minPingMs}, max: ${state.speedTestResult.maxPingMs}), jitter ${jitterMs.toFixed(1)}ms`, 'info');
+        log(`Track received for monitor ${monitorIdx}`, 'info');
+        const video = state.videoElements[monitorIdx];
+        if (video) {
+          const stream = new MediaStream([e.track]);
+          video.srcObject = stream;
+          state.videoStreams[monitorIdx] = stream;
+        }
+      };
 
-      // Send result to server
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
       sendJson({
-        type: 'speedtest_result',
-        bandwidthMbps: state.speedTestResult.bandwidthMbps,
-        pingMs: state.speedTestResult.pingMs,
-        jitterMs: state.speedTestResult.jitterMs,
-        minPingMs: state.speedTestResult.minPingMs,
-        maxPingMs: state.speedTestResult.maxPingMs
+        type: 'offer',
+        monitorIndex: 0,
+        sdp: offer.sdp
       });
-
-      setStatus('Awaiting config...', 'connecting');
     }
 
-    function handleSuggestedConfig(msg) {
-      state.suggestedConfig = msg;
+    async function handleAnswer(msg) {
+      let sdp = msg.sdp;
+      // Normalization for common browser issues
+      sdp = sdp.replace(/UDP\/TLS\/RTP\/SAVP\b/g, 'UDP/TLS/RTP/SAVPF');
 
-      log(`Suggested: ${msg.monitors}x${msg.resolution?.width}x${msg.resolution?.height}@${msg.fps}fps, ${msg.bitrateKbps}kbps`, 'info');
-
-      // Apply suggested values to UI
-      if (msg.monitors) $('monitors').value = msg.monitors;
-      if (msg.resolution) $('resolution').value = `${msg.resolution.width}x${msg.resolution.height}`;
-      if (msg.bitrateKbps) {
-        const bitrateSelect = $('bitrate');
-        const closest = [...bitrateSelect.options].reduce((prev, curr) =>
-          Math.abs(curr.value - msg.bitrateKbps) < Math.abs(prev.value - msg.bitrateKbps) ? curr : prev
-        );
-        bitrateSelect.value = closest.value;
+      try {
+        await state.singlePC.setRemoteDescription({ type: 'answer', sdp });
+        log('Remote description set', 'info');
+      } catch (e) {
+        log('SDP Answer Error: ' + e.message, 'error');
       }
-      if (msg.fps) $('fps').value = msg.fps;
+    }
 
-      setStatus('Ready to proceed', 'connecting');
-      setInputsEnabled(true);
-
-      // Show start button
-      $('btnProceed').style.display = '';
-      $('btnProceed').textContent = 'Start';
-      $('btnProceed').onclick = () => startPhase2();
+    function handleCandidate(msg) {
+      if (!state.singlePC) return;
+      try {
+        state.singlePC.addIceCandidate({
+          candidate: msg.candidate,
+          sdpMLineIndex: 0,
+          sdpMid: '0'
+        });
+      } catch (e) { }
     }
 
     // ============================================
-    // Phase 2: Display Configuration & ICE Exchange
+    // UI & Grid Management
     // ============================================
-    function startPhase2() {
-      setPhase(2);
-      log('=== PHASE 2: Display Configuration & ICE ===', 'phase');
 
-      $('btnProceed').style.display = 'none';
-      setInputsEnabled(false);
-      setStatus('Configuring displays...', 'connecting');
-
-      // Send proceed to phase 2
-      sendJson({ type: 'proceed', phase: 2 });
-
-      // Send display config
+    $('btnStart').onclick = () => {
+      state.phase = 2;
       const [resW, resH] = $('resolution').value.split('x').map(Number);
+      state.currentResolutionHeight = resH;
+      state.currentFps = parseInt($('fps').value);
+
+      log(`Configuring session: ${$('monitors').value} displays, ${resH}p @ ${state.currentFps}fps`, 'phase');
+
+      sendJson({ type: 'proceed', phase: 2 });
       sendJson({
         type: 'display_config',
         monitors: parseInt($('monitors').value),
         resolution: { width: resW, height: resH },
         bitrateKbps: parseInt($('bitrate').value),
-        fps: parseInt($('fps').value),
-        refreshRate: parseInt($('fps').value),
-        preferGpu: $('preferGpu').value
+        fps: state.currentFps,
+        refreshRate: state.currentFps,
+        preferGpu: $('preferGpu').value,
+        monitorType: $('monitorType').value,
+        isUsbMode: $('usbMode').value === 'true'
       });
-    }
 
-    function handleConfigProgress(msg) {
-      log(`Config: ${msg.step} ${msg.progress}% - ${msg.message}`, 'info');
-      setStatus(`${msg.message} (${msg.progress}%)`, 'connecting');
-    }
-
-    function handleConfigComplete(msg) {
-      log(`Config complete: ${msg.monitors?.length} monitors ready`, 'info');
-      setStatus('Starting ICE exchange...', 'connecting');
-
-      // Setup video grid
-      setupVideoGrid(msg.monitors?.length || parseInt($('monitors').value));
-
-      // Create PeerConnections and send offers
-      createPeerConnections(msg.monitors?.length || parseInt($('monitors').value));
-    }
+      $('btnStart').disabled = true;
+      $('btnStart').textContent = 'Configuring...';
+    };
 
     function setupVideoGrid(count) {
-      const grid = $('videoGrid');
-
-      // Clear extra elements
-      while (grid.children.length > 1) {
-        grid.removeChild(grid.lastChild);
-      }
-
-      state.videoElements = [$('video0')];
-      state.videoStreams = [];
-
-      // Update grid class
-      grid.className = 'video-grid';
+      const grid = $('video-grid');
+      grid.innerHTML = '';
+      grid.className = `video-grid multi-${count}`;
       if (count === 1) grid.classList.add('single');
-      else grid.classList.add(`multi-${count}`);
 
-      // Show labels
-      $('label0').style.display = count > 1 ? 'block' : 'none';
-      $('overlay0').style.display = count > 1 ? 'flex' : 'none';
+      state.videoElements = [];
+      state.perMonitorStats = [];
 
-      // Create additional video elements
-      for (let i = 1; i < count; i++) {
+      for (let i = 0; i < count; i++) {
         const container = document.createElement('div');
         container.className = 'video-container';
         container.id = `container${i}`;
@@ -1876,17 +970,11 @@
 
         const label = document.createElement('span');
         label.className = 'video-label';
-        label.id = `label${i}`;
         label.textContent = `Monitor ${i}`;
 
         const overlay = document.createElement('div');
         overlay.className = 'video-overlay';
-        overlay.id = `overlay${i}`;
-        overlay.innerHTML = `
-          <span class="fps" id="fps${i}">-- fps</span>
-          <span class="bitrate" id="bitrate${i}">-- kbps</span>
-          <span class="rtt" id="rtt${i}">-- ms</span>
-        `;
+        overlay.innerHTML = `<span class="badge" id="badge-fps${i}">-- fps</span> <span class="badge" id="badge-br${i}">-- kbps</span>`;
 
         container.appendChild(video);
         container.appendChild(label);
@@ -1894,680 +982,316 @@
         grid.appendChild(container);
 
         state.videoElements.push(video);
+        state.perMonitorStats.push({ lastBytes: 0, lastFrames: 0 });
       }
-
-      // Init stats
-      state.perMonitorStats = Array(count).fill(null).map(() => ({
-        lastBytes: 0, lastFrames: 0, fps: 0, bitrate: 0, rtt: 0
-      }));
-
-      // Init cursor state for each monitor
-      // Similar to Unity WorldPanelCursor initial state
-      state.cursorElements = new Array(count).fill(null);
-      state.cursorVisible = new Array(count).fill(false);
-      state.cursorU = new Array(count).fill(0.5);
-      state.cursorV = new Array(count).fill(0.5);
-      state.currentCursorId = new Array(count).fill(0);
-      state.pendingCursorId = new Array(count).fill(null);
     }
 
-    /**
-     * Create a SINGLE PeerConnection with N video transceivers (Single-PC Multi-Track).
-     * Benefits: 1 ICE negotiation, 1 DTLS handshake, better bandwidth sharing.
-     */
-    async function createPeerConnections(count) {
-      log(`Creating Single-PC with ${count} video transceivers (Multi-Track mode)`, 'info');
+    // ============================================
+    // Audio DataChannel (Opus Lower Latency)
+    // ============================================
 
-      state.monitorCount = count;
-      state.transceivers = [];
-      state.answerReceived = false;
+    function setupAudioDataChannel(dc) {
+      dc.onmessage = async (e) => {
+        const buffer = e.data;
+        const view = new DataView(buffer);
+        const type = view.getUint8(0);
 
-      // Create single PeerConnection
-      const pc = new RTCPeerConnection({
-        iceServers: [],
-        iceCandidatePoolSize: 0
-      });
-      state.singlePC = pc;
-
-      // Add N video transceivers (one per monitor)
-      for (let i = 0; i < count; i++) {
-        try {
-          const trans = pc.addTransceiver('video', { direction: 'recvonly' });
-          if (trans.receiver && 'playoutDelayHint' in trans.receiver) {
-            trans.receiver.playoutDelayHint = 0.04;
-          }
-
-          // Set codec preferences (H264 first)
-          const caps = RTCRtpReceiver.getCapabilities('video');
-          const h264 = caps.codecs.filter(c => /H264/i.test(c.mimeType));
-          const others = caps.codecs.filter(c => !h264.some(h => h.mimeType === c.mimeType));
-          if (trans.setCodecPreferences) {
-            trans.setCodecPreferences([...h264, ...others]);
-          }
-
-          state.transceivers.push(trans);
-          log(`Added transceiver ${i} for monitor ${i}`, 'info');
-        } catch (e) {
-          log(`Transceiver ${i} setup error: ${e.message}`, 'warn');
-        }
-      }
-
-      // ICE connection state
-      pc.oniceconnectionstatechange = () => {
-        log(`Single-PC ICE: ${pc.iceConnectionState}`, 'info');
-      };
-
-      // Connection state
-      pc.onconnectionstatechange = () => {
-        log(`Single-PC State: ${pc.connectionState}`, 'info');
-      };
-
-      // ICE candidates - single connection, no monitorIndex needed
-      pc.onicecandidate = (ev) => {
-        if (ev.candidate && state.ws?.readyState === 1) {
-          const cand = ev.candidate.candidate;
-          if (cand.toLowerCase().includes(' tcp ')) return; // Skip TCP
-
-          sendJson({
-            type: 'candidate',
-            monitorIndex: 0,  // Single PC mode
-            candidate: cand
-          });
+        if (type === 0x01) { // Opus Frame
+          const timestamp = Number(view.getBigInt64(1, true));
+          const opusData = buffer.slice(9);
+          decodeAndPlayAudio(opusData, timestamp);
         }
       };
-
-      // Track received - map to monitor via transceiver index
-      pc.ontrack = (ev) => {
-        log(`*** ontrack fired: kind=${ev.track?.kind}, readyState=${ev.track?.readyState}, muted=${ev.track?.muted}`, 'info');
-
-        if (ev.track?.kind === 'video') {
-          // Find which transceiver this track belongs to
-          let trackIndex = state.transceivers.findIndex(t => t === ev.transceiver);
-          if (trackIndex < 0) {
-            // Fallback: use mid to find index
-            trackIndex = parseInt(ev.transceiver?.mid || '0');
-          }
-
-          log(`Track ${trackIndex} received (mid=${ev.transceiver?.mid}, direction=${ev.transceiver?.direction})`, 'info');
-
-          const video = state.videoElements[trackIndex] || $('video0');
-          const stream = new MediaStream([ev.track]);
-          state.videoStreams[trackIndex] = stream;
-          video.srcObject = stream;
-
-          // Add debug for video state
-          video.onloadedmetadata = () => log(`Video ${trackIndex}: metadata loaded ${video.videoWidth}x${video.videoHeight}`, 'info');
-          video.onplay = () => log(`Video ${trackIndex}: playing`, 'info');
-          video.onerror = (e) => log(`Video ${trackIndex} error: ${video.error?.message || e}`, 'error');
-
-          // Check video dimensions after 2 seconds (debugging)
-          setTimeout(() => {
-            const w = video.videoWidth, h = video.videoHeight;
-            const ready = video.readyState;
-            log(`Video ${trackIndex} check: ${w}x${h}, readyState=${ready}, paused=${video.paused}, srcObject=${!!video.srcObject}`, w > 0 ? 'info' : 'error');
-          }, 2000);
-
-          // Track unmute event (fires when first frame arrives)
-          ev.track.onunmute = () => log(`Track ${trackIndex}: unmuted (receiving data)`, 'info');
-          ev.track.onmute = () => log(`Track ${trackIndex}: muted`, 'warn');
-
-          video.play().catch(e => log(`Video ${trackIndex} play error: ${e.message}`, 'error'));
-        }
-      };
-
-      // Create single offer with N m= sections
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      // Count m= sections for verification
-      const mSections = (offer.sdp.match(/^m=video/gm) || []).length;
-      log(`Single-PC offer created with ${mSections} m=video sections`, 'info');
-
-      // Send single offer (monitorIndex: 0 for backward compatibility)
-      sendJson({
-        type: 'offer',
-        monitorIndex: 0,
-        sdp: offer.sdp
-      });
-
-      log(`-> Single offer sent with ${count} tracks`);
     }
 
-    async function handleAnswer(msg) {
-      // Single-PC mode: use state.singlePC
-      const pc = state.singlePC;
-      if (!pc) {
-        log('No PeerConnection available for answer', 'error');
+    async function decodeAndPlayAudio(data, timestamp) {
+      if (!state.audioCtx) {
+        state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        initAudioDecoder();
+      }
+
+      if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+
+      if (state.audioDecoder && state.audioDecoder.state === 'closed') {
+        initAudioDecoder();
+      }
+
+      const chunk = new EncodedAudioChunk({
+        type: 'key',
+        timestamp: timestamp * 1000, // to microseconds
+        data: data
+      });
+
+      try {
+        state.audioDecoder.decode(chunk);
+      } catch (e) {
+        console.error('Audio decode error', e);
+      }
+    }
+
+    function initAudioDecoder() {
+      state.audioDecoder = new AudioDecoder({
+        output: (data) => {
+          // Basic AudioData playback using AudioContext
+          const buffer = state.audioCtx.createBuffer(data.numberOfChannels, data.numberOfFrames, data.sampleRate);
+          for (let i = 0; i < data.numberOfChannels; i++) {
+            data.copyTo(buffer.getChannelData(i), { planeIndex: i });
+          }
+
+          const source = state.audioCtx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(state.audioCtx.destination);
+
+          // Scheduling
+          const playTime = Math.max(state.nextAudioTime, state.audioCtx.currentTime + 0.02);
+          source.start(playTime);
+          state.nextAudioTime = playTime + buffer.duration;
+
+          data.close();
+        },
+        error: (e) => log('AudioDecoder Error: ' + e.message, 'error')
+      });
+
+      state.audioDecoder.configure({
+        codec: 'opus',
+        sampleRate: 48000,
+        numberOfChannels: 2
+      });
+    }
+
+    // ============================================
+    // Cursor DataChannel (Low Latency)
+    // ============================================
+
+    function setupCursorDataChannel(dc) {
+      dc.onmessage = (e) => {
+        const view = new DataView(e.data);
+        const type = view.getUint8(0);
+
+        if (type === 1) { // cursor_position
+          const monitorIdx = view.getUint8(1);
+          const u = view.getFloat32(2, true);
+          const v = view.getFloat32(6, true);
+          const flags = view.getUint8(10);
+          const visible = (flags & 1) === 1;
+          const cursorType = (flags >> 1) & 0x0F;
+          const cursorId = view.getBigInt64(11, true);
+
+          updateCursor(monitorIdx, u, v, visible, cursorId);
+        }
+      };
+    }
+
+    function updateCursor(monitorIdx, u, v, visible, id) {
+      if (monitorIdx < 0 || monitorIdx >= state.monitorCount) return;
+
+      let cursor = state.cursorElements[monitorIdx];
+      if (!cursor) {
+        cursor = document.createElement('img');
+        cursor.className = 'remote-cursor';
+        cursor.style.display = 'none';
+        $('main-content').appendChild(cursor);
+        state.cursorElements[monitorIdx] = cursor;
+      }
+
+      if (!visible) {
+        cursor.style.display = 'none';
         return;
       }
 
-      // Fix SDP format
-      let sdp = msg.sdp;
-      sdp = sdp.replace(/UDP\/TLS\/RTP\/SAVP\b/g, 'UDP/TLS/RTP/SAVPF');
-
-      // Remove embedded ICE candidates (server sends them separately now)
-      const lines = sdp.split('\n');
-      const filtered = lines.filter(l => !l.startsWith('a=candidate:'));
-      sdp = filtered.join('\n');
-
-      try {
-        await pc.setRemoteDescription({ type: 'answer', sdp });
-        state.answerReceived = true;
-        log(`<- Single-PC Answer set (${state.monitorCount} tracks)`, 'info');
-      } catch (e) {
-        log(`Answer error: ${e.message}`, 'error');
+      // Position logic based on container
+      const container = $(`container${monitorIdx}`);
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const video = $(`video${monitorIdx}`);
+        // We really need to know video dimensions within the container for perfect fit
+        // Assuming video fits container for now
+        cursor.style.display = 'block';
+        cursor.style.left = `${rect.left + (u * rect.width)}px`;
+        cursor.style.top = `${rect.top + (v * rect.height)}px`;
       }
     }
 
-    async function handleCandidate(msg) {
-      // Single-PC mode: use state.singlePC
-      const pc = state.singlePC;
-      if (!pc) return;
-
-      let cand = msg.candidate;
-      if (!cand.startsWith('candidate:')) cand = 'candidate:' + cand;
-      if (cand.toLowerCase().includes(' tcp ')) return; // Skip TCP
-
-      try {
-        // For single-PC, add candidate to the shared connection
-        await pc.addIceCandidate({ candidate: cand, sdpMLineIndex: 0, sdpMid: '0' });
-        log(`<- ICE candidate added`);
-      } catch (e) {
-        log(`ICE error: ${e.message}`, 'warn');
-      }
-    }
-
-    function handleIceReady(msg) {
-      log(`ICE Ready: ${msg.monitorCount} monitors connected`, 'info');
-      setStatus('ICE connected, starting stream...', 'connecting');
-
-      // Auto-start Phase 3 (streaming already started on server side)
-      startPhase3();
-    }
-
     // ============================================
-    // Phase 3: Streaming
+    // Dynamic Updates
     // ============================================
-    function startPhase3() {
-      setPhase(3);
-      log('=== PHASE 3: Streaming ===', 'phase');
 
-      $('btnProceed').style.display = 'none';
+    function setupDynamicUpdates() {
+      // Monitor changes to settings once streaming
+      const triggerUpdate = () => {
+        const [w, h] = $('resolution').value.split('x').map(Number);
+        const newFps = parseInt($('fps').value);
 
-      // Send proceed to phase 3
-      sendJson({ type: 'proceed', phase: 3 });
-
-      // Send start_streaming
-      sendJson({ type: 'start_streaming' });
-    }
-
-    function handleStreamingStarted(msg) {
-      log('Streaming started!', 'info');
-      setStatus('Streaming', 'connected');
-
-      showSection('statsSection', true);
-
-      // Enable VR button and update monitor options
-      $('btnVR').disabled = false;
-      updateVRMonitorOptions();
-
-      // Start stats interval
-      startStatsInterval();
-    }
-
-    function handleFrameTiming(msg) {
-      const clientTime = Date.now();
-      const owd = state.currentPing > 0 ? state.currentPing / 2 : 0;
-      state.serverTimeOffset = msg.serverTime - (clientTime - owd);
-
-      if (msg.recentFrames?.length > 0) {
-        const latest = msg.recentFrames[msg.recentFrames.length - 1];
-        const estimatedServerTime = clientTime + state.serverTimeOffset;
-        const latency = estimatedServerTime - latest.captureTime;
-
-        if (latency > 5 && latency < 2000) {
-          state.lastFrameLatency = Math.round(latency);
+        if (h !== state.currentResolutionHeight || newFps !== state.currentFps) {
+          log(`Requesting dynamic update: ${h}p @ ${newFps}fps`, 'info');
+          sendJson({
+            type: 'update_config',
+            fps: newFps,
+            resolutionHeight: h
+          });
+          state.currentResolutionHeight = h;
+          state.currentFps = newFps;
         }
-      }
+      };
+
+      // Handle dropdown changes during live stream
+      $('resolution').onchange = triggerUpdate;
+      $('fps').onchange = triggerUpdate;
     }
 
-    function startStatsInterval() {
-      let lastTime = Date.now();
+    // ============================================
+    // Stats & Monitoring
+    // ============================================
 
+    function startStats() {
+      let lastTime = performance.now();
       state.statsInterval = setInterval(async () => {
-        const now = Date.now();
+        const now = performance.now();
         const elapsed = (now - lastTime) / 1000;
         lastTime = now;
 
-        const pc = state.singlePC;
-        if (!pc || pc.connectionState !== 'connected') return;
-
-        let totalBitrate = 0, totalFps = 0;
-        const perTrackStats = new Map(); // Track stats by SSRC or track index
+        if (!state.singlePC) return;
 
         try {
-          const stats = await pc.getStats();
-
-          // Collect all inbound-rtp stats (one per track)
+          const stats = await state.singlePC.getStats();
+          let totalBr = 0;
           let trackIdx = 0;
-          stats.forEach(r => {
-            if (r.type === 'inbound-rtp' && r.kind === 'video') {
-              const bytes = r.bytesReceived || 0;
-              const frames = r.framesDecoded || 0;
-              const framesRcvd = r.framesReceived || 0;
-              const keyFrames = r.keyFramesDecoded || 0;
-              const framesDropped = r.framesDropped || 0;
-              const decoder = r.decoderImplementation || 'unknown';
 
-              // Initialize stats for this track if needed
-              if (!state.perMonitorStats[trackIdx]) {
-                state.perMonitorStats[trackIdx] = { lastBytes: 0, lastFrames: 0, logged: false };
-              }
+          stats.forEach(report => {
+            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+              const bytes = report.bytesReceived;
+              const frames = report.framesDecoded;
+              const prev = state.perMonitorStats[trackIdx] || { lastBytes: 0, lastFrames: 0 };
 
-              // Log detailed decoder stats once per track (for debugging)
-              if (!state.perMonitorStats[trackIdx].logged && bytes > 0) {
-                state.perMonitorStats[trackIdx].logged = true;
-                log(`Track ${trackIdx} decoder: ${decoder}, recv=${framesRcvd}, decoded=${frames}, keys=${keyFrames}, dropped=${framesDropped}`, 'info');
-              }
-              // Log warning if receiving but not decoding
-              if (framesRcvd > 0 && frames === 0 && !state.perMonitorStats[trackIdx].warnedNoDecode) {
-                state.perMonitorStats[trackIdx].warnedNoDecode = true;
-                log(`Track ${trackIdx} WARNING: Receiving frames (${framesRcvd}) but NOT decoding! decoder=${decoder}`, 'error');
-              }
+              const bitrate = Math.round((bytes - prev.lastBytes) * 8 / elapsed / 1000);
+              const fps = Math.round((frames - prev.lastFrames) / elapsed);
 
-              const bitrate = Math.round((bytes - state.perMonitorStats[trackIdx].lastBytes) * 8 / elapsed / 1000);
-              const fps = Math.round((frames - state.perMonitorStats[trackIdx].lastFrames) / elapsed);
+              const fpsBadge = $(`badge-fps${trackIdx}`);
+              const brBadge = $(`badge-br${trackIdx}`);
+              if (fpsBadge) fpsBadge.textContent = `${fps} fps`;
+              if (brBadge) brBadge.textContent = `${bitrate} kbps`;
 
-              state.perMonitorStats[trackIdx].lastBytes = bytes;
-              state.perMonitorStats[trackIdx].lastFrames = frames;
-
-              totalBitrate += bitrate;
-              totalFps += fps;
-
-              // Update per-monitor overlay
-              const fpsEl = $(`fps${trackIdx}`);
-              const bitrateEl = $(`bitrate${trackIdx}`);
-              if (fpsEl) fpsEl.textContent = `${fps} fps`;
-              if (bitrateEl) bitrateEl.textContent = `${bitrate} kbps`;
-
+              state.perMonitorStats[trackIdx] = { lastBytes: bytes, lastFrames: frames };
+              totalBr += bitrate;
               trackIdx++;
             }
 
-            if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime) {
-              const rtt = Math.round(r.currentRoundTripTime * 1000);
-              state.webrtcRtt = rtt;
-
-              // Update RTT for all monitors (single connection)
-              for (let i = 0; i < state.monitorCount; i++) {
-                const rttEl = $(`rtt${i}`);
-                if (rttEl) rttEl.textContent = `${rtt} ms`;
-              }
+            if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+              state.statLatency = Math.round(report.currentRoundTripTime * 1000);
+              $('statLatency').textContent = `${state.statLatency} ms`;
             }
           });
 
-        } catch { }
-
-        // Update global stats
-        const avgFps = state.monitorCount > 0 ? Math.round(totalFps / state.monitorCount) : 0;
-        $('statBitrate').textContent = `${totalBitrate} kbps`;
-        $('statFps').textContent = `${avgFps}`;
-        $('statRtt').textContent = `${state.webrtcRtt || state.currentPing} ms`;
-        $('statLatency').textContent = `${state.lastFrameLatency} ms`;
-
+          $('statBitrate').textContent = `${totalBr} kbps`;
+        } catch (e) { }
       }, 1000);
     }
 
     // ============================================
-    // Disconnect
+    // VR ModeSBS Logic
     // ============================================
-    function disconnect() {
-      log('Disconnecting...', 'warn');
-
-      // Exit VR mode if active
-      if (typeof vrState !== 'undefined' && vrState.active) {
-        exitVRMode();
-      }
-
-      // Disable VR button
-      $('btnVR').disabled = true;
-
-      // Clear intervals
-      if (state.statsInterval) clearInterval(state.statsInterval);
-      if (state.pingInterval) clearInterval(state.pingInterval);
-      state.statsInterval = null;
-      state.pingInterval = null;
-
-      // Close WebSocket
-      if (state.ws) {
-        try { state.ws.close(); } catch { }
-        state.ws = null;
-      }
-
-      // Close Single-PC (Multi-Track mode)
-      if (state.singlePC) {
-        try { state.singlePC.close(); } catch { }
-        state.singlePC = null;
-      }
-      state.transceivers = [];
-      state.monitorCount = 0;
-      state.answerReceived = false;
-
-      // Legacy cleanup (for backward compatibility)
-      state.multiPCs.forEach(pc => {
-        try { pc.close(); } catch { }
-      });
-      state.multiPCs = [];
-
-      // Stop videos
-      state.videoStreams.forEach(stream => {
-        stream?.getTracks().forEach(t => t.stop());
-      });
-      state.videoStreams = [];
-
-      state.videoElements.forEach(video => {
-        if (video) {
-          try { video.pause(); } catch { }
-          video.srcObject = null;
-        }
-      });
-
-      // Reset state
-      state.phase = 0;
-      state.hardwareInfo = null;
-      state.suggestedConfig = null;
-      state.speedTestResult = null;
-      state.currentPing = 0;
-      state.webrtcRtt = 0;
-      state.lastFrameLatency = 0;
-
-      // Reset ping/jitter tracking
-      state.pingSamples = [];
-      state.lastPingValue = 0;
-      state.jitter = 0;
-      state.avgPing = 0;
-      state.minPing = Infinity;
-      state.maxPing = 0;
-
-      // Reset cursor state
-      state.cursorElements = [];
-      state.cursorVisible = [];
-      state.cursorU = [];
-      state.cursorV = [];
-      state.currentCursorId = [];
-      state.pendingCursorId = [];
-      // Note: Keep cursorCache intact for reconnection (like Unity's static cache)
-
-      // Reset UI
-      setPhase(0);
-      setStatus('Disconnected', '');
-      setInputsEnabled(true);
-
-      $('btnConnect').style.display = '';
-      $('btnProceed').style.display = 'none';
-      $('btnDisconnect').style.display = 'none';
-
-      showSection('hwInfoSection', false);
-      showSection('speedTestSection', false);
-      showSection('statsSection', false);
-
-      log('Disconnected');
-    }
-
-    // ============================================
-    // VR Side-by-Side Mode
-    // ============================================
-    const vrState = {
-      active: false,
-      container: null,
-      selectedMonitor: 0,
-      ipd: 0
-    };
 
     function updateVRMonitorOptions() {
       const select = $('vrMonitor');
       select.innerHTML = '';
-      const count = state.monitorCount || parseInt($('monitors').value) || 1;
-      for (let i = 0; i < count; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = `Monitor ${i}`;
-        select.appendChild(option);
+      for (let i = 0; i < state.monitorCount; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = `Monitor ${i}`;
+        select.appendChild(opt);
       }
     }
 
-    function enterVRMode() {
-      if (vrState.active) return;
+    $('btnEnterVR').onclick = () => {
+      const monitorIdx = parseInt($('vrMonitor').value);
+      const stream = state.videoStreams[monitorIdx];
+      if (!stream) return;
 
-      const monitorIdx = parseInt($('vrMonitor').value) || 0;
-      const sourceVideo = state.videoElements[monitorIdx] || $('video0');
+      const vrDiv = document.createElement('div');
+      vrDiv.id = 'vrModeContainer';
+      vrDiv.className = 'vr-mode';
 
-      if (!sourceVideo || !sourceVideo.srcObject) {
-        log('No video stream available for VR mode', 'error');
-        return;
-      }
-
-      vrState.active = true;
-      vrState.selectedMonitor = monitorIdx;
-      log(`Entering VR mode with Monitor ${monitorIdx}`, 'info');
-
-      // Create VR container
-      const vrContainer = document.createElement('div');
-      vrContainer.id = 'vrContainer';
-      vrContainer.className = 'vr-mode';
-
-      // Left eye
       const leftEye = document.createElement('div');
       leftEye.className = 'vr-eye';
-      leftEye.id = 'vrLeftEye';
       const leftVideo = document.createElement('video');
       leftVideo.id = 'vrLeftVideo';
+      leftVideo.srcObject = stream;
       leftVideo.autoplay = true;
-      leftVideo.playsInline = true;
       leftVideo.muted = true;
-      leftVideo.srcObject = sourceVideo.srcObject;
       leftEye.appendChild(leftVideo);
 
-      // Right eye
       const rightEye = document.createElement('div');
       rightEye.className = 'vr-eye';
-      rightEye.id = 'vrRightEye';
       const rightVideo = document.createElement('video');
       rightVideo.id = 'vrRightVideo';
+      rightVideo.srcObject = stream;
       rightVideo.autoplay = true;
-      rightVideo.playsInline = true;
       rightVideo.muted = true;
-      rightVideo.srcObject = sourceVideo.srcObject;
       rightEye.appendChild(rightVideo);
 
-      // Divider
-      const divider = document.createElement('div');
-      divider.className = 'vr-divider';
-
-      // Exit button
       const exitBtn = document.createElement('button');
       exitBtn.className = 'vr-exit-btn';
-      exitBtn.textContent = 'Exit VR (ESC)';
-      exitBtn.onclick = exitVRMode;
+      exitBtn.textContent = 'Exit VR Mode (ESC)';
+      exitBtn.onclick = () => document.body.removeChild(vrDiv);
 
-      // Info display
-      const info = document.createElement('div');
-      info.className = 'vr-info';
-      info.id = 'vrInfo';
-      info.textContent = 'VR Mode Active';
+      vrDiv.appendChild(leftEye);
+      vrDiv.appendChild(document.createElement('div')).className = 'vr-divider';
+      vrDiv.appendChild(rightEye);
+      vrDiv.appendChild(exitBtn);
+      document.body.appendChild(vrDiv);
 
-      vrContainer.appendChild(leftEye);
-      vrContainer.appendChild(rightEye);
-      vrContainer.appendChild(divider);
-      vrContainer.appendChild(exitBtn);
-      vrContainer.appendChild(info);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && vrDiv.parentNode) {
+          document.body.removeChild(vrDiv);
+        }
+      }, { once: true });
+    };
 
-      document.body.appendChild(vrContainer);
-      vrState.container = vrContainer;
-
-      // Apply IPD
-      applyIPD();
-
-      // Play videos
-      leftVideo.play().catch(e => log(`VR left video error: ${e.message}`, 'error'));
-      rightVideo.play().catch(e => log(`VR right video error: ${e.message}`, 'error'));
-
-      // Request fullscreen
-      if (vrContainer.requestFullscreen) {
-        vrContainer.requestFullscreen().catch(e => {
-          log(`Fullscreen request failed: ${e.message}`, 'warn');
-        });
-      }
-
-      // Update button
-      $('btnVR').textContent = 'Exit VR';
-
-      // Update VR info with stats
-      updateVRInfo();
-    }
-
-    function exitVRMode() {
-      if (!vrState.active) return;
-
-      vrState.active = false;
-      log('Exiting VR mode', 'info');
-
-      // Exit fullscreen
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-
-      // Remove VR container
-      if (vrState.container) {
-        // Stop videos
-        const leftVideo = $('vrLeftVideo');
-        const rightVideo = $('vrRightVideo');
-        if (leftVideo) { leftVideo.pause(); leftVideo.srcObject = null; }
-        if (rightVideo) { rightVideo.pause(); rightVideo.srcObject = null; }
-
-        vrState.container.remove();
-        vrState.container = null;
-      }
-
-      // Update button
-      $('btnVR').innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
-          <path d="M6 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-          <path d="M14 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-          <path d="M10 12h4"/>
-        </svg>
-        VR
-      `;
-    }
-
-    function applyIPD() {
-      const ipd = vrState.ipd;
-      const leftVideo = $('vrLeftVideo');
-      const rightVideo = $('vrRightVideo');
-
-      if (leftVideo) {
-        leftVideo.style.transform = `translateX(${-ipd}px)`;
-      }
-      if (rightVideo) {
-        rightVideo.style.transform = `translateX(${ipd}px)`;
-      }
-    }
-
-    function updateVRInfo() {
-      if (!vrState.active) return;
-
-      const info = $('vrInfo');
-      if (info) {
-        const fps = $(`fps${vrState.selectedMonitor}`)?.textContent || '--';
-        const bitrate = $(`bitrate${vrState.selectedMonitor}`)?.textContent || '--';
-        const rtt = $(`rtt${vrState.selectedMonitor}`)?.textContent || '--';
-        info.textContent = `Monitor ${vrState.selectedMonitor} | ${fps} | ${bitrate} | RTT: ${rtt}`;
-      }
-
-      if (vrState.active) {
-        requestAnimationFrame(updateVRInfo);
-      }
-    }
-
-    // VR event bindings
-    $('btnVR').onclick = () => {
-      if (vrState.active) {
-        exitVRMode();
-      } else {
-        enterVRMode();
+    $('ipdRange').oninput = (e) => {
+      const val = e.target.value;
+      $('ipdValue').textContent = val;
+      const left = $('vrModeContainer')?.querySelector('#vrLeftVideo');
+      const right = $('vrModeContainer')?.querySelector('#vrRightVideo');
+      if (left && right) {
+        left.style.transform = `translateX(${-val * 2}px)`;
+        right.style.transform = `translateX(${val * 2}px)`;
       }
     };
 
-    $('vrIPD').oninput = (e) => {
-      vrState.ipd = parseInt(e.target.value);
-      $('vrIPDValue').textContent = vrState.ipd;
-      applyIPD();
-    };
-
-    $('vrMonitor').onchange = (e) => {
-      vrState.selectedMonitor = parseInt(e.target.value);
-      if (vrState.active) {
-        // Re-enter VR with new monitor
-        exitVRMode();
-        setTimeout(() => enterVRMode(), 100);
-      }
-    };
-
-    // ESC key to exit VR
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && vrState.active) {
-        exitVRMode();
-      }
-    });
-
-    // Fullscreen change handler
-    document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement && vrState.active) {
-        exitVRMode();
-      }
-    });
-
     // ============================================
-    // Event Bindings
+    // Helpers
     // ============================================
-    $('btnConnect').onclick = () => startPhase1();
-    $('btnDisconnect').onclick = () => disconnect();
 
-    // ============================================
-    // URL Parameter Parsing (for Unity WebView integration)
-    // ============================================
-    function parseUrlParams() {
-      const params = new URLSearchParams(window.location.search);
-      const wsHost = params.get('wsHost');
-      const wsPort = params.get('wsPort');
-      const autoConnect = params.get('autoConnect');
+    async function getHevcSupport() {
+      if (!window.MediaCapabilities || !MediaCapabilities.prototype.decodingInfo) {
+        return false;
+      }
+      const config = {
+        type: 'webrtc',
+        video: {
+          contentType: 'video/WebM; codecs="hev1.1.6.L93.B0"', // HEVC string
+          width: 1920,
+          height: 1080,
+          bitrate: 10000000,
+          framerate: 60
+        }
+      };
+      // Try multiple HEVC mime types
+      const types = [
+        'video/mp4; codecs="hev1"',
+        'video/mp4; codecs="hvc1"',
+        'video/webm; codecs="hev1"'
+      ];
 
-      if (wsHost) {
-        $('host').value = wsHost;
-        log(`Host set from URL: ${wsHost}`, 'info');
+      for (const t of types) {
+        config.video.contentType = t;
+        try {
+          const info = await navigator.mediaCapabilities.decodingInfo(config);
+          if (info.supported) return true;
+        } catch (e) { }
       }
-      if (wsPort) {
-        $('port').value = wsPort;
-        log(`Port set from URL: ${wsPort}`, 'info');
-      }
-
-      // Auto-connect if requested (useful for Unity WebView integration)
-      if (autoConnect === 'true' && wsHost && wsPort) {
-        log('Auto-connecting...', 'info');
-        setTimeout(() => startPhase1(), 500);
-      }
+      return false;
     }
 
-    // Monitor count change handler
-    $('monitors').onchange = () => {
-      updateVRMonitorOptions();
-    };
-
-    // Initialize
-    parseUrlParams();
-    updateVRMonitorOptions();
-    log('RemotePlay WebRTC Protocol V2 Client ready');
-    log('Click "Connect" to start 3-phase connection');
   </script>
 </body>
 

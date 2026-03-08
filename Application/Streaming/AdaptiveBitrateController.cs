@@ -56,6 +56,15 @@ namespace RemotePlayServer.Application.Streaming
         private const int RECOVERY_DELAY_MS = 10000; // 10 seconds without issues before recovery
         private const int RECOVERY_COOLDOWN_MS = 5000; // 5 seconds between recovery steps
 
+        // DC congestion ceiling: prevents sawtooth oscillation (8000→6400→8000→6400...)
+        // When DC soft congestion fires at bitrate X, we cap recovery at X * 90%.
+        // The ceiling slowly relaxes (+3% every 120s) to probe for more bandwidth.
+        private int _dcCongestionCeilingKbps;          // 0 = no ceiling (unlimited)
+        private DateTime _lastDcCongestionTime = DateTime.MinValue;
+        private const int DC_CEILING_RELAX_INTERVAL_MS = 120000; // Relax ceiling every 120s (was 60s — slower probe = fewer congestion cycles)
+        private const float DC_CEILING_SAFETY_FACTOR = 0.90f;   // Cap at 90% of congestion trigger point
+        private const float DC_CEILING_RELAX_STEP = 0.03f;      // +3% per relaxation (was 5% — gentler probe to avoid overshooting sustainable bandwidth)
+
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease
         private const float PACKET_LOSS_DECREASE_THRESHOLD = 0.005f; // <0.5% loss allows increase
@@ -70,20 +79,26 @@ namespace RemotePlayServer.Application.Streaming
         public DateTime LastAdjustmentTime => _lastAdjustmentTime;
 
         /// <summary>
-        /// Initialize controller with starting bitrate.
+        /// Initialize controller with separate min, initial, and max bitrates.
+        /// Strategy: "Start High, Adjust Down" - initial is set to 80% of max by default.
         /// </summary>
-        /// <param name="initialBitrateKbps">Initial target bitrate in kbps.</param>
-        /// <param name="maxBitrateKbps">Maximum allowed bitrate (optional, defaults to 50Mbps).</param>
-        public void Initialize(int initialBitrateKbps, int? maxBitrateKbps = null)
+        /// <param name="minBitrateKbps">Minimum allowed bitrate (floor).</param>
+        /// <param name="maxBitrateKbps">Maximum allowed bitrate (ceiling).</param>
+        /// <param name="initialBitrateKbps">Starting bitrate (optional, defaults to 80% of max).</param>
+        public void Initialize(int minBitrateKbps, int maxBitrateKbps, int? initialBitrateKbps = null)
         {
-            InitialBitrateKbps = initialBitrateKbps;
-            TargetBitrateKbps = initialBitrateKbps;
+            MinBitrateKbps = minBitrateKbps;
+            MaxBitrateKbps = maxBitrateKbps;
 
-            if (maxBitrateKbps.HasValue)
-                MaxBitrateKbps = maxBitrateKbps.Value;
+            // "Start High, Adjust Down": default initial = 80% of max
+            int initial = initialBitrateKbps ?? (int)(maxBitrateKbps * 0.8);
+            initial = Math.Clamp(initial, minBitrateKbps, maxBitrateKbps);
+
+            InitialBitrateKbps = initial;
+            TargetBitrateKbps = initial;
 
             // Initialize EWMA with current values
-            _ewmaBandwidth = initialBitrateKbps;
+            _ewmaBandwidth = initial;
             _ewmaPacketLoss = 0;
             _ewmaRtt = 30;
 
@@ -91,7 +106,7 @@ namespace RemotePlayServer.Application.Streaming
             _streamStartTime = DateTime.UtcNow;
             _lastNetworkIssueTime = DateTime.UtcNow; // Avoid "stable for 2025 years" when no issue has occurred yet
 
-            Logger.Info($"[AdaptiveBitrate] Initialized: target={initialBitrateKbps}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
+            Logger.Info($"[AdaptiveBitrate] Initialized: target={initial}kbps, range=[{MinBitrateKbps}-{MaxBitrateKbps}]kbps, warmup={WARMUP_PERIOD_MS}ms");
         }
 
         /// <summary>
@@ -302,22 +317,54 @@ namespace RemotePlayServer.Application.Streaming
                 return Math.Max(MinBitrateKbps, current - decreaseStep);
             }
 
+            // === DC CONGESTION CEILING RELAXATION ===
+            // Slowly raise the ceiling over time if no new congestion events
+            if (_dcCongestionCeilingKbps > 0)
+            {
+                double timeSinceLastCongestion = (DateTime.UtcNow - _lastDcCongestionTime).TotalMilliseconds;
+                if (timeSinceLastCongestion > DC_CEILING_RELAX_INTERVAL_MS)
+                {
+                    int oldCeiling = _dcCongestionCeilingKbps;
+                    int relaxStep = Math.Max(500, (int)(_dcCongestionCeilingKbps * DC_CEILING_RELAX_STEP));
+                    _dcCongestionCeilingKbps = Math.Min(MaxBitrateKbps, _dcCongestionCeilingKbps + relaxStep);
+                    _lastDcCongestionTime = DateTime.UtcNow; // Reset timer for next relaxation
+                    if (_dcCongestionCeilingKbps >= MaxBitrateKbps)
+                    {
+                        _dcCongestionCeilingKbps = 0; // Ceiling removed
+                        Logger.Info($"[AdaptiveBitrate] DC ceiling removed (relaxed from {oldCeiling}kbps to max)");
+                    }
+                    else
+                    {
+                        Logger.Info($"[AdaptiveBitrate] DC ceiling relaxed: {oldCeiling} → {_dcCongestionCeilingKbps}kbps (+{DC_CEILING_RELAX_STEP:P0})");
+                    }
+                }
+            }
+
+            // Effective max = min(MaxBitrateKbps, dcCongestionCeiling)
+            int effectiveMax = _dcCongestionCeilingKbps > 0
+                ? Math.Min(MaxBitrateKbps, _dcCongestionCeilingKbps)
+                : MaxBitrateKbps;
+
             // === AUTO-RECOVERY: Restore bitrate after stable period ===
-            // If no network issues for RECOVERY_DELAY_MS and bitrate is below initial, recover gradually
+            // If no network issues for RECOVERY_DELAY_MS and bitrate is below effective max, recover gradually
             double timeSinceLastIssue = (DateTime.UtcNow - _lastNetworkIssueTime).TotalMilliseconds;
             double timeSinceLastAdjustment = (DateTime.UtcNow - _lastAdjustmentTime).TotalMilliseconds;
+            // DC congestion cooldown: after DC congestion, wait at least recoveryDelayMs before any recovery
+            double timeSinceDcCongestion = (DateTime.UtcNow - _lastDcCongestionTime).TotalMilliseconds;
 
             int recoveryDelayMs = IsWiFiMode ? WIFI_RECOVERY_DELAY_MS : RECOVERY_DELAY_MS;
             int recoveryCooldownMs = IsWiFiMode ? WIFI_RECOVERY_COOLDOWN_MS : RECOVERY_COOLDOWN_MS;
-            if (current < InitialBitrateKbps &&
+            if (current < effectiveMax &&
                 timeSinceLastIssue > recoveryDelayMs &&
                 timeSinceLastAdjustment > recoveryCooldownMs &&
+                timeSinceDcCongestion > recoveryDelayMs &&  // Must also wait after DC congestion
                 !hasNetworkIssue)
             {
-                // Gradually recover toward initial bitrate
-                int recoveryStep = Math.Max(500, (InitialBitrateKbps - current) / 4); // 25% of deficit, min 500kbps
-                int newBitrate = Math.Min(InitialBitrateKbps, current + recoveryStep);
-                Logger.Info($"[AdaptiveBitrate] Auto-recovery: {current} → {newBitrate} kbps (stable for {timeSinceLastIssue/1000:F1}s)");
+                // Gradually recover toward effective max (respects DC congestion ceiling)
+                int recoveryStep = Math.Max(500, (effectiveMax - current) / 4); // 25% of deficit, min 500kbps
+                int newBitrate = Math.Min(effectiveMax, current + recoveryStep);
+                string ceilingInfo = _dcCongestionCeilingKbps > 0 ? $", ceiling={_dcCongestionCeilingKbps}kbps" : "";
+                Logger.Info($"[AdaptiveBitrate] Auto-recovery: {current} → {newBitrate} kbps (stable for {timeSinceLastIssue/1000:F1}s{ceilingInfo})");
                 return newBitrate;
             }
 
@@ -327,22 +374,26 @@ namespace RemotePlayServer.Application.Streaming
             float currentFpsRatio = feedback.TargetFps > 0 ? feedback.EffectiveFps / feedback.TargetFps : 0f;
             bool isActiveContent = currentFpsRatio > 0.6f;  // At least 60% of target FPS = active streaming
 
-            // Only increase if we're below initial AND conditions are good
-            // We don't proactively exceed initial bitrate - that's set by user preference
+            // Only increase if we're below effective max AND conditions are good AND enough time
+            // has passed since last network issue. Without this delay, bitrate yo-yos:
+            // congestion → drop → immediately climb back → congestion again.
             bool canIncrease =
-                current < InitialBitrateKbps &&  // Only increase up to initial, not beyond
+                current < effectiveMax &&
                 feedback.PacketLossRate < PACKET_LOSS_DECREASE_THRESHOLD &&
                 (feedback.BufferStatus == "healthy" || feedback.BufferStatus == "overflow") &&
                 !hasNetworkIssue &&
-                isActiveContent;  // Must have active content to know bandwidth is sufficient
+                isActiveContent &&
+                timeSinceLastIssue > recoveryCooldownMs &&     // Must wait after network issue
+                timeSinceDcCongestion > recoveryCooldownMs;    // Must wait after DC congestion too
 
             if (canIncrease)
             {
-                int newBitrate = Math.Min(InitialBitrateKbps, current + increaseStep);
+                int newBitrate = Math.Min(effectiveMax, current + increaseStep);
 
                 if (newBitrate > current)
                 {
-                    Logger.Info($"[AdaptiveBitrate] Active content good (FPS {currentFpsRatio:P0}), recovering to {newBitrate} kbps");
+                    string ceilingInfo = _dcCongestionCeilingKbps > 0 ? $", ceiling={_dcCongestionCeilingKbps}kbps" : "";
+                    Logger.Info($"[AdaptiveBitrate] Active content good (FPS {currentFpsRatio:P0}), recovering to {newBitrate} kbps{ceilingInfo}");
                     return newBitrate;
                 }
             }
@@ -388,6 +439,39 @@ namespace RemotePlayServer.Application.Streaming
         }
 
         /// <summary>
+        /// Mark that DC congestion occurred at the given bitrate.
+        /// Sets a ceiling so ABC recovery won't exceed 90% of the congestion trigger point.
+        /// This prevents the sawtooth oscillation pattern:
+        ///   8000 → congestion → 6400 → recover → 8000 → congestion → repeat
+        /// Instead: 8000 → congestion → 6400 → recover → 7200 (ceiling) → stable
+        /// </summary>
+        public void MarkDcCongestion(int congestionBitrateKbps)
+        {
+            int newCeiling = (int)(congestionBitrateKbps * DC_CEILING_SAFETY_FACTOR);
+            // Floor: ceiling must not drop below MinBitrateKbps (prevents ratchet-down to unusable levels)
+            newCeiling = Math.Max(newCeiling, MinBitrateKbps);
+            // Only lower the ceiling, never raise it from a congestion event
+            if (_dcCongestionCeilingKbps == 0 || newCeiling < _dcCongestionCeilingKbps)
+            {
+                _dcCongestionCeilingKbps = newCeiling;
+                Logger.Info($"[AdaptiveBitrate] DC congestion ceiling set: {newCeiling}kbps (triggered at {congestionBitrateKbps}kbps)");
+            }
+            _lastDcCongestionTime = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Mark that DC congestion has just cleared. Resets recovery timer so the full
+        /// RECOVERY_DELAY_MS must elapse before bitrate starts climbing again.
+        /// Without this, recovery starts almost immediately because _lastNetworkIssueTime
+        /// was set when congestion STARTED, not when it CLEARED.
+        /// </summary>
+        public void MarkCongestionCleared()
+        {
+            _lastNetworkIssueTime = DateTime.UtcNow;
+            _lastAdjustmentTime = DateTime.UtcNow;
+        }
+
+        /// <summary>
         /// Reset controller to initial state.
         /// </summary>
         public void Reset()
@@ -398,6 +482,7 @@ namespace RemotePlayServer.Application.Streaming
             _ewmaRtt = 30;
             _lastAdjustmentTime = DateTime.MinValue;
             _lastNetworkIssueTime = DateTime.UtcNow; // Reset to now, not MinValue
+            _dcCongestionCeilingKbps = 0; // Remove DC ceiling on reset
             AdjustmentCount = 0;
 
             Logger.Info($"[AdaptiveBitrate] Reset to {InitialBitrateKbps}kbps");
@@ -408,7 +493,8 @@ namespace RemotePlayServer.Application.Streaming
         /// </summary>
         public string GetStats()
         {
-            return $"Target={TargetBitrateKbps}kbps, EWMA(bw={_ewmaBandwidth:F0}, loss={_ewmaPacketLoss:P2}, rtt={_ewmaRtt:F0}ms), Adjustments={AdjustmentCount}";
+            string ceilingStr = _dcCongestionCeilingKbps > 0 ? $", DC_ceiling={_dcCongestionCeilingKbps}kbps" : "";
+            return $"Target={TargetBitrateKbps}kbps, EWMA(bw={_ewmaBandwidth:F0}, loss={_ewmaPacketLoss:P2}, rtt={_ewmaRtt:F0}ms), Adjustments={AdjustmentCount}{ceilingStr}";
         }
     }
 }

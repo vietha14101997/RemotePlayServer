@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\build\CMakeFiles\ff80ed421d3a68468fbb07a9cddb4a82\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3CA440EE-C5B2-3A98-8100-2EBE237A0A4F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

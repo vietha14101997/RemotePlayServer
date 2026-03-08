@@ -42,35 +42,28 @@ public partial class SIPSorceryStreamer
                 if (!_phase3Active) return;
                 try
                 {
-                    // DataChannel path: send Opus frame as binary message
-                    // Format: [type(1)][timestamp(8)][opus_data]
-                    // Client decodes with Concentus + OnAudioFilterRead (~20ms latency)
-                    if (_audioDc?.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    // Primary: send Opus via RTP (independent UDP transport).
+                    // With H.265 video on DataChannel, SCTP congestion starves audio DC
+                    // causing 300-500ms delay + distortion. RTP travels separate UDP path.
+                    var pc = _pc;
+                    if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                     {
-                        var msg = new byte[1 + 8 + opusLength];
-                        msg[0] = 0x01; // Audio frame type
-                        BitConverter.TryWriteBytes(msg.AsSpan(1, 8), timestampMs);
-                        Buffer.BlockCopy(opusData, 0, msg, 9, opusLength);
-                        _audioDc.send(msg);
+                        var packet = new byte[opusLength];
+                        Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
+                        pc.SendAudio(rtpDuration, packet);
                         Interlocked.Increment(ref _audioPacketsSent);
                     }
                     else
                     {
-                        // RTP fallback: used when DataChannel not yet open
-                        var packet = new byte[opusLength];
-                        Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-
-                        uint audioStep;
-                        lock (_audioSyncLock)
+                        // Fallback: send Opus via DataChannel if RTP not available
+                        var dc = _audioDc;
+                        if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                         {
-                            if (!_audioClockInitialized && timestampMs > 0)
-                                audioStep = CalculateAudioRtpStep(timestampMs);
-                            else
-                                audioStep = rtpDuration;
+                            var packet = new byte[opusLength];
+                            Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
+                            dc.send(packet);
+                            Interlocked.Increment(ref _audioPacketsSent);
                         }
-
-                        _pc.SendAudio(audioStep, packet);
-                        Interlocked.Increment(ref _audioPacketsSent);
                     }
                 }
                 catch (Exception ex)
@@ -80,9 +73,28 @@ public partial class SIPSorceryStreamer
                 }
             };
 
+            // Log which audio path is active (one-time, after first successful send)
+            bool audioPathLogged = false;
+
+            _opusEncoder.OnEncodedAudio += (_, _, _, _) =>
+            {
+                if (audioPathLogged) return;
+                var dcCheck = _audioDc;
+                if (_pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                {
+                    Logger.Info("[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)");
+                    audioPathLogged = true;
+                }
+                else if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                {
+                    Logger.Info("[SIPSorcery] Audio path: DataChannel fallback (RTP not connected)");
+                    audioPathLogged = true;
+                }
+            };
+
             _audioCapture.Start();
 
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> DataChannel)");
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)");
         }
         catch (Exception ex)
         {

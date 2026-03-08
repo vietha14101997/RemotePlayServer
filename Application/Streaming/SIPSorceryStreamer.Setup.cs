@@ -24,17 +24,17 @@ public partial class SIPSorceryStreamer
     /// </summary>
     public Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
     {
-        if (_running)
-        {
-            Logger.Info("[SIPSorcery] Closing existing connection for reconnect...");
-            CloseConnection();
-        }
+        // 1. CLEAR previous connection state but PRESERVE TrackInfo list for SSRC persistence!
+        // (CloseConnection disposes _pc, _audioDc, etc. but not the underlying encoders/SSRCs)
+        CloseConnection();
 
-        Logger.Info($"[SIPSorcery] Processing offer for {dimensions.Count} monitors");
+        // Ensure fresh sync state for Every new connection/reconnect.
+        // Clears RTP offsets and capture start time to prevent client jitter buffer inflation.
+        ResetSyncState();
 
-        // Parse H264 payload type from offer
-        var (h264Pt, h264Fmtp) = TryGetH264FromOfferSdp(offerSdp);
-        Logger.Info($"[SIPSorcery] Offer H264 pt={h264Pt ?? 96}, fmtp={h264Fmtp ?? "default"}");
+        // Parse negotiated codec payload type from offer
+        var (negotiatedPt, negotiatedFmtp) = TryGetCodecFromOfferSdp(offerSdp, _negotiatedCodec);
+        Logger.Info($"[SIPSorcery] Offer {_negotiatedCodec} pt={negotiatedPt ?? 96}, fmtp={negotiatedFmtp ?? "default"}");
 
         // Log client fingerprint from offer for DTLS debugging
         foreach (var line in offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
@@ -54,58 +54,92 @@ public partial class SIPSorceryStreamer
         _pc = new RTCPeerConnection(cfg);
         Logger.Info("[SIPSorcery] PeerConnection created (with STUN)");
 
-        // Create N video tracks - one per monitor
+        // 2. Manage Video Tracks - Reuse SSRC from previous session if possible
         for (int i = 0; i < dimensions.Count; i++)
         {
             var (w, h) = dimensions[i];
 
-            // H264 format with constrained baseline profile
-            var h264 = new SDPAudioVideoMediaFormat(
+            // Setup or reuse TrackInfo
+            TrackInfo ti;
+            lock (_tracks)
+            {
+                if (i < _tracks.Count)
+                {
+                    ti = _tracks[i];
+                    // If dimensions changed, we might need a new encoder (managed later in InitializeEncoders)
+                    ti.Width = w;
+                    ti.Height = h;
+                }
+                else
+                {
+                    ti = new TrackInfo
+                    {
+                        Index = i,
+                        Width = w,
+                        Height = h,
+                        // Generate a persistent SSRC for this monitor index
+                        Ssrc = (uint)new Random().Next(100000000, 2000000000),
+                        // Initialize sequence number to a random value per RFC 3550.
+                        // Continuity is maintained across reconnections as TrackInfo is reused.
+                        SequenceNumber = (ushort)new Random().Next(0, ushort.MaxValue)
+                    };
+                    _tracks.Add(ti);
+                }
+            }
+
+            // Negotiated codec format
+            string defaultFmtp = _negotiatedCodec == VideoCodec.H264
+                ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
+                : (_negotiatedCodec == VideoCodec.H265 ? "profile-id=1;tier-flag=0;level-id=123" : ""); 
+
+            var codecFormat = new SDPAudioVideoMediaFormat(
                 SDPMediaTypesEnum.video,
-                id: h264Pt ?? (96 + i),
-                name: "H264",
+                id: negotiatedPt ?? (96 + i),
+                name: _negotiatedCodec.ToString(),
                 clockRate: 90000,
-                channels: 0,
-                fmtp: string.IsNullOrWhiteSpace(h264Fmtp)
-                    ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
-                    : h264Fmtp);
+                fmtp: MergeFmtp(defaultFmtp, negotiatedFmtp));
 
             var track = new MediaStreamTrack(
                 SDPMediaTypesEnum.video,
                 isRemote: false,
-                capabilities: new List<SDPAudioVideoMediaFormat> { h264 },
+                capabilities: new List<SDPAudioVideoMediaFormat> { codecFormat },
                 streamStatus: MediaStreamStatusEnum.SendOnly);
-
+            
+            // Assign the PERSISTENT SSRC to this track
+            track.Ssrc = ti.Ssrc;
+            ti.PayloadType = codecFormat.ID;
+            ti.Track = track;
+            
             _pc.addTrack(track);
 
-            // Get device for track - priority: permanent mappings > pending > shared
+            // Device mapping logic (simplified for clarity)
             ID3D11Device? deviceForTrack = _sharedDevice;
-            if (_deviceMappings.TryGetValue(i, out var mappedDevice))
-            {
-                // Use permanent mapping (survives reconnection)
-                deviceForTrack = mappedDevice;
-            }
+            if (_deviceMappings.TryGetValue(i, out var mappedDevice)) deviceForTrack = mappedDevice;
             else if (_pendingDevices.TryGetValue(i, out var pendingDevice))
             {
                 deviceForTrack = pendingDevice;
                 _pendingDevices.Remove(i);
             }
+            ti.Device = deviceForTrack;
 
-            _tracks.Add(new TrackInfo
-            {
-                Index = i,
-                Track = track,
-                Mid = i.ToString(),
-                Width = w,
-                Height = h,
-                Device = deviceForTrack
-            });
-
-            Logger.Info($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8})");
+            Logger.Info($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8}), SSRC={ti.Ssrc}");
         }
 
         // Initialize per-monitor pause state (all monitors active initially)
         _monitorPaused = new bool[dimensions.Count];
+
+        // Add SendOnly audio track for RTP Opus (matches client's RecvOnly audio transceiver).
+        // Audio goes through RTP/UDP on the same ICE connection — NOT SCTP,
+        // so no head-of-line blocking from H.265 video DataChannel traffic.
+        var opusFormat = new SDPAudioVideoMediaFormat(
+            SDPMediaTypesEnum.audio, 111, "opus", 48000,
+            channels: 2, fmtp: "minptime=10;useinbandfec=1;stereo=1;sprop-stereo=1");
+        var audioTrack = new MediaStreamTrack(
+            SDPMediaTypesEnum.audio, false,
+            new List<SDPAudioVideoMediaFormat> { opusFormat },
+            MediaStreamStatusEnum.SendOnly);
+        _pc.addTrack(audioTrack);
+        Logger.Info("[SIPSorcery] Added SendOnly Opus audio track to main PC (RTP transport)");
 
         // Receive client-created DataChannel for low-latency audio.
         // Client creates DC "audio" (libwebrtc manages SCTP), server just receives and sends Opus via it.
@@ -123,13 +157,45 @@ public partial class SIPSorceryStreamer
             else if (dc.label == "cursor")
             {
                 _cursorDc = dc;
-                _cursorDc.onopen += () => Logger.Info("[SIPSorcery] Cursor DataChannel opened");
+                _cursorDc.onopen += () =>
+                {
+                    Logger.Info("[SIPSorcery] Cursor DataChannel opened");
+                };
                 _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Cursor DataChannel closed"); _cursorDc = null; };
                 Logger.Info("[SIPSorcery] Cursor DataChannel wired for sending");
             }
+            else if (dc.label == "h265video")
+            {
+                // Legacy single-DC mode (backward compat with older clients)
+                _h265VideoDcLegacy = dc;
+                _h265VideoDcLegacy.onopen += () =>
+                {
+                    Logger.Info("[SIPSorcery] H265 Video DataChannel opened (legacy single-DC, unreliable, unordered) - forcing keyframe for bootstrap");
+                    RequestKeyframe(-1, force: true);
+                };
+                _h265VideoDcLegacy.onclose += () => { Logger.Info("[SIPSorcery] H265 Video DataChannel closed (legacy)"); _h265VideoDcLegacy = null; };
+                Logger.Info("[SIPSorcery] H265 Video DataChannel wired (legacy single-DC mode)");
+            }
+            else if (dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int trackIdx))
+            {
+                // Per-track DC mode: each track has its own buffer → no cross-track congestion
+                lock (_h265VideoDcs) { _h265VideoDcs[trackIdx] = dc; }
+                dc.onopen += () =>
+                {
+                    Logger.Info($"[SIPSorcery] H265 Video DataChannel opened for track {trackIdx} (per-track, unreliable, unordered)");
+                    RequestKeyframe(trackIdx, force: true);
+                };
+                int closedIdx = trackIdx; // capture for closure
+                dc.onclose += () =>
+                {
+                    Logger.Info($"[SIPSorcery] H265 Video DataChannel closed for track {closedIdx}");
+                    lock (_h265VideoDcs) { _h265VideoDcs.Remove(closedIdx); }
+                };
+                Logger.Info($"[SIPSorcery] H265 Video DataChannel wired for track {trackIdx}");
+            }
         };
         _hasAudioTrack = true;
-        Logger.Info("[SIPSorcery] Waiting for client audio/cursor DataChannels");
+        Logger.Info("[SIPSorcery] Waiting for client audio/cursor/h265video DataChannels (per-track or legacy)");
 
         // ICE candidate forwarding
         _pc.onicecandidate += (cand) =>
@@ -150,6 +216,10 @@ public partial class SIPSorceryStreamer
         // Encoder init moved to onconnectionstatechange (after DTLS complete)
         _pc.oniceconnectionstatechange += (state) =>
         {
+            // Suppress duplicate "connected" events from ICE consent checks during active streaming
+            if (state == RTCIceConnectionState.connected && _connected)
+                return;
+
             Logger.Info($"[SIPSorcery] ICE state: {state}");
             if (state == RTCIceConnectionState.connected)
             {
@@ -160,6 +230,7 @@ public partial class SIPSorceryStreamer
             {
                 _connected = false;
                 OnConnectionFailed?.Invoke();
+                OnFatalError?.Invoke("ICE Connection Failed");
             }
             else if (state == RTCIceConnectionState.disconnected || state == RTCIceConnectionState.closed)
             {
@@ -184,6 +255,7 @@ public partial class SIPSorceryStreamer
                 Logger.Error("[SIPSorcery] DTLS FAILED - check certificate/fingerprint");
                 _connected = false;
                 OnConnectionFailed?.Invoke();
+                OnFatalError?.Invoke("DTLS Handshake Failed");
             }
             else if (state == RTCPeerConnectionState.closed)
             {
@@ -275,12 +347,256 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private static (int? pt, string? fmtp) TryGetH264FromOfferSdp(string sdp)
+    // Buffer for audio ICE candidates that arrive before the audio PC is created
+    // (trickle ICE: client sends candidates immediately, but audio_offer may arrive later)
+    private readonly List<string> _pendingAudioIceCandidates = new();
+
+    // Buffer for server-side audio ICE candidates generated during createAnswer()
+    // These must be sent AFTER the answer SDP to avoid client receiving candidates before remote description
+    private readonly List<string> _pendingAudioLocalCandidates = new();
+    private volatile bool _audioAnswerDelivered;
+
+    /// <summary>
+    /// Process an audio offer from the client's dedicated audio PeerConnection.
+    /// DEPRECATED: Audio now goes through the main PC as an RTP track.
+    /// This method is kept for backwards compatibility with older clients
+    /// that still send audio_offer. Returns empty string to gracefully decline.
+    /// </summary>
+    public Task<string> ProcessAudioOfferAsync(string offerSdp)
+    {
+        Logger.Info("[SIPSorcery] Audio offer received but audio now uses main PC RTP track. Ignoring separate Audio PC.");
+        return Task.FromResult("");
+
+        // Legacy code below — kept for reference
+        #pragma warning disable CS0162
+        try
+        {
+            // Close previous audio PC if any
+            try { _audioPc?.close(); } catch { }
+            _audioPc = null;
+
+            var config = new RTCConfiguration
+            {
+                iceServers = new List<RTCIceServer>
+                {
+                    new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+                }
+            };
+            _audioPc = new RTCPeerConnection(config);
+            // No DataChannel on Audio PC — SCTP is broken on Unity WebRTC for dedicated PCs.
+            // Audio goes through RTP (Opus track) via ICE/DTLS/UDP instead.
+
+            // ICE candidate forwarding for audio PC
+            // Buffer candidates until answer is delivered to client, then send directly
+            _audioAnswerDelivered = false;
+            _audioPc.onicecandidate += (cand) =>
+            {
+                if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+                {
+                    Logger.Info($"[SIPSorcery] Audio PC Local ICE: {cand.candidate.Substring(0, Math.Min(60, cand.candidate.Length))}...");
+                    if (_audioAnswerDelivered)
+                    {
+                        OnAudioIceCandidate?.Invoke(cand.candidate);
+                    }
+                    else
+                    {
+                        lock (_pendingAudioLocalCandidates)
+                        {
+                            _pendingAudioLocalCandidates.Add(cand.candidate);
+                        }
+                    }
+                }
+            };
+
+            _audioPc.oniceconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Audio PC ICE state: {state}");
+            };
+
+            _audioPc.onconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Audio PC peer state: {state}");
+            };
+
+            // Add a REAL Opus sendonly audio track (48kHz, 2ch).
+            // This serves dual purpose:
+            // 1. Forces ICE/DTLS transport initialization (SIPSorcery needs m=audio)
+            // 2. Provides actual RTP transport for Opus audio — bypasses SCTP entirely
+            //    RTP goes through ICE/DTLS/UDP directly, no SCTP head-of-line blocking
+            var opusFormat = new SDPAudioVideoMediaFormat(
+                SDPMediaTypesEnum.audio, 111, "opus", 48000,
+                channels: 2, fmtp: "minptime=10;useinbandfec=1;stereo=1;sprop-stereo=1");
+            var audioTrack = new MediaStreamTrack(
+                SDPMediaTypesEnum.audio, false,
+                new List<SDPAudioVideoMediaFormat> { opusFormat },
+                MediaStreamStatusEnum.SendOnly);
+            _audioPc.addTrack(audioTrack);
+            Logger.Info("[SIPSorcery] Audio PC: added Opus audio track (48kHz stereo, RTP transport)");
+
+            // Set remote offer and create answer
+            var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
+            _audioPc.setRemoteDescription(offer);
+
+            var answer = _audioPc.createAnswer(null);
+
+            // DO NOT call setLocalDescription(answer) — same SIPSorcery 8.x bug as main PC.
+            // signalingState shows "closed" after setRemoteDescription, so setLocalDescription
+            // corrupts ICE credentials internally, causing ICE connectivity checks to fail
+            // (client receives correct SDP but server sends STUN requests with different creds).
+            // createAnswer() already configures DTLS/ICE internals correctly.
+
+            var answerSdp = answer.sdp ?? "";
+
+            // Log raw SDP for debugging compatibility issues
+            Logger.Info($"[SIPSorcery] Audio PC raw answer SDP:\n{answerSdp}");
+
+            // Fix actpass → active for RFC 5763 compliance (answerer must not use actpass)
+            if (answerSdp.Contains("a=setup:actpass"))
+                answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
+
+            // SIPSorcery generates "UDP/TLS/RTP/SAVP" but libwebrtc requires "SAVPF" (with feedback).
+            // Without this fix, DTLS handshake fails because libwebrtc rejects non-SAVPF profiles.
+            if (!answerSdp.Contains("SAVPF"))
+                answerSdp = answerSdp.Replace("SAVP", "SAVPF");
+
+            // SIPSorcery includes "ice2" in ice-options which libwebrtc may not understand.
+            // Replace with just "trickle" which is universally supported.
+            answerSdp = answerSdp.Replace("a=ice-options:ice2,trickle", "a=ice-options:trickle");
+            answerSdp = answerSdp.Replace("a=ice-options:ice2", "a=ice-options:trickle");
+
+            // Remove "a=end-of-candidates" - RFC 8838 line not recognized by all libwebrtc versions
+            answerSdp = System.Text.RegularExpressions.Regex.Replace(
+                answerSdp, @"a=end-of-candidates\r?\n?", "");
+
+            // Extract embedded a=candidate lines before stripping them from the SDP.
+            // SIPSorcery uses vanilla ICE (candidates embedded in SDP), but libwebrtc's
+            // data-channel-only SDP parser can choke on embedded candidates.
+            // We extract them and send via trickle ICE (OnAudioIceCandidate) after the answer.
+            var extractedCandidates = new List<string>();
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(
+                answerSdp, @"a=(candidate:[^\r\n]*)"))
+            {
+                extractedCandidates.Add(m.Groups[1].Value);
+            }
+            answerSdp = System.Text.RegularExpressions.Regex.Replace(
+                answerSdp, @"a=candidate:[^\r\n]*\r?\n?", "");
+
+            Logger.Info($"[SIPSorcery] Audio PC fixed answer SDP ({answerSdp.Length} bytes):\n{answerSdp}");
+
+            // Flush any ICE candidates that arrived before the audio PC was created
+            lock (_pendingAudioIceCandidates)
+            {
+                if (_pendingAudioIceCandidates.Count > 0)
+                {
+                    Logger.Info($"[SIPSorcery] Flushing {_pendingAudioIceCandidates.Count} pending audio ICE candidates");
+                    foreach (var cand in _pendingAudioIceCandidates)
+                    {
+                        try { AddAudioIceCandidateInternal(cand); }
+                        catch (Exception ex) { Logger.Error($"[SIPSorcery] Flush audio ICE error: {ex.Message}"); }
+                    }
+                    _pendingAudioIceCandidates.Clear();
+                }
+            }
+
+            // Extracted candidates are added to the local buffer (they may duplicate
+            // onicecandidate events, but dedup happens at the ICE agent level).
+            lock (_pendingAudioLocalCandidates)
+            {
+                foreach (var cand in extractedCandidates)
+                {
+                    if (!_pendingAudioLocalCandidates.Contains(cand))
+                        _pendingAudioLocalCandidates.Add(cand);
+                }
+                Logger.Info($"[SIPSorcery] Audio PC: {_pendingAudioLocalCandidates.Count} local ICE candidates buffered (will flush after answer sent)");
+            }
+
+            return Task.FromResult(answerSdp);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Audio PC offer processing failed: {ex.Message}");
+            return Task.FromResult("");
+        }
+        #pragma warning restore CS0162
+    }
+
+    /// <summary>
+    /// Flush buffered server-side audio ICE candidates via OnAudioIceCandidate.
+    /// Must be called AFTER the audio answer SDP has been sent to the client.
+    /// </summary>
+    public void FlushAudioLocalCandidates()
+    {
+        _audioAnswerDelivered = true;
+
+        List<string> toSend;
+        lock (_pendingAudioLocalCandidates)
+        {
+            toSend = new List<string>(_pendingAudioLocalCandidates);
+            _pendingAudioLocalCandidates.Clear();
+        }
+
+        if (toSend.Count > 0)
+        {
+            Logger.Info($"[SIPSorcery] Flushing {toSend.Count} audio local ICE candidates");
+            foreach (var cand in toSend)
+            {
+                Logger.Info($"[SIPSorcery] Audio PC trickle ICE: {cand.Substring(0, Math.Min(60, cand.Length))}...");
+                OnAudioIceCandidate?.Invoke(cand);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Add ICE candidate for the dedicated audio PeerConnection.
+    /// Buffers candidates if the audio PC hasn't been created yet (trickle ICE race).
+    /// </summary>
+    public void AddAudioIceCandidate(string candidate)
+    {
+        if (string.IsNullOrEmpty(candidate)) return;
+
+        if (_audioPc == null)
+        {
+            // Buffer: audio PC not created yet (audio_candidate arrived before audio_offer)
+            lock (_pendingAudioIceCandidates)
+            {
+                _pendingAudioIceCandidates.Add(candidate);
+                Logger.Info($"[SIPSorcery] Buffered audio ICE candidate (PC not ready, {_pendingAudioIceCandidates.Count} pending)");
+            }
+            return;
+        }
+
+        AddAudioIceCandidateInternal(candidate);
+    }
+
+    private void AddAudioIceCandidateInternal(string candidate)
+    {
+        try
+        {
+            var candStr = candidate.Trim();
+            if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring(2);
+            if (candStr.StartsWith("candidate:candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = candStr.Substring("candidate:".Length);
+            if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                candStr = "candidate:" + candStr;
+
+            var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" };
+            _audioPc!.addIceCandidate(init);
+            Logger.Info($"[SIPSorcery] Audio PC added ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Audio PC AddIceCandidate error: {ex.Message}");
+        }
+    }
+
+    private static (int? pt, string? fmtp) TryGetCodecFromOfferSdp(string sdp, VideoCodec codec)
     {
         if (string.IsNullOrWhiteSpace(sdp)) return (null, null);
 
+        var codecName = codec.ToString();
         var lines = sdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-        var h264Pts = new HashSet<int>();
+        var matchingPts = new HashSet<int>();
 
         foreach (var line in lines)
         {
@@ -289,14 +605,14 @@ public partial class SIPSorceryStreamer
             var sp = rest.IndexOf(' ');
             if (sp <= 0) continue;
             if (!int.TryParse(rest.Substring(0, sp), out var candPt)) continue;
-            var codec = rest.Substring(sp + 1);
-            if (codec.IndexOf("H264/", StringComparison.OrdinalIgnoreCase) >= 0)
-                h264Pts.Add(candPt);
+            var codecPart = rest.Substring(sp + 1);
+            if (codecPart.IndexOf(codecName + "/", StringComparison.OrdinalIgnoreCase) >= 0)
+                matchingPts.Add(candPt);
         }
 
-        if (h264Pts.Count == 0) return (null, null);
+        if (matchingPts.Count == 0) return (null, null);
 
-        int chosenPt = h264Pts.First();
+        int chosenPt = matchingPts.First();
         string? fmtp = null;
         var needle = "a=fmtp:" + chosenPt + " ";
         foreach (var line in lines)
@@ -363,7 +679,33 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private static byte[] StripLeadingAud(byte[] au)
+    private string MergeFmtp(string defaultFmtp, string? negotiatedFmtp)
+    {
+        if (string.IsNullOrWhiteSpace(negotiatedFmtp)) return defaultFmtp;
+        if (string.IsNullOrWhiteSpace(defaultFmtp)) return negotiatedFmtp;
+
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        // Parse defaults
+        foreach (var part in defaultFmtp.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2) result[kv[0].Trim()] = kv[1].Trim();
+            else result[kv[0].Trim()] = "";
+        }
+
+        // Merge negotiated (overwrites defaults)
+        foreach (var part in negotiatedFmtp.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2) result[kv[0].Trim()] = kv[1].Trim();
+            else result[kv[0].Trim()] = "";
+        }
+
+        return string.Join(";", result.Select(x => string.IsNullOrEmpty(x.Value) ? x.Key : $"{x.Key}={x.Value}"));
+    }
+
+    private byte[] StripLeadingAud(byte[] au)
     {
         if (au.Length < 4) return au;
 
@@ -373,9 +715,22 @@ public partial class SIPSorceryStreamer
         else return au;
 
         if (pos >= au.Length) return au;
-        int nalType = au[pos] & 0x1F;
-        if (nalType != 9) return au;
 
+        int nalType;
+        if (_negotiatedCodec == VideoCodec.H265)
+        {
+            // H265: type is in (header[0] >> 1) & 0x3F
+            nalType = (au[pos] >> 1) & 0x3F;
+            if (nalType != 35) return au; // H265 AUD is 35
+        }
+        else
+        {
+            // H264: type is in header[0] & 0x1F
+            nalType = au[pos] & 0x1F;
+            if (nalType != 9) return au; // H264 AUD is 9
+        }
+
+        // Find next start code to strip the AUD NAL
         for (int i = pos + 1; i + 3 < au.Length; i++)
         {
             if ((au[i] == 0 && au[i + 1] == 0 && au[i + 2] == 1) ||
@@ -383,6 +738,19 @@ public partial class SIPSorceryStreamer
             {
                 var trimmed = new byte[au.Length - i];
                 Buffer.BlockCopy(au, i, trimmed, 0, trimmed.Length);
+                
+                // For H265, log if we see VPS/SPS/PPS after stripping AUD to debug no-frame issue
+                if (_negotiatedCodec == VideoCodec.H265)
+                {
+                    int nextPos = (trimmed[0] == 0 && trimmed[1] == 0 && trimmed[2] == 0 && trimmed[3] == 1) ? 4 : 3;
+                    if (nextPos < trimmed.Length)
+                    {
+                        int nextType = (trimmed[nextPos] >> 1) & 0x3F;
+                        if (nextType == 32 || nextType == 33 || nextType == 34)
+                            Logger.Info($"[SIPSorcery] H265 Meta after AUD: Type={nextType} (32=VPS, 33=SPS, 34=PPS)");
+                    }
+                }
+                
                 return trimmed;
             }
         }

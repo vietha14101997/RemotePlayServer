@@ -69,11 +69,20 @@ namespace RemotePlayServer.Application.Protocol
             {
                 _capture.OnNextBarrierSync = () => _streamer?.ActivatePhase3();
             }
-            else
+            // Internal fatal error CTS - linked to _ct (client disconnect)
+            _fatalErrorCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+
+            if (_streamer != null)
             {
-                // No barrier (single monitor) or no capture — activate immediately
-                _streamer?.ActivatePhase3();
+                _streamer.OnFatalError += (reason) =>
+                {
+                    Logger.Error($"[Protocol] Fatal streamer error: {reason} - triggering cleanup");
+                    _fatalErrorCts?.Cancel();
+                };
             }
+
+            // No barrier (single monitor) or no capture — activate immediately
+            _streamer?.ActivatePhase3();
 
             // Send streaming_started
             var startedMsg = new StreamingStartedMessage
@@ -102,7 +111,7 @@ namespace RemotePlayServer.Application.Protocol
             var buffer = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
 
-            while (_ws.State == WebSocketState.Open && !_ct.IsCancellationRequested)
+            while (_ws.State == WebSocketState.Open && !_fatalErrorCts.IsCancellationRequested)
             {
                 try
                 {
@@ -204,6 +213,19 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+
+                    // Handle dedicated audio PeerConnection signaling
+                    if (msgType == "audio_offer")
+                    {
+                        await HandleAudioOfferAsync(text);
+                        continue;
+                    }
+                    if (msgType == "audio_candidate")
+                    {
+                        HandleAudioIceCandidate(text);
+                        continue;
+                    }
+
                     // Handle late ICE candidates
                     if (msgType == "candidate")
                     {
@@ -220,6 +242,11 @@ namespace RemotePlayServer.Application.Protocol
                     if (msgType == "offer")
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (JSON format)");
+                        
+                        // CRITICAL: Reset sync state on reconnect to ensure IDR is sent via DataChannel
+                        // and stale frames are flushed from encoder pipeline.
+                        _streamer?.ResetSyncState();
+
                         // Reset stall detection state for fresh reconnection
                         _consecutiveStallCount = 0;
                         _feedbackEstablished = false;
@@ -230,6 +257,10 @@ namespace RemotePlayServer.Application.Protocol
                     if (text.StartsWith("offer:", StringComparison.OrdinalIgnoreCase))
                     {
                         Logger.Info("[Protocol] Received reconnect offer during streaming (legacy format)");
+
+                        // CRITICAL: Reset sync state on reconnect
+                        _streamer?.ResetSyncState();
+
                         // Reset stall detection state for fresh reconnection
                         _consecutiveStallCount = 0;
                         _feedbackEstablished = false;
@@ -303,11 +334,7 @@ namespace RemotePlayServer.Application.Protocol
                         try
                         {
                             var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"monitor\":{monitorIndex},\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
-                            await _ws.SendAsync(
-                                new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes(ackJson)),
-                                System.Net.WebSockets.WebSocketMessageType.Text,
-                                true,
-                                _ct);
+                            await SendTextAsync(ackJson);
                         }
                         catch { }
                         continue;
@@ -357,9 +384,11 @@ namespace RemotePlayServer.Application.Protocol
                                 Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                                 _feedbackEstablished = true;
                                 _consecutiveStallCount = 0; // Reset escalation on real feedback
-                                // Proactive keyframe burst on significant packet loss
-                                if (feedback.PacketLossRate > 0.02f)
-                                    _streamer.RequestKeyframeBurst(-1, 3);
+                                // Proactive keyframe on significant packet loss.
+                                // H265 uses DataChannel (SCTP/reliable) — burst IDRs cause congestion death spiral.
+                                // Only burst for H264/RTP (UDP/unreliable) where lost packets need IDR to recover.
+                                if (feedback.PacketLossRate > 0.02f && _streamer.NegotiatedCodec != VideoCodec.H265)
+                                    _streamer.RequestKeyframeBurst(-1, 1);
 
                                 // WiFi-aware adaptive bitrate
                                 _streamer.SetWiFiMode(feedback.IsWiFi);
@@ -387,23 +416,34 @@ namespace RemotePlayServer.Application.Protocol
                             var updateMsg = ProtocolMessageParser.Parse<UpdateConfigMessage>(text);
                             if (updateMsg != null && _streamer != null)
                             {
-                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, bitrate={updateMsg.BitrateKbps}kbps, resolutionHeight={updateMsg.ResolutionHeight}");
+                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, resolutionHeight={updateMsg.ResolutionHeight}");
 
                                 // Handle resolution change
                                 if (updateMsg.ResolutionHeight.HasValue && _textureResizer != null)
                                 {
                                     int newHeight = updateMsg.ResolutionHeight.Value;
                                     Logger.Info($"[Protocol] Dynamic resolution change requested: {_textureResizer.TargetHeight}p → {newHeight}p");
+                                    
+                                    // SAFE RESOLUTION CHANGE:
+                                    // 1. Pause streamer to clear encoder pipeline
+                                    _streamer?.Pause();
+                                    
+                                    // 2. Update resizer (recreates GPU scalers)
                                     _textureResizer.UpdateTargetHeight(newHeight);
 
-                                    // Request keyframe burst for all monitors so the new resolution takes effect immediately
-                                    _streamer?.RequestKeyframeBurst(-1, 3);
-                                    Logger.Info($"[Protocol] Resolution changed to {newHeight}p, keyframes requested");
+                                    // 3. Force re-initialization of encoders BEFORE resume
+                                    // This ensures old encoder handles are closed and new ones created.
+                                    _streamer?.ForceReinitializeEncoders();
+
+                                    // 4. Resume streamer
+                                    _streamer?.Resume();
+
+                                    Logger.Info($"[Protocol] Resolution changed to {newHeight}p, encoders re-initialized");
                                 }
 
-                                var (success, appliedFps, appliedBitrate, message) = _streamer.UpdateConfig(
+                                var (success, appliedFps, appliedResolutionHeight, message) = _streamer!.UpdateConfig(
                                     updateMsg.Fps,
-                                    updateMsg.BitrateKbps);
+                                    updateMsg.ResolutionHeight);
 
                                 // Also update capture FPS if FPS was changed
                                 if (updateMsg.Fps.HasValue && _capture != null)
@@ -411,12 +451,15 @@ namespace RemotePlayServer.Application.Protocol
                                     _capture.SetTargetFps(updateMsg.Fps.Value);
                                 }
 
+                                // Get current bitrate to send back in ack
+                                var (_, currentBitrate, _) = _streamer.GetCurrentConfig();
+
                                 // Send acknowledgment
                                 var ack = new ConfigUpdatedMessage
                                 {
                                     Fps = appliedFps,
-                                    BitrateKbps = appliedBitrate,
-                                    ResolutionHeight = _textureResizer?.TargetHeight ?? 1080,
+                                    BitrateKbps = currentBitrate,
+                                    ResolutionHeight = appliedResolutionHeight,
                                     Success = success,
                                     Message = message
                                 };
@@ -427,6 +470,56 @@ namespace RemotePlayServer.Application.Protocol
                         catch (Exception ex)
                         {
                             Logger.Error($"[Protocol] update_config error: {ex.Message}");
+                        }
+                        continue;
+                    }
+
+                    // ── codec_fallback: client H265 decoder failed, switch to H264 ──────────────
+                    // Client sends this when H265StreamReceiver.OnDecoderFailed fires, meaning the
+                    // Android device's hardware H265 decoder is not functional.
+                    // Server responds with codec_switch ACK (encoder will switch on the next reconnect offer).
+                    if (msgType == "codec_fallback")
+                    {
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            string fromCodec = json.RootElement.TryGetProperty("from", out var fp) ? fp.GetString() ?? "H265" : "H265";
+                            string toCodec   = json.RootElement.TryGetProperty("to",   out var tp) ? tp.GetString() ?? "H264" : "H264";
+                            string reason    = json.RootElement.TryGetProperty("reason", out var rp) ? rp.GetString() ?? "" : "";
+
+                            Logger.Info($"[Protocol] codec_fallback received: {fromCodec} → {toCodec}, reason={reason}");
+
+                            // Invalidate any in-flight offer processing from stale H265 auto-heal reconnects.
+                            // The client will send a new offer with H264 preference after this ACK.
+                            _offerGeneration++;
+                            Logger.Info($"[Protocol] Offer generation bumped to {_offerGeneration} (stale H265 offers will be discarded)");
+
+                            // Update server-side codec preference so the next reconnect offer
+                            // is processed with H264 preference instead of H265.
+                            if (toCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _selectedCodec = "H264";
+                                if (_streamer != null)
+                                {
+                                    _streamer.NegotiatedCodec = VideoCodec.H264;
+                                    _streamer.ForceReinitializeEncoders();
+                                }
+                            }
+
+                            // Pause encoder temporarily to avoid sending stale H265 frames
+                            // while client is resetting (brief pause, not full stop)
+                            _streamer?.Pause();
+                            await Task.Delay(100, _ct);
+                            _streamer?.Resume();
+
+                            // ACK the fallback so client knows server is ready
+                            var ackJson = $"{{\"type\":\"codec_switch\",\"codec\":\"{toCodec}\",\"reason\":\"client_fallback\"}}";
+                            await SendTextAsync(ackJson);
+                            Logger.Info($"[Protocol] codec_switch ACK sent → {toCodec}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"[Protocol] codec_fallback error: {ex.Message}");
                         }
                         continue;
                     }
@@ -610,10 +703,11 @@ namespace RemotePlayServer.Application.Protocol
                             // Actually close the connection instead of just warning
                             try
                             {
+                                using var cts = new CancellationTokenSource(5000);
                                 await _ws.CloseOutputAsync(
                                     WebSocketCloseStatus.EndpointUnavailable,
                                     "Client not responding to keepalive",
-                                    CancellationToken.None);
+                                    cts.Token);
                             }
                             catch (Exception closeEx)
                             {
@@ -654,8 +748,10 @@ namespace RemotePlayServer.Application.Protocol
         private System.Timers.Timer? _stallDetectTimer;
         private int _consecutiveStallCount;
         private long _lastStallCheckFrameCount;              // Track frame production to distinguish static content from real stalls
+        private DateTime _streamingStartTime;                // Grace period: don't fire stall detection during initial warmup
         private const int STALL_CHECK_INTERVAL_MS = 500;    // Check every 500ms (sufficient granularity)
         private const int STALL_THRESHOLD_MS = 1500;         // 1.5s without feedback = stall (tolerates WiFi jitter, still fast recovery)
+        private const int STALL_WARMUP_MS = 5000;            // 5s grace period: H265 decoder init + SCTP ramp-up on Android
         private const int MAX_CONSECUTIVE_STALLS = 10;       // After 10 stalls, stop acting — let KeepAlive handle it
 
         /// <summary>
@@ -669,6 +765,7 @@ namespace RemotePlayServer.Application.Protocol
         {
             Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
             _consecutiveStallCount = 0;
+            _streamingStartTime = DateTime.UtcNow;
 
             _stallDetectTimer = new System.Timers.Timer(STALL_CHECK_INTERVAL_MS);
             _stallDetectTimer.Elapsed += (s, e) =>
@@ -686,6 +783,11 @@ namespace RemotePlayServer.Application.Protocol
                     // Don't detect stalls until client has sent at least one feedback
                     // (avoids false positives during initial connection setup)
                     if (!_feedbackEstablished) return;
+
+                    // Grace period: H265 decoder init + SCTP congestion window ramp-up
+                    // causes natural feedback gaps during first few seconds.
+                    // Cutting bitrate during this period makes things WORSE.
+                    if ((DateTime.UtcNow - _streamingStartTime).TotalMilliseconds < STALL_WARMUP_MS) return;
 
                     var lastFeedback = new DateTime(Interlocked.Read(ref _lastClientFeedbackTicks));
                     var timeSinceLastFeedback = (DateTime.UtcNow - lastFeedback).TotalMilliseconds;
@@ -715,60 +817,59 @@ namespace RemotePlayServer.Application.Protocol
                             return;
                         }
 
-                        var (currentFps, currentBitrate, _) = streamer.GetCurrentConfig();
+                        var (currentFps, currentBitrate, monitorCount) = streamer.GetCurrentConfig();
+
+                        // CRITICAL: GetCurrentConfig returns TOTAL bitrate (per-encoder × monitorCount).
+                        // ForceSetBitrate sets EACH encoder to the given value.
+                        // We must calculate using per-encoder bitrate to avoid accidentally INCREASING it.
+                        int perEncoderBitrate = monitorCount > 1 ? currentBitrate / monitorCount : currentBitrate;
 
                         // Escalating response based on consecutive stall count
                         int newBitrate;
                         string severity;
-                        bool sendKeyframeBurst;
                         switch (_consecutiveStallCount)
                         {
                             case 1:
                                 // First stall: 25% cut - could be momentary blip
-                                newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                                newBitrate = Math.Max(2000, (int)(perEncoderBitrate * 0.75));
                                 severity = "moderate (25% cut)";
-                                sendKeyframeBurst = true;
                                 break;
                             case 2:
                                 // Second stall: 50% cut - clear sustained problem
-                                newBitrate = Math.Max(2000, currentBitrate / 2);
+                                newBitrate = Math.Max(2000, perEncoderBitrate / 2);
                                 severity = "aggressive (50% cut)";
-                                sendKeyframeBurst = true;
                                 break;
                             case 3:
                                 // Third stall: drop to minimum immediately
                                 newBitrate = 2000;
                                 severity = "emergency (minimum)";
-                                sendKeyframeBurst = true;
                                 break;
                             default:
-                                // 4th+ stall: already at minimum, NO keyframe burst.
-                                // Keyframes are larger than P-frames and pile up in the
-                                // send buffer on a stalled network, making congestion worse
-                                // and risking OOM in the RTP layer.
                                 newBitrate = 2000;
-                                severity = "sustain (minimum, no burst)";
-                                sendKeyframeBurst = false;
+                                severity = "sustain (minimum)";
                                 break;
                         }
 
                         // Safety: stall detection must NEVER increase bitrate.
-                        // This can happen if stall count resets (feedback arrived between stalls)
-                        // and the new stall #1 calculates a higher value than the current actual bitrate.
-                        if (newBitrate >= currentBitrate && currentBitrate > 2000)
+                        if (newBitrate >= perEncoderBitrate && perEncoderBitrate > 2000)
                         {
-                            newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                            newBitrate = Math.Max(2000, (int)(perEncoderBitrate * 0.75));
                             severity = $"clamped (was {severity}, would increase)";
                         }
 
-                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s, stall #{_consecutiveStallCount} → {severity}: {currentBitrate} → {newBitrate}kbps");
+                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s, stall #{_consecutiveStallCount} → {severity}: {perEncoderBitrate} → {newBitrate}kbps (per-encoder)");
 
                         // Bypass adaptive controller - directly set encoder bitrate
                         streamer.ForceSetBitrate(newBitrate);
 
-                        // Only send keyframe burst for first 3 stalls (escalation phase)
-                        if (sendKeyframeBurst)
-                            streamer.RequestKeyframeBurst(-1, 3);
+                        // NEVER send keyframe burst for H265/DataChannel.
+                        // H265 IDR frames are 200-400KB each. Burst of 3 × 2 tracks = 1.5-2.4MB
+                        // dumped into SCTP buffer (reliable, ordered) → instant congestion death spiral.
+                        // Intra refresh handles visual recovery gradually without bandwidth spikes.
+                        // Only send keyframe burst for H264/RTP (UDP, unreliable — lost packets need IDR).
+                        bool isDataChannel = streamer.NegotiatedCodec == VideoCodec.H265;
+                        if (!isDataChannel && _consecutiveStallCount <= 3)
+                            streamer.RequestKeyframeBurst(-1, 1);
 
                         // Reset timer so we don't spam reductions every 200ms
                         Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
@@ -783,7 +884,7 @@ namespace RemotePlayServer.Application.Protocol
             };
             _stallDetectTimer.AutoReset = true;
             _stallDetectTimer.Start();
-            Logger.Info("[StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)");
+            Logger.Info($"[StallDetect] Server-side stall detection started (1500ms threshold, {STALL_WARMUP_MS}ms warmup, frame-aware, escalating response)");
         }
 
         /// <summary>

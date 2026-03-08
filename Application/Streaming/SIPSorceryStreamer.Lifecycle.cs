@@ -8,6 +8,7 @@ using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -23,18 +24,55 @@ public partial class SIPSorceryStreamer
         {
             foreach (var track in _tracks)
             {
-                if (track.Encoder != null) continue;
-
-                var device = track.Device ?? _sharedDevice;
-                if (device == null)
+                lock (track.EncodeLock)
                 {
-                    Logger.Info($"[SIPSorcery] Track {track.Index}: No D3D11 device");
-                    continue;
+                    EnsureEncoderMatchesResolution(track, track.Width, track.Height, gpuVendor);
                 }
-
-                // Try to initialize encoder with fallback chain
-                track.Encoder = TryInitializeEncoderWithFallback(track, device, gpuVendor);
             }
+        }
+    }
+
+    private void EnsureEncoderMatchesResolution(TrackInfo track, int width, int height, GpuVendorDetector.GpuVendor? gpuVendor = null)
+    {
+        // Must be called with track.EncodeLock held
+        if (track.Encoder != null && track.Encoder.Width == width && track.Encoder.Height == height && track.LastUsedCodec == _negotiatedCodec)
+        {
+            if (track.Width != width || track.Height != height) 
+            {
+                track.Width = width;
+                track.Height = height;
+            }
+            return;
+        }
+
+        string reason = (track.Encoder != null && track.LastUsedCodec != _negotiatedCodec) ? "Codec changed" : "Dimensions changed";
+        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {_negotiatedCodec}) or ({track.Encoder?.Width ?? 0}x{track.Encoder?.Height ?? 0} -> {width}x{height}), recreating encoder");
+
+        track.Width = width;
+        track.Height = height;
+
+        if (track.Encoder != null)
+        {
+            track.Encoder.Dispose();
+            track.Encoder = null;
+        }
+
+        // Reset frame counters on resolution or codec change
+        Interlocked.Exchange(ref track.SentFrames, 0);
+        Interlocked.Exchange(ref track.EncodedFrames, 0);
+
+        var device = track.Device ?? _sharedDevice;
+        if (device == null)
+        {
+            Logger.Info($"[SIPSorcery] Track {track.Index}: No D3D11 device, cannot initialize encoder");
+            return;
+        }
+
+        var vendor = gpuVendor ?? GpuVendorDetector.DetectPrimaryGpuVendor();
+        track.Encoder = TryInitializeEncoderWithFallback(track, device, vendor);
+        if (track.Encoder != null)
+        {
+            track.LastUsedCodec = _negotiatedCodec;
         }
     }
 
@@ -51,6 +89,16 @@ public partial class SIPSorceryStreamer
             return null;
         }
 
+        // Set codec mode on native encoders (H265 if negotiated)
+        bool useHevc = _negotiatedCodec == VideoCodec.H265;
+        if (useHevc)
+        {
+            if (encoder is NvencNativeWrapper nvenc) nvenc.UseHevc = true;
+            else if (encoder is AmfNativeWrapper amf) amf.UseHevc = true;
+            else if (encoder is QsvNativeWrapper qsv) qsv.UseHevc = true;
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Encoder configured for HEVC (H.265)");
+        }
+
         try
         {
             encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
@@ -59,7 +107,7 @@ public partial class SIPSorceryStreamer
             // Use BGRA mode if encoder supports it (eliminates GPU color conversion)
             if (encoder.SupportsBgraInput)
             {
-                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateKbps, device);
+                initSuccess = encoder.InitializeBgra(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device);
                 if (initSuccess)
                 {
                     string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
@@ -70,7 +118,7 @@ public partial class SIPSorceryStreamer
                 Logger.Error($"[SIPSorcery] Track {track.Index}: BGRA mode failed, trying NV12 mode...");
             }
 
-            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device);
+            initSuccess = encoder.Initialize(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device);
             if (initSuccess)
             {
                 string encoderName = encoder.GetType().Name.Replace("NativeWrapper", "").Replace("Adapter", "");
@@ -124,7 +172,7 @@ public partial class SIPSorceryStreamer
                 var encoder = new LibAvEncoderAdapter();
                 encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
-                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateKbps, device, codec))
+                if (encoder.Initialize(track.Width, track.Height, _fps, _bitrateController.TargetBitrateKbps, device, codec))
                 {
                     Logger.Info($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {encoder.CurrentCodec})");
                     return encoder;
@@ -258,12 +306,13 @@ public partial class SIPSorceryStreamer
     {
         _running = false;
         _connected = false;
+        _phase3Active = false;
+        _phase3PendingActivation = false;
 
         // Reset shared sync clock for next connection
         Interlocked.Exchange(ref _streamStartMs, -1);
         lock (_audioSyncLock)
         {
-            _audioClockInitialized = false;
             _lastAbsoluteAudioRtp = 0;
         }
 
@@ -277,16 +326,61 @@ public partial class SIPSorceryStreamer
         lock (_lock)
         {
             foreach (var track in _tracks)
-                track.Dispose();
-            _tracks.Clear();
+            {
+                // IMPORTANT: Do NOT dispose encoders here to allow fast re-use!
+                // Just clear the track reference associated with the old PeerConnection.
+                track.Track = null;
+                
+                // Clear any pending frames from previous session
+                track.PendingFrame = null;
+
+                // Reset session-specific counters to ensure clean bootstrap on reconnect
+                Interlocked.Exchange(ref track.SentFrames, 0);
+                Interlocked.Exchange(ref track.EncodedFrames, 0);
+                track.IdrViaDcCount = 0;
+                track.IsDecodable = false;
+                track.IsSessionStarted = false;
+                Interlocked.Exchange(ref track.DcNotReadyCount, 0);
+
+                // Generate fresh SSRC + SeqNum to force client's jitter buffer to reset.
+                // Reusing the same SSRC with a sequence gap causes the client to hold frames
+                // waiting for "missing" packets from the previous session.
+                track.Ssrc = (uint)Random.Shared.Next(100000000, 2000000000);
+                track.SequenceNumber = (ushort)Random.Shared.Next(0, ushort.MaxValue);
+            }
+
+            // Do NOT call _tracks.Clear() - we persist TrackInfo for encoder/device reuse (SSRC is refreshed above)
+            _dcWasAboveHigh = false;
+            _congestionBitrateReduced = false;
+            foreach (var t in _tracks)
+            {
+                t.PFramesDroppedDuringCongestion = false;
+                t.LastCongestResyncTicks = 0;
+            }
             _pendingDevices.Clear();
         }
 
         try { _audioDc?.close(); } catch { }
         _audioDc = null;
 
+        try { _audioPc?.close(); } catch { }
+        _audioPc = null;
+        lock (_pendingAudioIceCandidates) { _pendingAudioIceCandidates.Clear(); }
+        lock (_pendingAudioLocalCandidates) { _pendingAudioLocalCandidates.Clear(); }
+        _audioAnswerDelivered = false;
+
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;
+
+        // Close per-track H265 video DataChannels
+        lock (_h265VideoDcs)
+        {
+            foreach (var dc in _h265VideoDcs.Values)
+                try { dc.close(); } catch { }
+            _h265VideoDcs.Clear();
+        }
+        try { _h265VideoDcLegacy?.close(); } catch { }
+        _h265VideoDcLegacy = null;
 
         try { _pc?.close(); } catch { }
         _pc = null;
@@ -397,7 +491,11 @@ public partial class SIPSorceryStreamer
                 {
                     long encCount = Interlocked.Read(ref t.EncodeLatencyCount);
                     long avgUs = encCount > 0 ? Interlocked.Read(ref t.EncodeLatencySum) / encCount : 0;
-                    return $"m{t.Index}:{t.SentFrames}f,enc={avgUs}us";
+                    long encoded = Interlocked.Read(ref t.EncodedFrames);
+                    long sent = Interlocked.Read(ref t.SentFrames);
+                    long skipped = encoded - sent;
+                    string skipInfo = _negotiatedCodec == VideoCodec.H265 && skipped > 0 ? $",skip={skipped}" : "";
+                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}),lat={avgUs}us";
                 }));
                 var audioPkts = Interlocked.Read(ref _audioPacketsSent);
                 long lastInterval = _audioPacketsLastInterval;
@@ -405,7 +503,18 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
-                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}");
+                // Log DC buffer depth for H265 latency diagnosis
+                var dcInfo = "";
+                if (_negotiatedCodec == VideoCodec.H265)
+                {
+                    var dcBuffers = _tracks.Select(t =>
+                    {
+                        var dc = GetH265VideoChannel(t.Index);
+                        return dc != null ? $"dc{t.Index}={dc.bufferedAmount / 1024}KB" : null;
+                    }).Where(s => s != null);
+                    dcInfo = $", {string.Join(", ", dcBuffers)}";
+                }
+                Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}{dcInfo}");
             }
         }
     }
@@ -441,6 +550,17 @@ public partial class SIPSorceryStreamer
         if (_disposed) return;
         _disposed = true;
         Stop();
+
+        // Final cleanup of persistent track resources
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+            {
+                track.Dispose();
+            }
+            _tracks.Clear();
+        }
+
         Logger.Info("[SIPSorcery] Disposed");
     }
 }
