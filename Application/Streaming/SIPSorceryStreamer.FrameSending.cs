@@ -23,6 +23,9 @@ public partial class SIPSorceryStreamer
     private const ulong DC_BUFFER_HIGH_WATER = 1_048_576;  // 1MB — must accommodate periodic GOP IDR frames
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     private volatile bool _congestionBitrateReduced; // true while bitrate is temporarily reduced due to DC congestion
+    // Soft congestion: proactive bitrate reduction when DC buffer starts growing (before HIGH_WATER)
+    private volatile bool _dcSoftCongestion;
+    private int _dcPreCongestionBitrate;
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -68,35 +71,33 @@ public partial class SIPSorceryStreamer
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
             Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
 
-        // Pre-encode throttling for H265/DataChannel: skip frames BEFORE encoding
-        // when DC buffer is filling up. Alternating pattern (not consecutive) to avoid stutter.
-        // LOW thresholds for low latency: at 15Mbps, 100KB = ~53ms, 200KB = ~107ms.
-        // All DCs share one SCTP association → total queuing affects ALL tracks.
-        if (_negotiatedCodec == VideoCodec.H265)
+        // DC-aware bitrate reduction for H265/DataChannel:
+        // Instead of skipping frames (causes visual discontinuity), reduce encoder bitrate
+        // when SCTP buffer grows. This keeps all frames but makes them SMALLER.
+        // Result: smooth motion at lower quality during high-motion, low latency maintained.
+        if (_negotiatedCodec == VideoCodec.H265 && Interlocked.Read(ref track.EncodedFrames) > 0)
         {
-            long captureCount = Interlocked.Increment(ref track.CaptureFrameCount);
-            // Never skip the first frame (IDR bootstrap)
-            if (Interlocked.Read(ref track.EncodedFrames) > 0)
+            var dc = GetH265VideoChannel(track.Index);
+            if (dc != null)
             {
-                var dc = GetH265VideoChannel(track.Index);
-                if (dc != null)
+                ulong buffered = dc.bufferedAmount;
+                int targetBitrate = _bitrateController.TargetBitrateKbps;
+                // Soft congestion: buffer growing → proactively reduce bitrate before it hits HIGH_WATER.
+                // This is MUCH faster than waiting for client feedback (which has 1+ second round trip).
+                if (buffered > 300_000 && !_dcSoftCongestion)
                 {
-                    ulong buffered = dc.bufferedAmount;
-                    // Progressive skip with LOW thresholds for minimal latency:
-                    // At 15Mbps: 100KB ≈ 53ms, 200KB ≈ 107ms, 400KB ≈ 213ms queuing delay.
-                    // Must use if-else to avoid cascading skips (all frames dropped).
-                    if (buffered > 400_000)
-                    {
-                        if (captureCount % 3 != 0) return; // keep 1 in 3 (33% throughput)
-                    }
-                    else if (buffered > 200_000)
-                    {
-                        if (captureCount % 2 != 0) return; // keep 1 in 2 (50% throughput)
-                    }
-                    else if (buffered > 100_000)
-                    {
-                        if (captureCount % 3 == 0) return; // keep 2 in 3 (67% throughput)
-                    }
+                    _dcSoftCongestion = true;
+                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, targetBitrate * 50 / 100); // -50%
+                    _dcPreCongestionBitrate = targetBitrate;
+                    ApplyBitrateToAllEncoders(reduced);
+                    Logger.Info($"[SIPSorcery] DC soft congestion ({buffered/1024}KB) → bitrate {targetBitrate} → {reduced}kbps (-50%)");
+                }
+                // Recovery: buffer drained → restore bitrate
+                else if (buffered < 50_000 && _dcSoftCongestion)
+                {
+                    _dcSoftCongestion = false;
+                    ApplyBitrateToAllEncoders(_dcPreCongestionBitrate);
+                    Logger.Info($"[SIPSorcery] DC soft congestion cleared ({buffered/1024}KB) → bitrate restored to {_dcPreCongestionBitrate}kbps");
                 }
             }
         }

@@ -495,8 +495,10 @@ public partial class SIPSorceryStreamer
                     long encoded = Interlocked.Read(ref t.EncodedFrames);
                     long sent = Interlocked.Read(ref t.SentFrames);
                     long skipped = encoded - sent;
+                    long throttled = Interlocked.Read(ref t.ThrottledFrames);
                     string skipInfo = _negotiatedCodec == VideoCodec.H265 && skipped > 0 ? $",skip={skipped}" : "";
-                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}),lat={avgUs}us";
+                    string throttleInfo = throttled > 0 ? $",thr={throttled}" : "";
+                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}{throttleInfo}),lat={avgUs}us";
                 }));
                 var audioPkts = Interlocked.Read(ref _audioPacketsSent);
                 long lastInterval = _audioPacketsLastInterval;
