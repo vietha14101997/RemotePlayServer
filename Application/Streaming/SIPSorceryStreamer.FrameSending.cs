@@ -25,7 +25,9 @@ public partial class SIPSorceryStreamer
     private volatile bool _congestionBitrateReduced; // true while bitrate is temporarily reduced due to DC congestion
     // Soft congestion: proactive bitrate reduction when DC buffer starts growing (before HIGH_WATER)
     private volatile bool _dcSoftCongestion;
-    private int _dcPreCongestionBitrate;
+    private long _dcSoftCongestionClearTicks; // Hold timer: when buffer first went below threshold (0 = not started)
+    // Staggered IDR after drain: global cooldown ensures only 1 track gets IDR at a time
+    private long _lastDrainIdrTicks;
 
     /// <summary>
     /// Check if a track requires BGRA input (no color conversion needed)
@@ -75,29 +77,47 @@ public partial class SIPSorceryStreamer
         // Instead of skipping frames (causes visual discontinuity), reduce encoder bitrate
         // when SCTP buffer grows. This keeps all frames but makes them SMALLER.
         // Result: smooth motion at lower quality during high-motion, low latency maintained.
+        //
+        // KEY DESIGN: Sync with AdaptiveBitrateController via ForceTarget() instead of
+        // manual restore. This prevents oscillation (old: 12000→6000→12000→6000 every few seconds).
+        // ABC naturally recovers bitrate over 5-10 seconds, finding the sustainable ceiling.
         if (_negotiatedCodec == VideoCodec.H265 && Interlocked.Read(ref track.EncodedFrames) > 0)
         {
             var dc = GetH265VideoChannel(track.Index);
             if (dc != null)
             {
                 ulong buffered = dc.bufferedAmount;
-                int targetBitrate = _bitrateController.TargetBitrateKbps;
                 // Soft congestion: buffer growing → proactively reduce bitrate before it hits HIGH_WATER.
-                // This is MUCH faster than waiting for client feedback (which has 1+ second round trip).
                 if (buffered > 300_000 && !_dcSoftCongestion)
                 {
                     _dcSoftCongestion = true;
-                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, targetBitrate * 50 / 100); // -50%
-                    _dcPreCongestionBitrate = targetBitrate;
+                    _dcSoftCongestionClearTicks = 0; // Reset hold timer
+                    int currentBitrate = _bitrateController.TargetBitrateKbps;
+                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 60 / 100); // -40%
+                    _bitrateController.ForceTarget(reduced); // Sync ABC — it will recover gradually
                     ApplyBitrateToAllEncoders(reduced);
-                    Logger.Info($"[SIPSorcery] DC soft congestion ({buffered/1024}KB) → bitrate {targetBitrate} → {reduced}kbps (-50%)");
+                    Logger.Info($"[SIPSorcery] DC soft congestion ({buffered/1024}KB) → bitrate {currentBitrate} → {reduced}kbps (-40%, ABC synced)");
                 }
-                // Recovery: buffer drained → restore bitrate
-                else if (buffered < 50_000 && _dcSoftCongestion)
+                // Recovery: buffer must stay below 100KB for 500ms before clearing.
+                // Don't restore bitrate manually — ABC recovers gradually (5-10s), preventing oscillation.
+                else if (_dcSoftCongestion && buffered < 100_000)
                 {
-                    _dcSoftCongestion = false;
-                    ApplyBitrateToAllEncoders(_dcPreCongestionBitrate);
-                    Logger.Info($"[SIPSorcery] DC soft congestion cleared ({buffered/1024}KB) → bitrate restored to {_dcPreCongestionBitrate}kbps");
+                    long now = Environment.TickCount64;
+                    if (_dcSoftCongestionClearTicks == 0)
+                    {
+                        _dcSoftCongestionClearTicks = now; // Start hold timer
+                    }
+                    else if (now - _dcSoftCongestionClearTicks > 500) // 500ms hold
+                    {
+                        _dcSoftCongestion = false;
+                        _dcSoftCongestionClearTicks = 0;
+                        // Don't touch bitrate — ABC will recover naturally from the ForceTarget value
+                        Logger.Info($"[SIPSorcery] DC soft congestion cleared ({buffered/1024}KB) → ABC will recover gradually");
+                    }
+                }
+                else if (_dcSoftCongestion && buffered >= 100_000)
+                {
+                    _dcSoftCongestionClearTicks = 0; // Buffer went back up, reset hold timer
                 }
             }
         }
@@ -625,14 +645,27 @@ public partial class SIPSorceryStreamer
         ulong buffered = dc.bufferedAmount;
         bool perTrackMode = IsPerTrackDcMode();
         // Per-track drain detection: this track's DC was congested, now drained.
-        // Do NOT force IDR here — IDR frames (300-400KB per track × 2 tracks = 600-800KB)
-        // will immediately re-flood the SCTP buffer, creating a congestion death spiral.
-        // Just reset flags and continue with P-frames. Client requests keyframes if needed.
+        // Queue IDR to repair prediction chain, BUT only if:
+        // 1. Buffer is very low (< 64KB) — enough headroom for one IDR
+        // 2. No other track is also queuing IDR (stagger to avoid 2× IDR = death spiral)
+        // 3. Cooldown: at least 2s since last congestion IDR on this track
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
             track.PFramesDroppedDuringCongestion = false;
             _congestionBitrateReduced = false;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — resuming P-frames (no IDR to avoid re-congestion)");
+            long now = Environment.TickCount64;
+            bool bufferSafe = buffered < 150_000;
+            bool cooldownOk = (now - Interlocked.Read(ref _lastDrainIdrTicks)) > 2000;
+            if (bufferSafe && cooldownOk)
+            {
+                Interlocked.Exchange(ref _lastDrainIdrTicks, now);
+                track.ForceNextKeyframe = true;
+                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — queued staggered IDR (prediction chain repair)");
+            }
+            else
+            {
+                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — skipping IDR (buf={bufferSafe}, cd={cooldownOk})");
+            }
         }
         // Legacy single-DC drain detection (only in legacy mode)
         if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
@@ -740,14 +773,23 @@ public partial class SIPSorceryStreamer
         }
 
         // Per-track drain detection: this track's DC was congested, now drained.
-        // Do NOT force IDR here — IDR frames (300-400KB per track × 2 tracks = 600-800KB)
-        // will immediately re-flood the SCTP buffer, creating a congestion death spiral.
-        // Just reset flags and continue with P-frames. Client requests keyframes if needed.
+        // Queue staggered IDR: only 1 track at a time, buffer must be very low, 2s cooldown.
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
             track.PFramesDroppedDuringCongestion = false;
             _congestionBitrateReduced = false;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — resuming P-frames (no IDR to avoid re-congestion)");
+            bool bufferSafe = buffered < 150_000;
+            bool cooldownOk = (now - Interlocked.Read(ref _lastDrainIdrTicks)) > 2000;
+            if (bufferSafe && cooldownOk)
+            {
+                Interlocked.Exchange(ref _lastDrainIdrTicks, now);
+                track.ForceNextKeyframe = true;
+                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — queued staggered IDR (prediction chain repair)");
+            }
+            else
+            {
+                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — skipping IDR (buf={bufferSafe}, cd={cooldownOk})");
+            }
         }
         // Legacy single-DC drain detection (only in legacy mode)
         if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)

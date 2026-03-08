@@ -260,7 +260,13 @@ public partial class SIPSorceryStreamer : IDisposable
         _sharedDevice = device;
 
         var range = GetBitrateRange(_resolutionHeight, _fps);
-        _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
+        int maxBitrate = range.MaxBitrate;
+        // H265 via DataChannel/SCTP has lower throughput ceiling than H264 via RTP/UDP.
+        // Cap per-encoder bitrate to prevent SCTP buffer saturation (2 encoders × 10Mbps = 20Mbps total).
+        // H265 is ~35% more efficient, so 10Mbps H265 ≈ 14Mbps H264 quality.
+        if (codec == VideoCodec.H265)
+            maxBitrate = Math.Min(maxBitrate, 10000);
+        _bitrateController.Initialize(range.MinBitrate, maxBitrate);
 
         Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {_resolutionHeight}p, codec={codec}");
     }
