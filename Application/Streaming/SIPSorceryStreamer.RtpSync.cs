@@ -111,7 +111,6 @@ public partial class SIPSorceryStreamer
         // Convert elapsed wallclock to absolute audio RTP timestamp (48kHz)
         uint absoluteRtp = (uint)((long)AudioClockRate * elapsedMs / 1000L);
 
-        _audioClockInitialized = true;
         _lastAbsoluteAudioRtp = absoluteRtp;
         return absoluteRtp > 0 ? absoluteRtp : DefaultStep;
     }
@@ -134,7 +133,6 @@ public partial class SIPSorceryStreamer
 
         lock (_audioSyncLock)
         {
-            _audioClockInitialized = false;
             _lastAbsoluteAudioRtp = 0;
         }
         lock (_lock)

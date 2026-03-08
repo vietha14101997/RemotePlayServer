@@ -83,8 +83,6 @@ public partial class SIPSorceryStreamer : IDisposable
     // Audio sync: last absolute audio RTP timestamp (protected by _audioSyncLock)
     private readonly object _audioSyncLock = new();
     private uint _lastAbsoluteAudioRtp;
-    private bool _audioClockInitialized;
-
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
 
@@ -124,9 +122,6 @@ public partial class SIPSorceryStreamer : IDisposable
         public int KeyframeStaggerCountdown; // Frames to wait before forcing keyframe (stagger between tracks)
         public volatile bool PFramesDroppedDuringCongestion; // DC buffer was full → P-frames were dropped → need IDR resync when drained
         public long LastCongestResyncTicks; // Cooldown: last time IDR was forced after congestion drain (Environment.TickCount64)
-        public long CaptureFrameCount; // Pre-encode throttle counter: used for alternating skip pattern
-        public long ThrottledFrames;  // Pre-encode throttle: frames skipped before encoding to reduce DC latency
-
         // Shared-clock sync: capture-time-based RTP (replaces encoder-PTS-based)
         public uint LastAbsoluteRtp;
         public bool CaptureClockInitialized;
@@ -262,10 +257,12 @@ public partial class SIPSorceryStreamer : IDisposable
         var range = GetBitrateRange(_resolutionHeight, _fps);
         int maxBitrate = range.MaxBitrate;
         // H265 via DataChannel/SCTP has lower throughput ceiling than H264 via RTP/UDP.
-        // Cap per-encoder bitrate to prevent SCTP buffer saturation (2 encoders × 10Mbps = 20Mbps total).
-        // H265 is ~35% more efficient, so 10Mbps H265 ≈ 14Mbps H264 quality.
+        // Cap per-encoder bitrate to prevent SCTP buffer saturation (2 encoders × 8Mbps = 16Mbps total).
+        // H265 is ~35% more efficient, so 8Mbps H265 ≈ 12Mbps H264 quality.
+        // Log shows sustainable ceiling ~7-7.5Mbps before DC congestion — 8Mbps cap reduces
+        // the constant congestion→recovery→congestion cycle while maintaining quality.
         if (codec == VideoCodec.H265)
-            maxBitrate = Math.Min(maxBitrate, 10000);
+            maxBitrate = Math.Min(maxBitrate, 8000);
         _bitrateController.Initialize(range.MinBitrate, maxBitrate);
 
         Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {_resolutionHeight}p, codec={codec}");

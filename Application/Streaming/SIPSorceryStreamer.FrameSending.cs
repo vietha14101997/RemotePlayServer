@@ -23,8 +23,9 @@ public partial class SIPSorceryStreamer
     private const ulong DC_BUFFER_HIGH_WATER = 1_048_576;  // 1MB — must accommodate periodic GOP IDR frames
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     private volatile bool _congestionBitrateReduced; // true while bitrate is temporarily reduced due to DC congestion
-    // Soft congestion: proactive bitrate reduction when DC buffer starts growing (before HIGH_WATER)
+    // Soft congestion: proactive bitrate reduction when DC buffer stays elevated (before HIGH_WATER)
     private volatile bool _dcSoftCongestion;
+    private long _dcSoftCongestionEntryTicks; // Sustained entry: when buffer first exceeded threshold (0 = not started)
     private long _dcSoftCongestionClearTicks; // Hold timer: when buffer first went below threshold (0 = not started)
     // Staggered IDR after drain: global cooldown ensures only 1 track gets IDR at a time
     private long _lastDrainIdrTicks;
@@ -96,34 +97,53 @@ public partial class SIPSorceryStreamer
                 }
             }
 
-            // Soft congestion: total buffer growing → proactively reduce bitrate before it hits HIGH_WATER.
-            if (totalBuffered > 300_000 && !_dcSoftCongestion)
+            // Soft congestion: total buffer sustained above threshold → reduce bitrate.
+            // SUSTAINED CHECK: Buffer must stay above 500KB for 200ms to trigger.
+            // This prevents transient buffer spikes (1-2 frames worth) from causing
+            // unnecessary bitrate cuts. At 8Mbps×2tracks, a single above-average frame
+            // pair can briefly hit 300-500KB but drains instantly — not real congestion.
+            long now = Environment.TickCount64;
+            if (totalBuffered > 500_000 && !_dcSoftCongestion)
             {
-                _dcSoftCongestion = true;
-                _dcSoftCongestionClearTicks = 0; // Reset hold timer
-                int currentBitrate = _bitrateController.TargetBitrateKbps;
-                int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 60 / 100); // -40%
-                if (reduced < currentBitrate) // Only act if we can actually reduce
+                if (_dcSoftCongestionEntryTicks == 0)
                 {
-                    _bitrateController.ForceTarget(reduced); // Sync ABC — it will recover gradually
-                    ApplyBitrateToAllEncoders(reduced);
-                    Logger.Info($"[SIPSorcery] DC soft congestion ({totalBuffered/1024}KB total) → bitrate {currentBitrate} → {reduced}kbps (-40%, ABC synced)");
+                    _dcSoftCongestionEntryTicks = now; // Start sustained entry timer
+                }
+                else if (now - _dcSoftCongestionEntryTicks > 200) // 200ms sustained
+                {
+                    _dcSoftCongestion = true;
+                    _dcSoftCongestionEntryTicks = 0;
+                    _dcSoftCongestionClearTicks = 0;
+                    int currentBitrate = _bitrateController.TargetBitrateKbps;
+                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 80 / 100); // -20%
+                    if (reduced < currentBitrate)
+                    {
+                        _bitrateController.ForceTarget(reduced);
+                        ApplyBitrateToAllEncoders(reduced);
+                        Logger.Info($"[SIPSorcery] DC soft congestion ({totalBuffered/1024}KB total, sustained) → bitrate {currentBitrate} → {reduced}kbps (-20%, ABC synced)");
+                    }
                 }
             }
+            else if (!_dcSoftCongestion && totalBuffered <= 500_000)
+            {
+                _dcSoftCongestionEntryTicks = 0; // Buffer dropped before sustained — reset entry timer
+            }
             // Recovery: total buffer must stay below 100KB for 500ms before clearing.
-            // Don't restore bitrate manually — ABC recovers gradually (5-10s), preventing oscillation.
             else if (_dcSoftCongestion && totalBuffered < 100_000)
             {
-                long now = Environment.TickCount64;
                 if (_dcSoftCongestionClearTicks == 0)
                 {
-                    _dcSoftCongestionClearTicks = now; // Start hold timer
+                    _dcSoftCongestionClearTicks = now;
                 }
                 else if (now - _dcSoftCongestionClearTicks > 500) // 500ms hold
                 {
                     _dcSoftCongestion = false;
                     _dcSoftCongestionClearTicks = 0;
-                    Logger.Info($"[SIPSorcery] DC soft congestion cleared ({totalBuffered/1024}KB total) → ABC will recover gradually");
+                    // Reset ABC recovery timer from NOW (not from congestion start).
+                    // Without this, ABC starts recovering immediately because _lastNetworkIssueTime
+                    // was set when congestion started, and 3-5s has already elapsed during congestion.
+                    _bitrateController.MarkCongestionCleared();
+                    Logger.Info($"[SIPSorcery] DC soft congestion cleared ({totalBuffered/1024}KB total) → ABC will recover after cooldown");
                 }
             }
             else if (_dcSoftCongestion && totalBuffered >= 100_000)
@@ -755,8 +775,6 @@ public partial class SIPSorceryStreamer
 
         bool perTrackMode = IsPerTrackDcMode();
         long now = Environment.TickCount64;
-        const long CongestResyncCooldownMs = 2000; // Min 2s between forced IDR resyncs per track
-
         // Flow control: Skip P-frame when buffer is congested.
         // Unlike IDR, dropping a P-frame is acceptable — next IDR will resync.
         if (buffered > DC_BUFFER_HIGH_WATER)
@@ -852,7 +870,16 @@ public partial class SIPSorceryStreamer
         lock (_lock) { snapshot = _tracks.ToArray(); }
         foreach (var t in snapshot)
         {
-            lock (t.EncodeLock) { t.Encoder?.SetBitrate(bitrateKbps); }
+            try
+            {
+                lock (t.EncodeLock) { t.Encoder?.SetBitrate(bitrateKbps); }
+            }
+            catch (Exception ex)
+            {
+                // AMF SetBitrate can throw SEH exception intermittently.
+                // Don't let one track's failure prevent other tracks from being updated.
+                Logger.Error($"[SIPSorcery] Track {t.Index} ApplyBitrate({bitrateKbps}) failed: {ex.Message}");
+            }
         }
     }
 

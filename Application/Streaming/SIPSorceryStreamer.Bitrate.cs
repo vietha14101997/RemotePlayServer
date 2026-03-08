@@ -222,6 +222,19 @@ public partial class SIPSorceryStreamer
 
     public void RequestKeyframeBurst(int monitorIndex = -1, int count = 3)
     {
+        // H265 via DataChannel: IDR frames are huge (~200KB each).
+        // Burst of 5 IDR × 2 tracks = ~2MB flooding SCTP → instant death spiral.
+        // Cap to 1 IDR per burst in H265/DC mode, and skip if DC is already congested.
+        if (_negotiatedCodec == VideoCodec.H265)
+        {
+            if (_dcSoftCongestion)
+            {
+                Logger.Warn($"[SIPSorcery] Keyframe burst SKIPPED (DC congested, monitor={monitorIndex}, requested={count})");
+                return;
+            }
+            count = 1; // Single IDR is sufficient for H265 resync
+        }
+
         lock (_lock)
         {
             if (monitorIndex == -1)

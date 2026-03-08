@@ -288,14 +288,14 @@ public unsafe partial class LibAvEncoder
         switch (_encoderName)
         {
             case "h264_amf":
-                // AMD AMF - balanced latency + quality for desktop/text streaming
-                Logger.Info("[LibAvEncoder] Configuring AMD AMF encoder (quality + low latency)");
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "lowlatency", 0);  // lowlatency instead of ultralowlatency for quality
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "balanced", 0);  // balanced instead of speed
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);      // Main profile for CABAC
-                // Quality settings for sharper text/desktop content
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "true", 0);  // Enable for better quality
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "true", 0);         // Variance Based AQ - similar to spatial-aq
+                // AMD AMF - ultra-low-latency for gaming/streaming
+                Logger.Info("[LibAvEncoder] Configuring AMD AMF encoder (ultra-low-latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "ultralowlatency", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "speed", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);
+                // Disable quality features that add per-frame latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "enforce_hrd", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
@@ -304,13 +304,13 @@ public unsafe partial class LibAvEncoder
                 // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
                 if (_useVbrMode)
                 {
-                    // VBR mode - better for WiFi with fluctuating bandwidth
-                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);  // VBR with latency optimization
-                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "20", 0);  // Quality target for I-frames
-                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "22", 0);  // Quality target for P-frames
-                    _codecCtx->rc_max_rate = _bitrate * 3;  // Allow 3x peak for scene change
-                    _codecCtx->rc_buffer_size = _bitrate / 2;   // 500ms buffer for faster response
-                    Logger.Info($"[LibAvEncoder] AMF VBR mode: target {_bitrate/1000}kbps, max {_bitrate*3/1000}kbps");
+                    // VBR mode - tighter peak to prevent frame size spikes during scene changes
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "22", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "24", 0);
+                    _codecCtx->rc_max_rate = _bitrate * 2;  // 2x peak (was 3x — tighter for consistent delivery)
+                    _codecCtx->rc_buffer_size = _bitrate / 4;   // 250ms buffer (was 500ms — faster response)
+                    Logger.Info($"[LibAvEncoder] AMF VBR mode: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
                 }
                 else
                 {
@@ -433,13 +433,14 @@ public unsafe partial class LibAvEncoder
                 break;
 
             case "hevc_amf":
-                // AMD AMF HEVC - optimized for text/desktop content sharpness
-                Logger.Info("[LibAvEncoder] Configuring AMD HEVC AMF encoder (text-optimized)");
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "lowlatency", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "balanced", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);     // HEVC Main Profile
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "true", 0);
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "true", 0);        // Critical: allocates bits to text edges
+                // AMD AMF HEVC - ultra-low-latency for gaming/streaming
+                Logger.Info("[LibAvEncoder] Configuring AMD HEVC AMF encoder (ultra-low-latency)");
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "usage", "ultralowlatency", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "quality", "speed", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "profile", "main", 0);
+                // Disable quality features that add per-frame latency
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "preanalysis", "false", 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "vbaq", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "enforce_hrd", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
@@ -448,15 +449,15 @@ public unsafe partial class LibAvEncoder
                 _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
                 _codecCtx->level = 120;
 
-                // Rate control — conservative for DataChannel (SCTP) transport
+                // Rate control — tighter for DataChannel (SCTP) transport
                 if (_useVbrMode)
                 {
                     ffmpeg.av_opt_set(_codecCtx->priv_data, "rc", "vbr_latency", 0);
-                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "21", 0);    // Slightly sharper than original 22
-                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "23", 0);    // Slightly sharper than original 24
-                    _codecCtx->rc_max_rate = _bitrate * 2;       // 2x peak (conservative for SCTP)
-                    _codecCtx->rc_buffer_size = _bitrate / 2;    // 500ms buffer for responsive rate control
-                    Logger.Info($"[LibAvEncoder] HEVC AMF VBR: target {_bitrate/1000}kbps, max {_bitrate*2/1000}kbps");
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_i", "23", 0);
+                    ffmpeg.av_opt_set(_codecCtx->priv_data, "qp_p", "26", 0);
+                    _codecCtx->rc_max_rate = _bitrate * 3 / 2;  // 1.5x peak (was 2x — prevent frame size spikes)
+                    _codecCtx->rc_buffer_size = _bitrate / 4;    // 250ms buffer (was 500ms — faster response)
+                    Logger.Info($"[LibAvEncoder] HEVC AMF VBR: target {_bitrate/1000}kbps, max {_bitrate*3/2/1000}kbps");
                 }
                 else
                 {

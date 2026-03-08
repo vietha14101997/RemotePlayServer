@@ -313,7 +313,6 @@ public partial class SIPSorceryStreamer
         Interlocked.Exchange(ref _streamStartMs, -1);
         lock (_audioSyncLock)
         {
-            _audioClockInitialized = false;
             _lastAbsoluteAudioRtp = 0;
         }
 
@@ -495,10 +494,8 @@ public partial class SIPSorceryStreamer
                     long encoded = Interlocked.Read(ref t.EncodedFrames);
                     long sent = Interlocked.Read(ref t.SentFrames);
                     long skipped = encoded - sent;
-                    long throttled = Interlocked.Read(ref t.ThrottledFrames);
                     string skipInfo = _negotiatedCodec == VideoCodec.H265 && skipped > 0 ? $",skip={skipped}" : "";
-                    string throttleInfo = throttled > 0 ? $",thr={throttled}" : "";
-                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}{throttleInfo}),lat={avgUs}us";
+                    return $"m{t.Index}:{sent}f(enc={encoded}{skipInfo}),lat={avgUs}us";
                 }));
                 var audioPkts = Interlocked.Read(ref _audioPacketsSent);
                 long lastInterval = _audioPacketsLastInterval;

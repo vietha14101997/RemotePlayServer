@@ -50,12 +50,12 @@ static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
 
 // Configure common encoder properties for low-latency streaming (H.264)
 static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
-    encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_QUALITY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, AMF_VIDEO_ENCODER_USAGE_ULTRA_LOW_LATENCY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, AMF_VIDEO_ENCODER_QUALITY_PRESET_SPEED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, AMF_VIDEO_ENCODER_PROFILE_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 42);
     encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1500);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1300);  // 1.3x peak (was 1.5x) — tighter for consistent frame sizes
     encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
@@ -77,13 +77,13 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
 
 // Configure encoder properties for low-latency streaming (H.265/HEVC)
 static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, AMF_VIDEO_ENCODER_HEVC_USAGE_LOW_LATENCY);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_BALANCED);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, AMF_VIDEO_ENCODER_HEVC_USAGE_ULTRA_LOW_LATENCY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_SPEED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE, AMF_VIDEO_ENCODER_HEVC_PROFILE_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TIER, AMF_VIDEO_ENCODER_HEVC_TIER_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE_LEVEL, AMF_LEVEL_5_1);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrate * 1000);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1500);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1300);  // 1.3x peak (was 1.5x) — tighter for consistent frame sizes
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
@@ -93,19 +93,16 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
 
-    // ── VBAQ: key fix for text smearing (low GPU cost) ──
-    // Redistributes bits WITHIN the same CBR budget to prioritize text edges.
-    // Without VBAQ: text and flat background get equal bits → text under-allocated → smearing.
-    // With VBAQ: text edges get more bits, flat areas get fewer → sharper text, same bandwidth.
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_VBAQ, true);
-    // NOTE: Pre-analysis (PREENCODE_ENABLE) DISABLED — it runs an EXTRA encoding pass per frame,
-    // roughly doubling GPU encode load (29% → ~15% on RX 7600). VBAQ alone provides sufficient
-    // text quality improvement without the extra GPU cost.
+    // VBAQ disabled for ultra-low-latency gaming — adds per-frame analysis overhead.
+    // At SPEED preset + ULTRA_LOW_LATENCY, every microsecond counts during fast 3D scene changes.
+    // Text quality is acceptable at gaming bitrates (8-15Mbps) without VBAQ.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_VBAQ, false);
 
-    // Quality floor: prevent encoder from using too-high QP on P-frames (causes text smearing)
-    // QP range: 0 (best quality) - 51 (worst). Cap at 30 for decent text readability.
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)26);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)30);
+    // Relaxed QP floor for gaming — allow encoder more freedom during fast motion.
+    // Gaming content is motion-heavy; slightly higher QP on complex frames prevents
+    // frame size spikes that cause DataChannel buffer congestion.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)30);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)36);
 
     // Intra Refresh: gradually refresh CTBs (64x64 blocks) across frames.
     // Prevents temporal artifact accumulation without large IDR spikes.
