@@ -384,9 +384,11 @@ namespace RemotePlayServer.Application.Protocol
                                 Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
                                 _feedbackEstablished = true;
                                 _consecutiveStallCount = 0; // Reset escalation on real feedback
-                                // Proactive keyframe burst on significant packet loss
-                                if (feedback.PacketLossRate > 0.02f)
-                                    _streamer.RequestKeyframeBurst(-1, 3);
+                                // Proactive keyframe on significant packet loss.
+                                // H265 uses DataChannel (SCTP/reliable) — burst IDRs cause congestion death spiral.
+                                // Only burst for H264/RTP (UDP/unreliable) where lost packets need IDR to recover.
+                                if (feedback.PacketLossRate > 0.02f && _streamer.NegotiatedCodec != VideoCodec.H265)
+                                    _streamer.RequestKeyframeBurst(-1, 1);
 
                                 // WiFi-aware adaptive bitrate
                                 _streamer.SetWiFiMode(feedback.IsWiFi);
@@ -807,60 +809,59 @@ namespace RemotePlayServer.Application.Protocol
                             return;
                         }
 
-                        var (currentFps, currentBitrate, _) = streamer.GetCurrentConfig();
+                        var (currentFps, currentBitrate, monitorCount) = streamer.GetCurrentConfig();
+
+                        // CRITICAL: GetCurrentConfig returns TOTAL bitrate (per-encoder × monitorCount).
+                        // ForceSetBitrate sets EACH encoder to the given value.
+                        // We must calculate using per-encoder bitrate to avoid accidentally INCREASING it.
+                        int perEncoderBitrate = monitorCount > 1 ? currentBitrate / monitorCount : currentBitrate;
 
                         // Escalating response based on consecutive stall count
                         int newBitrate;
                         string severity;
-                        bool sendKeyframeBurst;
                         switch (_consecutiveStallCount)
                         {
                             case 1:
                                 // First stall: 25% cut - could be momentary blip
-                                newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                                newBitrate = Math.Max(2000, (int)(perEncoderBitrate * 0.75));
                                 severity = "moderate (25% cut)";
-                                sendKeyframeBurst = true;
                                 break;
                             case 2:
                                 // Second stall: 50% cut - clear sustained problem
-                                newBitrate = Math.Max(2000, currentBitrate / 2);
+                                newBitrate = Math.Max(2000, perEncoderBitrate / 2);
                                 severity = "aggressive (50% cut)";
-                                sendKeyframeBurst = true;
                                 break;
                             case 3:
                                 // Third stall: drop to minimum immediately
                                 newBitrate = 2000;
                                 severity = "emergency (minimum)";
-                                sendKeyframeBurst = true;
                                 break;
                             default:
-                                // 4th+ stall: already at minimum, NO keyframe burst.
-                                // Keyframes are larger than P-frames and pile up in the
-                                // send buffer on a stalled network, making congestion worse
-                                // and risking OOM in the RTP layer.
                                 newBitrate = 2000;
-                                severity = "sustain (minimum, no burst)";
-                                sendKeyframeBurst = false;
+                                severity = "sustain (minimum)";
                                 break;
                         }
 
                         // Safety: stall detection must NEVER increase bitrate.
-                        // This can happen if stall count resets (feedback arrived between stalls)
-                        // and the new stall #1 calculates a higher value than the current actual bitrate.
-                        if (newBitrate >= currentBitrate && currentBitrate > 2000)
+                        if (newBitrate >= perEncoderBitrate && perEncoderBitrate > 2000)
                         {
-                            newBitrate = Math.Max(2000, (int)(currentBitrate * 0.75));
+                            newBitrate = Math.Max(2000, (int)(perEncoderBitrate * 0.75));
                             severity = $"clamped (was {severity}, would increase)";
                         }
 
-                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s, stall #{_consecutiveStallCount} → {severity}: {currentBitrate} → {newBitrate}kbps");
+                        Logger.Info($"[StallDetect] No feedback for {timeSinceLastFeedback / 1000:F1}s, stall #{_consecutiveStallCount} → {severity}: {perEncoderBitrate} → {newBitrate}kbps (per-encoder)");
 
                         // Bypass adaptive controller - directly set encoder bitrate
                         streamer.ForceSetBitrate(newBitrate);
 
-                        // Only send keyframe burst for first 3 stalls (escalation phase)
-                        if (sendKeyframeBurst)
-                            streamer.RequestKeyframeBurst(-1, 3);
+                        // NEVER send keyframe burst for H265/DataChannel.
+                        // H265 IDR frames are 200-400KB each. Burst of 3 × 2 tracks = 1.5-2.4MB
+                        // dumped into SCTP buffer (reliable, ordered) → instant congestion death spiral.
+                        // Intra refresh handles visual recovery gradually without bandwidth spikes.
+                        // Only send keyframe burst for H264/RTP (UDP, unreliable — lost packets need IDR).
+                        bool isDataChannel = streamer.NegotiatedCodec == VideoCodec.H265;
+                        if (!isDataChannel && _consecutiveStallCount <= 3)
+                            streamer.RequestKeyframeBurst(-1, 1);
 
                         // Reset timer so we don't spam reductions every 200ms
                         Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);

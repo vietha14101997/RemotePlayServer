@@ -73,12 +73,14 @@ public partial class SIPSorceryStreamer
 
             ProcessQualityFeedback(syntheticFeedback);
 
-            // Force keyframe burst on severe conditions
+            // Force keyframe on severe conditions — but NOT for H265/DataChannel.
+            // H265 IDR frames are 200-400KB; bursting them into SCTP causes congestion death spiral.
+            // Intra refresh handles H265 recovery gradually without bandwidth spikes.
             bool severe = fpsRatio < 0.3f || dropRate > 0.5f;
-            if (severe)
+            if (severe && _negotiatedCodec != VideoCodec.H265)
             {
                 Logger.Info($"[FpsBitrateAction] Severe condition → keyframe burst mon={monitorIndex}");
-                RequestKeyframeBurst(monitorIndex, 3);
+                RequestKeyframeBurst(monitorIndex, 1);
             }
         }
     }
