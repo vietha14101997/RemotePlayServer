@@ -609,8 +609,8 @@ public partial class SIPSorceryStreamer
         ulong buffered = dc.bufferedAmount;
         bool perTrackMode = IsPerTrackDcMode();
         // Per-track drain detection: this track's DC was congested, now drained.
-        // Do NOT force IDR here — IDR frames (200-600KB) are too large for SCTP DataChannel
-        // and will immediately re-flood the buffer, creating a congestion death spiral.
+        // Do NOT force IDR here — IDR frames (300-400KB per track × 2 tracks = 600-800KB)
+        // will immediately re-flood the SCTP buffer, creating a congestion death spiral.
         // Just reset flags and continue with P-frames. Client requests keyframes if needed.
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
@@ -619,12 +619,11 @@ public partial class SIPSorceryStreamer
             Logger.Info($"[SIPSorcery] Track {track.Index}: per-track DC drained ({buffered/1024}KB) — resuming P-frames (no IDR to avoid re-congestion)");
         }
         // Legacy single-DC drain detection (only in legacy mode)
-        // Do NOT force IDR — same reason as per-track: IDR too large for SCTP.
         if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
             _congestionBitrateReduced = false;
-            Logger.Info($"[SIPSorcery] Track {track.Index}: DC buffer drained ({buffered/1024}KB) — resuming (no IDR)");
+            Logger.Info($"[SIPSorcery] DC buffer drained ({buffered/1024}KB) — resuming (no IDR)");
         }
 
         // Flow control: Block IDR when buffer is already congested.
@@ -725,8 +724,8 @@ public partial class SIPSorceryStreamer
         }
 
         // Per-track drain detection: this track's DC was congested, now drained.
-        // Do NOT force IDR here — IDR frames (200-600KB) are too large for SCTP DataChannel
-        // and will immediately re-flood the buffer, creating a congestion death spiral.
+        // Do NOT force IDR here — IDR frames (300-400KB per track × 2 tracks = 600-800KB)
+        // will immediately re-flood the SCTP buffer, creating a congestion death spiral.
         // Just reset flags and continue with P-frames. Client requests keyframes if needed.
         if (track.PFramesDroppedDuringCongestion && buffered < DC_BUFFER_LOW_WATER)
         {
@@ -739,7 +738,7 @@ public partial class SIPSorceryStreamer
         {
             _dcWasAboveHigh = false;
             _congestionBitrateReduced = false;
-            ForceIdrForDroppedTracks();
+            Logger.Info($"[SIPSorcery] DC buffer drained ({buffered/1024}KB) — resuming (no IDR)");
         }
 
         try

@@ -396,6 +396,18 @@ namespace RemotePlayServer.Application.Streaming
         }
 
         /// <summary>
+        /// Mark that DC congestion has just cleared. Resets recovery timer so the full
+        /// RECOVERY_DELAY_MS must elapse before bitrate starts climbing again.
+        /// Without this, recovery starts almost immediately because _lastNetworkIssueTime
+        /// was set when congestion STARTED, not when it CLEARED.
+        /// </summary>
+        public void MarkCongestionCleared()
+        {
+            _lastNetworkIssueTime = DateTime.UtcNow;
+            _lastAdjustmentTime = DateTime.UtcNow;
+        }
+
+        /// <summary>
         /// Reset controller to initial state.
         /// </summary>
         public void Reset()

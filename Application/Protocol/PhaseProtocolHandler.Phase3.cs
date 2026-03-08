@@ -748,8 +748,10 @@ namespace RemotePlayServer.Application.Protocol
         private System.Timers.Timer? _stallDetectTimer;
         private int _consecutiveStallCount;
         private long _lastStallCheckFrameCount;              // Track frame production to distinguish static content from real stalls
+        private DateTime _streamingStartTime;                // Grace period: don't fire stall detection during initial warmup
         private const int STALL_CHECK_INTERVAL_MS = 500;    // Check every 500ms (sufficient granularity)
         private const int STALL_THRESHOLD_MS = 1500;         // 1.5s without feedback = stall (tolerates WiFi jitter, still fast recovery)
+        private const int STALL_WARMUP_MS = 5000;            // 5s grace period: H265 decoder init + SCTP ramp-up on Android
         private const int MAX_CONSECUTIVE_STALLS = 10;       // After 10 stalls, stop acting — let KeepAlive handle it
 
         /// <summary>
@@ -763,6 +765,7 @@ namespace RemotePlayServer.Application.Protocol
         {
             Interlocked.Exchange(ref _lastClientFeedbackTicks, DateTime.UtcNow.Ticks);
             _consecutiveStallCount = 0;
+            _streamingStartTime = DateTime.UtcNow;
 
             _stallDetectTimer = new System.Timers.Timer(STALL_CHECK_INTERVAL_MS);
             _stallDetectTimer.Elapsed += (s, e) =>
@@ -780,6 +783,11 @@ namespace RemotePlayServer.Application.Protocol
                     // Don't detect stalls until client has sent at least one feedback
                     // (avoids false positives during initial connection setup)
                     if (!_feedbackEstablished) return;
+
+                    // Grace period: H265 decoder init + SCTP congestion window ramp-up
+                    // causes natural feedback gaps during first few seconds.
+                    // Cutting bitrate during this period makes things WORSE.
+                    if ((DateTime.UtcNow - _streamingStartTime).TotalMilliseconds < STALL_WARMUP_MS) return;
 
                     var lastFeedback = new DateTime(Interlocked.Read(ref _lastClientFeedbackTicks));
                     var timeSinceLastFeedback = (DateTime.UtcNow - lastFeedback).TotalMilliseconds;
@@ -876,7 +884,7 @@ namespace RemotePlayServer.Application.Protocol
             };
             _stallDetectTimer.AutoReset = true;
             _stallDetectTimer.Start();
-            Logger.Info("[StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)");
+            Logger.Info($"[StallDetect] Server-side stall detection started (1500ms threshold, {STALL_WARMUP_MS}ms warmup, frame-aware, escalating response)");
         }
 
         /// <summary>

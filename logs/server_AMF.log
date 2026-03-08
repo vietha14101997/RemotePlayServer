@@ -18,7 +18,7 @@
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
 [SIPSorcery] Pre-warming DTLS crypto...
-[SIPSorcery] DTLS pre-warm done in 2103ms
+[SIPSorcery] DTLS pre-warm done in 2116ms
 [HTTP] Server: 192.168.1.7:8288
 
 === QRCode (Scan to connect) ===
@@ -48,8 +48,8 @@ Data: {"ip":"192.168.1.7","port":"8288"}
   [WiFi] 192.168.1.7:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 3aa522ea-f4a8-41ec-946e-911321f21508, protocol=v2, transport=WiFi
-[Protocol] Client 3aa522ea-f4a8-41ec-946e-911321f21508 connected from 192.168.1.3 (v2 protocol, transport=WiFi)
+[Signal] Client connected d22a9315-31ea-455b-bed6-304e99f579b1, protocol=v2, transport=WiFi
+[Protocol] Client d22a9315-31ea-455b-bed6-304e99f579b1 connected from 192.168.1.3 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 8546504704 bytes = 8150 MB
@@ -80,18 +80,18 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 40MB in 2283ms = 147.0 Mbps
+[Protocol] Download test complete: sent 40MB in 2020ms = 166.1 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 275.1Mbps, 16.7ms
-[Protocol] ✓ Received speedtest_result from client: 275.1Mbps, 16.7ms ping
+[Protocol] speedtest_result parsed: 276.4Mbps, 16.7ms
+[Protocol] ✓ Received speedtest_result from client: 276.4Mbps, 16.7ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1920x1080@60fps, bitrate=15000kbps, codec=H265, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1772943132156...
+[Protocol] WaitForProceed received: ping:1772945887703...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
@@ -117,7 +117,7 @@ Server is running. Press ENTER to exit.
 [DpiScaling] Monitor 1: current=100%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 125%
 [Display] Scale and Layout set to 125%
-[Guard] Watchdog spawned (PID=22928), monitoring server PID=15320
+[Guard] Watchdog spawned (PID=13688), monitoring server PID=25676
 [Protocol] All monitors by X: \\.\DISPLAY2(P,x=0,PRI), \\.\DISPLAY1(P,x=1920)
 [Protocol] Selected (all physical by X): \\.\DISPLAY2, \\.\DISPLAY1
 [Protocol] Monitor 0 (\\.\DISPLAY2): rect=(0,0) 1920x1080
@@ -142,41 +142,41 @@ Server is running. Press ENTER to exit.
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1772943134174...
+[Protocol] ICE RX: ping:1772945889729...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2304053056 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3627262181 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3061889313 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3803784349 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3981147344 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"676867538 1 udp 2122063615 11....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1523120050 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2337517101 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2304053056 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3627262181 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3061889313 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3803784349 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3981147344 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"676867538 1 udp 2122063615 11....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1523120050 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2337517101 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2304053056 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3627262181 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3061889313 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3803784349 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3981147344 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"676867538 1 udp 2122063615 11....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1523120050 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2337517101 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2304053056 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3627262181 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3061889313 1 udp 2122129151 5....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3803784349 1 udp 2122129151 5....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3981147344 1 udp 2122063615 11...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"676867538 1 udp 2122063615 11....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"1523120050 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2337517101 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 7000273352703745256 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6323119303934310926 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [Protocol] Received single offer for all monitors
@@ -187,83 +187,85 @@ Server is running. Press ENTER to exit.
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 86:94:25:E4:F9:76:73:CA:87:B2:37:80:CC:24:00:C8:BA:A0:9D:62:9D:CD:95:3B:AC:99:55:2B:F1:EF:F0:9A
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 31:52:E2:D4:EB:DA:ED:75:F2:08:19:41:E9:C1:9D:32:33:3B:4E:EE:9A:53:F5:10:E1:33:70:EF:9B:CB:D7:72
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 86:94:25:E4:F9:76:73:CA:87:B2:37:80:CC:24:00:C8:BA:A0:9D:62:9D:CD:95:3B:AC:99:55:2B:F1:EF:F0:9A
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 31:52:E2:D4:EB:DA:ED:75:F2:08:19:41:E9:C1:9D:32:33:3B:4E:EE:9A:53:F5:10:E1:33:70:EF:9B:CB:D7:72
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 86:94:25:E4:F9:76:73:CA:87:B2:37:80:CC:24:00:C8:BA:A0:9D:62:9D:CD:95:3B:AC:99:55:2B:F1:EF:F0:9A
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 31:52:E2:D4:EB:DA:ED:75:F2:08:19:41:E9:C1:9D:32:33:3B:4E:EE:9A:53:F5:10:E1:33:70:EF:9B:CB:D7:72
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 86:94:25:E4:F9:76:73:CA:87:B2:37:80:CC:24:00:C8:BA:A0:9D:62:9D:CD:95:3B:AC:99:55:2B:F1:EF:F0:9A
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 31:52:E2:D4:EB:DA:ED:75:F2:08:19:41:E9:C1:9D:32:33:3B:4E:EE:9A:53:F5:10:E1:33:70:EF:9B:CB:D7:72
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] PeerConnection created (with STUN)
-[SIPSorcery] Added track 0: 1920x1080 (device=82C685E7), SSRC=369948884
-[SIPSorcery] Added track 1: 1920x1080 (device=82D922E7), SSRC=1911322852
+[SIPSorcery] Added track 0: 1920x1080 (device=02CE8D8E), SSRC=984863088
+[SIPSorcery] Added track 1: 1920x1080 (device=02E9AC4E), SSRC=1844874482
 [SIPSorcery] Added SendOnly Opus audio track to main PC (RTP transport)
 [SIPSorcery] Waiting for client audio/cursor/h265video DataChannels (per-track or legacy)
+[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
+[SIPSorcery] Local ICE: 1097927149 1 udp 2113940223 2402:800:610d:eab:d9d2...
+[SIPSorcery] Local ICE: 2361428796 1 udp 2113937663 192.168.1.7 65190 typ ...
 [SIPSorcery] ICE state: checking
 [SIPSorcery] Signaling state: have_remote_offer
 [SIPSorcery] After setRemoteDescription: signalingState=have_remote_offer
-[SIPSorcery] Local ICE: 2566415119 1 udp 2113940223 2402:800:610d:eab:540f...
-[SIPSorcery] Local ICE: 1097927149 1 udp 2113940223 2402:800:610d:eab:d9d2...
-[SIPSorcery] Local ICE: 2361428796 1 udp 2113937663 192.168.1.7 51868 typ ...
 [SIPSorcery] After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] SDP: a=fingerprint:sha-256 02:EC:5F:21:17:C0:75:5D:6D:2B:38:93:7D:D8:32:5E:E4:A1:02:0E:97:A9:6C:C2:B0:51:2A:17:6E:FE:32:4D
+[SIPSorcery] SDP: a=fingerprint:sha-256 F7:CA:1A:A2:4D:A2:79:A5:76:82:09:26:DA:F4:BC:B4:03:96:DC:8F:FB:0B:E1:42:C2:0B:99:DB:28:73:CF:ED
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 02:EC:5F:21:17:C0:75:5D:6D:2B:38:93:7D:D8:32:5E:E4:A1:02:0E:97:A9:6C:C2:B0:51:2A:17:6E:FE:32:4D
+[SIPSorcery] SDP: a=fingerprint:sha-256 F7:CA:1A:A2:4D:A2:79:A5:76:82:09:26:DA:F4:BC:B4:03:96:DC:8F:FB:0B:E1:42:C2:0B:99:DB:28:73:CF:ED
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 02:EC:5F:21:17:C0:75:5D:6D:2B:38:93:7D:D8:32:5E:E4:A1:02:0E:97:A9:6C:C2:B0:51:2A:17:6E:FE:32:4D
+[SIPSorcery] SDP: a=fingerprint:sha-256 F7:CA:1A:A2:4D:A2:79:A5:76:82:09:26:DA:F4:BC:B4:03:96:DC:8F:FB:0B:E1:42:C2:0B:99:DB:28:73:CF:ED
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] SDP: a=fingerprint:sha-256 02:EC:5F:21:17:C0:75:5D:6D:2B:38:93:7D:D8:32:5E:E4:A1:02:0E:97:A9:6C:C2:B0:51:2A:17:6E:FE:32:4D
+[SIPSorcery] SDP: a=fingerprint:sha-256 F7:CA:1A:A2:4D:A2:79:A5:76:82:09:26:DA:F4:BC:B4:03:96:DC:8F:FB:0B:E1:42:C2:0B:99:DB:28:73:CF:ED
 [SIPSorcery] SDP: a=setup:active
-[SIPSorcery] Answer ready, 1981 bytes
+[SIPSorcery] Answer ready, 1982 bytes
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
 [Protocol] SDP kept: a=rtpmap:123 H265/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
 [Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
 [Protocol] SDP kept: a=rtpmap:123 H265/90000
 [Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
-[Protocol] Filtered SDP from 1981 to 2057 bytes
+[Protocol] Filtered SDP from 1982 to 2058 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 69202 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2 3\r\nm=video 9 UDP/TLS/R...
-[Protocol] Sent single answer, len=2139 bytes
-[Protocol] Sent extracted ICE candidate: candidate:2361428796 1 udp 2113937663 192.168.1.7 51868 typ ...
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 34208 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2 3\r\nm=video 9 UDP/TLS/R...
+[Protocol] Sent single answer, len=2140 bytes
+[Protocol] Sent extracted ICE candidate: candidate:2361428796 1 udp 2113937663 192.168.1.7 65190 typ ...
 [Protocol] Applying 16 pending ICE candidates
-[SIPSorcery] Added remote ICE: candidate:2304053056 1 udp 2122194687 192.168.1.3 ...
-[Protocol] Applied pending ICE: 2304053056 1 udp 2122194687 192.168.1.3 53653 typ ...
-[SIPSorcery] Added remote ICE: candidate:3061889313 1 udp 2122129151 5.152.64.199...
-[Protocol] Applied pending ICE: 3061889313 1 udp 2122129151 5.152.64.199 49974 typ...
-[SIPSorcery] Added remote ICE: candidate:3981147344 1 udp 2122063615 11.247.134.1...
-[Protocol] Applied pending ICE: 3981147344 1 udp 2122063615 11.247.134.123 35108 t...
-[SIPSorcery] Added remote ICE: candidate:1523120050 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 1523120050 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Added remote ICE: candidate:2304053056 1 udp 2122194687 192.168.1.3 ...
-[Protocol] Applied pending ICE: 2304053056 1 udp 2122194687 192.168.1.3 50528 typ ...
-[SIPSorcery] Added remote ICE: candidate:3061889313 1 udp 2122129151 5.152.64.199...
-[Protocol] Applied pending ICE: 3061889313 1 udp 2122129151 5.152.64.199 52646 typ...
-[SIPSorcery] Added remote ICE: candidate:3981147344 1 udp 2122063615 11.247.134.1...
-[Protocol] Applied pending ICE: 3981147344 1 udp 2122063615 11.247.134.123 51296 t...
-[SIPSorcery] Added remote ICE: candidate:1523120050 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 1523120050 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Added remote ICE: candidate:2304053056 1 udp 2122194687 192.168.1.3 ...
-[Protocol] Applied pending ICE: 2304053056 1 udp 2122194687 192.168.1.3 40216 typ ...
-[SIPSorcery] Added remote ICE: candidate:3061889313 1 udp 2122129151 5.152.64.199...
-[Protocol] Applied pending ICE: 3061889313 1 udp 2122129151 5.152.64.199 53587 typ...
-[SIPSorcery] Added remote ICE: candidate:3981147344 1 udp 2122063615 11.247.134.1...
-[Protocol] Applied pending ICE: 3981147344 1 udp 2122063615 11.247.134.123 50935 t...
-[SIPSorcery] Added remote ICE: candidate:1523120050 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 1523120050 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Added remote ICE: candidate:2304053056 1 udp 2122194687 192.168.1.3 ...
-[Protocol] Applied pending ICE: 2304053056 1 udp 2122194687 192.168.1.3 56622 typ ...
-[SIPSorcery] Added remote ICE: candidate:3061889313 1 udp 2122129151 5.152.64.199...
-[Protocol] Applied pending ICE: 3061889313 1 udp 2122129151 5.152.64.199 34192 typ...
-[SIPSorcery] Added remote ICE: candidate:3981147344 1 udp 2122063615 11.247.134.1...
-[Protocol] Applied pending ICE: 3981147344 1 udp 2122063615 11.247.134.123 53975 t...
-[SIPSorcery] Added remote ICE: candidate:1523120050 1 udp 2122262783 2402:800:610...
-[Protocol] Applied pending ICE: 1523120050 1 udp 2122262783 2402:800:610d:eab:b08a...
-[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 51868 ty...
+[SIPSorcery] Added remote ICE: candidate:3627262181 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3627262181 1 udp 2122194687 192.168.1.3 41828 typ ...
+[SIPSorcery] Added remote ICE: candidate:3803784349 1 udp 2122129151 5.152.64.199...
+[Protocol] Applied pending ICE: 3803784349 1 udp 2122129151 5.152.64.199 53669 typ...
+[SIPSorcery] Added remote ICE: candidate:676867538 1 udp 2122063615 11.247.134.12...
+[Protocol] Applied pending ICE: 676867538 1 udp 2122063615 11.247.134.123 40917 ty...
+[SIPSorcery] Added remote ICE: candidate:2337517101 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2337517101 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Added remote ICE: candidate:3627262181 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3627262181 1 udp 2122194687 192.168.1.3 38332 typ ...
+[SIPSorcery] Added remote ICE: candidate:3803784349 1 udp 2122129151 5.152.64.199...
+[Protocol] Applied pending ICE: 3803784349 1 udp 2122129151 5.152.64.199 58563 typ...
+[SIPSorcery] Added remote ICE: candidate:676867538 1 udp 2122063615 11.247.134.12...
+[Protocol] Applied pending ICE: 676867538 1 udp 2122063615 11.247.134.123 48962 ty...
+[SIPSorcery] Added remote ICE: candidate:2337517101 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2337517101 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Added remote ICE: candidate:3627262181 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3627262181 1 udp 2122194687 192.168.1.3 59803 typ ...
+[SIPSorcery] Added remote ICE: candidate:3803784349 1 udp 2122129151 5.152.64.199...
+[Protocol] Applied pending ICE: 3803784349 1 udp 2122129151 5.152.64.199 34686 typ...
+[SIPSorcery] Added remote ICE: candidate:676867538 1 udp 2122063615 11.247.134.12...
+[Protocol] Applied pending ICE: 676867538 1 udp 2122063615 11.247.134.123 58738 ty...
+[SIPSorcery] Added remote ICE: candidate:2337517101 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2337517101 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Added remote ICE: candidate:3627262181 1 udp 2122194687 192.168.1.3 ...
+[Protocol] Applied pending ICE: 3627262181 1 udp 2122194687 192.168.1.3 47707 typ ...
+[SIPSorcery] Added remote ICE: candidate:3803784349 1 udp 2122129151 5.152.64.199...
+[Protocol] Applied pending ICE: 3803784349 1 udp 2122129151 5.152.64.199 37771 typ...
+[SIPSorcery] Added remote ICE: candidate:676867538 1 udp 2122063615 11.247.134.12...
+[Protocol] Applied pending ICE: 676867538 1 udp 2122063615 11.247.134.123 40100 ty...
+[SIPSorcery] Added remote ICE: candidate:2337517101 1 udp 2122262783 2402:800:610...
+[Protocol] Applied pending ICE: 2337517101 1 udp 2122262783 2402:800:610d:eab:b08a...
+[SIPSorcery] Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 65190 ty...
 [SIPSorcery] ICE state: connected
 [SIPSorcery] ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Peer state: connecting
+[Protocol] ICE RX: ping:1772945891765...
+[Protocol] ICE legacy format message
 [SIPSorcery] Peer state: connected
 [SIPSorcery] DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected AMD GPU: AMD Radeon RX 7600
@@ -316,253 +318,132 @@ Server is running. Press ENTER to exit.
 [Protocol] Capture thread already running, skipping start
 [Protocol] Cursor tracking started
 [KeepAlive] Server-side keep-alive started (5s interval)
-[StallDetect] Server-side stall detection started (1500ms threshold, frame-aware, escalating response)
+[StallDetect] Server-side stall detection started (1500ms threshold, 5000ms warmup, frame-aware, escalating response)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
-[SIPSorcery] Track 0 OnEncodedData: 237588 bytes, keyframe=True, annexB=True
-[SIPSorcery] Track 1 OnEncodedData: 184818 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 0 OnEncodedData: 308660 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 1 OnEncodedData: 124394 bytes, keyframe=True, annexB=True
+[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 46 01 10 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 B0 00 00 03 00 00 03 00 99  | NAL types: 35(T35) 32(VPS) 33(SPS) 34(PPS) 20(IDR_N_LP)
+[SIPSorcery] Track 1: Sent H265 codec config via DataChannel (94 bytes)
+[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (124293 bytes, 3 chunks)
+[SIPSorcery] Track 1: IDR via DataChannel #1
+[SIPSorcery] Track 1 OnEncodedData: 16042 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D0 F2 11 80 72 A9 01 7E 6D FD EF 87 DA 52 7D D2 56 D3 B4  | NAL types: 35(T35) 1(TRAIL(1))
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (16042 bytes, 1 chunks)
 [SIPSorcery] Track 0 NAL dump (key=True): 00 00 00 01 46 01 10 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 B0 00 00 03 00 00 03 00 99  | NAL types: 35(T35) 32(VPS) 33(SPS) 34(PPS) 20(IDR_N_LP)
 [SIPSorcery] Track 0: Sent H265 codec config via DataChannel (94 bytes)
-[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (237487 bytes, 4 chunks)
+[SIPSorcery] Track 0: Sent H265 IDR via DataChannel (308559 bytes, 6 chunks)
 [SIPSorcery] Track 0: IDR via DataChannel #1
-[SIPSorcery] Track 0 OnEncodedData: 41886 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=True): 00 00 00 01 46 01 10 00 00 00 01 40 01 0C 01 FF FF 01 60 00 00 03 00 B0 00 00 03 00 00 03 00 99  | NAL types: 35(T35) 32(VPS) 33(SPS) 34(PPS) 20(IDR_N_LP)
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D0 F3 80 84 B4 23 62 67 6D F3 C7 96 AC 2B F9 17 F4 30 1A  | NAL types: 35(T35) 1(TRAIL(1))
-[SIPSorcery] Track 1: Sent H265 codec config via DataChannel (94 bytes)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (41886 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 IDR via DataChannel (184717 bytes, 4 chunks)
-[SIPSorcery] Track 1: IDR via DataChannel #1
-[SIPSorcery] Track 1 OnEncodedData: 22275 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D0 F2 58 FB E9 0D 23 4B 00 87 04 E9 D6 B4 DA CF AF 1A D1  | NAL types: 35(T35) 1(TRAIL(1))
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (22275 bytes, 1 chunks)
-[SIPSorcery] Track 0 OnEncodedData: 71363 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D1 72 22 FD 4D 80 F0 FE C1 AD 7A 47 6C 42 BB 69 8B 3F 03  | NAL types: 35(T35) 1(TRAIL(1))
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (71363 bytes, 2 chunks)
-[SIPSorcery] Track 1 OnEncodedData: 9818 bytes, keyframe=False, annexB=True
-[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D1 72 A0 FC B4 7C B0 2F F9 3A 40 99 5D 2C 80 43 88 40 BE  | NAL types: 35(T35) 1(TRAIL(1))
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (9818 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (53029 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (5924 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (49937 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (7290 bytes, 1 chunks)
+[SIPSorcery] Track 0 OnEncodedData: 32352 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D0 F2 68 8A BC 99 94 AC AB F6 80 35 03 44 EC 8A FE CA 5E  | NAL types: 35(T35) 1(TRAIL(1))
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (32352 bytes, 1 chunks)
+[SIPSorcery] Track 1 OnEncodedData: 8897 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 0 OnEncodedData: 73727 bytes, keyframe=False, annexB=True
+[SIPSorcery] Track 1 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D1 72 11 80 F8 87 CB 59 0E 9F 55 65 52 3C 82 A2 55 31 BB  | NAL types: 35(T35) 1(TRAIL(1))
+[SIPSorcery] Track 0 NAL dump (key=False): 00 00 00 01 46 01 30 00 00 00 01 02 01 D1 72 22 FD 5B 0D 50 DE 62 CB 15 3F F7 61 35 E1 60 BB B5  | NAL types: 35(T35) 1(TRAIL(1))
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (8897 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (73727 bytes, 2 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (22064 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (7668 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (55006 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (8535 bytes, 1 chunks)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (11582 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10758 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (11948 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (9611 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:530f(enc=531,skip=1),lat=288us, m1:530f(enc=531,skip=1),lat=268us, audio:850pkts (85.0/sec)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (227775 bytes, 4 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (11911 bytes, 1 chunks)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
 [Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
 [Cursor] Monochrome 32x32: black=0, white=0, inverse=26, transparent=998
 [Cursor] Converted MONOCHROME 32x32: opaque=90, transparent=934/1024
-[SIPSorcery] Stats: m0:534f(enc=535,skip=1),lat=334us, m1:534f(enc=535,skip=1),lat=332us, audio:855pkts (85.5/sec)
-[AmfNativeWrapper] Bitrate changed to 9600kbps
-[ERROR] [AmfNativeWrapper] SetBitrate exception: External component has thrown an exception.
-[SIPSorcery] DC congestion → bitrate reduced 12000 → 9600kbps (-20%) to ease congestion
-[SIPSorcery] Track 0: per-track DC drained (242KB) — resuming P-frames (no IDR to avoid re-congestion)
-[SIPSorcery] Track 1: per-track DC drained (242KB) — resuming P-frames (no IDR to avoid re-congestion)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10699 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (107 bytes, 1 chunks)
-[AdaptiveBitrate] Auto-recovery: 9600 → 10950 kbps (stable for 5.4s)
-[AdaptiveBitrate] Adjusting: 9600 → 10950 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 10950kbps
-[SIPSorcery] Track 0 bitrate → 10950kbps
-[AmfNativeWrapper] Bitrate changed to 10950kbps
-[SIPSorcery] Track 1 bitrate → 10950kbps
-[SIPSorcery] Bitrate adjusted: 10950kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 10950kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (266 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (83 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 86%), recovering to 11497 kbps
-[AdaptiveBitrate] Adjusting: 10950 → 11497 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 11497kbps
-[SIPSorcery] Track 0 bitrate → 11497kbps
-[AmfNativeWrapper] Bitrate changed to 11497kbps
-[SIPSorcery] Track 1 bitrate → 11497kbps
-[SIPSorcery] Bitrate adjusted: 11497kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 11497kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 106%), recovering to 12071 kbps
-[AdaptiveBitrate] Adjusting: 11497 → 12071 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 12071kbps
-[SIPSorcery] Track 0 bitrate → 12071kbps
-[AmfNativeWrapper] Bitrate changed to 12071kbps
-[SIPSorcery] Track 1 bitrate → 12071kbps
-[SIPSorcery] Bitrate adjusted: 12071kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 12071kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1155f(enc=1161,skip=6),lat=313us, m1:1154f(enc=1160,skip=6),lat=299us, audio:1855pkts (100.0/sec)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (470 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (1456 bytes, 1 chunks)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=285, transparent=739/1024
-[AdaptiveBitrate] Active content good (FPS 107%), recovering to 12674 kbps
-[AdaptiveBitrate] Adjusting: 12071 → 12674 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 12674kbps
-[SIPSorcery] Track 0 bitrate → 12674kbps
-[AmfNativeWrapper] Bitrate changed to 12674kbps
-[SIPSorcery] Track 1 bitrate → 12674kbps
-[SIPSorcery] Bitrate adjusted: 12674kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 12674kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 102%), recovering to 13307 kbps
-[AdaptiveBitrate] Adjusting: 12674 → 13307 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13307kbps
-[SIPSorcery] Track 0 bitrate → 13307kbps
-[AmfNativeWrapper] Bitrate changed to 13307kbps
-[SIPSorcery] Track 1 bitrate → 13307kbps
-[SIPSorcery] Bitrate adjusted: 13307kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13307kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (151 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (709 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 104%), recovering to 13972 kbps
-[AdaptiveBitrate] Adjusting: 13307 → 13972 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13972kbps
-[SIPSorcery] Track 0 bitrate → 13972kbps
-[AmfNativeWrapper] Bitrate changed to 13972kbps
-[SIPSorcery] Track 1 bitrate → 13972kbps
-[SIPSorcery] Bitrate adjusted: 13972kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13972kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 106%), recovering to 14670 kbps
-[AdaptiveBitrate] Adjusting: 13972 → 14670 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 14670kbps
-[SIPSorcery] Track 0 bitrate → 14670kbps
-[AmfNativeWrapper] Bitrate changed to 14670kbps
-[SIPSorcery] Track 1 bitrate → 14670kbps
-[SIPSorcery] Bitrate adjusted: 14670kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 14670kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 107%), recovering to 15000 kbps
-[AdaptiveBitrate] Adjusting: 14670 → 15000 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 15000kbps
-[SIPSorcery] Track 0 bitrate → 15000kbps
-[AmfNativeWrapper] Bitrate changed to 15000kbps
-[SIPSorcery] Track 1 bitrate → 15000kbps
-[SIPSorcery] Bitrate adjusted: 15000kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 15000kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:1780f(enc=1786,skip=6),lat=299us, m1:1779f(enc=1785,skip=6),lat=283us, audio:2855pkts (100.0/sec)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (719 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (151 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10730 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (5685 bytes, 1 chunks)
-[AmfNativeWrapper] Bitrate changed to 12000kbps
-[ERROR] [AmfNativeWrapper] SetBitrate exception: External component has thrown an exception.
-[SIPSorcery] DC congestion → bitrate reduced 15000 → 12000kbps (-20%) to ease congestion
-[SIPSorcery] Stats: m0:2399f(enc=2410,skip=11),lat=298us, m1:2397f(enc=2410,skip=13),lat=278us, audio:3855pkts (100.0/sec)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (1462 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10730 bytes, 1 chunks)
-[SIPSorcery] Track 0: per-track DC drained (244KB) — resuming P-frames (no IDR to avoid re-congestion)
-[SIPSorcery] Track 1: per-track DC drained (244KB) — resuming P-frames (no IDR to avoid re-congestion)
-[AdaptiveBitrate] Active content good (FPS 91%), recovering to 12600 kbps
-[AdaptiveBitrate] Adjusting: 12000 → 12600 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 12600kbps
-[SIPSorcery] Track 0 bitrate → 12600kbps
-[AmfNativeWrapper] Bitrate changed to 12600kbps
-[SIPSorcery] Track 1 bitrate → 12600kbps
-[SIPSorcery] Bitrate adjusted: 12600kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 12600kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (81 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (86 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 102%), recovering to 13230 kbps
-[AdaptiveBitrate] Adjusting: 12600 → 13230 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13230kbps
-[SIPSorcery] Track 0 bitrate → 13230kbps
-[AmfNativeWrapper] Bitrate changed to 13230kbps
-[SIPSorcery] Track 1 bitrate → 13230kbps
-[SIPSorcery] Bitrate adjusted: 13230kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13230kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 105%), recovering to 13891 kbps
-[AdaptiveBitrate] Adjusting: 13230 → 13891 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13891kbps
-[SIPSorcery] Track 0 bitrate → 13891kbps
-[AmfNativeWrapper] Bitrate changed to 13891kbps
-[SIPSorcery] Track 1 bitrate → 13891kbps
-[SIPSorcery] Bitrate adjusted: 13891kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13891kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Auto-recovery: 12000 → 12750 kbps (stable for 16.0s)
+[AdaptiveBitrate] Adjusting: 12000 → 12750 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[AmfNativeWrapper] Bitrate changed to 12750kbps
+[SIPSorcery] Track 0 bitrate → 12750kbps
+[AmfNativeWrapper] Bitrate changed to 12750kbps
+[SIPSorcery] Track 1 bitrate → 12750kbps
+[SIPSorcery] Bitrate adjusted: 12750kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 12750kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (1910 bytes, 1 chunks)
 [SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (82 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (83 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 103%), recovering to 14585 kbps
-[AdaptiveBitrate] Adjusting: 13891 → 14585 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 14585kbps
-[SIPSorcery] Track 0 bitrate → 14585kbps
-[AmfNativeWrapper] Bitrate changed to 14585kbps
-[SIPSorcery] Track 1 bitrate → 14585kbps
-[SIPSorcery] Bitrate adjusted: 14585kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 14585kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Stats: m0:3024f(enc=3035,skip=11),lat=312us, m1:3022f(enc=3035,skip=13),lat=298us, audio:4855pkts (100.0/sec)
-[AdaptiveBitrate] Active content good (FPS 105%), recovering to 15000 kbps
-[AdaptiveBitrate] Adjusting: 14585 → 15000 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[AdaptiveBitrate] Active content good (FPS 100%), recovering to 13387 kbps
+[AdaptiveBitrate] Adjusting: 12750 → 13387 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[AmfNativeWrapper] Bitrate changed to 13387kbps
+[SIPSorcery] Track 0 bitrate → 13387kbps
+[AmfNativeWrapper] Bitrate changed to 13387kbps
+[SIPSorcery] Track 1 bitrate → 13387kbps
+[SIPSorcery] Bitrate adjusted: 13387kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 13387kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Active content good (FPS 105%), recovering to 14056 kbps
+[AdaptiveBitrate] Adjusting: 13387 → 14056 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[AmfNativeWrapper] Bitrate changed to 14056kbps
+[SIPSorcery] Track 0 bitrate → 14056kbps
+[AmfNativeWrapper] Bitrate changed to 14056kbps
+[SIPSorcery] Track 1 bitrate → 14056kbps
+[SIPSorcery] Bitrate adjusted: 14056kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 14056kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:1155f(enc=1156,skip=1),lat=274us, m1:1155f(enc=1156,skip=1),lat=259us, audio:1850pkts (100.0/sec)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (34585 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (47814 bytes, 1 chunks)
+[AdaptiveBitrate] Active content good (FPS 92%), recovering to 14758 kbps
+[AdaptiveBitrate] Adjusting: 14056 → 14758 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[AmfNativeWrapper] Bitrate changed to 14758kbps
+[SIPSorcery] Track 0 bitrate → 14758kbps
+[AmfNativeWrapper] Bitrate changed to 14758kbps
+[SIPSorcery] Track 1 bitrate → 14758kbps
+[SIPSorcery] Bitrate adjusted: 14758kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 14758kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Active content good (FPS 109%), recovering to 15000 kbps
+[AdaptiveBitrate] Adjusting: 14758 → 15000 kbps (conditions_good (loss=0.0%, buffer=healthy))
 [AmfNativeWrapper] Bitrate changed to 15000kbps
 [SIPSorcery] Track 0 bitrate → 15000kbps
 [AmfNativeWrapper] Bitrate changed to 15000kbps
 [SIPSorcery] Track 1 bitrate → 15000kbps
 [SIPSorcery] Bitrate adjusted: 15000kbps (conditions_good (loss=0.0%, buffer=healthy))
 [Protocol] Bitrate adjusted: 15000kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (321 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (83 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (12193 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10765 bytes, 1 chunks)
-[SIPSorcery] Stats: m0:3650f(enc=3661,skip=11),lat=316us, m1:3647f(enc=3660,skip=13),lat=301us, audio:5855pkts (100.0/sec)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (13154 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10765 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (14327 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10765 bytes, 1 chunks)
-[SIPSorcery] Stats: m0:4274f(enc=4285,skip=11),lat=314us, m1:4272f(enc=4285,skip=13),lat=297us, audio:6855pkts (100.0/sec)
-[AmfNativeWrapper] Bitrate changed to 12000kbps
-[ERROR] [AmfNativeWrapper] SetBitrate exception: External component has thrown an exception.
-[SIPSorcery] DC congestion → bitrate reduced 15000 → 12000kbps (-20%) to ease congestion
-[SIPSorcery] Track 1: per-track DC drained (244KB) — resuming P-frames (no IDR to avoid re-congestion)
-[SIPSorcery] Track 0: per-track DC drained (244KB) — resuming P-frames (no IDR to avoid re-congestion)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (14989 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10765 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 102%), recovering to 12600 kbps
-[AdaptiveBitrate] Adjusting: 12000 → 12600 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 12600kbps
-[SIPSorcery] Track 0 bitrate → 12600kbps
-[AmfNativeWrapper] Bitrate changed to 12600kbps
-[SIPSorcery] Track 1 bitrate → 12600kbps
-[SIPSorcery] Bitrate adjusted: 12600kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 12600kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 107%), recovering to 13230 kbps
-[AdaptiveBitrate] Adjusting: 12600 → 13230 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13230kbps
-[SIPSorcery] Track 0 bitrate → 13230kbps
-[AmfNativeWrapper] Bitrate changed to 13230kbps
-[SIPSorcery] Track 1 bitrate → 13230kbps
-[SIPSorcery] Bitrate adjusted: 13230kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13230kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 124%), recovering to 13891 kbps
-[AdaptiveBitrate] Adjusting: 13230 → 13891 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 13891kbps
-[SIPSorcery] Track 0 bitrate → 13891kbps
-[AmfNativeWrapper] Bitrate changed to 13891kbps
-[SIPSorcery] Track 1 bitrate → 13891kbps
-[SIPSorcery] Bitrate adjusted: 13891kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 13891kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (513 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (83 bytes, 1 chunks)
-[AdaptiveBitrate] Active content good (FPS 105%), recovering to 14585 kbps
-[AdaptiveBitrate] Adjusting: 13891 → 14585 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[SIPSorcery] Stats: m0:4896f(enc=4910,skip=14),lat=312us, m1:4892f(enc=4910,skip=18),lat=296us, audio:7855pkts (100.0/sec)
-[AmfNativeWrapper] Bitrate changed to 14585kbps
-[SIPSorcery] Track 0 bitrate → 14585kbps
-[AmfNativeWrapper] Bitrate changed to 14585kbps
-[SIPSorcery] Track 1 bitrate → 14585kbps
-[SIPSorcery] Bitrate adjusted: 14585kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 14585kbps - conditions_good (loss=0.0%, buffer=healthy)
-[AdaptiveBitrate] Active content good (FPS 103%), recovering to 15000 kbps
-[AdaptiveBitrate] Adjusting: 14585 → 15000 kbps (conditions_good (loss=0.0%, buffer=healthy))
-[AmfNativeWrapper] Bitrate changed to 15000kbps
-[SIPSorcery] Track 0 bitrate → 15000kbps
-[AmfNativeWrapper] Bitrate changed to 15000kbps
-[SIPSorcery] Track 1 bitrate → 15000kbps
-[SIPSorcery] Bitrate adjusted: 15000kbps (conditions_good (loss=0.0%, buffer=healthy))
-[Protocol] Bitrate adjusted: 15000kbps - conditions_good (loss=0.0%, buffer=healthy)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (806 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (83 bytes, 1 chunks)
-[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (14527 bytes, 1 chunks)
-[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (10765 bytes, 1 chunks)
-[ERROR] [Protocol] Client 3aa522ea-f4a8-41ec-946e-911321f21508 error: An internal WebSocket error occurred. Please see the innerException, if present, for more details.
-[ERROR] [Protocol] InnerException: The I/O operation has been aborted because of either a thread exit or an application request.
-[ERROR] [Protocol] StackTrace:    at System.Net.WebSockets.WebSocketBase.ThrowIfConvertibleException(String methodName, Exception exception, CancellationToken cancellationToken, Boolean aborted)
-   at System.Net.WebSockets.WebSocketBase.ReceiveAsyncCore(ArraySegment`1 buffer, CancellationToken cancellationToken)
-   at RemotePlayServer.Application.Protocol.PhaseProtocolHandler.RunPhase3Async() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Application\Protocol\PhaseProtocolHandler.Phase3.cs:line 121
-   at RemotePlayServer.Application.Protocol.PhaseProtocolHandler.HandleAsync() in C:\Users\super\OneDrive\Documents\VRWorkspaceProjects\RemotePlayServer\Application\Protocol\PhaseProtocolHandler.cs:line 206
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (1397 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (1683 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:1780f(enc=1781,skip=1),lat=273us, m1:1780f(enc=1781,skip=1),lat=259us, audio:2850pkts (100.0/sec)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12600 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (34931 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (16490 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12600 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12600 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (11795 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:2405f(enc=2406,skip=1),lat=274us, m1:2405f(enc=2406,skip=1),lat=260us, audio:3850pkts (100.0/sec)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (14214 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12600 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12649 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (10986 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:3030f(enc=3031,skip=1),lat=276us, m1:3030f(enc=3031,skip=1),lat=264us, audio:4850pkts (100.0/sec)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (11817 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12562 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (14881 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12562 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:3655f(enc=3656,skip=1),lat=275us, m1:3655f(enc=3656,skip=1),lat=264us, audio:5850pkts (100.0/sec)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12588 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (9700 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (9652 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12588 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:4280f(enc=4281,skip=1),lat=274us, m1:4280f(enc=4281,skip=1),lat=265us, audio:6850pkts (100.0/sec)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (9184 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12588 bytes, 1 chunks)
+[SIPSorcery] Track 0: Sent H265 P-frame via DataChannel (9106 bytes, 1 chunks)
+[SIPSorcery] Track 1: Sent H265 P-frame via DataChannel (12577 bytes, 1 chunks)
+[SIPSorcery] Stats: m0:4905f(enc=4906,skip=1),lat=275us, m1:4905f(enc=4906,skip=1),lat=267us, audio:7850pkts (100.0/sec)
+[Protocol] Phase3 RX: type=pause_streaming, len=26
+[Protocol] Received pause_streaming
+[SIPSorcery] Streaming paused (connection maintained)
+[SIPSorcery] Stats: m0:4924f(enc=4925,skip=1),lat=274us, m1:4924f(enc=4925,skip=1),lat=268us, audio:7879pkts (2.9/sec)
+[Protocol] Phase3 RX: type=stop_streaming, len=25
+[Protocol] Received stop_streaming
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
 [Protocol] Phase changed to: Disconnecting
 [PerMonitorCapture] Monitor 0: Capture thread stopped
 [PerMonitorCapture] Monitor 1: Capture thread stopped
@@ -621,4 +502,4 @@ The device is not connected.
 [Guard] ✅ All settings restored and system settled.
 [Guard] Restore done.
 [Protocol] Display settings restored.
-[Protocol] Client 3aa522ea-f4a8-41ec-946e-911321f21508 disconnected
+[Protocol] Client d22a9315-31ea-455b-bed6-304e99f579b1 disconnected
