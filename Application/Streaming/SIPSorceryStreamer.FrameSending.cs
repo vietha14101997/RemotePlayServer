@@ -118,9 +118,11 @@ public partial class SIPSorceryStreamer
                     int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 80 / 100); // -20%
                     if (reduced < currentBitrate)
                     {
+                        // Tell ABC to remember this congestion point — caps recovery at 90% of trigger
+                        _bitrateController.MarkDcCongestion(currentBitrate);
                         _bitrateController.ForceTarget(reduced);
                         ApplyBitrateToAllEncoders(reduced);
-                        Logger.Info($"[SIPSorcery] DC soft congestion ({totalBuffered/1024}KB total, sustained) → bitrate {currentBitrate} → {reduced}kbps (-20%, ABC synced)");
+                        Logger.Info($"[SIPSorcery] DC soft congestion ({totalBuffered/1024}KB total, sustained) → bitrate {currentBitrate} → {reduced}kbps (-20%, ceiling set)");
                     }
                 }
             }
@@ -790,9 +792,10 @@ public partial class SIPSorceryStreamer
                 int reducedBitrate = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 80 / 100); // -20%
                 if (reducedBitrate < currentBitrate)
                 {
+                    _bitrateController.MarkDcCongestion(currentBitrate);
                     _bitrateController.ForceTarget(reducedBitrate);
                     ApplyBitrateToAllEncoders(reducedBitrate);
-                    Logger.Info($"[SIPSorcery] DC congestion → bitrate reduced {currentBitrate} → {reducedBitrate}kbps (-20%) to ease congestion");
+                    Logger.Info($"[SIPSorcery] DC congestion → bitrate reduced {currentBitrate} → {reducedBitrate}kbps (-20%, ceiling set)");
                 }
             }
             if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
