@@ -124,6 +124,7 @@ public partial class SIPSorceryStreamer : IDisposable
         public int KeyframeStaggerCountdown; // Frames to wait before forcing keyframe (stagger between tracks)
         public volatile bool PFramesDroppedDuringCongestion; // DC buffer was full → P-frames were dropped → need IDR resync when drained
         public long LastCongestResyncTicks; // Cooldown: last time IDR was forced after congestion drain (Environment.TickCount64)
+        public long CaptureFrameCount; // Pre-encode throttle counter: used for alternating skip pattern
 
         // Shared-clock sync: capture-time-based RTP (replaces encoder-PTS-based)
         public uint LastAbsoluteRtp;

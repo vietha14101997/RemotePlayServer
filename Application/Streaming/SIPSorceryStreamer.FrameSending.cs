@@ -68,6 +68,29 @@ public partial class SIPSorceryStreamer
         if (captureTimestampMs > 0 && Interlocked.Read(ref _streamStartMs) < 0)
             Interlocked.CompareExchange(ref _streamStartMs, captureTimestampMs, -1);
 
+        // Pre-encode throttling for H265/DataChannel: skip frames BEFORE encoding
+        // when DC buffer is filling up. Alternating pattern (not consecutive) to avoid stutter.
+        if (_negotiatedCodec == VideoCodec.H265)
+        {
+            long captureCount = Interlocked.Increment(ref track.CaptureFrameCount);
+            // Never skip the first frame (IDR bootstrap)
+            if (Interlocked.Read(ref track.EncodedFrames) > 0)
+            {
+                var dc = GetH265VideoChannel(track.Index);
+                if (dc != null)
+                {
+                    ulong buffered = dc.bufferedAmount;
+                    // Progressive skip: higher buffer → skip more frames (alternating pattern)
+                    // 512KB+: skip every 2nd frame (50% throughput)
+                    // 768KB+: skip 2 of 3 frames (33% throughput)
+                    if (buffered > 768_000 && captureCount % 3 != 0)
+                        return;
+                    if (buffered > 512_000 && captureCount % 2 != 0)
+                        return;
+                }
+            }
+        }
+
         lock (track.EncodeLock)
         {
             try
@@ -302,30 +325,12 @@ public partial class SIPSorceryStreamer
                         if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
                             Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
 
-                        // Bootstrap retry: On fresh SCTP connections, the congestion window is tiny
-                        // (~5KB) and the first IDR (60-100KB) may be silently dropped by SCTP.
-                        // Schedule a retry IDR after 500ms to cover this case.
-                        if (track.IdrViaDcCount == 1)
-                        {
-                            int retryTrackIdx = track.Index;
-                            Task.Delay(500).ContinueWith(_ =>
-                            {
-                                if (!_running || !_connected) return;
-                                lock (_lock)
-                                {
-                                    if (retryTrackIdx < _tracks.Count)
-                                    {
-                                        var t = _tracks[retryTrackIdx];
-                                        // Only retry if very few frames sent (bootstrap still in progress)
-                                        if (Interlocked.Read(ref t.SentFrames) < 10)
-                                        {
-                                            t.ForceNextKeyframe = true;
-                                            Logger.Info($"[SIPSorcery] Track {retryTrackIdx}: Bootstrap IDR retry (SCTP slow-start protection)");
-                                        }
-                                    }
-                                }
-                            });
-                        }
+                        // NOTE: Bootstrap IDR retry DISABLED.
+                        // Original intent: retry IDR after 500ms in case SCTP dropped it during slow-start.
+                        // Reality: 1080p H265 IDR = 200-450KB (not 60-100KB as assumed). SCTP delivers it
+                        // reliably (just slowly during cwnd ramp-up). The retry IDR dumps another 200-450KB
+                        // into the buffer → instant DC congestion → P-frame drops → prediction chain break
+                        // → text smearing artifacts on initial connection.
 
                         // IDR sent via DC — P-frames also go via DC below.
                         Interlocked.Increment(ref track.SentFrames);
