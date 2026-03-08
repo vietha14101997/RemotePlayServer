@@ -78,7 +78,7 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
 // Configure encoder properties for low-latency streaming (H.265/HEVC)
 static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, AMF_VIDEO_ENCODER_HEVC_USAGE_LOW_LATENCY);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_QUALITY);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_BALANCED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE, AMF_VIDEO_ENCODER_HEVC_PROFILE_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TIER, AMF_VIDEO_ENCODER_HEVC_TIER_MAIN);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE_LEVEL, AMF_LEVEL_5_1);
@@ -93,13 +93,14 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
 
-    // ── VBAQ + Pre-analysis: THE key fix for text smearing ──
-    // These redistribute bits WITHIN the same CBR budget to prioritize text edges.
-    // No frame size increase — just smarter bit allocation.
+    // ── VBAQ: key fix for text smearing (low GPU cost) ──
+    // Redistributes bits WITHIN the same CBR budget to prioritize text edges.
     // Without VBAQ: text and flat background get equal bits → text under-allocated → smearing.
     // With VBAQ: text edges get more bits, flat areas get fewer → sharper text, same bandwidth.
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_VBAQ, true);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PREENCODE_ENABLE, true);
+    // NOTE: Pre-analysis (PREENCODE_ENABLE) DISABLED — it runs an EXTRA encoding pass per frame,
+    // roughly doubling GPU encode load (29% → ~15% on RX 7600). VBAQ alone provides sufficient
+    // text quality improvement without the extra GPU cost.
 
     // Quality floor: prevent encoder from using too-high QP on P-frames (causes text smearing)
     // QP range: 0 (best quality) - 51 (worst). Cap at 30 for decent text readability.
