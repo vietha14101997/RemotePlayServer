@@ -281,15 +281,68 @@ partial class Program
 
         await server.StartAsync();
 
-        // Pre-warm DTLS/BouncyCastle crypto before first client connects.
-        // Without this, the first DTLS handshake is too slow and client times out.
-        SIPSorceryStreamer.PreWarmDtls();
-
         var preferredIP = NetUtil.GetPreferredLocalIP();
         Console.WriteLine($"[HTTP] Server: {preferredIP}:{port}");
 
+        // === PARALLEL STARTUP: DTLS pre-warm + Config load ===
+        string? authToken = null;
+        string? tunnelUrl = null;
+        CloudflareTunnel? tunnel = null;
+        RemotePlayServer.Core.Models.InternetConfig? internetConfig = null;
+
+        var dtlsTask = Task.Run(() => SIPSorceryStreamer.PreWarmDtls());
+
+        var configTask = Task.Run(async () =>
+        {
+            try { internetConfig = await InternetManager.LoadConfigAsync(); }
+            catch (Exception ex) { Console.WriteLine($"[Internet] Config load failed: {ex.Message}"); }
+        });
+
+        await Task.WhenAll(dtlsTask, configTask);
+
+        // === CLOUDFLARE TUNNEL (zero-config internet, no router setup needed) ===
+        if (internetConfig?.Enabled == true)
+        {
+            try
+            {
+                Console.WriteLine();
+                Console.WriteLine("=== Internet Mode (Cloudflare Tunnel) ===");
+                Console.WriteLine("[Tunnel] Starting tunnel...");
+                tunnel = new CloudflareTunnel();
+                tunnelUrl = await tunnel.StartAsync(port);
+                if (tunnelUrl != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"[Tunnel] Public URL: {tunnelUrl}");
+                    Console.ResetColor();
+
+                    if (internetConfig.RequireToken)
+                        authToken = AuthTokenManager.GenerateToken();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("[Tunnel] Failed to start. LAN/USB modes still available.");
+                    Console.ResetColor();
+                    tunnel.Dispose();
+                    tunnel = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[Tunnel] Error: {ex.Message}");
+                Console.ResetColor();
+                tunnel?.Dispose();
+                tunnel = null;
+            }
+        }
+
+        // === QR CODE ===
         string usbIPJson = usbTetheringIP != null ? $",\"usbIP\":\"{usbTetheringIP}\"" : "";
-        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":\"{port}\"{usbIPJson}}}";
+        // Note: token NOT included in QR code for security (photos could leak it)
+        string tunnelJson = tunnelUrl != null ? $",\"tunnelUrl\":\"{tunnelUrl}\"" : "";
+        string qrData = $"{{\"ip\":\"{preferredIP}\",\"port\":\"{port}\"{usbIPJson}{tunnelJson}}}";
         Console.WriteLine();
         Console.WriteLine("=== QRCode (Scan to connect) ===");
         Console.WriteLine($"Data: {qrData}");
@@ -313,6 +366,22 @@ partial class Program
 
         Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
 
+        if (tunnelUrl != null)
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            if (authToken != null)
+                Console.WriteLine($"  [Internet] {tunnelUrl} (Token: {authToken})");
+            else
+                Console.WriteLine($"  [Internet] {tunnelUrl} (No token required)");
+            Console.ResetColor();
+        }
+        else if (internetConfig?.Enabled == true)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("  [Internet] Tunnel failed (see errors above)");
+            Console.ResetColor();
+        }
+
         Console.WriteLine();
         Console.WriteLine("Server is running. Press ENTER to exit.");
         Console.ReadLine();
@@ -330,6 +399,14 @@ partial class Program
         catch (Exception ex)
         {
             Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
+        }
+
+        // Cleanup tunnel
+        if (tunnel != null)
+        {
+            Console.WriteLine("[Shutdown] Stopping tunnel...");
+            tunnel.Dispose();
+            Console.WriteLine("[Shutdown] Tunnel stopped.");
         }
 
         try

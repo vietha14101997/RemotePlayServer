@@ -4,6 +4,20 @@
 [System] Local IP: 192.168.1.41
 [Encoder] NVIDIA NVENC (Hardware)
 [USB] Not detected. Enable USB Tethering on phone for USB streaming.
+[Guard] Detected stale session. Restoring previous snapshot before new capture...
+[Guard] Text size restored.
+[DisplayUtil] ForceResolution: \\.\DISPLAY1 current=1920x1080@60Hz, target=1920x1080@60Hz
+[Guard] Monitor modes restored.
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] Virtual Display Driver disabled safely.
 [TextScale] Actual DPI for \\.\DISPLAY1: 96
 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
 [Guard] DPI snapshot: Source 0 = 100% (logPixels=96)
@@ -14,7 +28,7 @@
   \\.\DISPLAY1: 1920x1080 [Physical]
 [HTTP] http://+:8288/
 [SIPSorcery] Pre-warming DTLS crypto...
-[SIPSorcery] DTLS pre-warm done in 2222ms
+[SIPSorcery] DTLS pre-warm done in 2393ms
 [HTTP] Server: 192.168.1.41:8288
 
 === QRCode (Scan to connect) ===
@@ -44,8 +58,8 @@ Data: {"ip":"192.168.1.41","port":"8288"}
   [WiFi] 192.168.1.41:8288 (Scan QR code above)
 
 Server is running. Press ENTER to exit.
-[Signal] Client connected 93ff7510-7e4c-444f-be4e-5f3606dd5584, protocol=v2, transport=WiFi
-[Protocol] Client 93ff7510-7e4c-444f-be4e-5f3606dd5584 connected from 192.168.1.44 (v2 protocol, transport=WiFi)
+[Signal] Client connected 0c367c53-477f-4fe9-b97a-58d334ac1f99, protocol=v2, transport=WiFi
+[Protocol] Client 0c367c53-477f-4fe9-b97a-58d334ac1f99 connected from 192.168.1.44 (v2 protocol, transport=WiFi)
 [Protocol] Phase changed to: Phase1_HardwareDetect
 [Protocol] Phase 1: Gathering hardware info...
 [HardwareInfo] DXGI VRAM: 6255804416 bytes = 5966 MB
@@ -76,193 +90,146 @@ Server is running. Press ENTER to exit.
 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
 [Protocol] Processing speedtest_request...
 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
-[Protocol] Download test complete: sent 16MB in 2860ms = 46.9 Mbps
+[Protocol] Download test complete: sent 8MB in 2085ms = 32.2 Mbps
 [Protocol] speedtest_request handled, continuing to wait...
 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=81
 [Protocol] Processing speedtest_result...
-[Protocol] speedtest_result parsed: 122.0Mbps, 32.9ms
-[Protocol] ✓ Received speedtest_result from client: 122.0Mbps, 32.9ms ping
+[Protocol] speedtest_result parsed: 135.1Mbps, 33.0ms
+[Protocol] ✓ Received speedtest_result from client: 135.1Mbps, 33.0ms ping
 [Protocol] Calculating suggested config...
 [Protocol] Sending suggested_config: 3x1920x1080@45fps, bitrate=15000kbps, codec=H265, transport=WiFi
 [Protocol] ✓ suggested_config sent successfully
 [Protocol] Phase changed to: Phase1_WaitingProceed
 [Protocol] Phase 1: Waiting for client proceed...
-[Protocol] WaitForProceed received: ping:1773030941103...
-[Protocol] WaitForProceed received: ping:1773030943129...
-[Protocol] WaitForProceed received: ping:1773030945155...
+[Protocol] WaitForProceed received: ping:1773031679311...
+[Protocol] WaitForProceed received: ping:1773031681344...
 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
 [Protocol] Received proceed message, phase=2, expected=2
 [Protocol] Phase 1 complete, proceeding to Phase 2
 [Protocol] Phase changed to: Phase2_ApplyConfig
 [Protocol] Phase 2: Waiting for display config...
-[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1280,"h":720},"refreshRate":60,"bitrateKbps"...
-[Protocol] Received display config: 2x1280x720@60fps
-[Protocol] Applying new display config: 2 monitors @ 60fps (keeping native resolution)
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":1,"resolution":{"w":1280,"h":720},"refreshRate":60,"bitrateKbps"...
+[Protocol] Received display config: 1x1280x720@60fps
+[Protocol] Applying new display config: 1 monitors @ 60fps (keeping native resolution)
 [VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
-[Protocol] Physical monitors (1) < requested (2), creating VDD...
-[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
-[VDD] Physical: 1, Virtual needed: 1 (target: 2)
-[VDD Pipe] Not available (driver not running or old version)
-[VDD] Pipe unavailable, using pnputil fallback...
-[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
-[VDD] Disabling VDD for config reload...
-[pnputil] /disable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Disabling device:          ROOT\DISPLAY\0000
-Device disabled successfully.
-
-
-[pnputil] /scan-devices
-Microsoft PnP Utility
-
-Scanning for device hardware changes.
-Scan complete.
-
-
-[pnputil] /enable-device "ROOT\DISPLAY\0000"
-Microsoft PnP Utility
-
-Enabling device:          ROOT\DISPLAY\0000
-Device enabled successfully.
-
-
-[VDD] 2 monitors detected (275ms)
+[Protocol] Physical monitors (1) >= requested (1), using physical monitors
 [Display] Setting up multi-monitor system...
-[Display] Physical: 1, Virtual: 1
-[Display] Setting \\.\DISPLAY23 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
-[DisplayUtil] \\.\DISPLAY23 current position: (1920,0)
-[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY23: (1920,0) 1920x1080@60Hz
-[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[Display] Physical: 1, Virtual: 0
 [Display] Ensuring \\.\DISPLAY1 is PRIMARY (original)
 [Display] \\.\DISPLAY1 set as primary at (0,0) 1920x1080@60Hz
 [Display] Multi-monitor system configured:
 [Display]   \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
-[Display]   \\.\DISPLAY23 1920x1080 at (1920,0) [VIRTUAL]
 [Display] Setting Windows Scale and Layout to 125%...
-[DpiScaling] Setting 125% for 2 monitor(s)...
-[DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
-[DpiScaling] Already at 125%
+[DpiScaling] Setting 125% for 1 monitor(s)...
 [DpiScaling] Monitor 0: current=100%, recommended=100%, max=175%
 [DpiScaling] ✓ Set DPI to 125%
 [Display] Scale and Layout set to 125%
-[Guard] Watchdog spawned (PID=50984), monitoring server PID=45856
-[Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI), \\.\DISPLAY23(V,x=1920)
-[Protocol] Selected (physical→virtual): \\.\DISPLAY1, \\.\DISPLAY23
+[Guard] Watchdog spawned (PID=28860), monitoring server PID=74568
+[Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI)
+[Protocol] Selected (all physical by X): \\.\DISPLAY1
 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
-[Protocol] Monitor 1 (\\.\DISPLAY23): rect=(1920,0) 1920x1080
-[Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
-[Protocol] Available monitors: 2, using: 2
-[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
+[Protocol] Available monitors: 1, using: 1
+[PerMonitorCapture] Initializing 1 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
-[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=NVIDIA GeForce GTX 1660 Ti)
-[PerMonitorCapture] Monitor 1: \\.\DISPLAY23 1920x1080 - duplication ready
-[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[PerMonitorCapture] Initialized 1 monitors with SEPARATE D3D11 devices
 [Protocol] Creating SIPSorceryStreamer with codec=H265, resolution=720p
 [AdaptiveBitrate] Initialized: target=5600kbps, range=[3000-7000]kbps, warmup=15000ms
-[SIPSorcery] Created: 2 monitors, 60fps, 720p, codec=H265
-[TextureResizer] Initialized for 2 monitors, targetHeight=720p
-[Protocol] Created TextureResizer for 2 monitors (targetHeight: 720p, type: standard)
+[SIPSorcery] Created: 1 monitors, 60fps, 720p, codec=H265
+[TextureResizer] Initialized for 1 monitors, targetHeight=720p
+[Protocol] Created TextureResizer for 1 monitors (targetHeight: 720p, type: standard)
 [SIPSorcery] Stored pending device for monitor 0
 [Protocol] Monitor 0: Using dedicated D3D11 device
-[SIPSorcery] Stored pending device for monitor 1
-[Protocol] Monitor 1: Using dedicated D3D11 device
 [Protocol] Sent config_complete, ready for ICE exchange
 [Protocol] Phase changed to: Phase2_IceExchange
 [Protocol] Starting ICE exchange...
-[Protocol] ICE RX: ping:1773030947178...
+[Protocol] ICE RX: ping:1773031683369...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1773030949202...
+[Protocol] ICE RX: ping:1773031685402...
 [Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1773030951228...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1773030953251...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: ping:1773030955282...
-[Protocol] ICE legacy format message
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4005982333 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3293312591 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2342612568 1 udp 2122129151 53...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2401912086 1 udp 2122129151 53...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3633454234 1 udp 2122063615 6....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4195603960 1 udp 2122063615 6....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2453002403 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2774334004 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4005982333 1 udp 2122194687 19...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3293312591 1 udp 2122194687 19...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2342612568 1 udp 2122129151 53...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2401912086 1 udp 2122129151 53...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3633454234 1 udp 2122063615 6....
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4195603960 1 udp 2122063615 6....
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2453002403 1 udp 2122262783 24...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2774334004 1 udp 2122262783 24...
 [Protocol] ICE message type: candidate
-[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 4769494870452021437 2 IN IP4 ...
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3293312591 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2401912086 1 udp 2122129151 53...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"4195603960 1 udp 2122063615 6....
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2774334004 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 7720220100482016436 2 IN IP4 ...
 [Protocol] ICE message type: offer
 [SIPSorcery] Sync state reset, Phase 3 pending activation
 [Protocol] Received single offer for all monitors
-[Protocol] Cleared answer state, preserved 8 pending ICE candidates
+[Protocol] Cleared answer state, preserved 12 pending ICE candidates
 [Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
-[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
-[Protocol] Parsed H265 PT from offer: 96
+[Protocol] Parsed H265 PT from offer: 123
+[Protocol] Single monitor: disabling perTrackPc (unnecessary, client uses main PC video)
 [SIPSorcery] Connection closed
 [SIPSorcery] Sync state reset, Phase 3 pending activation
-[SIPSorcery] Offer H265 pt=96, fmtp=default, perTrackPc=True
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 EB:FF:10:34:94:DD:51:8C:4D:3F:86:DF:B4:65:47:25:E5:23:B4:A9:E4:7F:6A:B8:9F:7B:26:F8:2B:AB:3C:B9
+[SIPSorcery] Offer H265 pt=123, fmtp=implementation_name=MediaCodec, perTrackPc=False
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 18:AA:CB:D2:F8:DC:8D:14:57:87:A7:C2:E3:D8:B5:37:89:A6:85:B7:E2:FF:AA:68:BA:D9:90:97:E3:3B:C5:E1
 [SIPSorcery] Client SDP: a=setup:actpass
-[SIPSorcery] Client SDP: a=fingerprint:sha-256 EB:FF:10:34:94:DD:51:8C:4D:3F:86:DF:B4:65:47:25:E5:23:B4:A9:E4:7F:6A:B8:9F:7B:26:F8:2B:AB:3C:B9
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 18:AA:CB:D2:F8:DC:8D:14:57:87:A7:C2:E3:D8:B5:37:89:A6:85:B7:E2:FF:AA:68:BA:D9:90:97:E3:3B:C5:E1
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 18:AA:CB:D2:F8:DC:8D:14:57:87:A7:C2:E3:D8:B5:37:89:A6:85:B7:E2:FF:AA:68:BA:D9:90:97:E3:3B:C5:E1
 [SIPSorcery] Client SDP: a=setup:actpass
 [SIPSorcery] Main PC: PeerConnection created (with STUN)
-[SIPSorcery] Main PC: Track 0 (1280x720) will use dedicated video PC (per-track mode)
-[SIPSorcery] Main PC: Track 1 (1280x720) will use dedicated video PC (per-track mode)
+[SIPSorcery] Main PC: Added video track 0: 1280x720 (device=40A11509), SSRC=1183826585
 [SIPSorcery] Main PC: Added SendOnly Opus audio track (RTP transport)
-[SIPSorcery] Main PC: Waiting for cursor/audio DCs (video DCs on dedicated video PCs)
+[SIPSorcery] Main PC: Waiting for audio/cursor/h265video DataChannels (per-track or legacy)
 [SIPSorcery] Main PC: ICE state: checking
 [SIPSorcery] Main PC: Signaling state: have_remote_offer
 [SIPSorcery] Main PC: After setRemoteDescription: signalingState=have_remote_offer
 [SIPSorcery] Main PC: Local ICE: 2268652391 1 udp 2113940223 2402:800:6d62:3e6b:128...
 [SIPSorcery] Main PC: Local ICE: 166729131 1 udp 2113940223 2402:800:6d62:3e6b:540e...
-[SIPSorcery] Main PC: Local ICE: 894532200 1 udp 2113937663 192.168.1.41 50262 typ ...
+[SIPSorcery] Main PC: Local ICE: 894532200 1 udp 2113937663 192.168.1.41 59626 typ ...
 [SIPSorcery] Main PC: After createAnswer: signalingState=have_remote_offer, answer.type=answer
-[SIPSorcery] Main PC: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 50262 ty...
-[SIPSorcery] Video PC 0: Created (DC-only, awaiting offer generation)
-[SIPSorcery] Video PC 0: Local ICE: 2268652391 1 udp 2113940223 2402:800:6d62:3e6b:128...
-[SIPSorcery] Video PC 0: Local ICE: 166729131 1 udp 2113940223 2402:800:6d62:3e6b:540e...
-[SIPSorcery] Video PC 0: Local ICE: 894532200 1 udp 2113937663 192.168.1.41 60422 typ ...
-[SIPSorcery] Video PC 1: Created (DC-only, awaiting offer generation)
-[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 29:2A:A3:E3:98:BB:99:95:26:6E:3D:6B:7F:AC:0D:04:AE:F0:7C:69:BC:25:B1:CF:4F:1F:B2:31:8C:C9:B7:B0
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 47:CC:F1:8A:E8:A2:EF:4F:66:AD:FB:74:EF:BD:EF:1C:5C:85:91:71:F6:B8:2F:56:5B:77:2A:54:C8:5A:71:60
 [SIPSorcery] Main PC SDP: a=setup:active
-[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 29:2A:A3:E3:98:BB:99:95:26:6E:3D:6B:7F:AC:0D:04:AE:F0:7C:69:BC:25:B1:CF:4F:1F:B2:31:8C:C9:B7:B0
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 47:CC:F1:8A:E8:A2:EF:4F:66:AD:FB:74:EF:BD:EF:1C:5C:85:91:71:F6:B8:2F:56:5B:77:2A:54:C8:5A:71:60
 [SIPSorcery] Main PC SDP: a=setup:active
-[SIPSorcery] Main PC: Answer ready, 1009 bytes
-[Protocol] Filtered SDP from 1009 to 1009 bytes
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 47:CC:F1:8A:E8:A2:EF:4F:66:AD:FB:74:EF:BD:EF:1C:5C:85:91:71:F6:B8:2F:56:5B:77:2A:54:C8:5A:71:60
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC: Answer ready, 1496 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 123 (H265 PT=123)
+[Protocol] SDP kept: a=rtpmap:123 H265/90000
+[Protocol] SDP kept: a=fmtp:123 implementation_name=MediaCodec;profile-id=1;tier-flag=0;level-id=123
+[Protocol] Filtered SDP from 1496 to 1534 bytes
 [Protocol] Extracted 1 embedded ICE candidates from answer
-[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 17551 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=audio 9 UDP/TLS/RTP/S...
-[Protocol] Sent single answer, len=1031 bytes
-[SIPSorcery] Main PC: Added remote ICE: candidate:4005982333 1 udp 2122194687 192.168.1.44...
-[SIPSorcery] Main PC: Added remote ICE: candidate:2342612568 1 udp 2122129151 53.41.149.87...
-[SIPSorcery] Main PC: Added remote ICE: candidate:3633454234 1 udp 2122063615 6.88.188.227...
-[SIPSorcery] Main PC: Added remote ICE: candidate:2453002403 1 udp 2122262783 2402:800:6d6...
-[SIPSorcery] Video PC 0: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60422 ty...
-[SIPSorcery] Main PC: Added remote ICE: candidate:4005982333 1 udp 2122194687 192.168.1.44...
-[SIPSorcery] Main PC: Added remote ICE: candidate:2342612568 1 udp 2122129151 53.41.149.87...
-[SIPSorcery] Main PC: Added remote ICE: candidate:3633454234 1 udp 2122063615 6.88.188.227...
-[SIPSorcery] Main PC: Added remote ICE: candidate:2453002403 1 udp 2122262783 2402:800:6d6...
-[Protocol] perTrackPc=true: sending video PC offers after main PC answer
-[SIPSorcery] Video PC 0: Offer generated (837 bytes)
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 55161 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2\r\nm=video 9 UDP/TLS/RTP...
+[Protocol] Sent single answer, len=1586 bytes
+[SIPSorcery] Main PC: Added remote ICE: candidate:3293312591 1 udp 2122194687 192.168.1.44...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2401912086 1 udp 2122129151 53.41.149.87...
+[SIPSorcery] Main PC: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 59626 ty...
+[SIPSorcery] Main PC: Added remote ICE: candidate:4195603960 1 udp 2122063615 6.88.188.227...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2774334004 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3293312591 1 udp 2122194687 192.168.1.44...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2401912086 1 udp 2122129151 53.41.149.87...
+[SIPSorcery] Main PC: Added remote ICE: candidate:4195603960 1 udp 2122063615 6.88.188.227...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2774334004 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3293312591 1 udp 2122194687 192.168.1.44...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2401912086 1 udp 2122129151 53.41.149.87...
+[SIPSorcery] Main PC: Added remote ICE: candidate:4195603960 1 udp 2122063615 6.88.188.227...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2774334004 1 udp 2122262783 2402:800:6d6...
 [SIPSorcery] Main PC: ICE state: connected
 [SIPSorcery] Main PC: ICE CONNECTED - waiting for DTLS...
 [SIPSorcery] Main PC: Peer state: connecting
-[SIPSorcery] Video PC 1: Local ICE: 2268652391 1 udp 2113940223 2402:800:6d62:3e6b:128...
-[SIPSorcery] Video PC 1: Local ICE: 166729131 1 udp 2113940223 2402:800:6d62:3e6b:540e...
-[SIPSorcery] Video PC 1: Local ICE: 894532200 1 udp 2113937663 192.168.1.41 60424 typ ...
-[SIPSorcery] Video PC 1: Offer generated (710 bytes)
-[Protocol] Sent video_offer cho monitor 0, sdp len=837
-[Protocol] Sent video_offer cho monitor 1, sdp len=710
-[Protocol] ICE RX: {"type":"proceed","phase":3}...
-[Protocol] ICE message type: proceed
-[Protocol] Received proceed phase 3, waiting for DTLS to complete (timeout=15s)...
-[SIPSorcery] Video PC 1: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60424 ty...
 [SIPSorcery] Main PC: Peer state: connected
 [SIPSorcery] Main PC: DTLS CONNECTED - initializing encoders now
 [GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
@@ -273,72 +240,36 @@ Device enabled successfully.
 [NvencNativeWrapper] Initializing BGRA mode 1280x720 @ 60fps, 5600kbps, codec=HEVC
 [NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=HEVC)
 [SIPSorcery] Track 0: Nvenc encoder initialized (BGRA mode - no color conversion)
-[SIPSorcery] Track 1: Dimensions changed ( -> H265) or (0x0 -> 1280x720), recreating encoder
-[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
-[SIPSorcery] Track 1: Encoder configured for HEVC (H.265)
-[NvencNativeWrapper] Initializing BGRA mode 1280x720 @ 60fps, 5600kbps, codec=HEVC
-[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=HEVC)
-[SIPSorcery] Track 1: Nvenc encoder initialized (BGRA mode - no color conversion)
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Received proceed phase 3, waiting for DTLS to complete (timeout=15s)...
 [OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
 [AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat, buffer=10ms (event-driven)
 [AudioCapture] Started: 48000Hz, 2ch
 [SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)
-[Protocol] All 2 tracks ready, sending ice_ready
+[Protocol] All 1 tracks ready, sending ice_ready
 [Protocol] DTLS completed, proceeding to Phase 3
 [Protocol] Phase 2 complete, proceeding to Phase 3
 [Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)
 [Protocol] Starting early capture to prevent browser track timeout...
 [Protocol] Phase changed to: Phase3_WaitingStart
 [Protocol] Phase 3: Waiting for start_streaming command...
-[Protocol] Independent track mode: 2 monitors, each track sends immediately after encoding
+[Protocol] Independent track mode: 1 monitors, each track sends immediately after encoding
 [MultimediaTimer] Timer resolution set to 1ms
-[PerMonitorCapture] Created frame sync barrier for 2 monitors (capture sync only, no post-encode barrier)
-[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
-[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
-[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
-[GpuTextureScaler] Monitor 1: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 1 (device=21926FCB868)
-[GpuTextureScaler] Monitor 1: Output texture 1280x720
+[PerMonitorCapture] Started 1 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: False)
 [GpuTextureScaler] Monitor 0: Compute shader initialized
-[TextureResizer] Created GPU scaler for monitor 0 (device=219273B1068)
+[TextureResizer] Created GPU scaler for monitor 0 (device=1F140A114F8)
 [GpuTextureScaler] Monitor 0: Output texture 1280x720
-[SIPSorcery] Video PC 0: Added remote ICE: candidate:3888643888 1 udp 2122194687 192.168.1.44...
-[SIPSorcery] Video PC 0: Added remote ICE: candidate:2191581461 1 udp 2122129151 53.41.149.87...
-[SIPSorcery] Video PC 0: Added remote ICE: candidate:3516109783 1 udp 2122063615 6.88.188.227...
-[SIPSorcery] Video PC 0: Added remote ICE: candidate:2603898862 1 udp 2122262783 2402:800:6d6...
+[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)
 [SIPSorcery] Main PC: DataChannel received: label=audio, id=1
 [SIPSorcery] Main PC: Audio DataChannel wired for sending
-[SIPSorcery] Video PC 0: ICE state: checking
-[SIPSorcery] Video PC 0: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60422 ty...
 [SIPSorcery] Main PC: DataChannel received: label=cursor, id=3
-[SIPSorcery] Video PC 0: setRemoteDescription result=OK
 [SIPSorcery] Main PC: Cursor DataChannel wired for sending
-[Protocol] Applied video_answer cho monitor 0
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:1005488202 1 udp 2122194687 192.168.1.44...
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:1586075247 1 udp 2122129151 53.41.149.87...
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:230352045 1 udp 2122063615 6.88.188.227 ...
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:1193091220 1 udp 2122262783 2402:800:6d6...
-[SIPSorcery] Video PC 1: ICE state: checking
-[SIPSorcery] Video PC 1: Local ICE: 1359935623 1 udp 1677730047 27.72.102.134 60424 ty...
-[SIPSorcery] Video PC 1: setRemoteDescription result=OK
-[Protocol] Applied video_answer cho monitor 1
-[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)
-[SIPSorcery] Video PC 0: ICE state: connected
-[SIPSorcery] Video PC 0: Peer state: connecting
-[SIPSorcery] Video PC 1: ICE state: connected
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:1159817938 1 tcp 1518214911 192.168.1.44...
-[SIPSorcery] Video PC 1: Peer state: connecting
-[SIPSorcery] Video PC 0: Peer state: connected
-[SIPSorcery] Video PC 1: Peer state: connected
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:541488375 1 tcp 1518149375 53.41.149.87 ...
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:1937049141 1 tcp 1518083839 6.88.188.227...
-[SIPSorcery] Video PC 1: Added remote ICE: candidate:970113548 1 tcp 1518283007 2402:800:6d62...
-[SIPSorcery] Video PC 0: h265video-0 DataChannel opened - requesting keyframe
-[SIPSorcery] Video PC 1: h265video-1 DataChannel opened - requesting keyframe
+[SIPSorcery] Main PC: DataChannel received: label=h265video-0, id=5
+[SIPSorcery] Main PC: H265 Video DataChannel wired for track 0
 [Protocol] Phase 3: Waiting for all monitors to connect...
 [Protocol] Phase 3: All monitors connected!
-[Protocol] Phase 3: perTrackPc=true — waiting for all video PCs to connect...
-[Protocol] Phase 3: Tất cả video PCs đã kết nối!
 [Protocol] Phase changed to: Phase3_Streaming
 [Protocol] Phase 3: Starting stream...
 [SIPSorcery] Sync state reset, Phase 3 pending activation
@@ -349,99 +280,285 @@ Device enabled successfully.
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [StallDetect] Server-side stall detection started (1500ms threshold, 5000ms warmup, frame-aware, escalating response)
 [Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
-[SIPSorcery] Track 1: Sent H265 codec config via DataChannel (89 bytes)
 [SIPSorcery] Track 0: Sent H265 codec config via DataChannel (89 bytes)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
 [Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
 [Cursor] Monochrome 32x32: black=0, white=0, inverse=26, transparent=998
 [Cursor] Converted MONOCHROME 32x32: opaque=90, transparent=934/1024
-[NvencNativeWrapper] Bitrate changed to 4480kbps
-[AdaptiveBitrate] DC congestion ceiling set: 5040kbps (triggered at 5600kbps)
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=285, transparent=739/1024
+[SIPSorcery] Stats: m0:538f(enc=538),lat=5175us, audio:864pkts (86.4/sec), dc0=180KB
+[AdaptiveBitrate] Auto-recovery: 5600 → 6100 kbps (stable for 16.2s)
+[AdaptiveBitrate] Adjusting: 5600 → 6100 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 6100kbps
+[SIPSorcery] Track 0 bitrate → 6100kbps
+[SIPSorcery] Bitrate adjusted: 6100kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 6100kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Active content good (FPS 97%), recovering to 6405 kbps
+[AdaptiveBitrate] Adjusting: 6100 → 6405 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 6405kbps
+[SIPSorcery] Track 0 bitrate → 6405kbps
+[SIPSorcery] Bitrate adjusted: 6405kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 6405kbps - conditions_good (loss=0.0%, buffer=healthy)
+[NvencNativeWrapper] Bitrate changed to 5124kbps
+[AdaptiveBitrate] DC congestion ceiling set: 5764kbps (triggered at 6405kbps)
+[SIPSorcery] Stats: m0:1162f(enc=1162),lat=4635us, audio:1864pkts (100.0/sec), dc0=521KB
+[Cursor] Converting shape: type=MASKED_COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted MASKED_COLOR 32x32: opaque=214, transparent=810/1024
+[SIPSorcery] Stats: m0:1785f(enc=1785),lat=4510us, audio:2863pkts (99.9/sec), dc0=1KB
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
-[NvencNativeWrapper] Bitrate changed to 4480kbps
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
-[SIPSorcery] Stats: m0:533f(enc=533),lat=5202us, m1:533f(enc=533),lat=5305us, audio:866pkts (86.6/sec), dc0=247KB, dc1=232KB
-[SIPSorcery] Stats: m0:1137f(enc=1137),lat=5346us, m1:1138f(enc=1138),lat=5629us, audio:1866pkts (100.0/sec), dc0=16KB, dc1=15KB
+[SIPSorcery] Stats: m0:2407f(enc=2407),lat=4826us, audio:3864pkts (100.1/sec), dc0=129KB
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
 [Cursor] Converted COLOR 32x32: opaque=364, transparent=660/1024
 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
-[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
-[SIPSorcery] Stats: m0:1728f(enc=1728),lat=5687us, m1:1729f(enc=1729),lat=5990us, audio:2867pkts (100.1/sec), dc0=8KB, dc1=18KB
-[SIPSorcery] Stats: m0:2307f(enc=2307),lat=6165us, m1:2308f(enc=2308),lat=6526us, audio:3867pkts (100.0/sec), dc0=11KB, dc1=10KB
-[SIPSorcery] Stats: m0:2898f(enc=2898),lat=6329us, m1:2899f(enc=2899),lat=6751us, audio:4867pkts (100.0/sec), dc0=2KB, dc1=4KB
-[NvencNativeWrapper] Bitrate changed to 3584kbps
-[AdaptiveBitrate] DC congestion ceiling set: 4032kbps (triggered at 4480kbps)
-[NvencNativeWrapper] Bitrate changed to 3584kbps
-[StallDetect] No feedback for 1.5s, stall #1 → moderate (25% cut): 5600 → 4200kbps (per-encoder)
-[NvencNativeWrapper] Bitrate changed to 4200kbps
-[AdaptiveBitrate] DC congestion ceiling set: 3780kbps (triggered at 4200kbps)
-[SIPSorcery] Stats: m0:3442f(enc=3474,skip=32),lat=6425us, m1:3455f(enc=3474,skip=19),lat=6878us, audio:5867pkts (100.0/sec), dc0=1029KB, dc1=1030KB
-[StallDetect] No feedback for 2.0s, stall #2 → aggressive (50% cut): 4200 → 2100kbps (per-encoder)
+[Cursor] Converted COLOR 32x32: opaque=364, transparent=660/1024
+[NvencNativeWrapper] Bitrate changed to 4099kbps
+[AdaptiveBitrate] DC congestion ceiling set: 4611kbps (triggered at 5124kbps)
+[SIPSorcery] Stats: m0:3029f(enc=3029),lat=4988us, audio:4864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,848cb), dc0=538KB
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1026KB), dropping P-frame
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1026KB), dropping P-frame
+[SIPSorcery] Stats: m0:3615f(enc=3651,skip=36),lat=5091us, audio:5864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,977cb), dc0=908KB
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1025KB), dropping P-frame
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1025KB), dropping P-frame
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1025KB), dropping P-frame
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1025KB), dropping P-frame
+[SIPSorcery] Stats: m0:4153f(enc=4274,skip=121),lat=5166us, audio:6864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,984cb), dc0=993KB
+[SIPSorcery] Stats: m0:4749f(enc=4897,skip=148),lat=5035us, audio:7864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,982cb), dc0=275KB
+[NvencNativeWrapper] Bitrate changed to 6405kbps
+[NvencNativeWrapper] Bitrate changed to 5124kbps
+[SIPSorcery] Stats: m0:5371f(enc=5519,skip=148),lat=5100us, audio:8864pkts (100.0/sec), capture:10.5ms/cb(10.5ms data,953cb), dc0=0KB
+[NvencNativeWrapper] Bitrate changed to 4099kbps
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1028KB), deferring IDR
+[Protocol] Phase3 RX: type=skip_to_live, len=35
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1028KB), deferring IDR
+[StallDetect] No feedback for 1.8s, stall #1 → moderate (25% cut): 6405 → 4803kbps (per-encoder)
+[NvencNativeWrapper] Bitrate changed to 4803kbps
+[SIPSorcery] Forced bitrate → 4803kbps (stall escalation)
+[StallDetect] Applied: moderate (25% cut)
+[AdaptiveBitrate] DC congestion ceiling set: 4322kbps (triggered at 4803kbps)
+[NvencNativeWrapper] Bitrate changed to 3842kbps
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1028KB), deferring IDR
+[Protocol] Phase3 RX: type=skip_to_live, len=35
+[SIPSorcery] Stats: m0:5619f(enc=6143,skip=524),lat=5161us, audio:9864pkts (100.0/sec), capture:10.4ms/cb(10.4ms data,963cb), dc0=1029KB
+[StallDetect] No feedback for 1.6s, stall #1 → moderate (25% cut): 4803 → 3602kbps (per-encoder)
+[NvencNativeWrapper] Bitrate changed to 3602kbps
+[SIPSorcery] Forced bitrate → 3602kbps (stall escalation)
+[StallDetect] Applied: moderate (25% cut)
+[AdaptiveBitrate] DC congestion ceiling set: 3241kbps (triggered at 3602kbps)
 [NvencNativeWrapper] Bitrate changed to 3000kbps
 [Protocol] Phase3 RX: type=skip_to_live, len=35
-[SIPSorcery] Stats: m0:3442f(enc=3474,skip=32),lat=6425us, m1:3455f(enc=3474,skip=19),lat=6878us, audio:6867pkts (100.0/sec), dc0=0KB, dc1=0KB
+[WARN] [SIPSorcery] Track 0: DC buffer HIGH (1029KB), deferring IDR
+[NvencNativeWrapper] Bitrate changed to 3602kbps
+[NvencNativeWrapper] Bitrate changed to 3000kbps
+[SIPSorcery] Stats: m0:6176f(enc=6768,skip=592),lat=5192us, audio:10864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,979cb), dc0=625KB
+[StallDetect] No feedback for 1.9s, stall #1 → moderate (25% cut): 3602 → 2701kbps (per-encoder)
+[NvencNativeWrapper] Bitrate changed to 3000kbps
+[SIPSorcery] Forced bitrate → 3000kbps (stall escalation)
+[StallDetect] Applied: moderate (25% cut)
+[KeepAlive] Missed pong #1, 4.0s since last response
+[StallDetect] No feedback for 2.0s, stall #2 → aggressive (50% cut): 3000 → 2000kbps (per-encoder)
+[NvencNativeWrapper] Bitrate changed to 3000kbps
+[SIPSorcery] Forced bitrate → 3000kbps (stall escalation)
+[StallDetect] Applied: aggressive (50% cut)
 [Protocol] Phase3 RX: type=skip_to_live, len=35
-[Protocol] Phase3 RX: type=skip_to_live, len=35
-[Protocol] Phase3 RX: type=codec_fallback, len=78
-[Protocol] codec_fallback received: H265 → H264, reason=decoder_failure
-[Protocol] Offer generation bumped to 1 (stale H265 offers will be discarded)
-[SIPSorcery] Forcing re-initialization of encoders...
-[GpuVendorDetector] Detected NVIDIA GPU: NVIDIA GeForce GTX 1660 Ti
-[SIPSorcery] Detected GPU vendor: NVIDIA
-[SIPSorcery] Track 0: Codec changed (H265 -> H264) or (1280x720 -> 1280x720), recreating encoder
+[NvencNativeWrapper] Bitrate changed to 3000kbps
+[SIPSorcery] Stats: m0:6736f(enc=7393,skip=657),lat=5206us, audio:11865pkts (100.1/sec), capture:10.2ms/cb(10.2ms data,978cb), dc0=0KB
+[AdaptiveBitrate] Active content good (FPS 106%), recovering to 3241 kbps, ceiling=3241kbps
+[AdaptiveBitrate] Adjusting: 3000 → 3241 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 3241kbps
+[SIPSorcery] Track 0 bitrate → 3241kbps
+[SIPSorcery] Bitrate adjusted: 3241kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 3241kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:7360f(enc=8017,skip=657),lat=5233us, audio:12864pkts (99.9/sec), capture:10.2ms/cb(10.2ms data,980cb), dc0=0KB
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+[SIPSorcery] Stats: m0:7985f(enc=8642,skip=657),lat=5185us, audio:13864pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,983cb), dc0=1KB
+[SIPSorcery] Stats: m0:8610f(enc=9267,skip=657),lat=5192us, audio:14864pkts (100.0/sec), capture:10.3ms/cb(10.3ms data,968cb), dc0=4KB
+[SIPSorcery] Stats: m0:9235f(enc=9892,skip=657),lat=5201us, audio:15864pkts (100.0/sec), capture:10.1ms/cb(10.1ms data,986cb), dc0=2KB
+[SIPSorcery] Stats: m0:9856f(enc=10513,skip=657),lat=5207us, audio:16863pkts (99.9/sec), capture:10.2ms/cb(10.2ms data,976cb), dc0=0KB
+[SIPSorcery] Stats: m0:10482f(enc=11139,skip=657),lat=5228us, audio:17863pkts (100.0/sec), capture:10.1ms/cb(10.1ms data,987cb), dc0=0KB
+[SIPSorcery] Stats: m0:11106f(enc=11763,skip=657),lat=5261us, audio:18863pkts (100.0/sec), capture:10.3ms/cb(10.3ms data,969cb), dc0=0KB
+[SIPSorcery] Stats: m0:11724f(enc=12381,skip=657),lat=5283us, audio:19863pkts (100.0/sec), capture:10.1ms/cb(10.1ms data,989cb), dc0=43KB
+[SIPSorcery] Stats: m0:12349f(enc=13006,skip=657),lat=5307us, audio:20863pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,980cb), dc0=0KB
+[SIPSorcery] Stats: m0:12972f(enc=13629,skip=657),lat=5333us, audio:21862pkts (99.9/sec), capture:10.2ms/cb(10.2ms data,980cb), dc0=0KB
+[SIPSorcery] Stats: m0:13597f(enc=14254,skip=657),lat=5359us, audio:22862pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,985cb), dc0=0KB
+[AdaptiveBitrate] DC ceiling relaxed: 3241 → 3741kbps (+3%)
+[AdaptiveBitrate] Active content good (FPS 110%), recovering to 3491 kbps, ceiling=3741kbps
+[AdaptiveBitrate] Adjusting: 3241 → 3491 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 3491kbps
+[SIPSorcery] Track 0 bitrate → 3491kbps
+[SIPSorcery] Bitrate adjusted: 3491kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 3491kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:14219f(enc=14876,skip=657),lat=5379us, audio:23862pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,980cb), dc0=8KB
+[AdaptiveBitrate] Active content good (FPS 100%), recovering to 3741 kbps, ceiling=3741kbps
+[AdaptiveBitrate] Adjusting: 3491 → 3741 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 3741kbps
+[SIPSorcery] Track 0 bitrate → 3741kbps
+[SIPSorcery] Bitrate adjusted: 3741kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 3741kbps - conditions_good (loss=0.0%, buffer=healthy)
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=222, transparent=802/1024
+[SIPSorcery] Stats: m0:14843f(enc=15500,skip=657),lat=5396us, audio:24860pkts (99.8/sec), capture:10.3ms/cb(10.3ms data,561cb), dc0=16KB
+[SIPSorcery] Stats: m0:15466f(enc=16123,skip=657),lat=5385us, audio:25860pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:16091f(enc=16748,skip=657),lat=5411us, audio:26860pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:16715f(enc=17372,skip=657),lat=5417us, audio:27860pkts (100.0/sec), dc0=1KB
+[SIPSorcery] Stats: m0:17336f(enc=17993,skip=657),lat=5428us, audio:28860pkts (100.0/sec), dc0=25KB
+[SIPSorcery] Stats: m0:17957f(enc=18614,skip=657),lat=5431us, audio:29860pkts (100.0/sec), dc0=1KB
+[SIPSorcery] Stats: m0:18577f(enc=19234,skip=657),lat=5440us, audio:30860pkts (100.0/sec), dc0=34KB
+[SIPSorcery] Stats: m0:19194f(enc=19851,skip=657),lat=5441us, audio:31860pkts (100.0/sec), dc0=3KB
+[SIPSorcery] Stats: m0:19819f(enc=20476,skip=657),lat=5439us, audio:32860pkts (100.0/sec), dc0=6KB
+[SIPSorcery] Stats: m0:20444f(enc=21101,skip=657),lat=5438us, audio:33860pkts (100.0/sec), dc0=31KB
+[SIPSorcery] Stats: m0:21069f(enc=21726,skip=657),lat=5436us, audio:34860pkts (100.0/sec), dc0=54KB
+[AdaptiveBitrate] DC ceiling relaxed: 3741 → 4241kbps (+3%)
+[AdaptiveBitrate] Active content good (FPS 119%), recovering to 3991 kbps, ceiling=4241kbps
+[AdaptiveBitrate] Adjusting: 3741 → 3991 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 3991kbps
+[SIPSorcery] Track 0 bitrate → 3991kbps
+[SIPSorcery] Bitrate adjusted: 3991kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 3991kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Active content good (FPS 94%), recovering to 4241 kbps, ceiling=4241kbps
+[AdaptiveBitrate] Adjusting: 3991 → 4241 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4241kbps
+[SIPSorcery] Track 0 bitrate → 4241kbps
+[SIPSorcery] Bitrate adjusted: 4241kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4241kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:21694f(enc=22351,skip=657),lat=5437us, audio:35860pkts (100.0/sec), dc0=3KB
+[SIPSorcery] Stats: m0:22319f(enc=22976,skip=657),lat=5436us, audio:36860pkts (100.0/sec), dc0=34KB
+[SIPSorcery] Stats: m0:22944f(enc=23601,skip=657),lat=5435us, audio:37860pkts (100.0/sec), dc0=159KB
+[SIPSorcery] Stats: m0:23569f(enc=24226,skip=657),lat=5432us, audio:38860pkts (100.0/sec), dc0=8KB
+[SIPSorcery] Stats: m0:24194f(enc=24851,skip=657),lat=5431us, audio:39861pkts (100.1/sec), dc0=21KB
+[SIPSorcery] Stats: m0:24819f(enc=25476,skip=657),lat=5432us, audio:40861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:25443f(enc=26100,skip=657),lat=5435us, audio:41860pkts (99.9/sec), dc0=4KB
+[SIPSorcery] Stats: m0:26067f(enc=26724,skip=657),lat=5439us, audio:42861pkts (100.1/sec), dc0=1KB
+[SIPSorcery] Stats: m0:26684f(enc=27341,skip=657),lat=5416us, audio:43861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:27307f(enc=27964,skip=657),lat=5416us, audio:44861pkts (100.0/sec), dc0=20KB
+[SIPSorcery] Stats: m0:27932f(enc=28589,skip=657),lat=5423us, audio:45861pkts (100.0/sec), dc0=14KB
+[SIPSorcery] Stats: m0:28556f(enc=29213,skip=657),lat=5427us, audio:46861pkts (100.0/sec), dc0=27KB
+[AdaptiveBitrate] DC ceiling relaxed: 4241 → 4741kbps (+3%)
+[AdaptiveBitrate] Active content good (FPS 107%), recovering to 4491 kbps, ceiling=4741kbps
+[AdaptiveBitrate] Adjusting: 4241 → 4491 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4491kbps
+[SIPSorcery] Track 0 bitrate → 4491kbps
+[SIPSorcery] Bitrate adjusted: 4491kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4491kbps - conditions_good (loss=0.0%, buffer=healthy)
+[AdaptiveBitrate] Active content good (FPS 101%), recovering to 4741 kbps, ceiling=4741kbps
+[AdaptiveBitrate] Adjusting: 4491 → 4741 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4741kbps
+[SIPSorcery] Track 0 bitrate → 4741kbps
+[SIPSorcery] Bitrate adjusted: 4741kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4741kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:29180f(enc=29837,skip=657),lat=5409us, audio:47861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:29805f(enc=30462,skip=657),lat=5415us, audio:48861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:30427f(enc=31084,skip=657),lat=5421us, audio:49861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:31051f(enc=31708,skip=657),lat=5422us, audio:50861pkts (100.0/sec), dc0=191KB
+[SIPSorcery] Stats: m0:31675f(enc=32332,skip=657),lat=5423us, audio:51861pkts (100.0/sec), dc0=6KB
+[NvencNativeWrapper] Bitrate changed to 3792kbps
+[AdaptiveBitrate] DC congestion ceiling set: 4266kbps (triggered at 4741kbps)
+[SIPSorcery] Stats: m0:32300f(enc=32957,skip=657),lat=5425us, audio:52861pkts (100.0/sec), dc0=203KB
+[SIPSorcery] Stats: m0:32923f(enc=33580,skip=657),lat=5427us, audio:53861pkts (100.0/sec), dc0=0KB
+[SIPSorcery] Stats: m0:33549f(enc=34206,skip=657),lat=5429us, audio:54861pkts (100.0/sec), dc0=9KB
+[SIPSorcery] Stats: m0:34174f(enc=34831,skip=657),lat=5432us, audio:55861pkts (100.0/sec), dc0=67KB
+[SIPSorcery] Stats: m0:34799f(enc=35456,skip=657),lat=5433us, audio:56861pkts (100.0/sec), dc0=7KB
+[SIPSorcery] Stats: m0:35424f(enc=36081,skip=657),lat=5435us, audio:57861pkts (100.0/sec), dc0=3KB
+[SIPSorcery] Stats: m0:36049f(enc=36706,skip=657),lat=5436us, audio:58861pkts (100.0/sec), dc0=3KB
+[SIPSorcery] Stats: m0:36670f(enc=37327,skip=657),lat=5445us, audio:59861pkts (100.0/sec), dc0=15KB
+[SIPSorcery] Stats: m0:37292f(enc=37949,skip=657),lat=5458us, audio:60862pkts (100.1/sec), capture:751.0ms/cb(10.2ms data,485cb), dc0=25KB
+[SIPSorcery] Stats: m0:37914f(enc=38571,skip=657),lat=5444us, audio:61861pkts (99.9/sec), capture:10.2ms/cb(10.2ms data,532cb), dc0=56KB
+[SIPSorcery] Stats: m0:38531f(enc=39188,skip=657),lat=5437us, audio:62861pkts (100.0/sec), dc0=5KB
+[SIPSorcery] Stats: m0:39154f(enc=39811,skip=657),lat=5430us, audio:63861pkts (100.0/sec), capture:33.8ms/cb(10.2ms data,727cb), dc0=7KB
+[AdaptiveBitrate] DC ceiling relaxed: 4266 → 4766kbps (+3%)
+[SIPSorcery] Stats: m0:39773f(enc=40430,skip=657),lat=5426us, audio:64861pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,982cb), dc0=3KB
+[AdaptiveBitrate] Active content good (FPS 68%), recovering to 4766 kbps, ceiling=4766kbps
+[AdaptiveBitrate] Adjusting: 4741 → 4766 kbps (conditions_good (loss=0.0%, buffer=healthy))
+[NvencNativeWrapper] Bitrate changed to 4766kbps
+[SIPSorcery] Track 0 bitrate → 4766kbps
+[SIPSorcery] Bitrate adjusted: 4766kbps (conditions_good (loss=0.0%, buffer=healthy))
+[Protocol] Bitrate adjusted: 4766kbps - conditions_good (loss=0.0%, buffer=healthy)
+[SIPSorcery] Stats: m0:40385f(enc=41042,skip=657),lat=5441us, audio:65861pkts (100.0/sec), capture:10.3ms/cb(10.3ms data,974cb), dc0=0KB
+[SIPSorcery] Stats: m0:40998f(enc=41655,skip=657),lat=5447us, audio:66861pkts (100.0/sec), capture:10.1ms/cb(10.1ms data,989cb), dc0=1KB
+[SIPSorcery] Stats: m0:41601f(enc=42258,skip=657),lat=5473us, audio:67861pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,976cb), dc0=0KB
+[SIPSorcery] Stats: m0:42216f(enc=42873,skip=657),lat=5482us, audio:68861pkts (100.0/sec), capture:10.3ms/cb(10.3ms data,975cb), dc0=0KB
+[SIPSorcery] Stats: m0:42820f(enc=43477,skip=657),lat=5507us, audio:69861pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,977cb), dc0=0KB
+[SIPSorcery] Stats: m0:43438f(enc=44095,skip=657),lat=5506us, audio:70861pkts (100.0/sec), capture:10.2ms/cb(10.2ms data,981cb), dc0=16KB
+[SIPSorcery] Stats: m0:44046f(enc=44703,skip=657),lat=5530us, audio:71861pkts (100.0/sec), capture:10.3ms/cb(10.3ms data,971cb), dc0=0KB
+[Protocol] Phase3 RX: type=request_keyframe_burst, len=85
+[SIPSorcery] Keyframe burst: monitor=0, count=1
+[SIPSorcery] Stats: m0:44661f(enc=45318,skip=657),lat=5529us, audio:72861pkts (100.0/sec), capture:10.4ms/cb(10.4ms data,965cb), dc0=11KB
+[SIPSorcery] Stats: m0:45280f(enc=45937,skip=657),lat=5537us, audio:73860pkts (99.9/sec), capture:10.2ms/cb(10.2ms data,303cb), dc0=37KB
+[Protocol] Phase3 RX: type=pause_streaming, len=26
+[Protocol] Received pause_streaming
+[SIPSorcery] Streaming paused (connection maintained)
+[SIPSorcery] Stats: m0:45761f(enc=46418,skip=657),lat=5537us, audio:74634pkts (77.4/sec), dc0=0KB
+[Protocol] Phase3 RX: type=stop_streaming, len=25
+[Protocol] Received stop_streaming
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
+[Protocol] Phase changed to: Disconnecting
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[MultimediaTimer] Timer resolution restored
+[PerMonitorCapture] All capture threads stopped
+[SIPSorcery] Stopping...
+[OpusEncoder] Disposed
+[SIPSorcery] Main PC: Audio DataChannel closed
+[SIPSorcery] Main PC: Cursor DataChannel closed
+[SIPSorcery] Main PC: H265 Video DataChannel closed for track 0
+[SIPSorcery] Main PC: Peer state: closed
+[SIPSorcery] Main PC: Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
 [NvencNativeWrapper] Disposed
-[SIPSorcery] Creating NVENC encoder for NVIDIA GPU (BGRA mode)
-[NvencNativeWrapper] Initializing BGRA mode 1280x720 @ 60fps, 3000kbps, codec=H264
-[NvencNativeWrapper] Initialized BGRA mode successfully (zero-copy, codec=H264)
-[SIPSorcery] Track 0: Nvenc encoder initialized (BGRA mode - no color conversion)
-[KeepAlive] Missed pong #1, 3.6s since last response
-[KeepAlive] Missed pong #2, 5.6s since last response
-[KeepAlive] Missed pong #3, 7.6s since last response
-[KeepAlive] Client not responding for 7.6s - closing connection
-[SIPSorcery] Main PC: ICE state: disconnected
-[SIPSorcery] Main PC: Peer state: disconnected
-[SIPSorcery] Main PC: Peer state DISCONNECTED - may recover, waiting...
-[SIPSorcery] Video PC 0: ICE state: disconnected
-[SIPSorcery] Video PC 0: Peer state: disconnected
-[SIPSorcery] Video PC 1: ICE state: disconnected
-[SIPSorcery] Video PC 1: Peer state: disconnected
-[SIPSorcery] Main PC: ICE state: failed
-[ERROR] [Protocol] Fatal streamer error: ICE Connection Failed - triggering cleanup
-[SIPSorcery] Main PC: Peer state: failed
-[ERROR] [SIPSorcery] Main PC: DTLS FAILED - check certificate/fingerprint
-[ERROR] [Protocol] Fatal streamer error: DTLS Handshake Failed - triggering cleanup
-[SIPSorcery] Video PC 0: ICE state: failed
-[SIPSorcery] Video PC 0: Peer state: failed
-[SIPSorcery] Video PC 1: ICE state: failed
-[SIPSorcery] Video PC 1: Peer state: failed
+[SIPSorcery] Disposed
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] Stopping watchdog process...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently DISABLED
+[Guard] ForceDisableVdd: Already disabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] Restoring DPI to 100% (logPixels=96)
+[DpiScaling] Setting 100% for 1 monitor(s)...
+[DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
+[DpiScaling] ✓ Set DPI to 100%
+[Guard] ✓ Scale and Layout restored via API.
+[Guard] Step 2: Restoring monitor modes...
+[DisplayUtil] ForceResolution: \\.\DISPLAY1 current=1920x1080@60Hz, target=1920x1080@60Hz
+[Guard] Monitor modes restored.
+[Guard] Step 3: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 1.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client 0c367c53-477f-4fe9-b97a-58d334ac1f99 disconnected

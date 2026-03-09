@@ -14,6 +14,7 @@ using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Infrastructure.Display;
 using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure;
+using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Application.Protocol;
 
 namespace RemotePlayServer.Server;
@@ -52,7 +53,8 @@ public class SignalServer
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = "application/json";
-                var body = Encoding.UTF8.GetBytes("{\"status\":\"ok\",\"version\":\"2.0\"}");
+                bool reqToken = InternetManager.Instance?.Config?.RequireToken ?? true;
+                var body = Encoding.UTF8.GetBytes($"{{\"status\":\"ok\",\"version\":\"2.0\",\"requireToken\":{(reqToken ? "true" : "false")}}}");
                 ctx.Response.OutputStream.Write(body, 0, body.Length);
                 ctx.Response.Close();
                 continue;
@@ -202,15 +204,41 @@ public class SignalServer
 
             if (ctx.Request.IsWebSocketRequest && path == "/signal")
             {
-                var wsCtx = await ctx.AcceptWebSocketAsync(null);
-                var clientId = Guid.NewGuid();
                 var remoteIp = ctx.Request.RemoteEndPoint?.Address;
-
                 var query = ctx.Request.Url?.Query ?? "";
                 var queryParams = HttpUtility.ParseQueryString(query);
-                bool isUsbTransport = queryParams["transport"]?.Equals("usb", StringComparison.OrdinalIgnoreCase) == true;
 
-                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2, transport={(isUsbTransport ? "USB" : "WiFi")}");
+                // Token authentication for internet clients
+                bool isLanClient = remoteIp != null && NetUtil.IsClientOnLAN(remoteIp);
+                bool requireToken = InternetManager.Instance?.Config?.RequireToken ?? true;
+                if (!isLanClient && requireToken && AuthTokenManager.IsActive)
+                {
+                    if (remoteIp != null && AuthTokenManager.IsRateLimited(remoteIp))
+                    {
+                        Console.WriteLine($"[Signal] Rate-limited client blocked: {remoteIp}");
+                        ctx.Response.StatusCode = 429;
+                        ctx.Response.Close();
+                        continue;
+                    }
+
+                    var token = queryParams["token"];
+                    if (!AuthTokenManager.ValidateToken(token))
+                    {
+                        Console.WriteLine($"[Signal] Rejected unauthorized internet client: {remoteIp}");
+                        if (remoteIp != null) AuthTokenManager.RecordFailedAttempt(remoteIp);
+                        ctx.Response.StatusCode = 403;
+                        ctx.Response.Close();
+                        continue;
+                    }
+                }
+
+                var wsCtx = await ctx.AcceptWebSocketAsync(null);
+                var clientId = Guid.NewGuid();
+
+                bool isUsbTransport = queryParams["transport"]?.Equals("usb", StringComparison.OrdinalIgnoreCase) == true;
+                string clientType = isUsbTransport ? "USB" : (isLanClient ? "LAN" : "Internet");
+
+                Console.WriteLine($"[Signal] Client connected {clientId}, protocol=v2, transport={clientType}");
 
                 _ = Task.Run(async () =>
                 {

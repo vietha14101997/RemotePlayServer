@@ -821,13 +821,16 @@ namespace RemotePlayServer.Application.Protocol
 
                         if (_missedPongs >= MAX_MISSED_PONGS)
                         {
-                            Logger.Info($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s - closing connection");
+                            Logger.Info($"[KeepAlive] Client not responding for {timeSinceLastPong / 1000:F1}s - forcing disconnect");
                             _keepAliveTimer?.Stop();
 
-                            // Actually close the connection instead of just warning
+                            // Cancel fatal error CTS first to unblock message loop immediately
+                            try { _fatalErrorCts?.Cancel(); } catch { }
+
+                            // Then try graceful close (with short timeout since connection is likely dead)
                             try
                             {
-                                using var cts = new CancellationTokenSource(5000);
+                                using var cts = new CancellationTokenSource(2000);
                                 await _ws.CloseOutputAsync(
                                     WebSocketCloseStatus.EndpointUnavailable,
                                     "Client not responding to keepalive",
@@ -836,13 +839,22 @@ namespace RemotePlayServer.Application.Protocol
                             catch (Exception closeEx)
                             {
                                 Logger.Error($"[KeepAlive] Error closing WebSocket: {closeEx.Message}");
+                                // Force abort the WebSocket if graceful close fails
+                                try { _ws.Abort(); } catch { }
                             }
                             return;
                         }
                     }
 
-                    // Send ping to client
-                    await SendTextAsync("ping");
+                    // Send ping to client — if send fails, count as missed pong
+                    try
+                    {
+                        await SendTextAsync("ping");
+                    }
+                    catch
+                    {
+                        _missedPongs++;
+                    }
                 }
                 catch (Exception ex)
                 {

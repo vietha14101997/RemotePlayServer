@@ -1,0 +1,7 @@
+{
+  "enabled": false,
+  "turnServerUrl": null,
+  "turnUsername": null,
+  "turnPassword": null,
+  "requireToken": true
+}

@@ -595,13 +595,20 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
-            // Close WebSocket
+            // Close WebSocket (with timeout to avoid hanging on dead tunnel connections)
             try
             {
                 if (_ws.State == WebSocketState.Open)
-                    await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None);
+                {
+                    using var closeCts = new CancellationTokenSource(3000);
+                    await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", closeCts.Token);
+                }
             }
-            catch { }
+            catch
+            {
+                // Graceful close failed (dead connection) — force abort
+                try { _ws.Abort(); } catch { }
+            }
 
             Logger.Info($"[Protocol] Client {_clientId} disconnected");
         }

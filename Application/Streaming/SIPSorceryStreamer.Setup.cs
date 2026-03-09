@@ -14,11 +14,38 @@ using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using RemotePlayServer.Infrastructure.Network;
 
 namespace RemotePlayServer.Application.Streaming;
 
 public partial class SIPSorceryStreamer
 {
+    /// <summary>
+    /// Build RTCConfiguration with STUN + optional TURN servers.
+    /// Centralized to avoid DRY violation across all PeerConnection creation sites.
+    /// </summary>
+    private static RTCConfiguration BuildIceConfiguration()
+    {
+        var servers = new List<RTCIceServer>
+        {
+            new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+        };
+
+        var config = InternetManager.Instance?.Config;
+        if (config is { Enabled: true, TurnServerUrl: not null })
+        {
+            servers.Add(new RTCIceServer
+            {
+                urls = config.TurnServerUrl,
+                username = config.TurnUsername ?? "",
+                credential = config.TurnPassword ?? ""
+            });
+            Logger.Info($"[SIPSorcery] TURN server configured: {config.TurnServerUrl}");
+        }
+
+        return new RTCConfiguration { iceServers = servers };
+    }
+
     /// <summary>
     /// Process single SDP offer (with N m= sections), create N tracks, return single answer.
     /// When perTrackPc=true: only audio track on main PC; video tracks on per-monitor PCs.
@@ -47,16 +74,10 @@ public partial class SIPSorceryStreamer
                 Logger.Info($"[SIPSorcery] Client SDP: {line}");
         }
 
-        // Create Main PeerConnection with STUN for better ICE reliability
-        var cfg = new RTCConfiguration
-        {
-            iceServers = new List<RTCIceServer>
-            {
-                new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
-            }
-        };
+        // Create Main PeerConnection with STUN + optional TURN
+        var cfg = BuildIceConfiguration();
         _mainPc = new RTCPeerConnection(cfg);
-        Logger.Info("[SIPSorcery] Main PC: PeerConnection created (with STUN)");
+        Logger.Info("[SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)");
 
         // 2. Manage Video Tracks — only added to main PC in legacy mode
         for (int i = 0; i < dimensions.Count; i++)
@@ -505,12 +526,8 @@ public partial class SIPSorceryStreamer
             }
             _videoDcs.TryRemove(monitorIndex, out _);
 
-            // Create new video PC with same config
-            var cfg = new RTCConfiguration
-            {
-                iceServers = new List<RTCIceServer>
-                { new RTCIceServer { urls = "stun:stun.l.google.com:19302" } }
-            };
+            // Create new video PC with centralized ICE config
+            var cfg = BuildIceConfiguration();
 
             int capturedIndex = monitorIndex;
             var vpc = new RTCPeerConnection(cfg);
@@ -630,13 +647,7 @@ public partial class SIPSorceryStreamer
             try { _audioPc?.close(); } catch { }
             _audioPc = null;
 
-            var config = new RTCConfiguration
-            {
-                iceServers = new List<RTCIceServer>
-                {
-                    new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
-                }
-            };
+            var config = BuildIceConfiguration();
             _audioPc = new RTCPeerConnection(config);
             // No DataChannel on Audio PC — SCTP is broken on Unity WebRTC for dedicated PCs.
             // Audio goes through RTP (Opus track) via ICE/DTLS/UDP instead.

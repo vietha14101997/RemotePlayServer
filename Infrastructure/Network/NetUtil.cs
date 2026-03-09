@@ -71,4 +71,60 @@ public static class NetUtil
         // Fallback to any IP or localhost
         return ips.FirstOrDefault() ?? "127.0.0.1";
     }
+
+    /// <summary>
+    /// Check if client IP is on the same subnet as any local interface.
+    /// Used to distinguish LAN clients from internet clients.
+    /// </summary>
+    public static bool IsClientOnLAN(IPAddress clientIp)
+    {
+        if (clientIp.AddressFamily != AddressFamily.InterNetwork)
+            return false;
+
+        // Loopback is always local
+        if (IPAddress.IsLoopback(clientIp))
+            return true;
+
+        // If client IP is not private, it's definitely internet
+        if (!IsPrivateIp(clientIp))
+            return false;
+
+        var clientBytes = clientIp.GetAddressBytes();
+
+        // Compare against all local interfaces' subnets
+        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (ni.OperationalStatus != OperationalStatus.Up) continue;
+            var ipProps = ni.GetIPProperties();
+            foreach (var ua in ipProps.UnicastAddresses)
+            {
+                if (ua.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                if (IPAddress.IsLoopback(ua.Address)) continue;
+
+                var maskBytes = ua.IPv4Mask.GetAddressBytes();
+                var localBytes = ua.Address.GetAddressBytes();
+                bool sameSubnet = true;
+                for (int i = 0; i < 4; i++)
+                {
+                    if ((clientBytes[i] & maskBytes[i]) != (localBytes[i] & maskBytes[i]))
+                    { sameSubnet = false; break; }
+                }
+                if (sameSubnet) return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Check if an IP address is in a private (RFC 1918) or CGN (RFC 6598) range.
+    /// </summary>
+    public static bool IsPrivateIp(IPAddress ip)
+    {
+        var bytes = ip.GetAddressBytes();
+        if (bytes.Length != 4) return false;
+        return bytes[0] == 10
+            || (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+            || (bytes[0] == 192 && bytes[1] == 168)
+            || (bytes[0] == 100 && bytes[1] >= 64 && bytes[1] <= 127); // CGN range
+    }
 }

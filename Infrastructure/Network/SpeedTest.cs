@@ -272,7 +272,7 @@ namespace RemotePlayServer.Infrastructure.Network
         /// <summary>
         /// Classify connection type based on RTT and bandwidth.
         /// </summary>
-        private static string ClassifyConnection(double pingMs, double mbps)
+        internal static string ClassifyConnection(double pingMs, double mbps)
         {
             if (pingMs < 5 && mbps > 500)
                 return "LAN";
@@ -346,7 +346,25 @@ namespace RemotePlayServer.Infrastructure.Network
                 rawBitrate = 40000;  // Max quality for LAN
             }
 
-            // Round to nearest dropdown option: 15, 20, 25, 30, 40 Mbps
+            // Internet profile: conservative defaults for higher latency connections
+            // Skip when speed test failed (BandwidthMbps=0) to avoid false internet classification
+            bool isInternetConnection = network.BandwidthMbps > 0
+                && (network.ConnectionType == "Internet" || SpeedTest.ClassifyConnection(network.PingMs, network.BandwidthMbps) == "Internet");
+            if (isInternetConnection)
+            {
+                int internetBase = 5000; // 5 Mbps base for internet
+                double maxForInternet = Math.Min(availableBandwidth * 1000 * 0.6, 10000); // 60% BW, max 10Mbps
+                rawBitrate = (int)Math.Clamp(maxForInternet, internetBase, 10000);
+
+                // FPS: prefer 30fps for stability on internet
+                if (network.PingMs > 50)
+                {
+                    config.Fps = 30;
+                    config.RefreshRate = 60;
+                }
+            }
+
+            // Round to nearest dropdown option
             config.BitrateKbps = RoundToNearestBitrateOption(rawBitrate);
 
             // FPS based on encoder capability and ping
@@ -389,8 +407,8 @@ namespace RemotePlayServer.Infrastructure.Network
         /// </summary>
         private static int RoundToNearestBitrateOption(int bitrateKbps)
         {
-            // Options in Kbps - minimum 15Mbps for text clarity
-            int[] options = { 15000, 20000, 25000, 30000, 40000 };
+            // Options in Kbps - includes lower options for internet mode
+            int[] options = { 5000, 8000, 10000, 15000, 20000, 25000, 30000, 40000 };
 
             int nearest = options[0];
             int minDiff = Math.Abs(bitrateKbps - options[0]);
