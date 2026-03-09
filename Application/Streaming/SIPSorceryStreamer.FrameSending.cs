@@ -57,7 +57,9 @@ public partial class SIPSorceryStreamer
 
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
-        if (track.Track == null || track.Encoder == null) return;
+        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack
+        bool trackReady = _perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null);
+        if (!trackReady || track.Encoder == null) return;
 
         // H265 hybrid mode: Only need DC for first IDR bootstrap.
         // After that, P-frames go via RTP — no need to block on DC.
@@ -103,7 +105,7 @@ public partial class SIPSorceryStreamer
                         lock (track.EncodeLock) { track.Encoder?.SetBitrate(reduced); }
                         // Also inform global ABC about congestion ceiling (for recovery limiting)
                         _bitrateController.MarkDcCongestion(currentBitrate);
-                        Logger.Info($"[SIPSorcery] Track {monitorIndex} DC soft congestion ({trackBuffered/1024}KB, sustained) → track bitrate {currentBitrate} → {reduced}kbps (-20%)");
+                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} DC soft congestion → {currentBitrate} → {reduced}kbps");
                     }
                 }
             }
@@ -129,7 +131,7 @@ public partial class SIPSorceryStreamer
                         // restore → congestion → reduce → clear → restore → congestion...
                         // Keep the reduced bitrate and let ABC naturally recover over time.
                         _bitrateController.MarkCongestionCleared();
-                        Logger.Info($"[SIPSorcery] Track {monitorIndex} DC soft congestion cleared ({trackBuffered/1024}KB) → keeping {track.TrackBitrateKbps}kbps (ABC will recover)");
+                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} DC congestion cleared → {track.TrackBitrateKbps}kbps");
                     }
                 }
             }
@@ -195,7 +197,9 @@ public partial class SIPSorceryStreamer
 
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
-        if (track.Track == null || track.Encoder == null) return;
+        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack
+        bool trackReady = _perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null);
+        if (!trackReady || track.Encoder == null) return;
 
         // H265 hybrid mode: Only need DC for first IDR bootstrap.
         // After that, P-frames go via RTP — no need to block on DC.
@@ -276,8 +280,8 @@ public partial class SIPSorceryStreamer
 
     private void OnEncodedData(TrackInfo track, byte[] nalData, bool isKeyframe, long pts100ns)
     {
-        if (!_running || _pc == null || !_connected) return;
-        if (_pc.connectionState != RTCPeerConnectionState.connected) return;
+        if (!_running || _mainPc == null || !_connected) return;
+        if (_mainPc.connectionState != RTCPeerConnectionState.connected) return;
 
         // Track encode latency (from PushTexture/PushBgraTexture start to callback)
         long startTicks = track.LastEncodeStartTicks;
@@ -291,37 +295,7 @@ public partial class SIPSorceryStreamer
 
         try
         {
-            // First-frame logging for H265 pipeline debugging
             long earlyFrameNum = Interlocked.Read(ref track.SentFrames);
-            if (earlyFrameNum < 3)
-            {
-                Logger.Info($"[SIPSorcery] Track {track.Index} OnEncodedData: {nalData.Length} bytes, keyframe={isKeyframe}, annexB={ContainsAnnexBStartCode(nalData)}");
-                // Dump NAL types for debugging H265 client issue
-                if (nalData.Length >= 4)
-                {
-                    var sb = new System.Text.StringBuilder();
-                    sb.Append($"[SIPSorcery] Track {track.Index} NAL dump (key={isKeyframe}): ");
-                    int hexLen = Math.Min(nalData.Length, 32);
-                    for (int h = 0; h < hexLen; h++)
-                        sb.Append(nalData[h].ToString("X2")).Append(' ');
-                    sb.Append(" | NAL types: ");
-                    // Parse Annex-B NAL types
-                    for (int p = 0; p < nalData.Length - 4; p++)
-                    {
-                        int sc = 0;
-                        if (p + 3 < nalData.Length && nalData[p] == 0 && nalData[p+1] == 0 && nalData[p+2] == 0 && nalData[p+3] == 1) sc = 4;
-                        else if (p + 2 < nalData.Length && nalData[p] == 0 && nalData[p+1] == 0 && nalData[p+2] == 1) sc = 3;
-                        if (sc > 0 && p + sc < nalData.Length)
-                        {
-                            int nalType = (nalData[p + sc] >> 1) & 0x3F;
-                            string desc = nalType switch { 32 => "VPS", 33 => "SPS", 34 => "PPS", 19 => "IDR_W_RADL", 20 => "IDR_N_LP", 21 => "CRA", _ => nalType <= 9 ? $"TRAIL({nalType})" : $"T{nalType}" };
-                            sb.Append($"{nalType}({desc}) ");
-                            p += sc;
-                        }
-                    }
-                    Logger.Info(sb.ToString());
-                }
-            }
 
             // CRITICAL: Drop P-frames that arrive before the first IDR of this session.
             // AMF/NVENC encoders have a hardware pipeline — stale P-frames from the
@@ -380,8 +354,6 @@ public partial class SIPSorceryStreamer
                     if (SendH265IdrViaDataChannel(track, nalData))
                     {
                         track.IdrViaDcCount++;
-                        if (track.IdrViaDcCount <= 5 || track.IdrViaDcCount % 20 == 0)
-                            Logger.Info($"[SIPSorcery] Track {track.Index}: IDR via DataChannel #{track.IdrViaDcCount}");
 
                         // NOTE: Bootstrap IDR retry DISABLED.
                         // Original intent: retry IDR after 500ms in case SCTP dropped it during slow-start.
@@ -488,7 +460,7 @@ public partial class SIPSorceryStreamer
 
     private void SendRtpPacket(TrackInfo track, byte[] payload, uint rtpTimestamp, int markerBit, long frameNum)
     {
-        if (_pc == null) return;
+        if (_mainPc == null) return;
 
         // Increment sequence number for each RTP packet
         track.SequenceNumber++;
@@ -501,9 +473,9 @@ public partial class SIPSorceryStreamer
         }
 
         // 1. Preferred: Multi-track send using MediaStream.SendRtpRaw (supports manual seqNum)
-        if (_pc.VideoStreamList != null && track.Index < _pc.VideoStreamList.Count)
+        if (_mainPc.VideoStreamList != null && track.Index < _mainPc.VideoStreamList.Count)
         {
-            var videoStream = _pc.VideoStreamList[track.Index];
+            var videoStream = _mainPc.VideoStreamList[track.Index];
             // Use manual sequence number whenever possible
             if (videoStream != null)
             {
@@ -518,7 +490,7 @@ public partial class SIPSorceryStreamer
         {
             try
             {
-                _pc.SendRtpRaw(SDPMediaTypesEnum.video, payload, rtpTimestamp, markerBit, track.PayloadType);
+                _mainPc.SendRtpRaw(SDPMediaTypesEnum.video, payload, rtpTimestamp, markerBit, track.PayloadType);
             }
             catch (Exception ex)
             {
@@ -530,7 +502,7 @@ public partial class SIPSorceryStreamer
 
     public void FlushAllPendingFrames()
     {
-        if (!_running || _pc == null || !_connected) return;
+        if (!_running || _mainPc == null || !_connected) return;
 
         TrackInfo[] snapshot;
         lock (_lock) { snapshot = _tracks.ToArray(); }
@@ -562,11 +534,29 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Check if a DataChannel for H265 frame delivery is open and ready.
-    /// Checks per-track DC first, then legacy single DC, then cursor DC fallback.
+    /// Per-track PC mode: checks _videoDcs on dedicated video PCs.
+    /// Legacy mode: checks per-track DCs on shared PC, then single DC, then cursor DC fallback.
     /// </summary>
     private bool IsH265DataChannelReady()
     {
-        // Per-track DCs: if any exist, at least one should be open
+        if (_perTrackPcMode)
+        {
+            // Per-track PC mode: at least one video PC's DC must be open
+            if (_videoDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open))
+                return true;
+            // Fallback: check main PC's h265video DCs (when video PCs failed to connect)
+            if (_perTrackFallbackActive)
+            {
+                lock (_perTrackFallbackDcs)
+                {
+                    return _perTrackFallbackDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open);
+                }
+            }
+            return false;
+        }
+
+        // Legacy mode:
+        // Per-track DCs on shared PC: if any exist, at least one should be open
         lock (_h265VideoDcs)
         {
             if (_h265VideoDcs.Count > 0)
@@ -582,12 +572,33 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Get the DataChannel for a specific track's H265 video frames.
-    /// Priority: per-track DC → legacy single DC → cursor DC fallback.
-    /// Per-track DCs give each track its own SCTP buffer, preventing cross-track congestion.
+    /// In per-track PC mode: uses _videoDcs[trackIndex] (DC on dedicated video PC).
+    /// In legacy mode priority: per-track DC on shared PC → legacy single DC → cursor DC fallback.
+    /// Per-track DCs (both modes) give each track its own SCTP buffer → no cross-track congestion.
     /// </summary>
     private RTCDataChannel? GetH265VideoChannel(int trackIndex)
     {
-        // 1. Per-track DC (best: isolated buffer per track)
+        // Per-track PC mode: use the DC on the dedicated video PC
+        if (_perTrackPcMode)
+        {
+            if (_videoDcs.TryGetValue(trackIndex, out var videoPerPcDc) &&
+                videoPerPcDc.readyState == RTCDataChannelState.open)
+                return videoPerPcDc;
+            // Fallback: use main PC's h265video DC when video PCs failed
+            if (_perTrackFallbackActive)
+            {
+                lock (_perTrackFallbackDcs)
+                {
+                    if (_perTrackFallbackDcs.TryGetValue(trackIndex, out var fallbackDc) &&
+                        fallbackDc.readyState == RTCDataChannelState.open)
+                        return fallbackDc;
+                }
+            }
+            return null;
+        }
+
+        // Legacy mode:
+        // 1. Per-track DC on shared PC (best: isolated buffer per track)
         lock (_h265VideoDcs)
         {
             if (_h265VideoDcs.TryGetValue(trackIndex, out var perTrackDc) &&
@@ -691,14 +702,14 @@ public partial class SIPSorceryStreamer
             }
             else
             {
-                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — skipping IDR (cooldown)");
+                Logger.Debug($"[SIPSorcery] Track {track.Index}: DC drained — cooldown");
             }
         }
         // Legacy single-DC drain detection (only in legacy mode)
         if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
-            Logger.Info($"[SIPSorcery] DC buffer drained ({buffered/1024}KB) — resuming (no IDR)");
+            Logger.Debug($"[SIPSorcery] DC buffer drained — resuming");
         }
 
         // Flow control: Block IDR when buffer is already congested.
@@ -743,7 +754,6 @@ public partial class SIPSorceryStreamer
                 dc.send(msg);
             }
 
-            Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 IDR via DataChannel ({idrData.Length} bytes, {totalChunks} chunks)");
             return true;
         }
         catch (Exception ex)
@@ -790,7 +800,7 @@ public partial class SIPSorceryStreamer
                     track.TrackBitrateKbps = reducedBitrate;
                     track.PendingBitrateKbps = reducedBitrate; // Deferred: applied by next PushBgraTexture
                     _bitrateController.MarkDcCongestion(currentBitrate);
-                    Logger.Info($"[SIPSorcery] Track {track.Index} DC congestion → deferred track bitrate {currentBitrate} → {reducedBitrate}kbps (-20%)");
+                    Logger.Debug($"[SIPSorcery] Track {track.Index} DC congestion → {currentBitrate} → {reducedBitrate}kbps");
                 }
             }
             if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
@@ -812,18 +822,18 @@ public partial class SIPSorceryStreamer
                 int globalBitrate = _bitrateController.TargetBitrateKbps;
                 track.TrackBitrateKbps = globalBitrate;
                 track.PendingBitrateKbps = globalBitrate; // Deferred: applied by next PushBgraTexture
-                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — queued IDR + deferred bitrate restore to {globalBitrate}kbps");
+                Logger.Debug($"[SIPSorcery] Track {track.Index}: DC drained → IDR + restore {globalBitrate}kbps");
             }
             else
             {
-                Logger.Info($"[SIPSorcery] Track {track.Index}: DC drained ({buffered/1024}KB) — skipping IDR (cooldown)");
+                Logger.Debug($"[SIPSorcery] Track {track.Index}: DC drained — cooldown");
             }
         }
         // Legacy single-DC drain detection (only in legacy mode)
         if (!perTrackMode && _dcWasAboveHigh && buffered < DC_BUFFER_LOW_WATER)
         {
             _dcWasAboveHigh = false;
-            Logger.Info($"[SIPSorcery] DC buffer drained ({buffered/1024}KB) — resuming (no IDR)");
+            Logger.Debug($"[SIPSorcery] DC buffer drained — resuming");
         }
 
         try
@@ -847,9 +857,6 @@ public partial class SIPSorceryStreamer
 
                 dc.send(msg);
             }
-
-            if (Interlocked.Read(ref track.SentFrames) < 5 || Interlocked.Read(ref track.SentFrames) % 300 == 0)
-                Logger.Info($"[SIPSorcery] Track {track.Index}: Sent H265 P-frame via DataChannel ({pframeData.Length} bytes, {totalChunks} chunks)");
 
             return true;
         }
@@ -897,6 +904,9 @@ public partial class SIPSorceryStreamer
     /// </summary>
     private bool IsPerTrackDcMode()
     {
+        // Per-track PC mode always uses per-track DCs (one per video PC)
+        if (_perTrackPcMode) return true;
+        // Legacy: per-track DCs on shared PC when client opened h265video-N channels
         lock (_h265VideoDcs) { return _h265VideoDcs.Count > 0; }
     }
 

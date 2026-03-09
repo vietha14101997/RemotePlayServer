@@ -499,6 +499,16 @@ namespace RemotePlayServer.Application.Protocol
                     HandleAudioIceCandidate(json);
                     break;
 
+                case "video_answer":
+                    if (_perTrackPc)
+                        await HandleVideoAnswerAsync(json);
+                    break;
+
+                case "video_candidate":
+                    if (_perTrackPc)
+                        HandleVideoIceCandidate(json);
+                    break;
+
                 case "proceed":
                     var proceed = ProtocolMessageParser.Parse<ProceedMessage>(json);
                     if (proceed?.Phase == 3)
@@ -513,10 +523,12 @@ namespace RemotePlayServer.Application.Protocol
                         // so ice_ready + start_streaming exchange happens reliably.
                         if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
                         {
-                            Logger.Info("[Protocol] Received proceed phase 3, waiting for DTLS to complete...");
+                            // WiFi has higher latency → longer DTLS timeout
+                            int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
+                            Logger.Info($"[Protocol] Received proceed phase 3, waiting for DTLS to complete (timeout={dtlsTimeoutSec}s)...");
                             try
                             {
-                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(dtlsTimeoutSec));
                                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts.Token, _ct);
                                 var dtlsTask = _allConnectedTcs.Task;
                                 var timeoutTask = Task.Delay(Timeout.Infinite, linkedCts.Token);
@@ -528,7 +540,7 @@ namespace RemotePlayServer.Application.Protocol
                                 }
                                 else
                                 {
-                                    Logger.Error("[Protocol] DTLS timeout (6s) - requesting client to reconnect");
+                                    Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) - requesting client to reconnect");
                                     try
                                     {
                                         await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_timeout\"}");
@@ -548,6 +560,32 @@ namespace RemotePlayServer.Application.Protocol
                         return true;
                     }
                     break;
+
+                case "start_streaming":
+                    // After restart_phase2, client may send start_streaming directly
+                    // instead of proceed→start_streaming sequence. Treat as proceed phase 3.
+                    Logger.Info("[Protocol] Received start_streaming during ICE exchange — treating as proceed phase 3");
+                    if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
+                    {
+                        int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
+                        Logger.Info($"[Protocol] Waiting for DTLS before proceeding (timeout={dtlsTimeoutSec}s)...");
+                        try
+                        {
+                            using var dtlsCts2 = new CancellationTokenSource(TimeSpan.FromSeconds(dtlsTimeoutSec));
+                            using var linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts2.Token, _ct);
+                            var dtlsTask2 = _allConnectedTcs.Task;
+                            var completed2 = await Task.WhenAny(dtlsTask2, Task.Delay(Timeout.Infinite, linkedCts2.Token));
+                            if (!(completed2 == dtlsTask2 && dtlsTask2.IsCompletedSuccessfully))
+                            {
+                                Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) after start_streaming");
+                                break;
+                            }
+                        }
+                        catch (OperationCanceledException) { throw; }
+                    }
+                    // Store the start_streaming so Phase 3 doesn't wait for it again
+                    _startStreamingReceived = true;
+                    return true;
 
                 case "ping":
                     await SendMessageAsync(new PongMessage());
@@ -625,6 +663,122 @@ namespace RemotePlayServer.Application.Protocol
             catch (Exception ex)
             {
                 Logger.Error($"[Protocol] audio_candidate handling failed: {ex.Message}");
+            }
+        }
+
+        // ── Per-Track PC methods (perTrackPc=true path) ─────────────────────────────
+
+        /// <summary>
+        /// Sends video PC offers to client after main PC is established.
+        /// One offer per monitor, each with a dedicated PeerConnection for video only.
+        /// </summary>
+        private async Task SendVideoPcOffersAsync()
+        {
+            if (_streamer == null) return;
+
+            try
+            {
+                var offers = await _streamer.GetVideoPcOffersAsync();
+                if (offers.Count == 0)
+                {
+                    Logger.Warn("[Protocol] GetVideoPcOffersAsync returned empty list — no video PCs to send");
+                    return;
+                }
+
+                // Unsubscribe previous handler to prevent double-subscription on reconnect
+                if (_videoIceCandidateHandler != null)
+                    _streamer.OnVideoIceCandidate -= _videoIceCandidateHandler;
+
+                // Subscribe to video PC ICE candidates — forward to client with monitorIndex tag
+                _videoIceCandidateHandler = async (monitorIndex, candidate) =>
+                {
+                    try
+                    {
+                        if (_ws.State != System.Net.WebSockets.WebSocketState.Open) return;
+                        var msg = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            type = "video_candidate",
+                            monitorIndex,
+                            candidate
+                        });
+                        await SendTextAsync(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"[Protocol] Failed to send video_candidate for monitor {monitorIndex}: {ex.Message}");
+                    }
+                };
+                _streamer.OnVideoIceCandidate += _videoIceCandidateHandler;
+
+                // Send all video offers in parallel (client can handle concurrent offers)
+                foreach (var (monitorIndex, offerSdp) in offers)
+                {
+                    var msg = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        type = "video_offer",
+                        monitorIndex,
+                        sdp = offerSdp
+                    });
+                    await SendTextAsync(msg);
+                    Logger.Info($"[Protocol] Sent video_offer cho monitor {monitorIndex}, sdp len={offerSdp.Length}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] SendVideoPcOffersAsync thất bại: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle video_answer from client: applies remote description to the video PC.
+        /// </summary>
+        private async Task HandleVideoAnswerAsync(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                int monitorIndex = doc.RootElement.TryGetProperty("monitorIndex", out var mi) ? mi.GetInt32() : -1;
+                string? answerSdp = doc.RootElement.TryGetProperty("sdp", out var sp) ? sp.GetString() : null;
+
+                if (monitorIndex < 0 || string.IsNullOrEmpty(answerSdp))
+                {
+                    Logger.Error($"[Protocol] video_answer thiếu monitorIndex hoặc sdp");
+                    return;
+                }
+
+                await _streamer.SetVideoAnswerAsync(monitorIndex, answerSdp!);
+                Logger.Info($"[Protocol] Applied video_answer cho monitor {monitorIndex}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] video_answer xử lý thất bại: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle video_candidate from client: routes ICE candidate to the correct video PC.
+        /// </summary>
+        private void HandleVideoIceCandidate(string json)
+        {
+            if (_streamer == null) return;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                int monitorIndex = doc.RootElement.TryGetProperty("monitorIndex", out var mi) ? mi.GetInt32() : -1;
+                string? candidate = doc.RootElement.TryGetProperty("candidate", out var cp) ? cp.GetString() : null;
+
+                if (monitorIndex < 0 || string.IsNullOrEmpty(candidate))
+                {
+                    Logger.Error($"[Protocol] video_candidate thiếu monitorIndex hoặc candidate");
+                    return;
+                }
+
+                _streamer.AddVideoIceCandidate(monitorIndex, candidate!);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] video_candidate xử lý thất bại: {ex.Message}");
             }
         }
 
@@ -751,8 +905,19 @@ namespace RemotePlayServer.Application.Protocol
                 var codecPayloadType = ParseCodecPayloadType(offerSdp, _selectedCodec);
                 Logger.Info($"[Protocol] Parsed {_selectedCodec} PT from offer: {codecPayloadType}");
 
+                // Single monitor: disable per-track PC mode.
+                // Per-track PCs exist to isolate SCTP buffers across monitors (no cross-track congestion).
+                // With 1 monitor there's no cross-track issue, and the client's offer includes a video
+                // track on the main PC for single-monitor mode — it won't respond to separate video_offers.
+                if (_perTrackPc && dimensions.Count <= 1)
+                {
+                    Logger.Info("[Protocol] Single monitor: disabling perTrackPc (unnecessary, client uses main PC video)");
+                    _perTrackPc = false;
+                }
+
                 // Process offer with all dimensions at once
-                var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions);
+                // In perTrackPc mode: main PC handles audio + DataChannels only, no video tracks
+                var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions, _perTrackPc);
 
                 // Check if a codec_fallback arrived while we were processing this offer.
                 // If so, discard this stale answer — the client already sent/will send a new offer.
@@ -785,7 +950,6 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(candMsg);
-                    Logger.Info($"[Protocol] Sent extracted ICE candidate: {candidate.Substring(0, Math.Min(60, candidate.Length))}...");
                 }
 
                 lock (_iceLock)
@@ -794,14 +958,21 @@ namespace RemotePlayServer.Application.Protocol
                     // Process pending ICE candidates that arrived before/during offer processing
                     if (_pendingIce.TryGetValue(0, out var pendingList) && pendingList.Count > 0)
                     {
-                        Logger.Info($"[Protocol] Applying {pendingList.Count} pending ICE candidates");
                         foreach (var cand in pendingList)
                         {
                             _streamer.AddIceCandidate(cand, null);
-                            Logger.Info($"[Protocol] Applied pending ICE: {cand.Substring(0, Math.Min(50, cand.Length))}...");
                         }
                         pendingList.Clear();
                     }
+                }
+
+                // Per-track PC mode: send video offers after main PC answer is established.
+                // Video offers are sent AFTER the main answer so client sets up main PC first,
+                // then handles video PCs. ICE for main PC continues in parallel (trickle ICE).
+                if (_perTrackPc)
+                {
+                    Logger.Info("[Protocol] perTrackPc=true: sending video PC offers after main PC answer");
+                    await SendVideoPcOffersAsync();
                 }
             }
             catch (Exception ex)

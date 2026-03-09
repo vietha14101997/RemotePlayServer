@@ -21,11 +21,15 @@ public partial class SIPSorceryStreamer
 {
     /// <summary>
     /// Process single SDP offer (with N m= sections), create N tracks, return single answer.
+    /// When perTrackPc=true: only audio track on main PC; video tracks on per-monitor PCs.
+    /// When perTrackPc=false: legacy single-PC behavior (unchanged).
     /// </summary>
-    public Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions)
+    public Task<string> ProcessOfferAsync(string offerSdp, List<(int w, int h)> dimensions, bool perTrackPc = false)
     {
+        _perTrackPcMode = perTrackPc;
+
         // 1. CLEAR previous connection state but PRESERVE TrackInfo list for SSRC persistence!
-        // (CloseConnection disposes _pc, _audioDc, etc. but not the underlying encoders/SSRCs)
+        // (CloseConnection disposes _mainPc, _audioDc, etc. but not the underlying encoders/SSRCs)
         CloseConnection();
 
         // Ensure fresh sync state for Every new connection/reconnect.
@@ -34,7 +38,7 @@ public partial class SIPSorceryStreamer
 
         // Parse negotiated codec payload type from offer
         var (negotiatedPt, negotiatedFmtp) = TryGetCodecFromOfferSdp(offerSdp, _negotiatedCodec);
-        Logger.Info($"[SIPSorcery] Offer {_negotiatedCodec} pt={negotiatedPt ?? 96}, fmtp={negotiatedFmtp ?? "default"}");
+        Logger.Info($"[SIPSorcery] Offer {_negotiatedCodec} pt={negotiatedPt ?? 96}, fmtp={negotiatedFmtp ?? "default"}, perTrackPc={perTrackPc}");
 
         // Log client fingerprint from offer for DTLS debugging
         foreach (var line in offerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
@@ -43,7 +47,7 @@ public partial class SIPSorceryStreamer
                 Logger.Info($"[SIPSorcery] Client SDP: {line}");
         }
 
-        // Create PeerConnection with STUN for better ICE reliability
+        // Create Main PeerConnection with STUN for better ICE reliability
         var cfg = new RTCConfiguration
         {
             iceServers = new List<RTCIceServer>
@@ -51,10 +55,10 @@ public partial class SIPSorceryStreamer
                 new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
             }
         };
-        _pc = new RTCPeerConnection(cfg);
-        Logger.Info("[SIPSorcery] PeerConnection created (with STUN)");
+        _mainPc = new RTCPeerConnection(cfg);
+        Logger.Info("[SIPSorcery] Main PC: PeerConnection created (with STUN)");
 
-        // 2. Manage Video Tracks - Reuse SSRC from previous session if possible
+        // 2. Manage Video Tracks — only added to main PC in legacy mode
         for (int i = 0; i < dimensions.Count; i++)
         {
             var (w, h) = dimensions[i];
@@ -90,27 +94,7 @@ public partial class SIPSorceryStreamer
             // Negotiated codec format
             string defaultFmtp = _negotiatedCodec == VideoCodec.H264
                 ? "packetization-mode=1;level-asymmetry-allowed=1;profile-level-id=42e01f"
-                : (_negotiatedCodec == VideoCodec.H265 ? "profile-id=1;tier-flag=0;level-id=123" : ""); 
-
-            var codecFormat = new SDPAudioVideoMediaFormat(
-                SDPMediaTypesEnum.video,
-                id: negotiatedPt ?? (96 + i),
-                name: _negotiatedCodec.ToString(),
-                clockRate: 90000,
-                fmtp: MergeFmtp(defaultFmtp, negotiatedFmtp));
-
-            var track = new MediaStreamTrack(
-                SDPMediaTypesEnum.video,
-                isRemote: false,
-                capabilities: new List<SDPAudioVideoMediaFormat> { codecFormat },
-                streamStatus: MediaStreamStatusEnum.SendOnly);
-            
-            // Assign the PERSISTENT SSRC to this track
-            track.Ssrc = ti.Ssrc;
-            ti.PayloadType = codecFormat.ID;
-            ti.Track = track;
-            
-            _pc.addTrack(track);
+                : (_negotiatedCodec == VideoCodec.H265 ? "profile-id=1;tier-flag=0;level-id=123" : "");
 
             // Device mapping logic (simplified for clarity)
             ID3D11Device? deviceForTrack = _sharedDevice;
@@ -122,7 +106,35 @@ public partial class SIPSorceryStreamer
             }
             ti.Device = deviceForTrack;
 
-            Logger.Info($"[SIPSorcery] Added track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8}), SSRC={ti.Ssrc}");
+            if (!perTrackPc)
+            {
+                // Legacy: add video tracks to main PC
+                var codecFormat = new SDPAudioVideoMediaFormat(
+                    SDPMediaTypesEnum.video,
+                    id: negotiatedPt ?? (96 + i),
+                    name: _negotiatedCodec.ToString(),
+                    clockRate: 90000,
+                    fmtp: MergeFmtp(defaultFmtp, negotiatedFmtp));
+
+                var track = new MediaStreamTrack(
+                    SDPMediaTypesEnum.video,
+                    isRemote: false,
+                    capabilities: new List<SDPAudioVideoMediaFormat> { codecFormat },
+                    streamStatus: MediaStreamStatusEnum.SendOnly);
+
+                // Assign the PERSISTENT SSRC to this track
+                track.Ssrc = ti.Ssrc;
+                ti.PayloadType = codecFormat.ID;
+                ti.Track = track;
+
+                _mainPc.addTrack(track);
+                Logger.Info($"[SIPSorcery] Main PC: Added video track {i}: {w}x{h} (device={deviceForTrack?.GetHashCode():X8}), SSRC={ti.Ssrc}");
+            }
+            else
+            {
+                // Per-track mode: video tracks will be on dedicated video PCs
+                Logger.Info($"[SIPSorcery] Main PC: Track {i} ({w}x{h}) will use dedicated video PC (per-track mode)");
+            }
         }
 
         // Initialize per-monitor pause state (all monitors active initially)
@@ -138,71 +150,102 @@ public partial class SIPSorceryStreamer
             SDPMediaTypesEnum.audio, false,
             new List<SDPAudioVideoMediaFormat> { opusFormat },
             MediaStreamStatusEnum.SendOnly);
-        _pc.addTrack(audioTrack);
-        Logger.Info("[SIPSorcery] Added SendOnly Opus audio track to main PC (RTP transport)");
+        _mainPc.addTrack(audioTrack);
+        Logger.Info("[SIPSorcery] Main PC: Added SendOnly Opus audio track (RTP transport)");
 
-        // Receive client-created DataChannel for low-latency audio.
-        // Client creates DC "audio" (libwebrtc manages SCTP), server just receives and sends Opus via it.
-        // Opus frames sent as binary messages: [type(1)][timestamp(8)][opus_data]
-        _pc.ondatachannel += (dc) =>
+        // Wire DataChannels on main PC.
+        // In per-track mode: only cursor + audio DCs (video DCs go on individual video PCs).
+        // In legacy mode: all DCs including h265video-* and h265video.
+        _mainPc.ondatachannel += (dc) =>
         {
-            Logger.Info($"[SIPSorcery] DataChannel received: label={dc.label}, id={dc.id}");
+            Logger.Info($"[SIPSorcery] Main PC: DataChannel received: label={dc.label}, id={dc.id}");
             if (dc.label == "audio")
             {
                 _audioDc = dc;
-                _audioDc.onopen += () => Logger.Info("[SIPSorcery] Audio DataChannel opened");
-                _audioDc.onclose += () => { Logger.Info("[SIPSorcery] Audio DataChannel closed"); _audioDc = null; };
-                Logger.Info("[SIPSorcery] Audio DataChannel wired for sending");
+                _audioDc.onopen += () => Logger.Info("[SIPSorcery] Main PC: Audio DataChannel opened");
+                _audioDc.onclose += () => { Logger.Info("[SIPSorcery] Main PC: Audio DataChannel closed"); _audioDc = null; };
+                Logger.Info("[SIPSorcery] Main PC: Audio DataChannel wired for sending");
             }
             else if (dc.label == "cursor")
             {
                 _cursorDc = dc;
                 _cursorDc.onopen += () =>
                 {
-                    Logger.Info("[SIPSorcery] Cursor DataChannel opened");
+                    Logger.Info("[SIPSorcery] Main PC: Cursor DataChannel opened");
                 };
-                _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Cursor DataChannel closed"); _cursorDc = null; };
-                Logger.Info("[SIPSorcery] Cursor DataChannel wired for sending");
+                _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Main PC: Cursor DataChannel closed"); _cursorDc = null; };
+                Logger.Info("[SIPSorcery] Main PC: Cursor DataChannel wired for sending");
             }
-            else if (dc.label == "h265video")
+            else if (!perTrackPc && dc.label == "h265video")
             {
                 // Legacy single-DC mode (backward compat with older clients)
                 _h265VideoDcLegacy = dc;
                 _h265VideoDcLegacy.onopen += () =>
                 {
-                    Logger.Info("[SIPSorcery] H265 Video DataChannel opened (legacy single-DC, unreliable, unordered) - forcing keyframe for bootstrap");
+                    Logger.Info("[SIPSorcery] Main PC: H265 Video DataChannel opened (legacy single-DC, unreliable, unordered) - forcing keyframe");
                     RequestKeyframe(-1, force: true);
                 };
-                _h265VideoDcLegacy.onclose += () => { Logger.Info("[SIPSorcery] H265 Video DataChannel closed (legacy)"); _h265VideoDcLegacy = null; };
-                Logger.Info("[SIPSorcery] H265 Video DataChannel wired (legacy single-DC mode)");
+                _h265VideoDcLegacy.onclose += () => { Logger.Info("[SIPSorcery] Main PC: H265 Video DataChannel closed (legacy)"); _h265VideoDcLegacy = null; };
+                Logger.Info("[SIPSorcery] Main PC: H265 Video DataChannel wired (legacy single-DC mode)");
             }
-            else if (dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int trackIdx))
+            else if (!perTrackPc && dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int trackIdx))
             {
-                // Per-track DC mode: each track has its own buffer → no cross-track congestion
+                // Legacy per-track DC mode on shared PC: each track has its own buffer
                 lock (_h265VideoDcs) { _h265VideoDcs[trackIdx] = dc; }
                 dc.onopen += () =>
                 {
-                    Logger.Info($"[SIPSorcery] H265 Video DataChannel opened for track {trackIdx} (per-track, unreliable, unordered)");
+                    Logger.Info($"[SIPSorcery] Main PC: H265 Video DataChannel opened for track {trackIdx} (per-track, unreliable, unordered)");
                     RequestKeyframe(trackIdx, force: true);
                 };
                 int closedIdx = trackIdx; // capture for closure
                 dc.onclose += () =>
                 {
-                    Logger.Info($"[SIPSorcery] H265 Video DataChannel closed for track {closedIdx}");
+                    Logger.Info($"[SIPSorcery] Main PC: H265 Video DataChannel closed for track {closedIdx}");
                     lock (_h265VideoDcs) { _h265VideoDcs.Remove(closedIdx); }
                 };
-                Logger.Info($"[SIPSorcery] H265 Video DataChannel wired for track {trackIdx}");
+                Logger.Info($"[SIPSorcery] Main PC: H265 Video DataChannel wired for track {trackIdx}");
+            }
+            else if (perTrackPc && dc.label.StartsWith("h265video"))
+            {
+                // Per-track PC mode: capture h265video DCs from main PC as FALLBACK
+                // If video PCs fail to connect (client doesn't respond with video_answer),
+                // we can fall back to using these DCs on the main PC instead.
+                int fallbackIdx = 0;
+                if (dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int fi))
+                    fallbackIdx = fi;
+                lock (_perTrackFallbackDcs) { _perTrackFallbackDcs[fallbackIdx] = dc; }
+                int capturedFallbackIdx = fallbackIdx;
+                dc.onopen += () =>
+                {
+                    Logger.Info($"[SIPSorcery] Main PC: Fallback H265 DC opened for track {capturedFallbackIdx}");
+                    if (_perTrackFallbackActive)
+                        RequestKeyframe(capturedFallbackIdx, force: true);
+                };
+                dc.onclose += () =>
+                {
+                    Logger.Info($"[SIPSorcery] Main PC: Fallback H265 DC closed for track {capturedFallbackIdx}");
+                    lock (_perTrackFallbackDcs) { _perTrackFallbackDcs.Remove(capturedFallbackIdx); }
+                };
+                Logger.Info($"[SIPSorcery] Main PC: Captured DC '{dc.label}' as fallback (video PCs preferred)");
+            }
+            else if (perTrackPc)
+            {
+                Logger.Info($"[SIPSorcery] Main PC: Ignoring DC '{dc.label}' in per-track mode (video DCs live on video PCs)");
             }
         };
         _hasAudioTrack = true;
-        Logger.Info("[SIPSorcery] Waiting for client audio/cursor/h265video DataChannels (per-track or legacy)");
+
+        if (perTrackPc)
+            Logger.Info("[SIPSorcery] Main PC: Waiting for cursor/audio DCs (video DCs on dedicated video PCs)");
+        else
+            Logger.Info("[SIPSorcery] Main PC: Waiting for audio/cursor/h265video DataChannels (per-track or legacy)");
 
         // ICE candidate forwarding
-        _pc.onicecandidate += (cand) =>
+        _mainPc.onicecandidate += (cand) =>
         {
             if (cand != null && !string.IsNullOrEmpty(cand.candidate))
             {
-                Logger.Info($"[SIPSorcery] Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
+                Logger.Info($"[SIPSorcery] Main PC: Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
                 OnIceCandidate?.Invoke(cand.candidate);
             }
             else
@@ -214,16 +257,16 @@ public partial class SIPSorceryStreamer
         // Connection state changes
         // NOTE: Do NOT initialize encoders here - it blocks DTLS handshake!
         // Encoder init moved to onconnectionstatechange (after DTLS complete)
-        _pc.oniceconnectionstatechange += (state) =>
+        _mainPc.oniceconnectionstatechange += (state) =>
         {
             // Suppress duplicate "connected" events from ICE consent checks during active streaming
             if (state == RTCIceConnectionState.connected && _connected)
                 return;
 
-            Logger.Info($"[SIPSorcery] ICE state: {state}");
+            Logger.Info($"[SIPSorcery] Main PC: ICE state: {state}");
             if (state == RTCIceConnectionState.connected)
             {
-                Logger.Info("[SIPSorcery] ICE CONNECTED - waiting for DTLS...");
+                Logger.Info("[SIPSorcery] Main PC: ICE CONNECTED - waiting for DTLS...");
                 // Don't initialize encoders here - let DTLS complete first
             }
             else if (state == RTCIceConnectionState.failed)
@@ -239,12 +282,12 @@ public partial class SIPSorceryStreamer
         };
 
         // DTLS/SRTP connection state - initialize encoders AFTER DTLS completes
-        _pc.onconnectionstatechange += (state) =>
+        _mainPc.onconnectionstatechange += (state) =>
         {
-            Logger.Info($"[SIPSorcery] Peer state: {state}");
+            Logger.Info($"[SIPSorcery] Main PC: Peer state: {state}");
             if (state == RTCPeerConnectionState.connected)
             {
-                Logger.Info("[SIPSorcery] DTLS CONNECTED - initializing encoders now");
+                Logger.Info("[SIPSorcery] Main PC: DTLS CONNECTED - initializing encoders now");
                 _connected = true;
                 InitializeEncoders();
                 InitializeAudio();
@@ -252,7 +295,7 @@ public partial class SIPSorceryStreamer
             }
             else if (state == RTCPeerConnectionState.failed)
             {
-                Logger.Error("[SIPSorcery] DTLS FAILED - check certificate/fingerprint");
+                Logger.Error("[SIPSorcery] Main PC: DTLS FAILED - check certificate/fingerprint");
                 _connected = false;
                 OnConnectionFailed?.Invoke();
                 OnFatalError?.Invoke("DTLS Handshake Failed");
@@ -261,35 +304,41 @@ public partial class SIPSorceryStreamer
             {
                 // Connection was closed unexpectedly (DTLS timeout, network issue, etc.)
                 // Client should send a reconnect offer to recover
-                Logger.Info("[SIPSorcery] Peer state CLOSED unexpectedly - awaiting client reconnect offer");
+                Logger.Info("[SIPSorcery] Main PC: Peer state CLOSED unexpectedly - awaiting client reconnect offer");
                 _connected = false;
             }
             else if (state == RTCPeerConnectionState.disconnected)
             {
                 // Temporary disconnection - may recover automatically
                 // Don't fire OnConnectionFailed yet, give ICE time to recover
-                Logger.Info("[SIPSorcery] Peer state DISCONNECTED - may recover, waiting...");
+                Logger.Info("[SIPSorcery] Main PC: Peer state DISCONNECTED - may recover, waiting...");
                 _connected = false;
             }
         };
 
-        _pc.onsignalingstatechange += () =>
+        _mainPc.onsignalingstatechange += () =>
         {
-            Logger.Info($"[SIPSorcery] Signaling state: {_pc.signalingState}");
+            Logger.Info($"[SIPSorcery] Main PC: Signaling state: {_mainPc.signalingState}");
         };
 
         // Set remote offer and create answer
         var offer = new RTCSessionDescriptionInit { type = RTCSdpType.offer, sdp = offerSdp };
-        _pc.setRemoteDescription(offer);
-        Logger.Info($"[SIPSorcery] After setRemoteDescription: signalingState={_pc.signalingState}");
+        _mainPc.setRemoteDescription(offer);
+        Logger.Info($"[SIPSorcery] Main PC: After setRemoteDescription: signalingState={_mainPc.signalingState}");
 
-        var answer = _pc.createAnswer(null);
-        Logger.Info($"[SIPSorcery] After createAnswer: signalingState={_pc.signalingState}, answer.type={answer.type}");
+        var answer = _mainPc.createAnswer(null);
+        Logger.Info($"[SIPSorcery] Main PC: After createAnswer: signalingState={_mainPc.signalingState}, answer.type={answer.type}");
 
         // DO NOT call setLocalDescription(answer) — SIPSorcery 8.x signalingState is broken
         // (shows "closed" after setRemoteDescription), so setLocalDescription misinterprets
         // the answer as an offer, setting state to "have_local_offer" and corrupting DTLS config.
         // createAnswer() already configures DTLS internals correctly.
+
+        // Per-track mode: create dedicated video PCs (DC-only, one per monitor)
+        if (perTrackPc)
+        {
+            SetupVideoPeerConnections(dimensions.Count, cfg);
+        }
 
         _running = true;
 
@@ -305,7 +354,7 @@ public partial class SIPSorceryStreamer
         if (answerSdp.Contains("a=setup:actpass"))
         {
             answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
-            Logger.Info("[SIPSorcery] SDP: fixed actpass -> active in answer (RFC 5763)");
+            Logger.Info("[SIPSorcery] Main PC: SDP: fixed actpass -> active in answer (RFC 5763)");
         }
 
         if (!answerSdp.Contains("SAVPF"))
@@ -316,16 +365,222 @@ public partial class SIPSorceryStreamer
         foreach (var line in answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
         {
             if (line.StartsWith("a=fingerprint:") || line.StartsWith("a=setup:"))
-                Logger.Info($"[SIPSorcery] SDP: {line}");
+                Logger.Info($"[SIPSorcery] Main PC SDP: {line}");
         }
 
-        Logger.Info($"[SIPSorcery] Answer ready, {answerSdp.Length} bytes");
+        Logger.Info($"[SIPSorcery] Main PC: Answer ready, {answerSdp.Length} bytes");
         return Task.FromResult(answerSdp);
+    }
+
+    /// <summary>
+    /// Create dedicated DC-only PeerConnections for each video track (per-track mode).
+    /// Each video PC carries one DataChannel for H.265 frames → independent SCTP association.
+    /// NOTE: SIPSorcery's createDataChannel returns Task<RTCDataChannel> — stored after await in GetVideoPcOffersAsync.
+    /// </summary>
+    private void SetupVideoPeerConnections(int monitorCount, RTCConfiguration cfg)
+    {
+        for (int i = 0; i < monitorCount; i++)
+        {
+            int capturedIndex = i; // capture for closures
+            var vpc = new RTCPeerConnection(cfg);
+            _videoPcs[i] = vpc;
+
+            // Wire events on video PC before createOffer (which triggers DC creation)
+            vpc.oniceconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: ICE state: {state}");
+            };
+
+            vpc.onconnectionstatechange += (state) =>
+            {
+                Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: Peer state: {state}");
+            };
+
+            vpc.onicecandidate += (cand) =>
+            {
+                if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+                {
+                    Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
+                    OnVideoIceCandidate?.Invoke(capturedIndex, cand.candidate);
+                }
+                else
+                {
+                    OnVideoIceCandidate?.Invoke(capturedIndex, "end-of-candidates");
+                }
+            };
+
+            // DC is created async in GetVideoPcOffersAsync (after createOffer/setLocalDescription)
+            Logger.Info($"[SIPSorcery] Video PC {i}: Created (DC-only, awaiting offer generation)");
+        }
+    }
+
+    /// <summary>
+    /// Generate SDP offers from all video PeerConnections (per-track mode).
+    /// Also creates the per-track DataChannels (createDataChannel returns Task in SIPSorcery 8.x).
+    /// The client must answer each offer to establish its own SCTP association.
+    /// </summary>
+    public async Task<List<(int monitorIndex, string offerSdp)>> GetVideoPcOffersAsync()
+    {
+        var offers = new List<(int, string)>();
+        foreach (var kvp in _videoPcs)
+        {
+            int idx = kvp.Key;
+            var vpc = kvp.Value;
+
+            // Create DC on the video PC (server-initiated, unreliable + unordered for low latency)
+            // SIPSorcery 8.x: createDataChannel returns Task<RTCDataChannel>
+            var dcInit = new RTCDataChannelInit { ordered = false, maxRetransmits = 0 };
+            var dc = await vpc.createDataChannel($"h265video-{idx}", dcInit);
+            _videoDcs[idx] = dc;
+
+            int capturedIdx = idx; // capture for closures
+            dc.onopen += () =>
+            {
+                Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel opened - requesting keyframe");
+                RequestKeyframe(capturedIdx, force: true);
+            };
+            dc.onclose += () =>
+            {
+                Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel closed");
+            };
+
+            var offer = vpc.createOffer();
+            await vpc.setLocalDescription(offer);
+            var offerSdp = offer.sdp ?? "";
+            Logger.Info($"[SIPSorcery] Video PC {idx}: Offer generated ({offerSdp.Length} bytes)");
+            offers.Add((idx, offerSdp));
+        }
+        return offers;
+    }
+
+    /// <summary>
+    /// Generate SDP offer for a SINGLE video PeerConnection (used during reconnect).
+    /// Only touches the specified monitor's PC — does NOT affect other video PCs.
+    /// </summary>
+    public async Task<(int monitorIndex, string offerSdp)?> GetSingleVideoPcOfferAsync(int monitorIndex)
+    {
+        if (!_videoPcs.TryGetValue(monitorIndex, out var vpc))
+        {
+            Logger.Warn($"[SIPSorcery] GetSingleVideoPcOfferAsync: No video PC for monitor {monitorIndex}");
+            return null;
+        }
+
+        // Create DC on the video PC (server-initiated, unreliable + unordered for low latency)
+        var dcInit = new RTCDataChannelInit { ordered = false, maxRetransmits = 0 };
+        var dc = await vpc.createDataChannel($"h265video-{monitorIndex}", dcInit);
+        _videoDcs[monitorIndex] = dc;
+
+        int capturedIdx = monitorIndex;
+        dc.onopen += () =>
+        {
+            Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel opened - requesting keyframe");
+            RequestKeyframe(capturedIdx, force: true);
+        };
+        dc.onclose += () =>
+        {
+            Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel closed");
+        };
+
+        var offer = vpc.createOffer();
+        await vpc.setLocalDescription(offer);
+        var offerSdp = offer.sdp ?? "";
+        Logger.Info($"[SIPSorcery] Video PC {monitorIndex}: Offer generated ({offerSdp.Length} bytes)");
+        return (monitorIndex, offerSdp);
+    }
+
+    /// <summary>
+    /// Close and recreate a single video PC for reconnection (per-track mode).
+    /// The caller must call GetVideoPcOffersAsync() after this to get the new offer SDP.
+    /// </summary>
+    public void RecreateVideoPc(int monitorIndex)
+    {
+        lock (_lock)
+        {
+            // Close old video PC
+            if (_videoPcs.TryGetValue(monitorIndex, out var oldVpc))
+            {
+                try { oldVpc.close(); } catch { }
+                _videoPcs.TryRemove(monitorIndex, out _);
+                Logger.Info($"[SIPSorcery] Video PC {monitorIndex}: Closed for reconnect");
+            }
+            _videoDcs.TryRemove(monitorIndex, out _);
+
+            // Create new video PC with same config
+            var cfg = new RTCConfiguration
+            {
+                iceServers = new List<RTCIceServer>
+                { new RTCIceServer { urls = "stun:stun.l.google.com:19302" } }
+            };
+
+            int capturedIndex = monitorIndex;
+            var vpc = new RTCPeerConnection(cfg);
+            _videoPcs[monitorIndex] = vpc;
+
+            vpc.oniceconnectionstatechange += (state) =>
+                Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: ICE state: {state}");
+            vpc.onconnectionstatechange += (state) =>
+                Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: Peer state: {state}");
+            vpc.onicecandidate += (cand) =>
+            {
+                if (cand != null && !string.IsNullOrEmpty(cand.candidate))
+                    OnVideoIceCandidate?.Invoke(capturedIndex, cand.candidate);
+                else
+                    OnVideoIceCandidate?.Invoke(capturedIndex, "end-of-candidates");
+            };
+            Logger.Info($"[SIPSorcery] Video PC {monitorIndex}: Recreated for reconnect");
+        }
+    }
+
+    /// <summary>
+    /// Apply the client's SDP answer to a video PeerConnection (per-track mode).
+    /// </summary>
+    public async Task SetVideoAnswerAsync(int monitorIndex, string answerSdp)
+    {
+        if (_videoPcs.TryGetValue(monitorIndex, out var vpc))
+        {
+            var answer = new RTCSessionDescriptionInit { type = RTCSdpType.answer, sdp = answerSdp };
+            var result = vpc.setRemoteDescription(answer);
+            Logger.Info($"[SIPSorcery] Video PC {monitorIndex}: setRemoteDescription result={result}");
+        }
+        else
+        {
+            Logger.Warn($"[SIPSorcery] Video PC {monitorIndex}: SetVideoAnswerAsync — PC not found");
+        }
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Add a remote ICE candidate to a video PeerConnection (per-track mode).
+    /// </summary>
+    public void AddVideoIceCandidate(int monitorIndex, string candidate)
+    {
+        if (_videoPcs.TryGetValue(monitorIndex, out var vpc))
+        {
+            try
+            {
+                var candStr = candidate.Trim();
+                if (candStr.StartsWith("a=", StringComparison.OrdinalIgnoreCase))
+                    candStr = candStr.Substring(2);
+                if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                    candStr = "candidate:" + candStr;
+
+                vpc.addIceCandidate(new RTCIceCandidateInit { candidate = candStr });
+                Logger.Info($"[SIPSorcery] Video PC {monitorIndex}: Added remote ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[SIPSorcery] Video PC {monitorIndex}: AddVideoIceCandidate error: {ex.Message}");
+            }
+        }
+        else
+        {
+            Logger.Warn($"[SIPSorcery] Video PC {monitorIndex}: AddVideoIceCandidate — PC not found");
+        }
     }
 
     public void AddIceCandidate(string candidate, string? mid = null)
     {
-        if (_pc == null || string.IsNullOrEmpty(candidate)) return;
+        if (_mainPc == null || string.IsNullOrEmpty(candidate)) return;
 
         try
         {
@@ -338,8 +593,8 @@ public partial class SIPSorceryStreamer
                 candStr = "candidate:" + candStr;
 
             var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = mid ?? "0" };
-            _pc.addIceCandidate(init);
-            Logger.Info($"[SIPSorcery] Added remote ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+            _mainPc.addIceCandidate(init);
+            Logger.Info($"[SIPSorcery] Main PC: Added remote ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
         }
         catch (Exception ex)
         {

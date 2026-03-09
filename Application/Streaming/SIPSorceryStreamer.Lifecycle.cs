@@ -60,6 +60,8 @@ public partial class SIPSorceryStreamer
         // Reset frame counters on resolution or codec change
         Interlocked.Exchange(ref track.SentFrames, 0);
         Interlocked.Exchange(ref track.EncodedFrames, 0);
+        track.IdrViaDcCount = 0; // Force re-send codec config (VPS/SPS/PPS) on next IDR
+        track.DcNotReadyCount = 0;
 
         var device = track.Device ?? _sharedDevice;
         if (device == null)
@@ -378,7 +380,7 @@ public partial class SIPSorceryStreamer
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;
 
-        // Close per-track H265 video DataChannels
+        // Close per-track H265 video DataChannels (legacy mode on shared PC)
         lock (_h265VideoDcs)
         {
             foreach (var dc in _h265VideoDcs.Values)
@@ -388,8 +390,18 @@ public partial class SIPSorceryStreamer
         try { _h265VideoDcLegacy?.close(); } catch { }
         _h265VideoDcLegacy = null;
 
-        try { _pc?.close(); } catch { }
-        _pc = null;
+        // Close per-track video PeerConnections and their DCs (per-track mode)
+        foreach (var kvp in _videoPcs)
+        {
+            try { kvp.Value.close(); } catch { }
+        }
+        _videoPcs.Clear();
+        _videoDcs.Clear();
+        lock (_perTrackFallbackDcs) { _perTrackFallbackDcs.Clear(); }
+        _perTrackFallbackActive = false;
+
+        try { _mainPc?.close(); } catch { }
+        _mainPc = null;
         // SIPSorcery's internal UDP ReceiveFromAsync tasks throw SocketException 995
         // when PC closes. This is expected and silently filtered by the global
         // UnobservedTaskException handler in Program.cs.
@@ -399,7 +411,7 @@ public partial class SIPSorceryStreamer
 
     public void Stop()
     {
-        if (!_running && _pc == null) return;
+        if (!_running && _mainPc == null) return;
         Logger.Info("[SIPSorcery] Stopping...");
         CloseConnection();
     }
@@ -509,6 +521,16 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
+                // Audio capture latency diagnostics (callback interval = effective WASAPI buffer latency)
+                if (_audioCapture != null)
+                {
+                    var (avgMs, avgBytes, cbCount) = _audioCapture.ReadAndResetStats();
+                    if (cbCount > 0)
+                    {
+                        double dataDurationMs = (double)avgBytes / (_audioCapture.SampleRate * _audioCapture.Channels * 4) * 1000.0; // float32 = 4 bytes
+                        audioInfo += $", capture:{avgMs:F1}ms/cb({dataDurationMs:F1}ms data,{cbCount}cb)";
+                    }
+                }
                 // Log DC buffer depth for H265 latency diagnosis
                 var dcInfo = "";
                 if (_negotiatedCodec == VideoCodec.H265)

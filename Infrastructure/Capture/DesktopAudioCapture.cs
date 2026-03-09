@@ -1,10 +1,37 @@
 #nullable enable
 using System;
 using System.Threading;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using RemotePlayServer.Core;
 
 namespace RemotePlayServer.Infrastructure.Capture;
+
+/// <summary>
+/// Low-latency WASAPI loopback capture.
+/// Extends WasapiCapture with loopback flag + reduced buffer (default 100ms → 10ms).
+/// Event-driven mode (useEventSync=true) for minimal callback latency.
+/// </summary>
+internal sealed class LowLatencyLoopbackCapture : WasapiCapture
+{
+    /// <param name="latencyMs">Audio buffer size in ms. Lower = less latency but more CPU.
+    /// WASAPI shared mode minimum is typically 10ms. Falls back to device minimum if too low.</param>
+    public LowLatencyLoopbackCapture(int latencyMs = 10)
+        : base(GetDefaultLoopbackDevice(), useEventSync: true, audioBufferMillisecondsLength: latencyMs)
+    {
+    }
+
+    private static MMDevice GetDefaultLoopbackDevice()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        return enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+    }
+
+    protected override AudioClientStreamFlags GetAudioClientStreamFlags()
+    {
+        return AudioClientStreamFlags.Loopback | base.GetAudioClientStreamFlags();
+    }
+}
 
 /// <summary>
 /// Captures system audio output via WASAPI loopback.
@@ -13,7 +40,7 @@ namespace RemotePlayServer.Infrastructure.Capture;
 /// </summary>
 public sealed class DesktopAudioCapture : IDisposable
 {
-    private WasapiLoopbackCapture? _capture;
+    private WasapiCapture? _capture;
     private volatile bool _running;
     private volatile bool _paused;
     private volatile bool _disposed;
@@ -27,6 +54,12 @@ public sealed class DesktopAudioCapture : IDisposable
     private int _sampleRate;
     private int _channels;
 
+    // Audio capture latency metrics (callback interval tracking)
+    private long _callbackCount;
+    private long _callbackIntervalSum; // sum of intervals between callbacks (ticks)
+    private long _lastCallbackTicks;
+    private long _callbackDataBytesSum; // total bytes delivered per stats window
+
     /// <summary>
     /// Fired when audio data is available.
     /// Parameters: (byte[] pcm16Data, int bytesRecorded, int sampleRate, int channels, long timestampMs)
@@ -39,6 +72,21 @@ public sealed class DesktopAudioCapture : IDisposable
     public bool IsCapturing => _running && !_paused;
 
     /// <summary>
+    /// Read and reset audio capture latency stats for periodic logging.
+    /// Returns (avgCallbackIntervalMs, avgDataPerCallbackBytes, callbackCount).
+    /// </summary>
+    public (double AvgIntervalMs, int AvgBytesPerCallback, long Callbacks) ReadAndResetStats()
+    {
+        long count = Interlocked.Exchange(ref _callbackCount, 0);
+        long intervalSum = Interlocked.Exchange(ref _callbackIntervalSum, 0);
+        long bytesSum = Interlocked.Exchange(ref _callbackDataBytesSum, 0);
+        if (count == 0) return (0, 0, 0);
+        double avgMs = (double)intervalSum / count;
+        int avgBytes = (int)(bytesSum / count);
+        return (avgMs, avgBytes, count);
+    }
+
+    /// <summary>
     /// Start capturing system audio via WASAPI loopback.
     /// </summary>
     public void Start()
@@ -46,14 +94,15 @@ public sealed class DesktopAudioCapture : IDisposable
         if (_disposed) throw new ObjectDisposedException(nameof(DesktopAudioCapture));
         if (_running) return;
 
-        _capture = new WasapiLoopbackCapture();
+        const int TARGET_LATENCY_MS = 10;
+        _capture = new LowLatencyLoopbackCapture(TARGET_LATENCY_MS);
 
         // WASAPI loopback typically: 32-bit float, 48000Hz, 2ch
         var waveFormat = _capture.WaveFormat;
         _sampleRate = waveFormat.SampleRate;
         _channels = waveFormat.Channels;
 
-        Logger.Info($"[AudioCapture] WASAPI format: {waveFormat.SampleRate}Hz, {waveFormat.Channels}ch, {waveFormat.BitsPerSample}bit, encoding={waveFormat.Encoding}");
+        Logger.Info($"[AudioCapture] WASAPI format: {waveFormat.SampleRate}Hz, {waveFormat.Channels}ch, {waveFormat.BitsPerSample}bit, encoding={waveFormat.Encoding}, buffer={TARGET_LATENCY_MS}ms (event-driven)");
 
         _capture.DataAvailable += OnDataAvailable;
         _capture.RecordingStopped += OnRecordingStopped;
@@ -132,7 +181,16 @@ public sealed class DesktopAudioCapture : IDisposable
         if (!_running || _paused || e.BytesRecorded == 0) return;
 
         long now = Environment.TickCount64;
+        // Track callback interval for latency diagnostics
+        long prev = _lastCallbackTicks;
+        if (prev > 0)
+        {
+            Interlocked.Add(ref _callbackIntervalSum, now - prev);
+            Interlocked.Add(ref _callbackDataBytesSum, e.BytesRecorded);
+            Interlocked.Increment(ref _callbackCount);
+        }
         _lastDataTimeTicks = now;
+        _lastCallbackTicks = now;
         // Use same clock source as video capture (DateTimeOffset) for A/V sync alignment
         long wallclockMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         _silenceActive = false;

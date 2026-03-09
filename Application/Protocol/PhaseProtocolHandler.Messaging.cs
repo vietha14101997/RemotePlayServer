@@ -91,6 +91,14 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info("[Protocol] No client codec capabilities in hardware_info_ack, using H.264");
                         _selectedCodec = "H264";
                     }
+
+                    // Parse per-track PC mode flag
+                    if (ackMsg != null)
+                    {
+                        _perTrackPc = ackMsg.PerTrackPc;
+                        Logger.Info($"[Protocol] Client perTrackPc: {_perTrackPc}");
+                    }
+
                     return;
                 }
             }
@@ -281,6 +289,15 @@ namespace RemotePlayServer.Application.Protocol
 
         private async Task WaitForStartStreamingAsync()
         {
+            // If start_streaming was already received during Phase 2 ICE exchange
+            // (happens after restart_phase2 when client sends it early), skip waiting
+            if (_startStreamingReceived)
+            {
+                _startStreamingReceived = false;
+                Logger.Info("[Protocol] start_streaming already received during Phase 2, skipping wait");
+                return;
+            }
+
             var buffer = new byte[4096];
             var ms = new System.IO.MemoryStream();
 
@@ -308,6 +325,23 @@ namespace RemotePlayServer.Application.Protocol
                 var msgType = ProtocolMessageParser.GetMessageType(text);
                 if (msgType == "start_streaming" || text.Equals("start_streaming", StringComparison.OrdinalIgnoreCase))
                     return;
+
+                // Per-track PC mode: video signaling messages (video_answer, video_candidate)
+                // arrive DURING this wait because client sends them after video_offer but
+                // before start_streaming. Must forward them to handlers or they're silently lost.
+                if (_perTrackPc)
+                {
+                    if (msgType == "video_answer")
+                    {
+                        await HandleVideoAnswerAsync(text);
+                        continue;
+                    }
+                    if (msgType == "video_candidate")
+                    {
+                        HandleVideoIceCandidate(text);
+                        continue;
+                    }
+                }
             }
 
             throw new OperationCanceledException("Did not receive start_streaming");
