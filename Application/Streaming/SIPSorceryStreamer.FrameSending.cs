@@ -542,7 +542,17 @@ public partial class SIPSorceryStreamer
         if (_perTrackPcMode)
         {
             // Per-track PC mode: at least one video PC's DC must be open
-            return _videoDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open);
+            if (_videoDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open))
+                return true;
+            // Fallback: check main PC's h265video DCs (when video PCs failed to connect)
+            if (_perTrackFallbackActive)
+            {
+                lock (_perTrackFallbackDcs)
+                {
+                    return _perTrackFallbackDcs.Values.Any(dc => dc.readyState == RTCDataChannelState.open);
+                }
+            }
+            return false;
         }
 
         // Legacy mode:
@@ -574,7 +584,17 @@ public partial class SIPSorceryStreamer
             if (_videoDcs.TryGetValue(trackIndex, out var videoPerPcDc) &&
                 videoPerPcDc.readyState == RTCDataChannelState.open)
                 return videoPerPcDc;
-            return null; // In per-track mode, no fallback to shared PC
+            // Fallback: use main PC's h265video DC when video PCs failed
+            if (_perTrackFallbackActive)
+            {
+                lock (_perTrackFallbackDcs)
+                {
+                    if (_perTrackFallbackDcs.TryGetValue(trackIndex, out var fallbackDc) &&
+                        fallbackDc.readyState == RTCDataChannelState.open)
+                        return fallbackDc;
+                }
+            }
+            return null;
         }
 
         // Legacy mode:

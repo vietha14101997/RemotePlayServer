@@ -48,6 +48,8 @@ public partial class SIPSorceryStreamer : IDisposable
     private readonly ConcurrentDictionary<int, RTCPeerConnection> _videoPcs = new(); // Per-track PeerConnections (per-track mode only)
     private readonly ConcurrentDictionary<int, RTCDataChannel> _videoDcs = new(); // DC per video PC (per-track mode only)
     private bool _perTrackPcMode; // When true: N+1 PCs (1 main + N video PCs). When false: legacy single PC
+    private readonly Dictionary<int, RTCDataChannel> _perTrackFallbackDcs = new(); // Fallback: h265video DCs on main PC (per-track mode)
+    private volatile bool _perTrackFallbackActive; // When true: video PCs failed, using main PC DCs instead
     private readonly List<TrackInfo> _tracks = new();
     private readonly object _lock = new();
     private readonly Dictionary<int, ID3D11Device> _pendingDevices = new();
@@ -198,6 +200,31 @@ public partial class SIPSorceryStreamer : IDisposable
 
     /// <summary>Per-track video PeerConnections (per-track mode only). Key = monitorIndex.</summary>
     public ConcurrentDictionary<int, RTCPeerConnection> VideoPcs => _videoPcs;
+
+    /// <summary>
+    /// Activate fallback mode: video PCs failed to connect, use h265video DCs on main PC instead.
+    /// Called from Phase 3 when video PCs timeout.
+    /// </summary>
+    public void ActivatePerTrackFallback()
+    {
+        if (_perTrackFallbackActive) return;
+        lock (_perTrackFallbackDcs)
+        {
+            if (_perTrackFallbackDcs.Count == 0)
+            {
+                Logger.Warn("[SIPSorcery] ActivatePerTrackFallback: No fallback DCs available on main PC");
+                return;
+            }
+            _perTrackFallbackActive = true;
+            Logger.Info($"[SIPSorcery] ActivatePerTrackFallback: Switching to main PC DCs ({_perTrackFallbackDcs.Count} channels)");
+            // Request keyframe on all fallback DCs that are already open
+            foreach (var kvp in _perTrackFallbackDcs)
+            {
+                if (kvp.Value.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    RequestKeyframe(kvp.Key, force: true);
+            }
+        }
+    }
 
     /// <summary>
     /// Activate Phase 3 from barrier-synced context.

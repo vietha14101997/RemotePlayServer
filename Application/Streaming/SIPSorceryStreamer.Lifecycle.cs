@@ -397,6 +397,8 @@ public partial class SIPSorceryStreamer
         }
         _videoPcs.Clear();
         _videoDcs.Clear();
+        lock (_perTrackFallbackDcs) { _perTrackFallbackDcs.Clear(); }
+        _perTrackFallbackActive = false;
 
         try { _mainPc?.close(); } catch { }
         _mainPc = null;

@@ -289,6 +289,15 @@ namespace RemotePlayServer.Application.Protocol
 
         private async Task WaitForStartStreamingAsync()
         {
+            // If start_streaming was already received during Phase 2 ICE exchange
+            // (happens after restart_phase2 when client sends it early), skip waiting
+            if (_startStreamingReceived)
+            {
+                _startStreamingReceived = false;
+                Logger.Info("[Protocol] start_streaming already received during Phase 2, skipping wait");
+                return;
+            }
+
             var buffer = new byte[4096];
             var ms = new System.IO.MemoryStream();
 

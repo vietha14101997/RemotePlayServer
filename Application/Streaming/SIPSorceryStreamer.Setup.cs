@@ -205,6 +205,29 @@ public partial class SIPSorceryStreamer
                 };
                 Logger.Info($"[SIPSorcery] Main PC: H265 Video DataChannel wired for track {trackIdx}");
             }
+            else if (perTrackPc && dc.label.StartsWith("h265video"))
+            {
+                // Per-track PC mode: capture h265video DCs from main PC as FALLBACK
+                // If video PCs fail to connect (client doesn't respond with video_answer),
+                // we can fall back to using these DCs on the main PC instead.
+                int fallbackIdx = 0;
+                if (dc.label.StartsWith("h265video-") && int.TryParse(dc.label.Substring("h265video-".Length), out int fi))
+                    fallbackIdx = fi;
+                lock (_perTrackFallbackDcs) { _perTrackFallbackDcs[fallbackIdx] = dc; }
+                int capturedFallbackIdx = fallbackIdx;
+                dc.onopen += () =>
+                {
+                    Logger.Info($"[SIPSorcery] Main PC: Fallback H265 DC opened for track {capturedFallbackIdx}");
+                    if (_perTrackFallbackActive)
+                        RequestKeyframe(capturedFallbackIdx, force: true);
+                };
+                dc.onclose += () =>
+                {
+                    Logger.Info($"[SIPSorcery] Main PC: Fallback H265 DC closed for track {capturedFallbackIdx}");
+                    lock (_perTrackFallbackDcs) { _perTrackFallbackDcs.Remove(capturedFallbackIdx); }
+                };
+                Logger.Info($"[SIPSorcery] Main PC: Captured DC '{dc.label}' as fallback (video PCs preferred)");
+            }
             else if (perTrackPc)
             {
                 Logger.Info($"[SIPSorcery] Main PC: Ignoring DC '{dc.label}' in per-track mode (video DCs live on video PCs)");

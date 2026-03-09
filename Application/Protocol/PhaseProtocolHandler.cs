@@ -149,6 +149,10 @@ namespace RemotePlayServer.Application.Protocol
         private int _phase2RestartCount;
         private const int MAX_PHASE2_RESTARTS = 3;
 
+        // When start_streaming arrives during Phase 2 ICE exchange (after restart_phase2),
+        // skip WaitForStartStreamingAsync in Phase 3
+        private volatile bool _startStreamingReceived;
+
         // Transport mode (USB Tethering vs WiFi)
         private readonly bool _isUsbTransport;
 

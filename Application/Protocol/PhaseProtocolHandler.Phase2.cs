@@ -523,10 +523,12 @@ namespace RemotePlayServer.Application.Protocol
                         // so ice_ready + start_streaming exchange happens reliably.
                         if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
                         {
-                            Logger.Info("[Protocol] Received proceed phase 3, waiting for DTLS to complete...");
+                            // WiFi has higher latency → longer DTLS timeout
+                            int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
+                            Logger.Info($"[Protocol] Received proceed phase 3, waiting for DTLS to complete (timeout={dtlsTimeoutSec}s)...");
                             try
                             {
-                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+                                using var dtlsCts = new CancellationTokenSource(TimeSpan.FromSeconds(dtlsTimeoutSec));
                                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts.Token, _ct);
                                 var dtlsTask = _allConnectedTcs.Task;
                                 var timeoutTask = Task.Delay(Timeout.Infinite, linkedCts.Token);
@@ -538,7 +540,7 @@ namespace RemotePlayServer.Application.Protocol
                                 }
                                 else
                                 {
-                                    Logger.Error("[Protocol] DTLS timeout (6s) - requesting client to reconnect");
+                                    Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) - requesting client to reconnect");
                                     try
                                     {
                                         await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_timeout\"}");
@@ -558,6 +560,32 @@ namespace RemotePlayServer.Application.Protocol
                         return true;
                     }
                     break;
+
+                case "start_streaming":
+                    // After restart_phase2, client may send start_streaming directly
+                    // instead of proceed→start_streaming sequence. Treat as proceed phase 3.
+                    Logger.Info("[Protocol] Received start_streaming during ICE exchange — treating as proceed phase 3");
+                    if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
+                    {
+                        int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
+                        Logger.Info($"[Protocol] Waiting for DTLS before proceeding (timeout={dtlsTimeoutSec}s)...");
+                        try
+                        {
+                            using var dtlsCts2 = new CancellationTokenSource(TimeSpan.FromSeconds(dtlsTimeoutSec));
+                            using var linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(dtlsCts2.Token, _ct);
+                            var dtlsTask2 = _allConnectedTcs.Task;
+                            var completed2 = await Task.WhenAny(dtlsTask2, Task.Delay(Timeout.Infinite, linkedCts2.Token));
+                            if (!(completed2 == dtlsTask2 && dtlsTask2.IsCompletedSuccessfully))
+                            {
+                                Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) after start_streaming");
+                                break;
+                            }
+                        }
+                        catch (OperationCanceledException) { throw; }
+                    }
+                    // Store the start_streaming so Phase 3 doesn't wait for it again
+                    _startStreamingReceived = true;
+                    return true;
 
                 case "ping":
                     await SendMessageAsync(new PongMessage());
@@ -876,6 +904,16 @@ namespace RemotePlayServer.Application.Protocol
                 // Parse offer to find codec PT (must match what the streamer uses)
                 var codecPayloadType = ParseCodecPayloadType(offerSdp, _selectedCodec);
                 Logger.Info($"[Protocol] Parsed {_selectedCodec} PT from offer: {codecPayloadType}");
+
+                // Single monitor: disable per-track PC mode.
+                // Per-track PCs exist to isolate SCTP buffers across monitors (no cross-track congestion).
+                // With 1 monitor there's no cross-track issue, and the client's offer includes a video
+                // track on the main PC for single-monitor mode — it won't respond to separate video_offers.
+                if (_perTrackPc && dimensions.Count <= 1)
+                {
+                    Logger.Info("[Protocol] Single monitor: disabling perTrackPc (unnecessary, client uses main PC video)");
+                    _perTrackPc = false;
+                }
 
                 // Process offer with all dimensions at once
                 // In perTrackPc mode: main PC handles audio + DataChannels only, no video tracks

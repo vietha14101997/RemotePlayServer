@@ -89,9 +89,14 @@ namespace RemotePlayServer.Application.Protocol
                     }
 
                     if (allVideoConnected)
+                    {
                         Logger.Info("[Protocol] Phase 3: Tất cả video PCs đã kết nối!");
+                    }
                     else
-                        Logger.Warn("[Protocol] Phase 3: Timeout chờ video PCs kết nối — tiếp tục streaming");
+                    {
+                        Logger.Warn("[Protocol] Phase 3: Timeout chờ video PCs kết nối — activating main PC fallback");
+                        _streamer.ActivatePerTrackFallback();
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -159,11 +164,14 @@ namespace RemotePlayServer.Application.Protocol
             var buffer = new byte[128 * 1024];
             var ms = new System.IO.MemoryStream();
 
-            while (_ws.State == WebSocketState.Open && !_fatalErrorCts.IsCancellationRequested)
+            while (_ws.State == WebSocketState.Open && !(_fatalErrorCts?.IsCancellationRequested ?? true))
             {
                 try
                 {
-                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                    // Link to _fatalErrorCts so ReceiveAsync exits immediately when
+                    // KeepAlive/StallDetect triggers fatal error (ICE/DTLS failure)
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                        _fatalErrorCts?.Token ?? _ct, _ct);
                     cts.CancelAfter(30000);
 
                     var result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
