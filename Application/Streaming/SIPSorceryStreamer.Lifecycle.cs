@@ -519,6 +519,16 @@ public partial class SIPSorceryStreamer
                 _audioPacketsLastInterval = audioPkts;
                 float audioRate = intervalPkts / 10.0f; // packets per second over 10s interval
                 var audioInfo = _hasAudioTrack ? $", audio:{audioPkts}pkts ({audioRate:F1}/sec)" : "";
+                // Audio capture latency diagnostics (callback interval = effective WASAPI buffer latency)
+                if (_audioCapture != null)
+                {
+                    var (avgMs, avgBytes, cbCount) = _audioCapture.ReadAndResetStats();
+                    if (cbCount > 0)
+                    {
+                        double dataDurationMs = (double)avgBytes / (_audioCapture.SampleRate * _audioCapture.Channels * 4) * 1000.0; // float32 = 4 bytes
+                        audioInfo += $", capture:{avgMs:F1}ms/cb({dataDurationMs:F1}ms data,{cbCount}cb)";
+                    }
+                }
                 // Log DC buffer depth for H265 latency diagnosis
                 var dcInfo = "";
                 if (_negotiatedCodec == VideoCodec.H265)
