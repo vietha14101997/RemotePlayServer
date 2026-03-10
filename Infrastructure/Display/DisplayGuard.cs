@@ -338,17 +338,44 @@ static class DisplayGuard
 
             Logger.Info($"[Guard] ForceDisableVdd: Physical monitors: {string.Join(", ", physNames)}");
 
-            if (physNames.Count == 0)
+            bool wasPhysicalMonitorsPresent = false;
+            try
             {
-                Logger.Info("[Guard] ForceDisableVdd: No physical monitors - SKIP disable to avoid black screen!");
+                if (File.Exists(SnapshotPath))
+                {
+                    var snapStr = File.ReadAllText(SnapshotPath);
+                    var snap = JsonSerializer.Deserialize<Snapshot>(snapStr);
+                    if (snap?.Monitors != null && snap.Monitors.Any(m => !m.IsVirtual))
+                    {
+                        wasPhysicalMonitorsPresent = true;
+                    }
+                }
+            }
+            catch { }
+
+            if (physNames.Count == 0 && !wasPhysicalMonitorsPresent)
+            {
+                Logger.Info("[Guard] ForceDisableVdd: No physical monitors currently or in snapshot. SKIP disable to avoid black screen!");
                 return;
             }
 
+            if (physNames.Count == 0 && wasPhysicalMonitorsPresent)
+            {
+                Logger.Info("[Guard] ForceDisableVdd: 0 physical monitors currently, but snapshot confirms they exist. Proceeding to disable VDD to restore physical screens.");
+            }
+
             // Set physical làm primary
-            string primaryName = physNames.OrderBy(n => n).First();
-            Logger.Info($"[Guard] ForceDisableVdd: Setting {primaryName} as primary...");
-            TryMakePrimary(primaryName);
-            Thread.Sleep(1000);
+            string? primaryName = physNames.OrderBy(n => n).FirstOrDefault();
+            if (!string.IsNullOrEmpty(primaryName))
+            {
+                Logger.Info($"[Guard] ForceDisableVdd: Setting {primaryName} as primary...");
+                TryMakePrimary(primaryName);
+                Thread.Sleep(1000);
+            }
+            else
+            {
+                Logger.Info("[Guard] ForceDisableVdd: No physical monitors to set as primary. Skipping TryMakePrimary.");
+            }
 
             // Disable VDD
             Logger.Info($"[Guard] ForceDisableVdd: Disabling VDD...");
@@ -688,16 +715,27 @@ static class DisplayGuard
 
             Logger.Info($"[Guard] Physical monitors found: {phys.Count}");
 
-            if (phys.Count == 0)
+            bool wasPhysicalMonitorsPresent = false;
+            if (snap.Monitors != null && snap.Monitors.Any(m => !m.IsVirtual))
             {
-                Logger.Info("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
+                wasPhysicalMonitorsPresent = true;
+            }
+
+            if (phys.Count == 0 && !wasPhysicalMonitorsPresent)
+            {
+                Logger.Info("[Guard] SafeDisableVdd: No physical monitors currently or in snapshot. Skip disabling VDD to avoid black screen.");
                 return;
             }
 
+            if (phys.Count == 0 && wasPhysicalMonitorsPresent)
+            {
+                Logger.Info("[Guard] SafeDisableVdd: 0 physical monitors currently, but snapshot confirms they exist. Proceeding to disable VDD.");
+            }
+
             // Set physical monitor as primary before disabling VDD
-            string physPrimary = phys.Select(i => monsNow[i].name)
+            string? physPrimary = phys.Select(i => monsNow[i].name)
                                      .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-                                     .FirstOrDefault() ?? monsNow[phys[0]].name;
+                                     .FirstOrDefault();
 
             if (!string.IsNullOrEmpty(physPrimary))
             {

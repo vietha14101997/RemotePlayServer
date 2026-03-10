@@ -142,7 +142,7 @@ partial class Program
             if (string.IsNullOrEmpty(exePath)) return;
 
             var taskName = "RemotePlayServerDisplayRecovery";
-            var args = $"/Create /TN \"{taskName}\" /TR \"\\\"{exePath}\\\" --restore-if-needed\" /SC ONLOGON /RL HIGHEST /F";
+            var args = $"/Create /TN \"{taskName}\" /TR \"\\\"{exePath}\\\" --restore-if-needed\" /SC ONSTART /RU SYSTEM /F";
 
             var psi = new System.Diagnostics.ProcessStartInfo("schtasks.exe", args)
             {

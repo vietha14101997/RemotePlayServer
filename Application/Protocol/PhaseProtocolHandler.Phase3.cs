@@ -808,7 +808,11 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     if (_ws.State != WebSocketState.Open)
                     {
+                        Logger.Info("[KeepAlive] WebSocket closed. Stopping keepalive and triggering cleanup.");
                         _keepAliveTimer?.Stop();
+                        
+                        // Cancel fatal error CTS to unblock message loop so CleanupAsync runs
+                        try { _fatalErrorCts?.Cancel(); } catch { }
                         return;
                     }
 
@@ -830,15 +834,20 @@ namespace RemotePlayServer.Application.Protocol
                             // Then try graceful close (with short timeout since connection is likely dead)
                             try
                             {
-                                using var cts = new CancellationTokenSource(2000);
-                                await _ws.CloseOutputAsync(
+                                using var cts = new CancellationTokenSource(500);
+                                var closeTask = _ws.CloseOutputAsync(
                                     WebSocketCloseStatus.EndpointUnavailable,
                                     "Client not responding to keepalive",
                                     cts.Token);
+                                
+                                // Don't await forever if the socket is completely dead on the OS level
+                                if (!closeTask.Wait(500))
+                                {
+                                    _ws.Abort();
+                                }
                             }
-                            catch (Exception closeEx)
+                            catch (Exception)
                             {
-                                Logger.Error($"[KeepAlive] Error closing WebSocket: {closeEx.Message}");
                                 // Force abort the WebSocket if graceful close fails
                                 try { _ws.Abort(); } catch { }
                             }
