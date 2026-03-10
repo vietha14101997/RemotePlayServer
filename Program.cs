@@ -44,9 +44,10 @@ partial class Program
             using var parentProcess = System.Diagnostics.Process.GetProcessById(parentPid);
             // Wait for parent to exit (blocks until process terminates)
             parentProcess.WaitForExit();
-            int exitCode = parentProcess.ExitCode;
+        // int exitCode = parentProcess.ExitCode; // This line throws "Process was not started by this object" for attached processes
+        int exitCode = -1; 
 
-            // If session marker still exists, the server didn't clean up → crash recovery needed
+        // If session marker still exists, the server didn't clean up → crash recovery needed
             var dataDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "RemotePlayServer");

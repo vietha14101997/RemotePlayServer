@@ -841,13 +841,19 @@ namespace RemotePlayServer.Application.Protocol
                                     cts.Token);
                                 
                                 // Don't await forever if the socket is completely dead on the OS level
-                                if (!closeTask.Wait(500))
+                                // Use Task.WhenAny to avoid AggregateException from Wait()
+                                var delayTask = Task.Delay(500, cts.Token);
+                                var completedTask = await Task.WhenAny(closeTask, delayTask);
+                                
+                                if (completedTask != closeTask)
                                 {
+                                    Logger.Info("[KeepAlive] CloseOutputAsync timed out or delayed. Aborting.");
                                     _ws.Abort();
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
+                                Logger.Info($"[KeepAlive] Close error (ignoring): {ex.Message}");
                                 // Force abort the WebSocket if graceful close fails
                                 try { _ws.Abort(); } catch { }
                             }

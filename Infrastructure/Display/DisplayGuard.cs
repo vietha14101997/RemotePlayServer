@@ -814,9 +814,13 @@ static class DisplayGuard
         catch (Exception ex) { Logger.Error("[Guard] Cannot read snapshot: " + ex.Message); return; }
         if (snap == null) return;
 
-        // 0) Restore extend topology if Show Only was active
+        // Use CancellationToken.None for non-graceful startup/crash recovery
+        var ct = CancellationToken.None;
+
+        // 0) Restore extend topology if Show Only was active (ultrawide mode)
         if (snap.ShowOnlyActive == true && snap.Monitors != null)
         {
+            Logger.Info("[Guard] Step 0: Restoring extend topology (was Show Only)...");
             try
             {
                 var physicalSnapshots = snap.Monitors
@@ -835,99 +839,44 @@ static class DisplayGuard
                 if (physicalSnapshots.Count > 0)
                 {
                     DisplayUtil.RestoreExtendTopology(physicalSnapshots);
-                    Thread.Sleep(2000);
-                    Logger.Info("[Guard] Extend topology restored from Show Only.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"[Guard] Restore extend topology failed: {ex.Message}");
-            }
-        }
-
-        // 1) Khôi phục Text size TRƯỚC TIÊN (theo yêu cầu)
-        try { TextScaleUtil.Restore(snap.TextScale); Logger.Info("[Guard] Text size restored."); }
-        catch (Exception ex) { Logger.Error("[Guard] Text size restore failed: " + ex.Message); }
-
-        // 2) Khôi phục độ phân giải từng màn
-        try
-        {
-            if (snap.Monitors != null)
-            {
-                var current = WgcInterop.ListMonitorsDXGI();
-                foreach (var m in snap.Monitors)
-                {
-                    var cur = current.FirstOrDefault(c => string.Equals(c.name, m.Name, StringComparison.OrdinalIgnoreCase));
-                    if (!string.IsNullOrEmpty(cur.name) && m.Width > 0 && m.Height > 0)
+                    
+                    // Poll for physical monitor detection up to 5 seconds
+                    for (int i = 0; i < 10; i++)
                     {
-                        DisplayUtil.ForceResolution(cur.name, m.Width, m.Height, Math.Max(30, m.Refresh));
+                        Thread.Sleep(500);
+                        var curMons = WgcInterop.ListMonitorsDXGI();
+                        if (curMons.Any(m => !DisplayUtil.IsVirtualDisplay(m.name, m.hmon)))
+                        {
+                            Logger.Info("[Guard] Physical monitor detected after topology restore.");
+                            break;
+                        }
                     }
                 }
-                Logger.Info("[Guard] Monitor modes restored.");
             }
+            catch (Exception ex) { Logger.Error($"[Guard] Restore extend topology failed: {ex.Message}"); }
         }
-        catch (Exception ex) { Logger.Error("[Guard] Restore monitor modes failed: " + ex.Message); }
 
-        // 3) Khôi phục cờ Taskbar multi-monitor
-        try
-        {
-            if (snap.MMTaskbarEnabled is int v)
-            {
-                using var rk = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true)
-                             ?? Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", true);
-                rk.SetValue("MMTaskbarEnabled", v, RegistryValueKind.DWord);
-                Logger.Info($"[Guard] Taskbar multi-monitor flag restored to {v}.");
-                Logger.Info("[Guard] ℹ️ Taskbar setting will apply automatically with staggered timing.");
-            }
-        }
-        catch (Exception ex) { Logger.Error("[Guard] Taskbar flag restore failed: " + ex.Message); }
+        // 1) Restore Scale and Layout (DPI) - CRITICAL: Was missing in old RestoreInternal
+        Logger.Info("[Guard] Step 1: Restoring Scale and Layout (DPI)...");
+        RestoreDpiSafe(snap);
 
-        // 4) SAFE DISABLE VDD (nếu có màn vật lý; tránh disable khi màn ảo còn primary)
+        // 2) Restore monitor resolution
+        Logger.Info("[Guard] Step 2: Restoring monitor modes...");
+        RestoreMonitorModesSafe(snap);
+
+        // 3) Restore taskbar flag
+        Logger.Info("[Guard] Step 3: Restoring taskbar flag...");
+        RestoreTaskbarFlagSafe(snap);
+
+        // 4) Safe disable VDD
         if (disableVdd)
         {
-            try
-            {
-                var id = snap.VddInstanceId;
-                if (string.IsNullOrWhiteSpace(id)) id = FindPnpInstanceIdByNameContains(DriverNameContains);
-
-                if (!string.IsNullOrWhiteSpace(id) && !IsDeviceDisabled(id))
-                {
-                    var monsNow = WgcInterop.ListMonitorsDXGI();
-                    int virt = -1; var phys = new List<int>();
-                    for (int i = 0; i < monsNow.Count; i++)
-                    {
-                        if (DisplayUtil.IsVirtualDisplay(monsNow[i].name, monsNow[i].hmon)) virt = i;
-                        else phys.Add(i);
-                    }
-
-                    if (phys.Count == 0)
-                    {
-                        Logger.Info("[Guard] No physical monitors detected. Skip disabling VDD to avoid black screen.");
-                    }
-                    else
-                    {
-                        // Đảm bảo 1 màn vật lý là primary trước khi disable VDD
-                        // Ưu tiên \\.\DISPLAY1 nếu là vật lý, nếu không chọn phys[0]
-                        string physPrimary = phys.Select(i => monsNow[i].name)
-                                                 .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-                                                 .FirstOrDefault() ?? monsNow[phys[0]].name;
-
-                        if (!string.IsNullOrEmpty(physPrimary))
-                        {
-                            if (TryMakePrimary(physPrimary))
-                            {
-                                Logger.Info($"[Guard] Set primary = {physPrimary}");
-                                SleepQuiet(1200); // chờ topology ổn định
-                            }
-                        }
-
-                        RunPnputil($"/disable-device \"{id}\"");
-                        Logger.Info("[Guard] Virtual Display Driver disabled safely.");
-                    }
-                }
-            }
-            catch (Exception ex) { Logger.Error("[Guard] Disable VDD failed: " + ex.Message); }
+            Logger.Info("[Guard] Step 4: Disabling VDD...");
+            SafeDisableVdd(snap, ct);
         }
+
+        // Extra: Restore text scale if it was changed (though usually we don't change it on connect)
+        RestoreTextScaleSafe(snap);
     }
 
     // ==== Helpers: Taskbar, Explorer, pnputil, v.v. ====
