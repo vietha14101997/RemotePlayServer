@@ -85,7 +85,7 @@ public partial class SIPSorceryStreamer
 
             // Soft congestion: THIS track's buffer sustained above threshold → reduce THIS track's bitrate only.
             long now = Environment.TickCount64;
-            if (trackBuffered > 500_000 && !track.DcSoftCongestion)
+            if (trackBuffered > 300_000 && !track.DcSoftCongestion)
             {
                 if (track.DcSoftCongestionEntryTicks == 0)
                 {
@@ -109,7 +109,7 @@ public partial class SIPSorceryStreamer
                     }
                 }
             }
-            else if (!track.DcSoftCongestion && trackBuffered <= 500_000)
+            else if (!track.DcSoftCongestion && trackBuffered <= 300_000)
             {
                 track.DcSoftCongestionEntryTicks = 0;
             }

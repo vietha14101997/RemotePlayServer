@@ -13,6 +13,7 @@ using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Server;
 using RemotePlayServer.Application.Streaming;
+using RemotePlayServer.Core;
 
 #if WINDOWS
 partial class Program
@@ -190,6 +191,16 @@ partial class Program
             if (e.Exception.InnerException is System.Net.Sockets.SocketException sockEx
                 && sockEx.NativeErrorCode == 995)
             {
+                e.SetObserved();
+                return;
+            }
+
+            // SIPSorcery STUN Response Race Condition (ArgumentOutOfRangeException in GotStunResponse)
+            // This is a known internal library bug - suppress as warning to avoid "crash" alarm.
+            if (e.Exception.InnerException is ArgumentOutOfRangeException outOfRange
+                && outOfRange.StackTrace?.Contains("SIPSorcery.Net.ChecklistEntry.GotStunResponse") == true)
+            {
+                Logger.Warn($"[SIPSorcery] Ignored internal library race condition: {outOfRange.Message} (GotStunResponse)");
                 e.SetObserved();
                 return;
             }

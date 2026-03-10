@@ -612,6 +612,15 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
                 }
+                catch (WebSocketException ex)
+                {
+                    // Catch physical connection aborts (995) or closures (1006)
+                    // and exit loop gracefully to trigger Protocol-level cleanup
+                    Logger.Info($"[Protocol] WebSocket closed during Phase 3: {ex.WebSocketErrorCode} (Code: {(int)ex.WebSocketErrorCode})");
+                    if (ex.InnerException != null)
+                        Logger.Info($"[Protocol] WebSocket InnerException: {ex.InnerException.Message}");
+                    break;
+                }
                 catch (OperationCanceledException) { break; }
             }
 
