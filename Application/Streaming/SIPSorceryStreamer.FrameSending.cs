@@ -20,6 +20,7 @@ public partial class SIPSorceryStreamer
     // Unity WebRTC Encoded Transform never fires for H.265 RTP packets.
     // Per-track DCs: each track has its own SCTP buffer → independent congestion detection.
     private const ulong DC_BUFFER_LOW_WATER  = 256_000;  // 256KB — buffer drained
+    private const ulong DC_BUFFER_MID_WATER  = 768_000;  // 768KB — partially drained, allow IDR for resync
     private const ulong DC_BUFFER_HIGH_WATER = 1_048_576;  // 1MB — must accommodate periodic GOP IDR frames
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     // Per-track congestion state moved to TrackInfo (DcSoftCongestion, CongestionBitrateReduced, etc.)
@@ -84,8 +85,9 @@ public partial class SIPSorceryStreamer
             if (trackDc != null) trackBuffered = trackDc.bufferedAmount;
 
             // Soft congestion: THIS track's buffer sustained above threshold → reduce THIS track's bitrate only.
+            // Threshold lowered from 300KB→200KB to trigger earlier, before buffer spirals to 1MB.
             long now = Environment.TickCount64;
-            if (trackBuffered > 300_000 && !track.DcSoftCongestion)
+            if (trackBuffered > 200_000 && !track.DcSoftCongestion)
             {
                 if (track.DcSoftCongestionEntryTicks == 0)
                 {
@@ -97,7 +99,13 @@ public partial class SIPSorceryStreamer
                     track.DcSoftCongestionEntryTicks = 0;
                     track.DcSoftCongestionClearTicks = 0;
                     int currentBitrate = track.TrackBitrateKbps > 0 ? track.TrackBitrateKbps : _bitrateController.TargetBitrateKbps;
-                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 80 / 100); // -20%
+                    // Escalating reduction: first time -20%, second -40%, third+ -50%.
+                    // Single -20% isn't enough for high-motion content (YouTube) that keeps
+                    // generating data faster than SCTP can drain.
+                    int reductionPercent = track.DcCongestionEscalation == 0 ? 80
+                                         : track.DcCongestionEscalation == 1 ? 60
+                                         : 50;
+                    int reduced = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * reductionPercent / 100);
                     if (reduced < currentBitrate)
                     {
                         track.TrackBitrateKbps = reduced;
@@ -105,11 +113,12 @@ public partial class SIPSorceryStreamer
                         lock (track.EncodeLock) { track.Encoder?.SetBitrate(reduced); }
                         // Also inform global ABC about congestion ceiling (for recovery limiting)
                         _bitrateController.MarkDcCongestion(currentBitrate);
-                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} DC soft congestion → {currentBitrate} → {reduced}kbps");
+                        track.DcCongestionEscalation = Math.Min(track.DcCongestionEscalation + 1, 3);
+                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} DC soft congestion → {currentBitrate} → {reduced}kbps (escalation={track.DcCongestionEscalation})");
                     }
                 }
             }
-            else if (!track.DcSoftCongestion && trackBuffered <= 300_000)
+            else if (!track.DcSoftCongestion && trackBuffered <= 200_000)
             {
                 track.DcSoftCongestionEntryTicks = 0;
             }
@@ -127,6 +136,8 @@ public partial class SIPSorceryStreamer
                         track.DcSoftCongestion = false;
                         track.DcSoftCongestionClearTicks = 0;
                         track.CongestionBitrateReduced = false;
+                        // Reset escalation counter on successful recovery
+                        track.DcCongestionEscalation = 0;
                         // DON'T restore bitrate immediately — this caused oscillation:
                         // restore → congestion → reduce → clear → restore → congestion...
                         // Keep the reduced bitrate and let ABC naturally recover over time.
@@ -721,6 +732,7 @@ public partial class SIPSorceryStreamer
         {
             track.PFramesDroppedDuringCongestion = false;
             track.CongestionBitrateReduced = false;
+            track.DcCongestionEscalation = 0; // Reset escalation on successful drain
             long now = Environment.TickCount64;
             bool cooldownOk = (now - Interlocked.Read(ref _lastDrainIdrTicks)) > 2000;
             if (cooldownOk)
@@ -742,13 +754,21 @@ public partial class SIPSorceryStreamer
             Logger.Debug($"[SIPSorcery] DC buffer drained — resuming");
         }
 
-        // Flow control: Block IDR when buffer is already congested.
-        // Sending a large IDR into a full buffer makes congestion WORSE.
+        // Flow control: Block IDR when buffer is severely congested.
+        // When buffer is between MID and HIGH, allow IDR if P-frames were dropped (track needs resync).
+        // Previously blocking at HIGH (1MB) created a death spiral: no IDR → can't resync → more drops.
         if (buffered > DC_BUFFER_HIGH_WATER)
         {
             Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
             track.PFramesDroppedDuringCongestion = true; // IDR deferred = track also needs resync
             if (!perTrackMode) _dcWasAboveHigh = true;
+            return false;
+        }
+        // Buffer between MID and HIGH: allow IDR only if track needs resync (P-frames were dropped).
+        // This breaks the congestion death spiral by allowing recovery before full drain.
+        if (buffered > DC_BUFFER_MID_WATER && !track.PFramesDroppedDuringCongestion)
+        {
+            Logger.Debug($"[SIPSorcery] Track {track.Index}: DC buffer MID ({buffered/1024}KB), deferring non-critical IDR");
             return false;
         }
 
@@ -822,17 +842,21 @@ public partial class SIPSorceryStreamer
             // Per-track bitrate reduction: DEFER SetBitrate to next PushBgraTexture call.
             // OnEncodedData runs from WITHIN EncodeLock → calling SetBitrate here causes
             // AMF SEH exception (native handle in use during encode).
-            if (!track.CongestionBitrateReduced)
+            // Escalating reduction: each consecutive HIGH event reduces more aggressively.
             {
                 track.CongestionBitrateReduced = true;
                 int currentBitrate = track.TrackBitrateKbps > 0 ? track.TrackBitrateKbps : _bitrateController.TargetBitrateKbps;
-                int reducedBitrate = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * 80 / 100); // -20%
+                int reductionPercent = track.DcCongestionEscalation == 0 ? 80
+                                     : track.DcCongestionEscalation == 1 ? 60
+                                     : 50;
+                int reducedBitrate = Math.Max(_bitrateController.MinBitrateKbps, currentBitrate * reductionPercent / 100);
                 if (reducedBitrate < currentBitrate)
                 {
                     track.TrackBitrateKbps = reducedBitrate;
                     track.PendingBitrateKbps = reducedBitrate; // Deferred: applied by next PushBgraTexture
                     _bitrateController.MarkDcCongestion(currentBitrate);
-                    Logger.Debug($"[SIPSorcery] Track {track.Index} DC congestion → {currentBitrate} → {reducedBitrate}kbps");
+                    track.DcCongestionEscalation = Math.Min(track.DcCongestionEscalation + 1, 3);
+                    Logger.Debug($"[SIPSorcery] Track {track.Index} DC HIGH congestion → {currentBitrate} → {reducedBitrate}kbps (escalation={track.DcCongestionEscalation})");
                 }
             }
             if (Interlocked.Read(ref track.SentFrames) % 60 == 0)
@@ -845,6 +869,7 @@ public partial class SIPSorceryStreamer
         {
             track.PFramesDroppedDuringCongestion = false;
             track.CongestionBitrateReduced = false;
+            track.DcCongestionEscalation = 0; // Reset escalation on successful drain
             bool cooldownOk = (now - Interlocked.Read(ref _lastDrainIdrTicks)) > 2000;
             if (cooldownOk)
             {

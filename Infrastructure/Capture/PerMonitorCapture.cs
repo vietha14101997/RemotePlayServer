@@ -282,6 +282,22 @@ public sealed class PerMonitorCapture : IDisposable
     }
 
     /// <summary>
+    /// Reset InitialFrameSent for all monitors so that even idle/static screens
+    /// will send one frame on the next capture cycle. Must be called on reconnect
+    /// to prevent static monitors (e.g. text editor) from producing 0 frames,
+    /// which causes the client to think the track is dead and trigger reconnect loops.
+    /// </summary>
+    public void ForceInitialFrames()
+    {
+        foreach (var mon in Monitors)
+        {
+            mon.InitialFrameSent = false;
+            mon.WasIdle = false; // Reset idle state so IDLE→ACTIVE transition fires correctly
+        }
+        Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors (will re-send initial frame)");
+    }
+
+    /// <summary>
     /// Recreate Desktop Duplication for a monitor after ACCESS_LOST error.
     /// This happens when desktop mode changes (resize, resolution change, etc.)
     /// </summary>

@@ -371,6 +371,11 @@ namespace RemotePlayServer.Application.Protocol
                             streamer.ActivatePhase3();
                         }
                         Logger.Info("[Protocol] Reconnect in Phase 3: requested streamer re-activation");
+
+                        // Reset InitialFrameSent so static monitors (text editor, idle desktop)
+                        // re-send at least one frame after reconnect. Without this, DXGI returns
+                        // "no update" for idle screens → 0 encoded frames → client reconnect loop.
+                        _capture?.ForceInitialFrames();
                     }
 
                     // Check if encoder supports BGRA mode (skip color conversion)

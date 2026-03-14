@@ -57,13 +57,15 @@ namespace RemotePlayServer.Application.Streaming
         private const int RECOVERY_COOLDOWN_MS = 5000; // 5 seconds between recovery steps
 
         // DC congestion ceiling: prevents sawtooth oscillation (8000→6400→8000→6400...)
-        // When DC soft congestion fires at bitrate X, we cap recovery at X * 90%.
-        // The ceiling slowly relaxes (+3% every 120s) to probe for more bandwidth.
+        // When DC soft congestion fires at bitrate X, we cap recovery at X * 85%.
+        // The ceiling slowly relaxes (+5% every 60s) to probe for more bandwidth.
+        // Faster relaxation (was 120s/3%) because escalating congestion reduction now
+        // provides stronger protection against over-recovery.
         private int _dcCongestionCeilingKbps;          // 0 = no ceiling (unlimited)
         private DateTime _lastDcCongestionTime = DateTime.MinValue;
-        private const int DC_CEILING_RELAX_INTERVAL_MS = 120000; // Relax ceiling every 120s (was 60s — slower probe = fewer congestion cycles)
-        private const float DC_CEILING_SAFETY_FACTOR = 0.90f;   // Cap at 90% of congestion trigger point
-        private const float DC_CEILING_RELAX_STEP = 0.03f;      // +3% per relaxation (was 5% — gentler probe to avoid overshooting sustainable bandwidth)
+        private const int DC_CEILING_RELAX_INTERVAL_MS = 60000;  // Relax ceiling every 60s
+        private const float DC_CEILING_SAFETY_FACTOR = 0.85f;    // Cap at 85% of congestion trigger point (was 90% — more headroom)
+        private const float DC_CEILING_RELAX_STEP = 0.05f;       // +5% per relaxation
 
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease

@@ -160,6 +160,7 @@ public partial class SIPSorceryStreamer : IDisposable
         public long DcSoftCongestionClearTicks; // Hold timer for recovery
         public volatile bool CongestionBitrateReduced; // Track-local bitrate reduction flag
         public int TrackBitrateKbps; // Per-track bitrate (0 = use global)
+        public int DcCongestionEscalation; // Escalation counter: 0=first(-20%), 1=second(-40%), 2+=severe(-50%)
 
         // Deferred bitrate change: set from OnEncodedData callback (which runs inside EncodeLock),
         // applied by next PushBgraTexture call. Prevents calling AMF SetBitrate while encode is active.

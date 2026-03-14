@@ -113,6 +113,10 @@ namespace RemotePlayServer.Application.Protocol
             // ensures Phase 3 frames start with clean RTP timestamps.
             _streamer?.ResetSyncState();
 
+            // Ensure all monitors re-send initial frame (critical for static screens
+            // like text editors that may have no DXGI updates).
+            _capture?.ForceInitialFrames();
+
             // Activate Phase 3 via barrier sync — ensures all tracks see
             // _phase3Active=true at the same barrier cycle, preventing one track
             // from starting 1-2 cycles before the other (27ms RTP offset).
