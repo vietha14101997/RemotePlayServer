@@ -253,6 +253,11 @@ partial class Program
 
         Console.WriteLine($"[System] Process: {Environment.ProcessPath}");
         Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
+
+        // === DEPENDENCY CHECK & AUTO-DOWNLOAD ===
+        // Ensure FFmpeg and ADB are available, download if missing
+        await RemotePlayServer.Infrastructure.DependencyManager.EnsureAllAsync();
+
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
         // === FIREWALL CHECK ===
