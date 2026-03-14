@@ -418,11 +418,21 @@ public unsafe partial class LibAvEncoder : IDisposable
             // Free Owned D3D11 Resources
             _stagingTexture?.Dispose();
 
-            // Dispose Bridge Resources (Owned by Encoder)
+            // Dispose Bridge Resources (Only when encoder created its own internal device)
             _sharedBridgeTexture?.Dispose();
             _importedBridgeTexture?.Dispose();
-            _encoderD3D11Context?.Dispose(); // Context from Internal Device
-            _encoderD3D11Device?.Dispose();  // Internal Device
+            if (_usingCrossDeviceBridge)
+            {
+                // Cross-device bridge: encoder owns a separate D3D11 device, safe to dispose
+                _encoderD3D11Context?.Dispose();
+                _encoderD3D11Device?.Dispose();
+            }
+            // When NOT using cross-device bridge, _encoderD3D11Device/_encoderD3D11Context
+            // point to the same device as _device/_context (borrowed from PerMonitorCapture).
+            // Disposing them would destroy the capture device, causing NullRef in:
+            // - New encoder initialization (device.ImmediateContext)
+            // - GpuColorConverter (Compute Shader dispatch)
+            // - All subsequent D3D11 operations on that monitor
 
             // DO NOT dispose _context or _device as they are borrowed from PerMonitorCapture
             // _context?.Dispose();
