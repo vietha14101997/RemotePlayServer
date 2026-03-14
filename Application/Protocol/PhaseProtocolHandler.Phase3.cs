@@ -707,6 +707,20 @@ namespace RemotePlayServer.Application.Protocol
                         }
                     };
 
+                    // Desktop idle detection — notify client to pause decode when desktop is static
+                    _capture.OnMonitorIdleChanged += (monitorIndex, isIdle) =>
+                    {
+                        try
+                        {
+                            var json = System.Text.Json.JsonSerializer.Serialize(new { type = "monitor_idle", monitor = monitorIndex, idle = isIdle });
+                            _ = SendTextAsync(json);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"[Protocol] Failed to send idle notification: {ex.Message}");
+                        }
+                    };
+
                     // Deferred send DISABLED — post-encode barrier removed for track independence.
                     // Each track now sends immediately after encoding (no cross-track blocking).
                     // Previously: barrier forced all tracks to wait for slowest encoder → stutter.

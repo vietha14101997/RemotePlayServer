@@ -19,6 +19,11 @@
     <None Include="bin\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="bin" />
   </ItemGroup>
 
+  <!-- Copy Configuration files to output -->
+  <ItemGroup>
+    <None Include="Configuration\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Configuration" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WebRTC: libdatachannel (replaces SIPSorcery for multi-track support) -->
     <PackageReference Include="DataChannelDotnet" Version="*" />

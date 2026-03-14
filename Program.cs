@@ -10,6 +10,7 @@ using System.IO;
 using RemotePlayServer.Infrastructure.Display;
 using RemotePlayServer.Infrastructure;
 using RemotePlayServer.Infrastructure.Network;
+using RemotePlayServer.Configuration;
 using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Server;
 using RemotePlayServer.Application.Streaming;
@@ -254,20 +255,23 @@ partial class Program
         Console.WriteLine($"[System] Local IP: {GetLocalIPAddress()}");
         Console.WriteLine($"[Encoder] {DetectEncoder()}");
 
-        // === USB TETHERING DETECTION ===
+        // === FIREWALL CHECK ===
+        // Ensure firewall rules exist for WebSocket (TCP) and LAN discovery (UDP)
+        int discoveryPort = LanDiscoveryService.DefaultDiscoveryPort;
+        FirewallHelper.EnsureRules(8288, discoveryPort);
+
+        // === USB CONNECTION DETECTION ===
+        // Two modes: ADB reverse (preferred, no tethering needed) and USB Tethering (RNDIS fallback)
         string? usbTetheringIP = null;
+        bool adbReverseActive = false;
+
         var usbTetherInfo = UsbTetheringHelper.Detect();
         if (usbTetherInfo.IsAvailable)
         {
             usbTetheringIP = usbTetherInfo.ServerIP;
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"[USB] USB Tethering ACTIVE! Server IP: {usbTetheringIP}");
-            Console.WriteLine($"[USB] Full TCP+UDP streaming over USB cable");
+            Console.WriteLine($"[USB] USB Tethering detected: {usbTetheringIP}");
             Console.ResetColor();
-        }
-        else
-        {
-            Console.WriteLine("[USB] Not detected. Enable USB Tethering on phone for USB streaming.");
         }
 
         DisplayGuard.CaptureSnapshotAtStartup();
@@ -281,8 +285,31 @@ partial class Program
             Console.WriteLine($"  {mon.name}: {mon.width}x{mon.height} [{type}]");
         }
 
+        // === ADB REVERSE PORT FORWARDING ===
+        // Direct USB pipe: bypasses RNDIS TCP/IP stack, lower latency
+        // Android client connects to localhost:port → ADB routes through USB → PC localhost:port
         monitors = WgcInterop.ListMonitorsDXGI();
         int port = 8288;
+
+        if (AdbPortForwardHelper.IsAdbAvailable() && AdbPortForwardHelper.IsDeviceConnected())
+        {
+            if (AdbPortForwardHelper.SetupReverse(port))
+            {
+                adbReverseActive = true;
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"[USB] ADB reverse ACTIVE: localhost:{port} via USB cable");
+                Console.ResetColor();
+            }
+        }
+
+        // Summary
+        if (!adbReverseActive && !usbTetherInfo.IsAvailable)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("[USB] No USB connection. Plug in USB cable for USB streaming.");
+            Console.ResetColor();
+        }
+
         var server = new SignalServer($"http://+:{port}/");
         server.SetWindows(Win32.ListTopLevelWindows()
             .Where(w => !string.IsNullOrWhiteSpace(w.title))
@@ -308,6 +335,27 @@ partial class Program
         {
             try { internetConfig = await InternetManager.LoadConfigAsync(); }
             catch (Exception ex) { Console.WriteLine($"[Internet] Config load failed: {ex.Message}"); }
+
+            // Load codec preference
+            try
+            {
+                var codecConfigPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "codec-settings.json");
+                if (File.Exists(codecConfigPath))
+                {
+                    var json = await File.ReadAllTextAsync(codecConfigPath);
+                    var doc = System.Text.Json.JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("preferredCodec", out var codecProp))
+                    {
+                        var codec = codecProp.GetString()?.Trim();
+                        if (!string.IsNullOrEmpty(codec))
+                        {
+                            DisplayConfig.PreferredCodec = codec;
+                            Console.WriteLine($"[Codec] Preferred codec: {codec}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"[Codec] Config load failed: {ex.Message}, using default ({DisplayConfig.PreferredCodec})"); }
         });
 
         await Task.WhenAll(dtlsTask, configTask);
@@ -360,22 +408,42 @@ partial class Program
         Console.WriteLine($"Data: {qrData}");
         QRCodeUtil.PrintQRCodeToConsole(qrData);
 
+        // === LAN AUTO-DISCOVERY ===
+        // UDP broadcast beacon — clients find server without manual IP or QR scan
+        var discovery = new LanDiscoveryService(preferredIP, port, discoveryPort);
+        discovery.Start();
+
         Console.WriteLine();
         Console.WriteLine("=== Connection Options ===");
 
-        if (usbTetheringIP != null)
+        if (adbReverseActive)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"  [USB]  ADB reverse active — client connects via localhost:{port}");
+            Console.ResetColor();
+            if (usbTetheringIP != null)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"         Tethering also available: {usbTetheringIP}:{port}");
+                Console.ResetColor();
+            }
+        }
+        else if (usbTetheringIP != null)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"  [USB]  {usbTetheringIP}:{port} (Full streaming over USB cable)");
+            Console.WriteLine($"  [USB]  {usbTetheringIP}:{port} (USB Tethering)");
             Console.ResetColor();
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("  [USB]  Not available. Enable USB Tethering on phone");
+            Console.WriteLine("  [USB]  Not available. Plug in USB cable");
             Console.ResetColor();
         }
 
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.WriteLine($"  [LAN]  Auto-discovery active (UDP broadcast on port {discoveryPort})");
+        Console.ResetColor();
         Console.WriteLine($"  [WiFi] {preferredIP}:{port} (Scan QR code above)");
 
         if (tunnelUrl != null)
@@ -412,6 +480,12 @@ partial class Program
         {
             Console.WriteLine($"[Shutdown] Server stop error: {ex.Message}");
         }
+
+        // Cleanup LAN discovery
+        discovery.Dispose();
+
+        // Cleanup ADB reverse forwarding
+        AdbPortForwardHelper.RemoveReverse();
 
         // Cleanup tunnel
         if (tunnel != null)

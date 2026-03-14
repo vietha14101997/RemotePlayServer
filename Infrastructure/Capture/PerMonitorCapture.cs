@@ -107,6 +107,11 @@ public sealed class PerMonitorCapture : IDisposable
         public OutduplPointerShapeInfo? LastCursorShapeInfo;
         public long LastCursorShapeId; // Unique ID for cursor shape (incremented on shape change)
         public OutduplPointerPosition LastCursorPosition; // Cached position (updated only when Visible=true)
+
+        // Desktop idle detection — skip encode when desktop content hasn't changed
+        public long IdleFrameCount;       // Consecutive frames with no desktop update
+        public long LastActiveFrameTime;  // Timestamp (ms) of last frame with actual desktop change
+        public bool WasIdle;              // Previous idle state (for edge detection)
     }
     
     private volatile bool _running;
@@ -178,6 +183,9 @@ public sealed class PerMonitorCapture : IDisposable
     /// Only fired when cursor is visible. shapeId changes when cursor shape changes.
     /// </summary>
     public event Action<int, byte[], OutduplPointerShapeInfo, OutduplPointerPosition, long>? OnCursorUpdate;
+
+    /// <summary>Fired when a monitor transitions between idle/active states. Args: monitorIndex, isIdle</summary>
+    public event Action<int, bool>? OnMonitorIdleChanged;
 
     // Global cursor shape ID — content-based hash so same visual cursor always has same ID.
     // Prevents duplicate image sends when DXGI re-reports identical cursor bitmaps.
@@ -638,6 +646,39 @@ public sealed class PerMonitorCapture : IDisposable
                     {
                         using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
 
+                        // ===== DESKTOP IDLE DETECTION =====
+                        // DXGI tells us if the desktop actually changed via LastPresentTime and TotalMetadataBufferSize.
+                        // When desktop is idle (user reading, no mouse movement), these are 0.
+                        // Skipping encode in this case saves massive GPU/CPU on both server (encoder) and client (decoder),
+                        // directly reducing Android thermal throttling.
+                        bool desktopChanged = frameInfo.LastPresentTime != 0 || frameInfo.TotalMetadataBufferSize > 0;
+
+                        if (!desktopChanged)
+                        {
+                            mon.IdleFrameCount++;
+                            // Fire idle state transition (edge-triggered)
+                            if (!mon.WasIdle)
+                            {
+                                mon.WasIdle = true;
+                                try { OnMonitorIdleChanged?.Invoke(mon.Index, true); }
+                                catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
+                                Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop IDLE (skipping encode)");
+                            }
+                            // Still process cursor updates below, but skip CopyResource + encode
+                            goto CursorOnly;
+                        }
+
+                        // Desktop changed — reset idle state
+                        mon.IdleFrameCount = 0;
+                        mon.LastActiveFrameTime = loopStart;
+                        if (mon.WasIdle)
+                        {
+                            mon.WasIdle = false;
+                            try { OnMonitorIdleChanged?.Invoke(mon.Index, false); }
+                            catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
+                            Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop ACTIVE (resuming encode)");
+                        }
+
                         // Always cache the latest frame content (fast GPU copy)
                         if (mon.LastFrame == null && mon.Device != null)
                         {
@@ -657,8 +698,10 @@ public sealed class PerMonitorCapture : IDisposable
 
                         mon.Context?.CopyResource(mon.LastFrame!, texture);
 
+                        CursorOnly:
                         // ===== DXGI Cursor Capture =====
                         // Capture cursor from Desktop Duplication API (more accurate than GDI+)
+                        // NOTE: Cursor is processed for BOTH idle and active frames.
                         try
                         {
                             if (mon.Duplication != null)
@@ -750,8 +793,9 @@ public sealed class PerMonitorCapture : IDisposable
                             // Continue (this can happen during desktop transitions)
                         }
 
-                        // Only convert and send if rate limiting allows
-                        if (canSendFrame)
+                        // Only convert and send if desktop changed AND rate limiting allows.
+                        // When desktop is idle, skip encode entirely — this is the primary thermal optimization.
+                        if (desktopChanged && canSendFrame)
                         {
                             if (UseBgraMode)
                             {
@@ -778,7 +822,7 @@ public sealed class PerMonitorCapture : IDisposable
                                 }
                             }
                         }
-                        else
+                        else if (desktopChanged)
                         {
                             // Rate limited - frame cached but not sent
                             mon.RateLimitedFrames++;
@@ -792,8 +836,18 @@ public sealed class PerMonitorCapture : IDisposable
                 }
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
-                    // No new frame from DXGI - send cached frame if rate limiting allows
-                    TrySendCachedFrame(mon, canSendFrame, loopStart, captureTimestamp);
+                    // No new frame from DXGI — desktop is idle.
+                    // Previously sent cached frame here, causing encoder to re-encode identical content
+                    // and Android decoder to waste GPU cycles decoding unchanged frames.
+                    // Now we simply increment idle counter and let the stream pause naturally.
+                    mon.IdleFrameCount++;
+                    if (!mon.WasIdle)
+                    {
+                        mon.WasIdle = true;
+                        try { OnMonitorIdleChanged?.Invoke(mon.Index, true); }
+                        catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
+                        Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop IDLE (WaitTimeout, skipping encode)");
+                    }
                 }
                 else if (result == Vortice.DXGI.ResultCode.AccessLost)
                 {

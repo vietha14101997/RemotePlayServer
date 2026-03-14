@@ -106,7 +106,9 @@ namespace RemotePlayServer.Application.Protocol
 
         /// <summary>
         /// Negotiate codec based on server and client capabilities.
-        /// Priority order: H265 (best quality) > H264 > VP9 > VP8
+        /// Respects DisplayConfig.PreferredCodec:
+        ///   "H264" / "H265" = force that codec if both sides support it
+        ///   "Auto" = default priority H265 > H264 > VP9 > VP8
         /// </summary>
         private void NegotiateCodec()
         {
@@ -132,7 +134,24 @@ namespace RemotePlayServer.Application.Protocol
             var clientCodecs = _clientCodecCapability?.SupportedCodecs ?? new[] { "H264" };
             Logger.Info($"[Protocol] Client supported codecs: [{string.Join(", ", clientCodecs)}]");
 
-            // Find best mutual codec (priority: H265 for better quality/compression, then H264)
+            // Check preferred codec from configuration
+            var preferred = Configuration.DisplayConfig.PreferredCodec?.ToUpperInvariant() ?? "AUTO";
+            Logger.Info($"[Protocol] Preferred codec (config): {preferred}");
+
+            // If a specific codec is preferred and both sides support it, use it directly
+            if (preferred != "AUTO")
+            {
+                if (serverCodecs.Contains(preferred, StringComparer.OrdinalIgnoreCase) &&
+                    clientCodecs.Contains(preferred, StringComparer.OrdinalIgnoreCase))
+                {
+                    _selectedCodec = preferred;
+                    Logger.Info($"[Protocol] Codec negotiation: using preferred {_selectedCodec}");
+                    return;
+                }
+                Logger.Warn($"[Protocol] Preferred codec {preferred} not supported by both sides, falling back to auto");
+            }
+
+            // Auto mode: find best mutual codec (priority: H265 > H264 > VP9 > VP8)
             string[] priority = { "H265", "H264", "VP9", "VP8" };
 
             foreach (var codec in priority)

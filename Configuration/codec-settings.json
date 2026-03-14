@@ -1,0 +1,4 @@
+{
+  "preferredCodec": "H264",
+  "_comment": "Options: Auto, H264, H265. H264 = lighter decode (less thermal on mobile), H265 = better compression"
+}
