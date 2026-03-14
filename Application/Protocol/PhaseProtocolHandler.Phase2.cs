@@ -915,6 +915,21 @@ namespace RemotePlayServer.Application.Protocol
                     _perTrackPc = false;
                 }
 
+                // H264 codec: disable per-track PC mode.
+                // SIPSorcery auto-matches H264 (standard WebRTC codec) and creates video m-lines
+                // in the main PC answer, even when no video tracks were added. The client's WebRTC
+                // stack expects all m-lines from the offer to be answered, and SIPSorcery uses the
+                // first BUNDLE MID for ICE transport. Rejecting video m-lines (port=0) or stripping
+                // them causes ICE/DTLS failure because SIPSorcery's internal transport setup conflicts.
+                // H265 doesn't have this issue because SIPSorcery doesn't recognize H265 as a
+                // standard codec and naturally rejects video m-lines.
+                // Solution: use main PC DataChannels for H264 video (legacy mode).
+                if (_perTrackPc && _selectedCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Info("[Protocol] H264 codec: disabling perTrackPc (SIPSorcery H264 m-line conflict)");
+                    _perTrackPc = false;
+                }
+
                 // Process offer with all dimensions at once
                 // In perTrackPc mode: main PC handles audio + DataChannels only, no video tracks
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions, _perTrackPc);

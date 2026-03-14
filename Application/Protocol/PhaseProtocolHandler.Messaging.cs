@@ -458,6 +458,12 @@ namespace RemotePlayServer.Application.Protocol
                 }
 
                 // 2. Stop capture threads (keep D3D11 devices + DXGI duplication alive)
+                // Cancel the Protocol-Capture thread first so StartCaptureThread() can re-create it.
+                // Without this, the thread stays alive (blocked on WaitHandle) and prevents
+                // _capture.Start() from being called on the next connection attempt → zero frames.
+                try { _captureCts?.Cancel(); } catch { }
+                try { _captureThread?.Join(2000); } catch { }
+                _captureThread = null;
                 if (_sharedCapture != null)
                 {
                     Logger.Info("[Protocol] Stopping capture for restart...");

@@ -38,6 +38,9 @@ public partial class SIPSorceryStreamer
             _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
             {
                 if (!_connected || !_running || _mainPc == null) return;
+                // Stop sending audio when paused — Opus encoder may still have buffered
+                // data from EncodePcm calls that arrived before _isPaused was set.
+                if (_isPaused) return;
                 // Don't send audio during early capture — contributes to WiFi congestion
                 if (!_phase3Active) return;
                 try

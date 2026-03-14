@@ -385,6 +385,36 @@ public partial class SIPSorceryStreamer
                 return;
             }
 
+            // H264 via DataChannel: same transport as H265 to bypass RTP jitter buffer.
+            // Client now creates AVC MediaCodec decoder for h265video-N DCs when codec=H264.
+            // Falls back to RTP below if DataChannels are not available.
+            if (_negotiatedCodec == VideoCodec.H264 && IsH265DataChannelReady())
+            {
+                if (isKeyframe)
+                {
+                    // Send SPS/PPS config on first IDR of session
+                    if (track.IdrViaDcCount == 0)
+                        SendCodecConfigViaDataChannel(track, nalData);
+
+                    if (SendH265IdrViaDataChannel(track, nalData))
+                    {
+                        track.IdrViaDcCount++;
+                        Interlocked.Increment(ref track.SentFrames);
+                        return;
+                    }
+                    // DC send failed — fall through to RTP
+                }
+                else
+                {
+                    if (SendH265PFrameViaDataChannel(track, nalData))
+                    {
+                        Interlocked.Increment(ref track.SentFrames);
+                        return;
+                    }
+                    // DC send failed — fall through to RTP
+                }
+            }
+
             byte[] au = nalData;
             if (!ContainsAnnexBStartCode(au))
                 au = TryConvertAvccToAnnexB(au);
@@ -724,8 +754,10 @@ public partial class SIPSorceryStreamer
 
         try
         {
-            // Extract IDR NAL data (skip VPS/SPS/PPS — those are sent separately as type=0x02)
-            var idrData = ExtractH265IdrData(keyframeData);
+            // Extract IDR NAL data (skip param sets — those are sent separately as type=0x02)
+            var idrData = _negotiatedCodec == VideoCodec.H264
+                ? ExtractH264IdrData(keyframeData)
+                : ExtractH265IdrData(keyframeData);
             if (idrData == null || idrData.Length == 0)
             {
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: No IDR NAL found in keyframe ({keyframeData.Length} bytes)");
@@ -932,6 +964,99 @@ public partial class SIPSorceryStreamer
     }
 
     /// <summary>
+    /// Send codec config (SPS/PPS for H264, VPS/SPS/PPS for H265) via DataChannel.
+    /// Codec-agnostic wrapper that extracts the right parameter sets based on negotiated codec.
+    /// Message format: [type=0x02][trackIndex(1)][annexB param set bytes...]
+    /// </summary>
+    private void SendCodecConfigViaDataChannel(TrackInfo track, byte[] keyframeData)
+    {
+        var dc = GetH265VideoChannel(track.Index);
+        if (dc == null) return;
+
+        try
+        {
+            byte[] paramSets;
+            if (_negotiatedCodec == VideoCodec.H264)
+                paramSets = ExtractH264ParamSets(keyframeData);
+            else
+                paramSets = ExtractH265ParamSets(keyframeData);
+
+            if (paramSets.Length > 0)
+                track.LastH265ParamSets = paramSets;
+            else
+                paramSets = track.LastH265ParamSets ?? Array.Empty<byte>();
+
+            if (paramSets.Length == 0)
+            {
+                if (Interlocked.Read(ref track.SentFrames) > 0)
+                    Logger.Warn($"[SIPSorcery] Track {track.Index}: No param sets found in keyframe AND no cache available");
+                return;
+            }
+
+            var msg = new byte[2 + paramSets.Length];
+            msg[0] = 0x02; // message type: codec_config
+            msg[1] = (byte)track.Index;
+            Buffer.BlockCopy(paramSets, 0, msg, 2, paramSets.Length);
+
+            dc.send(msg);
+
+            if (track.IdrViaDcCount == 0)
+                Logger.Info($"[SIPSorcery] Track {track.Index}: Sent {_negotiatedCodec} codec config via DataChannel ({paramSets.Length} bytes)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send codec config: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Extract SPS(7), PPS(8) NAL units from H264 Annex-B bitstream.
+    /// Returns concatenated Annex-B bytes containing only parameter set NALs.
+    /// </summary>
+    private static byte[] ExtractH264ParamSets(byte[] annexB)
+    {
+        using var result = new System.IO.MemoryStream();
+        int i = 0;
+        while (i < annexB.Length - 3)
+        {
+            int scLen = 0;
+            if (i < annexB.Length - 3 && annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 0 && annexB[i + 3] == 1)
+                scLen = 4;
+            else if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 1)
+                scLen = 3;
+
+            if (scLen == 0) { i++; continue; }
+
+            int nalStart = i;
+            int headerPos = i + scLen;
+            if (headerPos >= annexB.Length) break;
+
+            int nalType = annexB[headerPos] & 0x1F; // H264: lower 5 bits
+
+            int nalEnd = annexB.Length;
+            for (int j = headerPos + 1; j < annexB.Length - 3; j++)
+            {
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 0 && annexB[j + 3] == 1)
+                { nalEnd = j; break; }
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 1)
+                { nalEnd = j; break; }
+            }
+
+            // Keep SPS(7), PPS(8)
+            if (nalType == 7 || nalType == 8)
+            {
+                result.Write(annexB, nalStart, nalEnd - nalStart);
+            }
+
+            // Stop after IDR slice (type 5) — no more param sets after this
+            if (nalType == 5) break;
+
+            i = nalEnd;
+        }
+        return result.ToArray();
+    }
+
+    /// <summary>
     /// Extract VPS(32), SPS(33), PPS(34) NAL units from Annex-B bitstream.
     /// Returns concatenated Annex-B bytes containing only parameter set NALs.
     /// </summary>
@@ -1015,6 +1140,50 @@ public partial class SIPSorceryStreamer
 
             // Keep IDR_W_RADL(19), IDR_N_LP(20), and CRA(21)
             if (nalType == 19 || nalType == 20 || nalType == 21)
+            {
+                result.Write(annexB, nalStart, nalEnd - nalStart);
+            }
+
+            i = nalEnd;
+        }
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// Extract IDR slice NAL (type 5) from H264 Annex-B bitstream.
+    /// Skips SPS(7) and PPS(8) since those are sent separately as codec config.
+    /// </summary>
+    private static byte[] ExtractH264IdrData(byte[] annexB)
+    {
+        using var result = new System.IO.MemoryStream();
+        int i = 0;
+        while (i < annexB.Length - 3)
+        {
+            int scLen = 0;
+            if (i < annexB.Length - 3 && annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 0 && annexB[i + 3] == 1)
+                scLen = 4;
+            else if (annexB[i] == 0 && annexB[i + 1] == 0 && annexB[i + 2] == 1)
+                scLen = 3;
+
+            if (scLen == 0) { i++; continue; }
+
+            int nalStart = i;
+            int headerPos = i + scLen;
+            if (headerPos >= annexB.Length) break;
+
+            int nalType = annexB[headerPos] & 0x1F; // H264: lower 5 bits
+
+            int nalEnd = annexB.Length;
+            for (int j = headerPos + 1; j < annexB.Length - 3; j++)
+            {
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 0 && annexB[j + 3] == 1)
+                { nalEnd = j; break; }
+                if (annexB[j] == 0 && annexB[j + 1] == 0 && annexB[j + 2] == 1)
+                { nalEnd = j; break; }
+            }
+
+            // Keep IDR slice (type 5) and SEI (type 6) — skip SPS(7)/PPS(8)
+            if (nalType == 5 || nalType == 6)
             {
                 result.Write(annexB, nalStart, nalEnd - nalStart);
             }

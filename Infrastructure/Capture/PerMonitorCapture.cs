@@ -112,6 +112,7 @@ public sealed class PerMonitorCapture : IDisposable
         public long IdleFrameCount;       // Consecutive frames with no desktop update
         public long LastActiveFrameTime;  // Timestamp (ms) of last frame with actual desktop change
         public bool WasIdle;              // Previous idle state (for edge detection)
+        public bool InitialFrameSent;     // True after first frame has been sent (ensures client gets immediate content)
     }
     
     private volatile bool _running;
@@ -651,7 +652,12 @@ public sealed class PerMonitorCapture : IDisposable
                         // When desktop is idle (user reading, no mouse movement), these are 0.
                         // Skipping encode in this case saves massive GPU/CPU on both server (encoder) and client (decoder),
                         // directly reducing Android thermal throttling.
+                        //
+                        // EXCEPTION: Always send the first frame so the client has immediate content
+                        // on connect, even if the desktop is idle.
                         bool desktopChanged = frameInfo.LastPresentTime != 0 || frameInfo.TotalMetadataBufferSize > 0;
+                        if (!mon.InitialFrameSent)
+                            desktopChanged = true; // Force first frame through
 
                         if (!desktopChanged)
                         {
@@ -797,6 +803,7 @@ public sealed class PerMonitorCapture : IDisposable
                         // When desktop is idle, skip encode entirely — this is the primary thermal optimization.
                         if (desktopChanged && canSendFrame)
                         {
+                            mon.InitialFrameSent = true;
                             if (UseBgraMode)
                             {
                                 // BGRA mode - send BGRA texture directly (no color conversion)

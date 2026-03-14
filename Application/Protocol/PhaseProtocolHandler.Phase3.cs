@@ -637,6 +637,93 @@ namespace RemotePlayServer.Application.Protocol
             Logger.Info("[Protocol] Phase 3: Stream ended");
         }
 
+        private volatile bool _captureEventsRegistered;
+
+        /// <summary>
+        /// Register capture frame handlers once. Uses a flag to prevent duplicate registration
+        /// when StartCaptureThread is called multiple times (e.g., after DTLS restart).
+        /// Handlers reference fields (_streamer, _capture) so they always use current values.
+        /// </summary>
+        private void EnsureCaptureEventsRegistered()
+        {
+            if (_captureEventsRegistered || _capture == null) return;
+            _captureEventsRegistered = true;
+
+            // NV12 frame handler (standard path with color conversion)
+            _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
+            {
+                _streamer?.PushTexture(monitorIndex, nv12Texture, w, h, timestamp);
+
+                if (monitorIndex == 0)
+                {
+                    var fn = Interlocked.Increment(ref _frameCount);
+                    _frameTiming.Enqueue((fn, timestamp));
+                    while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
+                }
+            };
+
+            // BGRA frame handler (zero-copy path, no color conversion)
+            _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
+            {
+                // Resize texture to target resolution (default 1080p)
+                ID3D11Texture2D? textureToSend = bgraTexture;
+                int targetWidth = w;
+                int targetHeight = h;
+
+                // Capture local ref to avoid TOCTOU race during shutdown
+                var resizer = _textureResizer;
+                if (resizer != null)
+                {
+                    try
+                    {
+                        if (resizer.NeedsResize(w, h))
+                        {
+                            var device = _capture?.GetDeviceForMonitor(monitorIndex);
+                            if (device != null)
+                            {
+                                var (resized, rw, rh) = resizer.ResizeBgraTexture(device, bgraTexture, w, h, monitorIndex);
+                                textureToSend = resized;
+                                targetWidth = rw;
+                                targetHeight = rh;
+                            }
+                        }
+                    }
+                    catch (ObjectDisposedException) { return; }
+                }
+
+                // Push texture (null-forgiving since textureToSend is always non-null)
+                _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight, timestamp);
+
+                if (monitorIndex == 0)
+                {
+                    var fn = Interlocked.Increment(ref _frameCount);
+                    _frameTiming.Enqueue((fn, timestamp));
+                    while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
+                }
+            };
+
+            // Desktop idle detection — notify client to pause decode when desktop is static
+            _capture.OnMonitorIdleChanged += (monitorIndex, isIdle) =>
+            {
+                try
+                {
+                    // Force IDR on idle→active transition so the first frame after
+                    // desktop change is a full keyframe.  Without this, the encoder
+                    // produces a P-frame referencing a stale frame → client must wait
+                    // for the next periodic IDR before it can render the new content.
+                    if (!isIdle)
+                        _streamer?.RequestKeyframe(monitorIndex, force: true);
+
+                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "monitor_idle", monitor = monitorIndex, idle = isIdle });
+                    _ = SendTextAsync(json);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[Protocol] Failed to send idle notification: {ex.Message}");
+                }
+            };
+        }
+
         private void StartCaptureThread()
         {
             if (_capture == null || _streamer == null) return;
@@ -648,84 +735,15 @@ namespace RemotePlayServer.Application.Protocol
                 return;
             }
 
+            // Register frame handlers once (idempotent)
+            EnsureCaptureEventsRegistered();
+
             _captureCts = new CancellationTokenSource();
             _captureThread = new Thread(() =>
             {
                 try { RoInitialize(1); } catch { }
                 try
                 {
-                    // NV12 frame handler (standard path with color conversion)
-                    _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
-                    {
-                        _streamer?.PushTexture(monitorIndex, nv12Texture, w, h, timestamp);
-
-                        if (monitorIndex == 0)
-                        {
-                            var fn = Interlocked.Increment(ref _frameCount);
-                            _frameTiming.Enqueue((fn, timestamp));
-                            while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
-                        }
-                    };
-
-                    // BGRA frame handler (zero-copy path, no color conversion)
-                    _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
-                    {
-                        // Resize texture to target resolution (default 1080p)
-                        ID3D11Texture2D? textureToSend = bgraTexture;
-                        int targetWidth = w;
-                        int targetHeight = h;
-
-                        // Capture local ref to avoid TOCTOU race during shutdown
-                        var resizer = _textureResizer;
-                        if (resizer != null)
-                        {
-                            try
-                            {
-                                if (resizer.NeedsResize(w, h))
-                                {
-                                    var device = _capture?.GetDeviceForMonitor(monitorIndex);
-                                    if (device != null)
-                                    {
-                                        var (resized, rw, rh) = resizer.ResizeBgraTexture(device, bgraTexture, w, h, monitorIndex);
-                                        textureToSend = resized;
-                                        targetWidth = rw;
-                                        targetHeight = rh;
-                                    }
-                                }
-                            }
-                            catch (ObjectDisposedException) { return; }
-                        }
-
-                        // Push texture (null-forgiving since textureToSend is always non-null)
-                        _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight, timestamp);
-
-                        if (monitorIndex == 0)
-                        {
-                            var fn = Interlocked.Increment(ref _frameCount);
-                            _frameTiming.Enqueue((fn, timestamp));
-                            while (_frameTiming.Count > 30) _frameTiming.TryDequeue(out _);
-                        }
-                    };
-
-                    // Desktop idle detection — notify client to pause decode when desktop is static
-                    _capture.OnMonitorIdleChanged += (monitorIndex, isIdle) =>
-                    {
-                        try
-                        {
-                            var json = System.Text.Json.JsonSerializer.Serialize(new { type = "monitor_idle", monitor = monitorIndex, idle = isIdle });
-                            _ = SendTextAsync(json);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"[Protocol] Failed to send idle notification: {ex.Message}");
-                        }
-                    };
-
-                    // Deferred send DISABLED — post-encode barrier removed for track independence.
-                    // Each track now sends immediately after encoding (no cross-track blocking).
-                    // Previously: barrier forced all tracks to wait for slowest encoder → stutter.
-                    // H265: already sends via DataChannel immediately (unaffected).
-                    // H264: sends via RTP immediately (minor jitter asymmetry acceptable vs stutter).
                     int activeMonitors = _capture.Monitors.Count(m => m.Device != null && m.Duplication != null);
                     Logger.Info($"[Protocol] Independent track mode: {activeMonitors} monitors, each track sends immediately after encoding");
 
