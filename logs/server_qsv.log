@@ -1,0 +1,1456 @@
+=== RemotePlayServer ===
+[System] Running as Administrator: YES
+[System] Process: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\RemotePlayServer.exe
+[System] Local IP: 192.168.1.6
+
+=== Dependency Check ===
+[Dependencies] FFmpeg binaries found.
+[Dependencies] ADB found at: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\tools\platform-tools\adb.exe
+[Dependencies] All dependencies ready.
+[Encoder] FFmpeg x264 (Software)
+[Firewall] Rule 'RemotePlayServer' exists ✓
+[Firewall] Rule 'RemotePlayServer-Discovery' exists ✓
+[TextScale] Actual DPI for \\.\DISPLAY1: 96
+[Guard] Saved original text scale for \\.\DISPLAY1: 100%
+[Guard] DPI snapshot: Source 0 = 100% (logPixels=96)
+[Guard] Saved DPI snapshot for 1 active monitors (via API)
+[Guard] Snapshot captured.
+[System] Startup recovery task registered.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+[ADB] Found adb at: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\tools\platform-tools\adb.exe
+[USB] No USB connection. Plug in USB cable for USB streaming.
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.6:8288
+[SIPSorcery] Pre-warming DTLS crypto...
+[Codec] Preferred codec: H264
+[SIPSorcery] DTLS pre-warm done in 2387ms
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.6","port":"8288"}
+█████████████████████████████████████
+█████████████████████████████████████
+████ ▄▄▄▄▄ █   ▄ █ ▄ ▀▄█▀█ ▄▄▄▄▄ ████
+████ █   █ █  █▀█ ▄▀   ▄▀█ █   █ ████
+████ █▄▄▄█ ██▀  ▀▀██▀ ▀▀██ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄█▄▀ ▀▄█▄█▄█ █▄▄▄▄▄▄▄████
+████▄▀  ▄█▄█▄▄▀▀ ▀█▄▀█▄▀  ██▀ ▄▄ ████
+████▄ ▄▄▀ ▄▄ ▄ ▄▄▀  █▄▄▀▄▄▄   ██▀████
+████  █▄▄▀▄▄   █▄▄▀█▄█▀▀▀██ █▀▄ █████
+████ ██ ▄▀▄▀▀ ██▄ █▄▄  ▄ █▄▄█▀▄██████
+████▀▄▄▀  ▄  █ █   ██ ▀▀▀██▄ █▄█▄████
+████ ▄ █ ▀▄▀ ▀▄▀ ▀▀ █▄▄▀▀ ▀▀▄▄█▄█████
+████▄▄█▄██▄▄▀█ ▄▀ █▀▄███ ▄▄▄ █   ████
+████ ▄▄▄▄▄ ██▄██▀ █▀▀█▄  █▄█ ██▀▀████
+████ █   █ █ ▄█▀██ █ ▀██ ▄▄  ▄█▄ ████
+████ █▄▄▄█ █▄█ ▀ ▄ ▀█▄  ▄█▀█ ▄█▀▀████
+████▄▄▄▄▄▄▄█▄▄█▄▄▄▄▄███▄█▄███▄▄██████
+█████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+=== Connection Options ===
+  [USB]  Not available. Plug in USB cable
+  [LAN]  Auto-discovery active (UDP broadcast on port 8289)
+  [WiFi] 192.168.1.6:8288 (Scan QR code above)
+
+Server is running. Press ENTER to exit.
+[Discovery] Broadcasting on UDP port 8289 every 2s
+[Signal] Client connected 4516b6f5-8c41-47c3-8528-77d49cafaa87, protocol=v2, transport=LAN
+[Protocol] Client 4516b6f5-8c41-47c3-8528-77d49cafaa87 connected from 192.168.1.12 (v2 protocol, transport=WiFi)
+[Protocol] Phase changed to: Phase1_HardwareDetect
+[Protocol] Phase 1: Gathering hardware info...
+[HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+[HardwareInfo] SetDllDirectory: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] FFmpeg.RootPath: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] Added to PATH: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[HardwareInfo] HEVC encoder 'hevc_qsv': available
+[HardwareInfo] Encoder: QSV, HwAccel: True, HEVC: True, Codecs: [H264, H265]
+[Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+[Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
+[Protocol] Sent hardware info to client
+[Protocol] Waiting for hardware_info_ack...
+[Protocol] WaitForHardwareAck received: len=235, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H264","H265","VP9","VP8"],"preferred...
+[Protocol] WaitForHardwareAck msgType=hardware_info_ack
+[Protocol] Client codec capabilities: HEVC=True, preferred=H265, device=vivo V2352GA
+[Protocol] Client screen resolution: 2800x1260
+[Protocol] Encoder libvpx-vp9: available
+[Protocol] Encoder libvpx: available
+[Protocol] Server supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Client supported codecs: [H264, H265, VP9, VP8]
+[Protocol] Preferred codec (config): H264
+[Protocol] Codec negotiation: using preferred H264
+[Protocol] Client perTrackPc: True
+[Protocol] Received hardware_info_ack
+[Protocol] Phase changed to: Phase1_SpeedTest
+[Protocol] Phase 1: Waiting for client speed test result...
+[Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+[Protocol] Processing speedtest_request...
+[Protocol] Handling speedtest_request: direction=download, duration=2000ms
+[Protocol] Download test complete: sent 40MB in 2211ms = 151.8 Mbps
+[Protocol] speedtest_request handled, continuing to wait...
+[Protocol] WaitForSpeedTest received: type=speedtest_result, len=82
+[Protocol] Processing speedtest_result...
+[Protocol] speedtest_result parsed: 275.4Mbps, 17.1ms
+[Protocol] ✓ Received speedtest_result from client: 275.4Mbps, 17.1ms ping
+[Protocol] Calculating suggested config...
+[Protocol] Sending suggested_config: 3x1920x1080@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
+[Protocol] ✓ suggested_config sent successfully
+[Protocol] Phase changed to: Phase1_WaitingProceed
+[Protocol] Phase 1: Waiting for client proceed...
+[Protocol] WaitForProceed received: ping:1773485111514...
+[Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+[Protocol] Received proceed message, phase=2, expected=2
+[Protocol] Phase 1 complete, proceeding to Phase 2
+[Protocol] Phase changed to: Phase2_ApplyConfig
+[Protocol] Phase 2: Waiting for display config...
+[Protocol] WaitForDisplayConfig received: {"type":"display_config","monitors":2,"resolution":{"w":1280,"h":720},"refreshRate":60,"bitrateKbps"...
+[Protocol] Received display config: 2x1280x720@60fps
+[Protocol] Applying new display config: 2 monitors @ 60fps (keeping native resolution)
+[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+[Protocol] Physical monitors (1) < requested (2), creating VDD...
+[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+[VDD] Physical: 1, Virtual needed: 1 (target: 2)
+[VDD Pipe] Not available (driver not running or old version)
+[VDD] Pipe unavailable, using pnputil fallback...
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Disabling VDD for config reload...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[VDD] 2 monitors detected (335ms)
+[Display] Setting up multi-monitor system...
+[Display] Physical: 1, Virtual: 1
+[Display] Setting \\.\DISPLAY7 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
+[DisplayUtil] \\.\DISPLAY7 current position: (1920,0)
+[DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY7: (1920,0) 1920x1080@60Hz
+[DisplayUtil] ApplyDisplayChanges: SUCCESS
+[Display] Ensuring \\.\DISPLAY1 is PRIMARY (original)
+[Display] \\.\DISPLAY1 set as primary at (0,0) 1920x1080@60Hz
+[Display] Multi-monitor system configured:
+[Display]   \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
+[Display]   \\.\DISPLAY7 1920x1080 at (1920,0) [VIRTUAL]
+[Display] Setting Windows Scale and Layout to 125%...
+[DpiScaling] Setting 125% for 2 monitor(s)...
+[DpiScaling] Monitor 0: current=100%, recommended=150%, max=175%
+[DpiScaling] ✓ Set DPI to 125%
+[DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
+[DpiScaling] Already at 125%
+[Display] Scale and Layout set to 125%
+[Guard] Watchdog spawned (PID=8544), monitoring server PID=7688
+[Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI), \\.\DISPLAY7(V,x=1920)
+[Protocol] Selected (physical→virtual): \\.\DISPLAY1, \\.\DISPLAY7
+[Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+[Protocol] Monitor 1 (\\.\DISPLAY7): rect=(1920,0) 1920x1080
+[Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
+[Protocol] Available monitors: 2, using: 2
+[PerMonitorCapture] Initializing 2 monitors @ 60fps (PARALLEL MODE - separate D3D11 devices)
+[PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+[PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+[PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+[PerMonitorCapture] Monitor 1: \\.\DISPLAY7 1920x1080 - duplication ready
+[PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+[Protocol] Creating SIPSorceryStreamer with codec=H264, resolution=720p
+[AdaptiveBitrate] Initialized: target=5600kbps, range=[3000-7000]kbps, warmup=15000ms
+[SIPSorcery] Created: 2 monitors, 60fps, 720p, codec=H264
+[TextureResizer] Initialized for 2 monitors, targetHeight=720p
+[Protocol] Created TextureResizer for 2 monitors (targetHeight: 720p, type: standard)
+[SIPSorcery] Stored pending device for monitor 0
+[Protocol] Monitor 0: Using dedicated D3D11 device
+[SIPSorcery] Stored pending device for monitor 1
+[Protocol] Monitor 1: Using dedicated D3D11 device
+[Protocol] Sent config_complete, ready for ICE exchange
+[Protocol] Phase changed to: Phase2_IceExchange
+[Protocol] Starting ICE exchange...
+[Protocol] ICE RX: ping:1773485113537...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485115557...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485117581...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485119615...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485121638...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485123672...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485125692...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: ping:1773485127722...
+[Protocol] ICE legacy format message
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3843384979 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"42803675 1 udp 2122129151 28.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2648286357 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3843384979 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"42803675 1 udp 2122129151 28.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2648286357 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3843384979 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"42803675 1 udp 2122129151 28.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2648286357 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"3843384979 1 udp 2122194687 19...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"42803675 1 udp 2122129151 28.1...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"2648286357 1 udp 2122262783 24...
+[Protocol] ICE message type: candidate
+[Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 6632654107898915371 2 IN IP4 ...
+[Protocol] ICE message type: offer
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 12 pending ICE candidates
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
+[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
+[Protocol] Parsed H264 PT from offer: 124
+[Protocol] H264 codec: disabling perTrackPc (SIPSorcery H264 m-line conflict)
+[SIPSorcery] Connection closed
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f, perTrackPc=False
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 62:3E:78:36:A0:82:B1:55:97:C2:54:11:5D:90:EE:97:41:64:17:16:59:F3:99:61:B5:D1:76:D8:E6:34:14:51
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 62:3E:78:36:A0:82:B1:55:97:C2:54:11:5D:90:EE:97:41:64:17:16:59:F3:99:61:B5:D1:76:D8:E6:34:14:51
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 62:3E:78:36:A0:82:B1:55:97:C2:54:11:5D:90:EE:97:41:64:17:16:59:F3:99:61:B5:D1:76:D8:E6:34:14:51
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 62:3E:78:36:A0:82:B1:55:97:C2:54:11:5D:90:EE:97:41:64:17:16:59:F3:99:61:B5:D1:76:D8:E6:34:14:51
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)
+[SIPSorcery] Main PC: Added video track 0: 1280x720 (device=02F1D476), SSRC=1442570801
+[SIPSorcery] Main PC: Added video track 1: 1280x720 (device=02DAAF16), SSRC=1032311036
+[SIPSorcery] Main PC: Added SendOnly Opus audio track (RTP transport)
+[SIPSorcery] Main PC: Waiting for audio/cursor/h265video DataChannels (per-track or legacy)
+[SIPSorcery] Main PC: Local ICE: 716669064 1 udp 2113937663 192.168.1.6 57596 typ h...
+[SIPSorcery] Main PC: ICE state: checking
+[SIPSorcery] Main PC: Signaling state: have_remote_offer
+[SIPSorcery] Main PC: After setRemoteDescription: signalingState=have_remote_offer
+[SIPSorcery] Main PC: After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 27:37:E2:E8:91:C9:75:52:52:D4:C5:F2:91:A0:B6:47:E9:6E:6F:28:D3:72:AF:F9:4F:AE:66:18:62:EC:4E:54
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 27:37:E2:E8:91:C9:75:52:52:D4:C5:F2:91:A0:B6:47:E9:6E:6F:28:D3:72:AF:F9:4F:AE:66:18:62:EC:4E:54
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 27:37:E2:E8:91:C9:75:52:52:D4:C5:F2:91:A0:B6:47:E9:6E:6F:28:D3:72:AF:F9:4F:AE:66:18:62:EC:4E:54
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 27:37:E2:E8:91:C9:75:52:52:D4:C5:F2:91:A0:B6:47:E9:6E:6F:28:D3:72:AF:F9:4F:AE:66:18:62:EC:4E:54
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC: Answer ready, 2123 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 2123 to 2123 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 76670 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2 3\r\nm=video 9 UDP/TLS/R...
+[Protocol] Sent single answer, len=2206 bytes
+[SIPSorcery] Main PC: Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 57596 ty...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3843384979 1 udp 2122194687 192.168.1.12...
+[SIPSorcery] Main PC: Added remote ICE: candidate:42803675 1 udp 2122129151 28.118.72.208 ...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2648286357 1 udp 2122262783 2402:800:610...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3843384979 1 udp 2122194687 192.168.1.12...
+[SIPSorcery] Main PC: Added remote ICE: candidate:42803675 1 udp 2122129151 28.118.72.208 ...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2648286357 1 udp 2122262783 2402:800:610...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3843384979 1 udp 2122194687 192.168.1.12...
+[SIPSorcery] Main PC: Added remote ICE: candidate:42803675 1 udp 2122129151 28.118.72.208 ...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2648286357 1 udp 2122262783 2402:800:610...
+[SIPSorcery] Main PC: Added remote ICE: candidate:3843384979 1 udp 2122194687 192.168.1.12...
+[SIPSorcery] Main PC: Added remote ICE: candidate:42803675 1 udp 2122129151 28.118.72.208 ...
+[SIPSorcery] Main PC: Added remote ICE: candidate:2648286357 1 udp 2122262783 2402:800:610...
+[SIPSorcery] Main PC: ICE state: connected
+[SIPSorcery] Main PC: ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Main PC: Peer state: connecting
+[Protocol] ICE RX: {"type":"proceed","phase":3}...
+[Protocol] ICE message type: proceed
+[Protocol] Received proceed phase 3, waiting for DTLS to complete (timeout=15s)...
+[SIPSorcery] Main PC: Peer state: connected
+[SIPSorcery] Main PC: DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Detected GPU vendor: Intel
+[SIPSorcery] Track 0: Dimensions changed ( -> H264) or (0x0 -> 1280x720), recreating encoder
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+[ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 0: Trying LibAv with H264...
+[LibAvEncoderAdapter] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[LibAvEncoder] SetDllDirectory: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] FFmpeg.RootPath: C:\Users\Huy Nguyen\Dotnet Projects\RemotePlayServer\bin\Release\net9.0-windows10.0.26100.0\bin
+[LibAvEncoder] SelectEncoder: preferredCodec=H264
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] SelectEncoder: vendor=Intel
+[LibAvEncoder] Trying H.264 encoder...
+[LibAvEncoder] SelectH264Encoder: vendor=Intel
+[LibAvEncoder] Trying encoder: h264_qsv
+[ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+[LibAvEncoder] Selected H.264 encoder: h264_qsv
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+[LibAvEncoder] QSV VBR mode: target 5600kbps, max 16800kbps
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000001b6031fb480] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] QSV device created directly (matches known good config)
+[WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+[LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+[LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1280x720 @ 60fps, 5600kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully with codec: H264
+[SIPSorcery] Track 0: LibAv encoder initialized (codec: H264)
+[SIPSorcery] Track 1: Dimensions changed ( -> H264) or (0x0 -> 1280x720), recreating encoder
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+[ERROR] [SIPSorcery] Track 1: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 1: Trying LibAv fallback for Intel...
+[SIPSorcery] Track 1: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 1: Trying LibAv with H264...
+[LibAvEncoderAdapter] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[LibAvEncoder] SelectEncoder: preferredCodec=H264
+[LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+[LibAvEncoder] SelectEncoder: vendor=Intel
+[LibAvEncoder] Trying H.264 encoder...
+[LibAvEncoder] SelectH264Encoder: vendor=Intel
+[LibAvEncoder] Trying encoder: h264_qsv
+[ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+[LibAvEncoder] Selected H.264 encoder: h264_qsv
+[LibAvEncoder] Using encoder: h264_qsv
+[LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+[LibAvEncoder] QSV VBR mode: target 5600kbps, max 16800kbps
+[LibAvEncoder] Intel GPU: Trying QSV hardware context
+[LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000001b600100940] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[LibAvEncoder] QSV device created directly (matches known good config)
+[WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+[LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+[LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+[LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+[LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+[LibAvEncoder] Initialized 1280x720 @ 60fps, 5600kbps (D3D11 zero-copy)
+[LibAvEncoderAdapter] Initialized successfully with codec: H264
+[SIPSorcery] Track 1: LibAv encoder initialized (codec: H264)
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat, buffer=10ms (event-driven)
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)
+[Protocol] All 2 tracks ready, sending ice_ready
+[Protocol] DTLS completed, proceeding to Phase 3
+[Protocol] Phase 2 complete, proceeding to Phase 3
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Independent track mode: 2 monitors, each track sends immediately after encoding
+[MultimediaTimer] Timer resolution set to 1ms
+[PerMonitorCapture] Created frame sync barrier for 2 monitors (capture sync only, no post-encode barrier)
+[PerMonitorCapture] Started 2 parallel capture threads (synchronized)
+[PerMonitorCapture] Monitor 0: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
+[PerMonitorCapture] Monitor 1: Capture thread started @ 60fps, sleepThreshold=3ms (barrier sync: True)
+[Protocol] Phase changed to: Phase3_WaitingStart
+[Protocol] Phase 3: Waiting for start_streaming command...
+[Protocol] Phase 3: Waiting for all monitors to connect...
+[Protocol] Phase 3: All monitors connected!
+[Protocol] Phase changed to: Phase3_Streaming
+[Protocol] Phase 3: Starting stream...
+[GpuColorConverter] Using COMPUTE SHADER for BGRA->NV12 (will test direct binding)
+[GpuColorConverter] Using COMPUTE SHADER for BGRA->NV12 (will test direct binding)
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[Protocol] Capture thread already running, skipping start
+[Protocol] Cursor tracking started
+[KeepAlive] Server-side keep-alive started (5s interval)
+[StallDetect] Server-side stall detection started (1500ms threshold, 5000ms warmup, frame-aware, escalating response)
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
+[GpuColorConverter] Compute Shader compiled and created successfully
+[GpuColorConverter] Compute Shader compiled and created successfully
+[PerMonitorCapture] Monitor 0: GpuColorConverter created
+[PerMonitorCapture] Monitor 1: GpuColorConverter created
+[SIPSorcery] Track 1: Dimensions changed (H264 -> H264) or (1280x720 -> 1920x1080), recreating encoder
+[SIPSorcery] Track 0: Dimensions changed (H264 -> H264) or (1280x720 -> 1920x1080), recreating encoder
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoder] Disposed (Safe)
+[LibAvEncoderAdapter] Disposed
+[LibAvEncoderAdapter] Disposed
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[ERROR] [SIPSorcery] Track 1: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 1: Trying LibAv fallback for Intel...
+[SIPSorcery] Track 1: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 1: Trying LibAv with H264...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv H264 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 1: Trying LibAv with VP9...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv VP9 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 1: Trying LibAv with VP8...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv VP8 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[ERROR] [SIPSorcery] Track 1: ALL ENCODERS FAILED - no video output!
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[SIPSorcery] Main PC: DataChannel received: label=audio, id=1
+[SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 0: Trying LibAv with H264...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv H264 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: Trying LibAv with VP9...
+[SIPSorcery] Main PC: Audio DataChannel wired for sending
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv VP9 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: Trying LibAv with VP8...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv VP8 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[ERROR] [SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
+[SIPSorcery] Main PC: DataChannel received: label=cursor, id=3
+[SIPSorcery] Main PC: Cursor DataChannel wired for sending
+[SIPSorcery] Main PC: DataChannel received: label=h265video-0, id=5
+[SIPSorcery] Main PC: H265 Video DataChannel wired for track 0
+[SIPSorcery] Main PC: DataChannel received: label=h265video-1, id=7
+[SIPSorcery] Main PC: H265 Video DataChannel wired for track 1
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+[Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Main PC: Added remote ICE: candidate:447400104 1 udp 2122194687 192.168.1.12 ...
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Main PC: Added remote ICE: candidate:1649056077 1 udp 2122129151 28.118.72.20...
+[Protocol] Phase3 RX: type=candidate, len=185
+[SIPSorcery] Main PC: Added remote ICE: candidate:4088504671 1 udp 2122262783 2402:800:610...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Main PC: Added remote ICE: candidate:447400104 1 udp 2122194687 192.168.1.12 ...
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Main PC: Added remote ICE: candidate:1649056077 1 udp 2122129151 28.118.72.20...
+[Protocol] Phase3 RX: type=candidate, len=185
+[SIPSorcery] Main PC: Added remote ICE: candidate:4088504671 1 udp 2122262783 2402:800:610...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Main PC: Added remote ICE: candidate:447400104 1 udp 2122194687 192.168.1.12 ...
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Main PC: Added remote ICE: candidate:1649056077 1 udp 2122129151 28.118.72.20...
+[Protocol] Phase3 RX: type=candidate, len=185
+[SIPSorcery] Main PC: Added remote ICE: candidate:4088504671 1 udp 2122262783 2402:800:610...
+[Protocol] Phase3 RX: type=candidate, len=159
+[SIPSorcery] Main PC: Added remote ICE: candidate:447400104 1 udp 2122194687 192.168.1.12 ...
+[Protocol] Phase3 RX: type=candidate, len=162
+[SIPSorcery] Main PC: Added remote ICE: candidate:1649056077 1 udp 2122129151 28.118.72.20...
+[Protocol] Phase3 RX: type=candidate, len=185
+[SIPSorcery] Main PC: Added remote ICE: candidate:4088504671 1 udp 2122262783 2402:800:610...
+[Protocol] Phase3 RX: type=offer, len=10046
+[Protocol] Received reconnect offer during streaming (JSON format)
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[Protocol] Received single offer for all monitors
+[Protocol] Cleared answer state, preserved 0 pending ICE candidates
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
+[Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
+[Protocol] Parsed H264 PT from offer: 124
+[OpusEncoder] Disposed
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: Audio DataChannel closed
+[SIPSorcery] Main PC: Cursor DataChannel closed
+[SIPSorcery] Main PC: H265 Video DataChannel closed for track 0
+[SIPSorcery] Main PC: H265 Video DataChannel closed for track 1
+[SIPSorcery] Main PC: Peer state: closed
+[SIPSorcery] Main PC: Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Sync state reset, Phase 3 pending activation
+[SIPSorcery] Offer H264 pt=124, fmtp=implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f, perTrackPc=False
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 BE:CC:55:08:FA:AB:37:82:C2:EA:2C:BF:1D:07:FA:0E:37:32:82:AB:7A:3C:6F:3D:08:BD:A6:26:B0:46:43:BB
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 BE:CC:55:08:FA:AB:37:82:C2:EA:2C:BF:1D:07:FA:0E:37:32:82:AB:7A:3C:6F:3D:08:BD:A6:26:B0:46:43:BB
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 BE:CC:55:08:FA:AB:37:82:C2:EA:2C:BF:1D:07:FA:0E:37:32:82:AB:7A:3C:6F:3D:08:BD:A6:26:B0:46:43:BB
+[SIPSorcery] Client SDP: a=setup:actpass
+[SIPSorcery] Client SDP: a=fingerprint:sha-256 BE:CC:55:08:FA:AB:37:82:C2:EA:2C:BF:1D:07:FA:0E:37:32:82:AB:7A:3C:6F:3D:08:BD:A6:26:B0:46:43:BB
+[SIPSorcery] Client SDP: a=setup:actpass
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)
+[SIPSorcery] Main PC: Added video track 0: 1280x720 (device=00000000), SSRC=614393971
+[SIPSorcery] Main PC: Added video track 1: 1280x720 (device=00000000), SSRC=430221568
+[SIPSorcery] Main PC: Added SendOnly Opus audio track (RTP transport)
+[SIPSorcery] Main PC: Waiting for audio/cursor/h265video DataChannels (per-track or legacy)
+[SIPSorcery] Main PC: ICE state: checking
+[SIPSorcery] Main PC: Signaling state: have_remote_offer
+[SIPSorcery] Main PC: After setRemoteDescription: signalingState=have_remote_offer
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: Local ICE: 716669064 1 udp 2113937663 192.168.1.6 64720 typ h...
+[SIPSorcery] Main PC: After createAnswer: signalingState=have_remote_offer, answer.type=answer
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 E6:89:A6:4E:42:B5:06:30:87:9B:1E:DE:5E:40:B0:73:A0:D5:E8:F8:F6:59:BF:77:8F:E4:D4:B8:3C:5E:1F:C7
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 E6:89:A6:4E:42:B5:06:30:87:9B:1E:DE:5E:40:B0:73:A0:D5:E8:F8:F6:59:BF:77:8F:E4:D4:B8:3C:5E:1F:C7
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 E6:89:A6:4E:42:B5:06:30:87:9B:1E:DE:5E:40:B0:73:A0:D5:E8:F8:F6:59:BF:77:8F:E4:D4:B8:3C:5E:1F:C7
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC SDP: a=fingerprint:sha-256 E6:89:A6:4E:42:B5:06:30:87:9B:1E:DE:5E:40:B0:73:A0:D5:E8:F8:F6:59:BF:77:8F:E4:D4:B8:3C:5E:1F:C7
+[SIPSorcery] Main PC SDP: a=setup:active
+[SIPSorcery] Main PC: Answer ready, 2121 bytes
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] SDP filtered m=video: m=video 9 UDP/TLS/RTP/SAVPF 124 (H264 PT=124)
+[Protocol] SDP kept: a=rtpmap:124 H264/90000
+[Protocol] SDP kept: a=fmtp:124 implementation_name=MediaCodec;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=420428
+[Protocol] Filtered SDP from 2121 to 2121 bytes
+[Protocol] Extracted 1 embedded ICE candidates from answer
+[Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 89441 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1 2 3\r\nm=video 9 UDP/TLS/R...
+[Protocol] Sent single answer, len=2204 bytes
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: Local ICE: 4243588485 1 udp 1677730047 171.241.42.76 64720 ty...
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: ICE state: connected
+[SIPSorcery] Main PC: ICE CONNECTED - waiting for DTLS...
+[SIPSorcery] Main PC: Peer state: connecting
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: Peer state: connected
+[SIPSorcery] Main PC: DTLS CONNECTED - initializing encoders now
+[GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Detected GPU vendor: Intel
+[SIPSorcery] Track 0: Dimensions changed (H264 -> H264) or (0x0 -> 1280x720), recreating encoder
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 0: Trying LibAv fallback for Intel...
+[SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 0: Trying LibAv with H264...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv H264 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: Trying LibAv with VP9...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv VP9 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 0: Trying LibAv with VP8...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 0: LibAv VP8 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[ERROR] [SIPSorcery] Track 0: ALL ENCODERS FAILED - no video output!
+[SIPSorcery] Track 1: Dimensions changed (H264 -> H264) or (0x0 -> 1280x720), recreating encoder
+[GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+[SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+[SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Trying QSV native encoder (Media Foundation)...
+[QsvNativeWrapper] Initializing 1280x720 @ 60fps, 5600kbps, codec=H264
+[ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Invalid parameters
+[ERROR] [SIPSorcery] Track 1: Primary encoder init failed, trying fallback...
+[QsvNativeWrapper] Disposed
+[SIPSorcery] Track 1: Trying LibAv fallback for Intel...
+[SIPSorcery] Track 1: Codec priority: [H264, VP9, VP8]
+[SIPSorcery] Track 1: Trying LibAv with H264...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv H264 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 1: Trying LibAv with VP9...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv VP9 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[SIPSorcery] Track 1: Trying LibAv with VP8...
+[ERROR] [LibAvEncoderAdapter] Initialize exception: Object reference not set to an instance of an object.
+[ERROR] [SIPSorcery] Track 1: LibAv VP8 init failed, trying next...
+[LibAvEncoderAdapter] Disposed
+[ERROR] [SIPSorcery] Track 1: ALL ENCODERS FAILED - no video output!
+[OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat, buffer=10ms (event-driven)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Stats: m0:0f(enc=0),lat=0us, m1:0f(enc=0),lat=0us, audio:615pkts (61.5/sec)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[AudioCapture] Started: 48000Hz, 2ch
+[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] All 2 tracks ready, sending ice_ready
+[Protocol] Reconnect in Phase 3: requested streamer re-activation
+[Protocol] Starting early capture to prevent browser track timeout...
+[Protocol] Capture thread already running, skipping start
+[SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] Phase3 RX: type=reconnect_ack, len=24
+[SIPSorcery] Main PC: DataChannel received: label=audio, id=1
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Main PC: Audio DataChannel wired for sending
+[SIPSorcery] Main PC: DataChannel received: label=cursor, id=3
+[SIPSorcery] Main PC: Cursor DataChannel wired for sending
+[SIPSorcery] Main PC: DataChannel received: label=h265video-0, id=5
+[SIPSorcery] Main PC: H265 Video DataChannel wired for track 0
+[SIPSorcery] Main PC: DataChannel received: label=h265video-1, id=7
+[SIPSorcery] Main PC: H265 Video DataChannel wired for track 1
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[StallDetect] No feedback for 1.8s, stall #1 → moderate (25% cut): 5600 → 4200kbps (per-encoder)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[SIPSorcery] Forced bitrate → 4200kbps (stall escalation)
+[SIPSorcery] Keyframe burst: monitor=-1, count=1
+[StallDetect] Applied: moderate (25% cut)
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[KeepAlive] Missed pong #1, 4.0s since last response
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] WebSocket closed during Phase 3: Success (Code: 0)
+[Protocol] WebSocket InnerException: The I/O operation has been aborted because of either a thread exit or an application request.
+[ERROR] [GpuColorConverter] Compute Shader dispatch error: Object reference not set to an instance of an object.
+[Protocol] Cursor tracking stopped
+[Protocol] Phase 3: Stream ended
+[Protocol] Phase changed to: Disconnecting
+[PerMonitorCapture] Monitor 0: Capture thread stopped
+[PerMonitorCapture] Monitor 1: Capture thread stopped
+[MultimediaTimer] Timer resolution restored
+[PerMonitorCapture] All capture threads stopped
+[SIPSorcery] Stopping...
+[OpusEncoder] Disposed
+[SIPSorcery] Main PC: Audio DataChannel closed
+[SIPSorcery] Main PC: Cursor DataChannel closed
+[SIPSorcery] Main PC: H265 Video DataChannel closed for track 0
+[SIPSorcery] Main PC: H265 Video DataChannel closed for track 1
+[SIPSorcery] Main PC: Peer state: closed
+[SIPSorcery] Main PC: Peer state CLOSED unexpectedly - awaiting client reconnect offer
+[SIPSorcery] Connection closed
+[SIPSorcery] Disposed
+[PerMonitorCapture] All capture threads stopped
+[Protocol] Restoring display settings...
+[Guard] RestoreAndCleanupWithTimeout called...
+[Guard] Stopping watchdog process...
+[Guard] SnapshotPath exists: True
+[Guard] Attempting to disable VDD...
+[Guard] ForceDisableVdd: Finding VDD instance...
+[Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+[Guard] ForceDisableVdd: VDD is currently ENABLED
+[Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY7
+[Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+[Guard] ForceDisableVdd: Disabling VDD...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+[Guard] Restoring original state before exit...
+[Guard] Step 1: Restoring Scale and Layout (DPI)...
+[Guard] Restoring Scale and Layout (DPI)...
+[Guard] Restoring DPI to 100% (logPixels=96)
+[DpiScaling] Setting 100% for 1 monitor(s)...
+[DpiScaling] Monitor 0: current=125%, recommended=150%, max=175%
+[DpiScaling] ✓ Set DPI to 100%
+[Guard] ✓ Scale and Layout restored via API.
+[Guard] Step 2: Restoring monitor modes...
+[DisplayUtil] ForceResolution: \\.\DISPLAY1 current=1920x1080@60Hz, target=1920x1080@60Hz
+[Guard] Monitor modes restored.
+[Guard] Step 3: Restoring taskbar flag...
+[Guard] Taskbar multi-monitor flag restored to 0.
+[Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+[Guard] Allowing system to settle after restore...
+[Guard] ✅ All settings restored and system settled.
+[Guard] Restore done.
+[Protocol] Display settings restored.
+[Protocol] Client 4516b6f5-8c41-47c3-8528-77d49cafaa87 disconnected
