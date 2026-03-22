@@ -328,8 +328,8 @@ public partial class SIPSorceryStreamer
     {
         if (resolutionHeight <= 720)
         {
-            if (fps <= 30) return (2000, 5000);
-            if (fps <= 60) return (3000, 7000);
+            if (fps <= 30) return (2000, 6000);
+            if (fps <= 60) return (3000, 8000);  // 8Mbps proven stable, 10Mbps caused SCTP overload with 2 monitors
             return (5000, 10000); // 120 fps
         }
         else if (resolutionHeight <= 1080)
