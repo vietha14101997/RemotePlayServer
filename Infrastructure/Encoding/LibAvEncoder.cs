@@ -98,10 +98,10 @@ public unsafe partial class LibAvEncoder : IDisposable
     public bool SupportsZeroCopyTexture => _isD3D11VAMode && _useHardwareFrames;
 
     /// <summary>
-    /// Event fired when encoded H.264 data is available.
-    /// Parameters: (byte[] nalData, bool isKeyFrame, long pts)
+    /// Event fired when encoded NAL data is available.
+    /// Parameters: (ArraySegment&lt;byte&gt; nalData, bool isKeyFrame, long pts)
     /// </summary>
-    public event Action<byte[], bool, long>? OnEncodedData;
+    public event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
 
     static LibAvEncoder()
     {

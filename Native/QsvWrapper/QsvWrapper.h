@@ -112,6 +112,44 @@ QSVWRAPPER_API int QsvCreateEncoderEx(
     int useHevc
 );
 
+// ── BGRA Input APIs ───────────────────────────────────────────────────────
+
+/// <summary>
+/// Create a QSV encoder with BGRA input (H.264)
+/// Intel MFT handles BGRA->NV12 conversion internally
+/// </summary>
+QSVWRAPPER_API int QsvCreateEncoderBgra(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate
+);
+
+/// <summary>
+/// Create a QSV encoder with BGRA input and codec selection
+/// </summary>
+/// <param name="useHevc">0 = H.264, 1 = H.265/HEVC</param>
+QSVWRAPPER_API int QsvCreateEncoderBgraEx(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width,
+    int height,
+    int fps,
+    int bitrate,
+    int useHevc
+);
+
+/// <summary>
+/// Encode a D3D11 BGRA texture (MFT converts internally)
+/// </summary>
+QSVWRAPPER_API int QsvEncodeBgraTexture(
+    QsvEncoderHandle handle,
+    ID3D11Texture2D* bgraTexture,
+    int forceKeyframe
+);
+
 #ifdef __cplusplus
 }
 #endif

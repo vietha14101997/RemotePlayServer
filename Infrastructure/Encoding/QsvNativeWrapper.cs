@@ -88,6 +88,35 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
         int useHevc
     );
 
+    // BGRA Input APIs
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvCreateEncoderBgra(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvCreateEncoderBgraEx(
+        out IntPtr outHandle,
+        IntPtr d3d11Device,
+        int width,
+        int height,
+        int fps,
+        int bitrate,
+        int useHevc
+    );
+
+    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int QsvEncodeBgraTexture(
+        IntPtr handle,
+        IntPtr texture,
+        int forceKeyframe
+    );
+
     #endregion
 
     #region Fields
@@ -102,6 +131,8 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     private int _fps;
     private int _bitrate;
     private bool _useHevc;
+    private bool _useBgraMode;
+    private byte[] _callbackBuffer = Array.Empty<byte>();
 
     #endregion
 
@@ -113,8 +144,8 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     public int CurrentBitrateKbps => _bitrate;
     public int CurrentFps => _fps;
     public VideoCodec CurrentCodec => _useHevc ? VideoCodec.H265 : VideoCodec.H264;
-    public bool SupportsBgraInput => false; // QSV native wrapper doesn't support BGRA yet
-    public bool UsingBgraMode => false;
+    public bool SupportsBgraInput => true;
+    public bool UsingBgraMode => _useBgraMode;
 
     #endregion
 
@@ -126,10 +157,10 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
     #region Events
 
     /// <summary>
-    /// Event fired when encoded H.264 data is available
-    /// Parameters: (byte[] nalData, bool isKeyFrame, long pts)
+    /// Event fired when encoded NAL data is available.
+    /// WARNING: The backing array is reused between calls — do NOT hold a reference after handler returns.
     /// </summary>
-    public event Action<byte[], bool, long>? OnEncodedData;
+    public event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
 
     #endregion
 
@@ -207,6 +238,87 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
         {
             Logger.Error($"[QsvNativeWrapper] Initialize exception: {ex.Message}");
             Cleanup();
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Initialize the QSV encoder in BGRA mode - accepts BGRA textures directly.
+    /// Intel MFT handles BGRA->NV12 conversion internally.
+    /// Returns false if MFT doesn't support ARGB32 input — caller falls back to NV12.
+    /// </summary>
+    public bool InitializeBgra(int width, int height, int fps, int bitrate, ID3D11Device device)
+    {
+        if (_handle != IntPtr.Zero) return true;
+
+        try
+        {
+            _width = width;
+            _height = height;
+            _fps = fps;
+            _bitrate = bitrate;
+            _useBgraMode = true;
+
+            Logger.Info($"[QsvNativeWrapper] Initializing BGRA mode {width}x{height} @ {fps}fps, {bitrate}kbps, codec={(_useHevc ? "HEVC" : "H264")}");
+
+            int result = _useHevc
+                ? QsvCreateEncoderBgraEx(out _handle, device.NativePointer, width, height, fps, bitrate, 1)
+                : QsvCreateEncoderBgra(out _handle, device.NativePointer, width, height, fps, bitrate);
+
+            if (result != QSV_WRAPPER_OK)
+            {
+                string error = GetLastError();
+                Logger.Error($"[QsvNativeWrapper] QsvCreateEncoderBgra failed: {error}");
+                _handle = IntPtr.Zero;
+                _useBgraMode = false;
+                return false;
+            }
+
+            // Set up callback
+            _nativeCallback = NativeCallback;
+            _callbackHandle = GCHandle.Alloc(_nativeCallback);
+
+            result = QsvSetEncodedDataCallback(_handle, _nativeCallback, IntPtr.Zero);
+            if (result != QSV_WRAPPER_OK)
+            {
+                Logger.Error("[QsvNativeWrapper] Failed to set callback");
+                Cleanup();
+                _useBgraMode = false;
+                return false;
+            }
+
+            Logger.Info($"[QsvNativeWrapper] Initialized BGRA mode successfully (codec={(_useHevc ? "HEVC" : "H264")})");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] InitializeBgra exception: {ex.Message}");
+            Cleanup();
+            _useBgraMode = false;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Encode a D3D11 BGRA texture (MFT converts internally)
+    /// </summary>
+    public bool EncodeBgraTexture(ID3D11Texture2D bgraTexture, bool forceKeyframe = false)
+    {
+        if (_handle == IntPtr.Zero || _disposed) return false;
+        if (!_useBgraMode)
+        {
+            Logger.Warn("[QsvNativeWrapper] EncodeBgraTexture called but encoder not in BGRA mode");
+            return false;
+        }
+
+        try
+        {
+            int result = QsvEncodeBgraTexture(_handle, bgraTexture.NativePointer, forceKeyframe ? 1 : 0);
+            return result == QSV_WRAPPER_OK;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[QsvNativeWrapper] EncodeBgraTexture exception: {ex.Message}");
             return false;
         }
     }
@@ -324,12 +436,12 @@ public unsafe class QsvNativeWrapper : ITextureEncoder
 
         try
         {
-            // Copy NAL data from native memory
-            byte[] nalData = new byte[size];
-            Marshal.Copy(data, nalData, 0, (int)size);
+            int len = (int)size;
+            if (len > _callbackBuffer.Length)
+                _callbackBuffer = new byte[len * 2];
 
-            // Fire event
-            OnEncodedData?.Invoke(nalData, isKeyFrame != 0, pts);
+            Marshal.Copy(data, _callbackBuffer, 0, len);
+            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), isKeyFrame != 0, pts);
         }
         catch (Exception ex)
         {

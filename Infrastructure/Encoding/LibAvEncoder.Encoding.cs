@@ -189,7 +189,7 @@ public unsafe partial class LibAvEncoder
                     bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
 
                     // Fire event
-                    OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
+                    OnEncodedData?.Invoke(new ArraySegment<byte>(nalData), isKeyFrame, _packet->pts);
 
                     ffmpeg.av_packet_unref(_packet);
                 }
@@ -279,7 +279,7 @@ public unsafe partial class LibAvEncoder
                     Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
 
                     bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
-                    OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
+                    OnEncodedData?.Invoke(new ArraySegment<byte>(nalData), isKeyFrame, _packet->pts);
 
                     ffmpeg.av_packet_unref(_packet);
                 }
@@ -470,7 +470,7 @@ public unsafe partial class LibAvEncoder
 
                     byte[] nalData = new byte[_packet->size];
                     Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
-                    OnEncodedData?.Invoke(nalData, (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0, _packet->pts);
+                    OnEncodedData?.Invoke(new ArraySegment<byte>(nalData), (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0, _packet->pts);
                     ffmpeg.av_packet_unref(_packet);
                 }
 
@@ -518,7 +518,7 @@ public unsafe partial class LibAvEncoder
                 Marshal.Copy((IntPtr)_packet->data, nalData, 0, _packet->size);
 
                 bool isKeyFrame = (_packet->flags & ffmpeg.AV_PKT_FLAG_KEY) != 0;
-                OnEncodedData?.Invoke(nalData, isKeyFrame, _packet->pts);
+                OnEncodedData?.Invoke(new ArraySegment<byte>(nalData), isKeyFrame, _packet->pts);
 
                 ffmpeg.av_packet_unref(_packet);
             }

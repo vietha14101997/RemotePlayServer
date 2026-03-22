@@ -113,9 +113,8 @@ namespace RemotePlayServer.Application.Protocol
             // ensures Phase 3 frames start with clean RTP timestamps.
             _streamer?.ResetSyncState();
 
-            // Ensure all monitors re-send initial frame (critical for static screens
-            // like text editors that may have no DXGI updates).
-            _capture?.ForceInitialFrames();
+            // Initial frame events (OnInitialFrameNeeded, OnInitialFrameSent) are wired
+            // in Phase 2 when streamer is created — before DC can open during ICE exchange.
 
             // Activate Phase 3 via barrier sync — ensures all tracks see
             // _phase3Active=true at the same barrier cycle, preventing one track
@@ -384,6 +383,36 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+                    // Client requests initial frame after DataChannel is ready.
+                    // Resets InitialFrameSent so capture forces a frame even on idle desktops.
+                    if (msgType == "request_initial_frame")
+                    {
+                        int monitorIndex = -1;
+                        try
+                        {
+                            var json = System.Text.Json.JsonDocument.Parse(text);
+                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
+                                monitorIndex = mi.GetInt32();
+                        }
+                        catch { }
+
+                        Logger.Info($"[Protocol] Client requested initial frame for monitor {monitorIndex}");
+                        // Reset InitialFrameSent so capture loop forces frame through even if desktop is idle
+                        if (_capture != null)
+                        {
+                            if (monitorIndex >= 0 && monitorIndex < _capture.Monitors.Count)
+                            {
+                                _capture.Monitors[monitorIndex].InitialFrameSent = false;
+                            }
+                            else
+                            {
+                                _capture.ForceInitialFrames();
+                            }
+                        }
+                        _streamer?.RequestKeyframe(monitorIndex, force: true);
+                        continue;
+                    }
+
                     // Handle keyframe burst request (send N consecutive I-frames for WiFi resilience)
                     if (msgType == "request_keyframe_burst")
                     {
@@ -404,11 +433,17 @@ namespace RemotePlayServer.Application.Protocol
                     }
 
                     // Handle skip_to_live request from client (for latency recovery)
-                    // Client sends this when it detects accumulated delay > threshold
-                    // Supports optional "monitor" field for per-monitor sync
+                    // Client sends this when it detects accumulated delay > threshold.
+                    // DO NOT force keyframe here — skip_to_live means "discard buffered frames,
+                    // show latest". The decoder state is still valid (SCTP guarantees delivery,
+                    // just delayed). Forcing IDR on every skip_to_live creates a feedback loop:
+                    //   scroll → large P-frames → client behind → skip_to_live → IDR (150-300KB)
+                    //   → SCTP buffer spike → client more behind → more skip_to_live → repeat
+                    // Instead: just ACK so client syncs timestamps. Intra refresh handles gradual
+                    // quality recovery without IDR spikes.
                     if (msgType == "skip_to_live")
                     {
-                        int monitorIndex = -1; // -1 means all monitors
+                        int monitorIndex = -1;
                         try
                         {
                             var json = System.Text.Json.JsonDocument.Parse(text);
@@ -417,12 +452,7 @@ namespace RemotePlayServer.Application.Protocol
                         }
                         catch { }
 
-                        Logger.Debug($"[Protocol] skip_to_live received (monitor={monitorIndex}) - forcing keyframe for latency recovery");
-
-                        // Force keyframe on specified monitor (or all if -1)
-                        _streamer?.RequestKeyframe(monitorIndex);
-
-                        // Send acknowledgment with server timestamp
+                        // Send acknowledgment with server timestamp (no keyframe forced)
                         try
                         {
                             var ackJson = $"{{\"type\":\"skip_to_live_ack\",\"monitor\":{monitorIndex},\"serverTime\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}}}";
@@ -706,26 +736,11 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Desktop idle detection — notify client to pause decode when desktop is static
-            _capture.OnMonitorIdleChanged += (monitorIndex, isIdle) =>
-            {
-                try
-                {
-                    // Force IDR on idle→active transition so the first frame after
-                    // desktop change is a full keyframe.  Without this, the encoder
-                    // produces a P-frame referencing a stale frame → client must wait
-                    // for the next periodic IDR before it can render the new content.
-                    if (!isIdle)
-                        _streamer?.RequestKeyframe(monitorIndex, force: true);
-
-                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "monitor_idle", monitor = monitorIndex, idle = isIdle });
-                    _ = SendTextAsync(json);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error($"[Protocol] Failed to send idle notification: {ex.Message}");
-                }
-            };
+            // Desktop idle detection — server-side only (skip encode on idle monitors).
+            // NO notification to client: cursor blink (~500ms cycle) causes IDLE↔ACTIVE
+            // transitions that spam the client and trigger unnecessary IDR keyframes.
+            // Intra refresh handles quality recovery automatically after idle periods.
+            // Client stall detection is suppressed by the absence of new frames (natural pause).
         }
 
         private void StartCaptureThread()

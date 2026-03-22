@@ -12,9 +12,12 @@ public interface IVideoEncoder : IDisposable
 {
     /// <summary>
     /// Fired when encoded NAL data is available.
-    /// Parameters: (byte[] nalData, bool isKeyFrame, long pts)
+    /// WARNING: The ArraySegment's backing array is reused between calls.
+    /// Consumers must NOT hold a reference to .Array after the handler returns.
+    /// Copy via .ToArray() if async retention is needed.
+    /// Parameters: (ArraySegment&lt;byte&gt; nalData, bool isKeyFrame, long pts)
     /// </summary>
-    event Action<byte[], bool, long>? OnEncodedData;
+    event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
 
     bool IsInitialized { get; }
     int Width { get; }

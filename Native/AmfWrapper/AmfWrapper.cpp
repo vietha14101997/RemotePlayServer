@@ -8,6 +8,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "../NalUtils.h"
+
 // AMF SDK headers
 #include "amf/public/include/core/Factory.h"
 #include "amf/public/include/core/Context.h"
@@ -20,33 +22,6 @@
 
 // Thread-safe error message
 static thread_local std::string g_lastError;
-
-// Detect keyframe for H.264: SPS (NAL type 7) or IDR (NAL type 5)
-static int DetectKeyframeH264(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 4 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = data[i+4] & 0x1F;
-            if (nalType == 7 || nalType == 5) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-// Detect keyframe for H.265: VPS (32), SPS (33), IDR_W_RADL (19), IDR_N_LP (20)
-static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 5 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = (data[i+4] >> 1) & 0x3F;
-            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
-            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
 
 // Configure common encoder properties for low-latency streaming (H.264)
 static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int bitrate, int width, int height) {
@@ -430,7 +405,8 @@ AMFWRAPPER_API int AmfEncodeNV12Bytes(
         }
     }
 
-    // Convert to DX11 memory for GPU encoding
+    // CPU->GPU upload: this function is a FALLBACK for raw byte input (e.g., software capture).
+    // For zero-copy D3D11 texture encoding, use AmfEncodeTexture/AmfEncodeBgraTexture instead.
     res = surface->Convert(amf::AMF_MEMORY_DX11);
     if (res != AMF_OK) {
         g_lastError = "Convert to DX11 failed: " + std::to_string(res);
@@ -566,23 +542,39 @@ AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
 
     AMF_RESULT res;
 
+    // Keep GOP strategy from init config. Do NOT force IDR on FPS change:
+    // large IDR can trigger SCTP congestion death spiral (see NvencWrapper
+    // BuildReconfigParams comments). Intra refresh handles quality recovery.
+
     if (ctx->useHevc) {
         res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
         if (res != AMF_OK) {
             g_lastError = "SetProperty HEVC_FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps * 2);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INSERT_HEADER, true);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_HEVC_PICTURE_TYPE_IDR);
+        // GOP_SIZE stays 0 (infinite) — matches init config.
+        // Update intra refresh to match new FPS (refresh entire frame in ~1 second)
+        int ctbCols = (ctx->width + 63) / 64;
+        int ctbRows = (ctx->height + 63) / 64;
+        int totalCtbs = ctbCols * ctbRows;
+        int ctbsPerSlot = (totalCtbs + fps - 1) / fps;
+        if (ctbsPerSlot < 1) ctbsPerSlot = 1;
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)ctbsPerSlot);
     } else {
         res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
         if (res != AMF_OK) {
             g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 2);
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FORCE_PICTURE_TYPE, AMF_VIDEO_ENCODER_PICTURE_TYPE_IDR);
+        // Maintain 5-second IDR period (matches init config), scaled to new FPS.
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 5);
+        // Update intra refresh to match new FPS
+        int mbCols = (ctx->width + 15) / 16;
+        int mbRows = (ctx->height + 15) / 16;
+        int totalMbs = mbCols * mbRows;
+        int mbsPerSlot = (totalMbs + fps - 1) / fps;
+        if (mbsPerSlot < 1) mbsPerSlot = 1;
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)mbsPerSlot);
     }
 
     ctx->fps = fps;

@@ -304,6 +304,30 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
+            // Wire initial frame events EARLY (before DC can open during ICE exchange).
+            // DC opened fires OnInitialFrameNeeded → resets InitialFrameSent on capture.
+            // OnInitialFrameSent fires when first frame is actually delivered to client.
+            if (_capture != null)
+            {
+                var captureRef = _capture;
+                _streamer.OnInitialFrameNeeded += (monitorIndex) =>
+                {
+                    if (monitorIndex >= 0 && monitorIndex < captureRef.Monitors.Count)
+                    {
+                        captureRef.Monitors[monitorIndex].InitialFrameSent = false;
+                        Logger.Info($"[Protocol] Monitor {monitorIndex}: DC opened, reset InitialFrameSent");
+                    }
+                };
+                _streamer.OnInitialFrameSent += (monitorIndex) =>
+                {
+                    if (monitorIndex >= 0 && monitorIndex < captureRef.Monitors.Count)
+                    {
+                        captureRef.Monitors[monitorIndex].InitialFrameSent = true;
+                        Logger.Info($"[Protocol] Monitor {monitorIndex}: Initial frame confirmed sent to client");
+                    }
+                };
+            }
+
             // ICE candidate forwarding
             _streamer.OnIceCandidate += async (candidate) =>
             {
@@ -410,8 +434,10 @@ namespace RemotePlayServer.Application.Protocol
 
                     if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
                     {
-                        Logger.Error($"[Protocol] DTLS failed, all {MAX_PHASE2_RESTARTS} restarts exhausted — sending terminal error");
-                        await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection could not be established after multiple attempts. Please restart the app and try again.\"}");
+                        Logger.Error($"[Protocol] DTLS failed, all {MAX_PHASE2_RESTARTS} restarts exhausted — closing connection for full reconnect");
+                        try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection failed. Reconnecting...\"}"); } catch { }
+                        // Force close WebSocket so client triggers a completely fresh connection
+                        try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "dtls_failed_exhausted", CancellationToken.None); } catch { }
                     }
                     else
                     {
@@ -601,9 +627,11 @@ namespace RemotePlayServer.Application.Protocol
                     _phase2RestartCount++;
                     if (_phase2RestartCount > MAX_PHASE2_RESTARTS)
                     {
-                        Logger.Error($"[Protocol] Phase 2 restart limit reached ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS}), rejecting restart");
-                        await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"max_restarts_exceeded\",\"message\":\"Connection failed after multiple reconnection attempts. Please restart the app.\"}");
-                        return true; // Exit ICE loop
+                        Logger.Error($"[Protocol] Phase 2 restart limit reached ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS}), closing for full reconnect");
+                        try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"max_restarts_exceeded\",\"message\":\"Connection failed. Reconnecting...\"}"); } catch { }
+                        // Force close WebSocket — client will auto-reconnect with fresh state
+                        try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "restart_limit_exceeded", CancellationToken.None); } catch { }
+                        return true; // Exit ICE loop → WS close triggers cleanup
                     }
                     Logger.Info($"[Protocol] Client requested Phase 2 restart ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS})");
                     await HandleRestartPhase2Async();

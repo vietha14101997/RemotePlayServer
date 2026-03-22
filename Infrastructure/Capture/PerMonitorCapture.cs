@@ -287,14 +287,33 @@ public sealed class PerMonitorCapture : IDisposable
     /// to prevent static monitors (e.g. text editor) from producing 0 frames,
     /// which causes the client to think the track is dead and trigger reconnect loops.
     /// </summary>
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out System.Drawing.Point lpPoint);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetCursorPos(int X, int Y);
+
     public void ForceInitialFrames()
     {
         foreach (var mon in Monitors)
         {
             mon.InitialFrameSent = false;
-            mon.WasIdle = false; // Reset idle state so IDLE→ACTIVE transition fires correctly
+            mon.WasIdle = false;
         }
-        Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors (will re-send initial frame)");
+
+        // Nudge cursor 1px and back to force DXGI Desktop Duplication to return a frame.
+        // Without this, a completely static desktop (no pixel changes since boot/login)
+        // causes AcquireNextFrame to return WaitTimeout forever → no initial frame.
+        try
+        {
+            if (GetCursorPos(out var pos))
+            {
+                SetCursorPos(pos.X + 1, pos.Y);
+                SetCursorPos(pos.X, pos.Y);
+            }
+        }
+        catch { /* non-critical */ }
+
+        Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors + cursor nudge");
     }
 
     /// <summary>
@@ -652,7 +671,9 @@ public sealed class PerMonitorCapture : IDisposable
                 // Previously: 1ms when rate-limited caused DXGI to always timeout, dropping FPS to 0
                 // Fix: Always use reasonable timeout to properly acquire and cache frames
                 const int ACQUIRE_TIMEOUT_MS = 8; // ~120fps max check rate, allows proper frame caching
-                int timeoutMs = ACQUIRE_TIMEOUT_MS;
+                // If initial frame not yet sent and no cached frame, use longer timeout to force DXGI
+                // to return the current desktop content even if nothing has changed.
+                int timeoutMs = (!mon.InitialFrameSent && mon.LastFrame == null) ? 500 : ACQUIRE_TIMEOUT_MS;
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
 
                 if (result.Success && desktopResource != null)
@@ -672,14 +693,19 @@ public sealed class PerMonitorCapture : IDisposable
                         // EXCEPTION: Always send the first frame so the client has immediate content
                         // on connect, even if the desktop is idle.
                         bool desktopChanged = frameInfo.LastPresentTime != 0 || frameInfo.TotalMetadataBufferSize > 0;
+                        // Force frames through until the streamer has successfully SENT at least one
+                        // frame for this monitor. InitialFrameSent is set by the streamer callback
+                        // after the first frame is delivered (not just encoded).
                         if (!mon.InitialFrameSent)
-                            desktopChanged = true; // Force first frame through
+                            desktopChanged = true; // Force frame through until sent confirmed
 
                         if (!desktopChanged)
                         {
                             mon.IdleFrameCount++;
-                            // Fire idle state transition (edge-triggered)
-                            if (!mon.WasIdle)
+                            // Debounced idle transition: require 5 consecutive idle frames (~83ms @ 60fps)
+                            // before notifying client. Prevents ACTIVE↔IDLE flicker from cursor blink,
+                            // clock updates, notification badges, etc.
+                            if (!mon.WasIdle && mon.IdleFrameCount >= 30)
                             {
                                 mon.WasIdle = true;
                                 try { OnMonitorIdleChanged?.Invoke(mon.Index, true); }
@@ -690,7 +716,7 @@ public sealed class PerMonitorCapture : IDisposable
                             goto CursorOnly;
                         }
 
-                        // Desktop changed — reset idle state
+                        // Desktop changed — reset idle counter and fire ACTIVE only if was truly idle
                         mon.IdleFrameCount = 0;
                         mon.LastActiveFrameTime = loopStart;
                         if (mon.WasIdle)
@@ -819,7 +845,11 @@ public sealed class PerMonitorCapture : IDisposable
                         // When desktop is idle, skip encode entirely — this is the primary thermal optimization.
                         if (desktopChanged && canSendFrame)
                         {
-                            mon.InitialFrameSent = true;
+                            // NOTE: InitialFrameSent is NOT set here anymore.
+                            // It's set by the streamer after the first frame is ACTUALLY SENT
+                            // (past the "drop stale P-frame before first IDR" gate).
+                            // This ensures the capture loop keeps forcing frames through
+                            // even on idle desktops until the client has received content.
                             if (UseBgraMode)
                             {
                                 // BGRA mode - send BGRA texture directly (no color conversion)
@@ -860,11 +890,24 @@ public sealed class PerMonitorCapture : IDisposable
                 else if (result == Vortice.DXGI.ResultCode.WaitTimeout)
                 {
                     // No new frame from DXGI — desktop is idle.
-                    // Previously sent cached frame here, causing encoder to re-encode identical content
-                    // and Android decoder to waste GPU cycles decoding unchanged frames.
-                    // Now we simply increment idle counter and let the stream pause naturally.
+                    // EXCEPTION: If initial frame hasn't been sent yet, re-send the cached
+                    // last frame so the client gets content even on completely static desktops.
+                    // If initial frame not yet confirmed sent, re-send cached LastFrame.
+                    // This handles the case where desktop is completely static after connect.
+                    if (!mon.InitialFrameSent && mon.LastFrame != null)
+                    {
+                        long captureTs = System.Diagnostics.Stopwatch.GetTimestamp() * 1_000_000 / System.Diagnostics.Stopwatch.Frequency;
+                        mon.LastSentTime = loopStart;
+                        if (UseBgraMode)
+                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs);
+                        else
+                            OnMonitorFrame?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs);
+                        continue; // Skip idle tracking while waiting for initial frame
+                    }
+
                     mon.IdleFrameCount++;
-                    if (!mon.WasIdle)
+                    // Debounce: require 30 consecutive idle frames before firing IDLE event.
+                    if (!mon.WasIdle && mon.IdleFrameCount >= 30)
                     {
                         mon.WasIdle = true;
                         try { OnMonitorIdleChanged?.Invoke(mon.Index, true); }

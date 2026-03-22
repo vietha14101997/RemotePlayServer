@@ -8,6 +8,8 @@
 #include <atomic>
 #include <vector>
 
+#include "../NalUtils.h"
+
 // NVENC SDK headers (from NVIDIA Video Codec SDK v13.0)
 #include "nvEncodeAPI.h"
 
@@ -19,32 +21,6 @@ static thread_local std::string g_lastError;
 
 // NVENC API function pointers
 typedef NVENCSTATUS(NVENCAPI* PNVENCODEAPICREATEINSTANCE)(NV_ENCODE_API_FUNCTION_LIST*);
-
-// Detect keyframe by scanning NAL units (supports both H.264 and H.265)
-static int DetectKeyframeH264(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 4 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = data[i+4] & 0x1F;
-            if (nalType == 7 || nalType == 5) {  // SPS or IDR
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 5 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = (data[i+4] >> 1) & 0x3F;
-            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
-            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
 
 // Encoder context structure
 struct NvencEncoderContext {
@@ -418,7 +394,9 @@ NVENCWRAPPER_API int NvencEncodeTexture(NvencEncoderHandle handle, ID3D11Texture
 
     NVENCSTATUS nvStatus;
 
-    // Copy input texture to registered staging texture
+    // Staging copy required: NVENC API requires pre-registered input resources.
+    // We copy into a staging texture registered at init time. The BGRA path
+    // (NvencEncodeBgraTexture) avoids this by caching registration per texture pointer.
     ctx->d3dContext->CopyResource(ctx->inputTexture, nv12Texture);
 
     // Map input resource

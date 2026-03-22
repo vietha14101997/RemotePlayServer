@@ -459,6 +459,8 @@ public partial class SIPSorceryStreamer
             {
                 Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel opened - requesting keyframe");
                 RequestKeyframe(capturedIdx, force: true);
+                // Signal that this monitor needs initial frame (capture will force encode even on idle desktop)
+                OnInitialFrameNeeded?.Invoke(capturedIdx);
             };
             dc.onclose += () =>
             {
@@ -496,6 +498,7 @@ public partial class SIPSorceryStreamer
         {
             Logger.Info($"[SIPSorcery] Video PC {capturedIdx}: h265video-{capturedIdx} DataChannel opened - requesting keyframe");
             RequestKeyframe(capturedIdx, force: true);
+            OnInitialFrameNeeded?.Invoke(capturedIdx);
         };
         dc.onclose += () =>
         {

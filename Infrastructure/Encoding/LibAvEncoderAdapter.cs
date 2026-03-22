@@ -28,7 +28,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
     private long _frameCount;
     private VideoCodec _preferredCodec = VideoCodec.H265;
 
-    public event Action<byte[], bool, long>? OnEncodedData;
+    public event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
 
     public bool IsInitialized => _encoder?.IsInitialized ?? false;
     public int Width => _width;
@@ -106,7 +106,7 @@ public class LibAvEncoderAdapter : ITextureEncoder
         }
     }
 
-    private void OnEncoderData(byte[] nalData, bool isKeyFrame, long pts)
+    private void OnEncoderData(ArraySegment<byte> nalData, bool isKeyFrame, long pts)
     {
         OnEncodedData?.Invoke(nalData, isKeyFrame, pts);
     }

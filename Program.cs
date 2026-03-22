@@ -201,7 +201,7 @@ partial class Program
             if (e.Exception.InnerException is ArgumentOutOfRangeException outOfRange
                 && outOfRange.StackTrace?.Contains("SIPSorcery.Net.ChecklistEntry.GotStunResponse") == true)
             {
-                Logger.Warn($"[SIPSorcery] Ignored internal library race condition: {outOfRange.Message} (GotStunResponse)");
+                Logger.Debug($"[SIPSorcery] Ignored internal library race condition: {outOfRange.Message} (GotStunResponse)");
                 e.SetObserved();
                 return;
             }

@@ -188,6 +188,10 @@ public partial class SIPSorceryStreamer : IDisposable
     public event Action? OnAllTracksReady;
     public event Action<string>? OnIceCandidate;
     public event Action? OnConnectionFailed;
+    /// <summary>Fired when the first frame is ACTUALLY SENT for a monitor (past drop gate).</summary>
+    public event Action<int>? OnInitialFrameSent;
+    /// <summary>Fired when a DC opens and needs initial frame (reset InitialFrameSent for capture).</summary>
+    public event Action<int>? OnInitialFrameNeeded;
 
     // Event for dedicated audio PeerConnection ICE candidates
     public event Action<string>? OnAudioIceCandidate;

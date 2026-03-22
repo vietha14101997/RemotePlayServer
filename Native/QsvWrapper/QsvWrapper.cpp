@@ -8,6 +8,8 @@
 #include <atomic>
 #include <vector>
 
+#include "../NalUtils.h"
+
 // Windows and Media Foundation headers
 #include <windows.h>
 #include <initguid.h>
@@ -50,33 +52,6 @@ void SafeRelease(T** ppT) {
     }
 }
 
-// Detect keyframe for H.264: SPS (NAL type 7) or IDR (NAL type 5)
-static int DetectKeyframeH264(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 4 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = data[i+4] & 0x1F;
-            if (nalType == 7 || nalType == 5) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-// Detect keyframe for H.265: VPS (32), SPS (33), IDR_W_RADL (19), IDR_N_LP (20)
-static int DetectKeyframeHEVC(const uint8_t* data, size_t size) {
-    for (size_t i = 0; i + 5 < size; i++) {
-        if (data[i] == 0 && data[i+1] == 0 && data[i+2] == 0 && data[i+3] == 1) {
-            int nalType = (data[i+4] >> 1) & 0x3F;
-            // VPS=32, SPS=33, IDR_W_RADL=19, IDR_N_LP=20, CRA=21
-            if (nalType == 32 || nalType == 33 || nalType == 19 || nalType == 20 || nalType == 21) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
 // Encoder context structure
 struct QsvEncoderContext {
     // Media Foundation
@@ -109,20 +84,21 @@ struct QsvEncoderContext {
     std::mutex encodeMutex;
 
     bool useHevc = false;
+    bool useBgraInput = false;
 
     // Output buffer
     std::vector<uint8_t> outputBuffer;
 };
 
-// Find Intel QSV hardware encoder MFT (codec-aware)
-static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* deviceManager, bool useHevc) {
+// Find Intel QSV hardware encoder MFT (codec-aware, input format parameterized)
+static HRESULT FindQsvEncoder(IMFTransform** ppEncoder, IMFDXGIDeviceManager* deviceManager, bool useHevc, GUID inputSubtype = MFVideoFormat_NV12) {
     HRESULT hr = S_OK;
     IMFActivate** ppActivate = nullptr;
     UINT32 count = 0;
 
     GUID outputSubtype = useHevc ? MFVideoFormat_HEVC : MFVideoFormat_H264;
 
-    MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Video, MFVideoFormat_NV12 };
+    MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Video, inputSubtype };
     MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Video, outputSubtype };
 
     hr = MFTEnumEx(
@@ -217,7 +193,7 @@ QSVWRAPPER_API int QsvIsAvailable() {
     return (count > 0) ? 1 : 0;
 }
 
-// Internal: Create encoder with codec selection
+// Internal: Create encoder with codec and input format selection
 static int QsvCreateEncoderInternal(
     QsvEncoderHandle* outHandle,
     ID3D11Device* d3d11Device,
@@ -225,7 +201,8 @@ static int QsvCreateEncoderInternal(
     int height,
     int fps,
     int bitrate,
-    bool useHevc)
+    bool useHevc,
+    bool useBgra = false)
 {
     if (!outHandle || !d3d11Device || width <= 0 || height <= 0) {
         g_lastError = "Invalid parameters";
@@ -251,6 +228,10 @@ static int QsvCreateEncoderInternal(
     ctx->fps = fps;
     ctx->bitrate = bitrate;
     ctx->useHevc = useHevc;
+    ctx->useBgraInput = useBgra;
+
+    // Select input format: ARGB32 for BGRA mode (MF uses ARGB32 for BGRA byte order), NV12 otherwise
+    GUID inputSubtype = useBgra ? MFVideoFormat_ARGB32 : MFVideoFormat_NV12;
 
     // Create DXGI device manager
     hr = MFCreateDXGIDeviceManager(&ctx->deviceResetToken, &ctx->deviceManager);
@@ -259,10 +240,12 @@ static int QsvCreateEncoderInternal(
     hr = ctx->deviceManager->ResetDevice(d3d11Device, ctx->deviceResetToken);
     CHECK_HR(hr, "ResetDevice failed");
 
-    // Find and create hardware encoder (codec-aware)
-    hr = FindQsvEncoder(&ctx->encoder, ctx->deviceManager, useHevc);
+    // Find and create hardware encoder (codec-aware, input format parameterized)
+    hr = FindQsvEncoder(&ctx->encoder, ctx->deviceManager, useHevc, inputSubtype);
     if (FAILED(hr)) {
-        g_lastError = useHevc ? "Failed to find Intel QSV HEVC encoder" : "Failed to find Intel QSV encoder";
+        g_lastError = useBgra
+            ? "Failed to find Intel QSV encoder with BGRA input"
+            : (useHevc ? "Failed to find Intel QSV HEVC encoder" : "Failed to find Intel QSV encoder");
         SafeRelease(&ctx->deviceManager);
         ctx->d3dDevice->Release();
         ctx->d3dContext->Release();
@@ -296,20 +279,32 @@ static int QsvCreateEncoderInternal(
     SafeRelease(&outputMediaType);
     CHECK_HR(hr, "SetOutputType failed");
 
-    // Set input media type (NV12)
+    // Set input media type (NV12 or ARGB32 for BGRA)
     IMFMediaType* inputMediaType = nullptr;
     hr = MFCreateMediaType(&inputMediaType);
     CHECK_HR(hr, "MFCreateMediaType input failed");
 
     hr = inputMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-    hr = inputMediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
+    hr = inputMediaType->SetGUID(MF_MT_SUBTYPE, inputSubtype);
     hr = MFSetAttributeSize(inputMediaType, MF_MT_FRAME_SIZE, width, height);
     hr = MFSetAttributeRatio(inputMediaType, MF_MT_FRAME_RATE, fps, 1);
     hr = inputMediaType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
 
     hr = ctx->encoder->SetInputType(0, inputMediaType, 0);
     SafeRelease(&inputMediaType);
-    CHECK_HR(hr, "SetInputType failed");
+    if (FAILED(hr)) {
+        // BGRA input may not be supported by this MFT — return fail so caller falls back to NV12
+        g_lastError = useBgra
+            ? "SetInputType ARGB32 failed (MFT may not support BGRA): " + std::to_string(hr)
+            : "SetInputType failed: " + std::to_string(hr);
+        ctx->encoder->Release();
+        SafeRelease(&ctx->deviceManager);
+        ctx->d3dDevice->Release();
+        ctx->d3dContext->Release();
+        delete ctx;
+        MFShutdown();
+        return QSV_WRAPPER_FAIL;
+    }
 
     // Cache ICodecAPI and configure for low latency
     hr = ctx->encoder->QueryInterface(IID_PPV_ARGS(&ctx->codecApi));
@@ -330,28 +325,60 @@ static int QsvCreateEncoderInternal(
         ctx->codecApi->SetValue(&CODECAPI_AVEncMPVGOPSize, &var);
     }
 
-    // Start encoder
+    // Start encoder — explicit cleanup on failure (CHECK_HR macro can't release ctx resources)
     hr = ctx->encoder->ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0);
-    CHECK_HR(hr, "BEGIN_STREAMING failed");
+    if (FAILED(hr)) {
+        g_lastError = "BEGIN_STREAMING failed: " + std::to_string(hr);
+        if (ctx->codecApi) { ctx->codecApi->Release(); ctx->codecApi = nullptr; }
+        ctx->encoder->Release();
+        SafeRelease(&ctx->deviceManager);
+        ctx->d3dDevice->Release();
+        ctx->d3dContext->Release();
+        delete ctx;
+        MFShutdown();
+        return QSV_WRAPPER_FAIL;
+    }
 
     hr = ctx->encoder->ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0);
-    CHECK_HR(hr, "START_OF_STREAM failed");
+    if (FAILED(hr)) {
+        g_lastError = "START_OF_STREAM failed: " + std::to_string(hr);
+        if (ctx->codecApi) { ctx->codecApi->Release(); ctx->codecApi = nullptr; }
+        ctx->encoder->Release();
+        SafeRelease(&ctx->deviceManager);
+        ctx->d3dDevice->Release();
+        ctx->d3dContext->Release();
+        delete ctx;
+        MFShutdown();
+        return QSV_WRAPPER_FAIL;
+    }
 
-    // Create staging texture
+    // Create staging texture (BGRA or NV12 depending on mode)
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = width;
     texDesc.Height = height;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_NV12;
+    texDesc.Format = useBgra ? DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_NV12;
     texDesc.SampleDesc.Count = 1;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
     texDesc.BindFlags = 0;
 
     hr = d3d11Device->CreateTexture2D(&texDesc, nullptr, &ctx->stagingTexture);
-    CHECK_HR(hr, "CreateTexture2D staging failed");
+    if (FAILED(hr)) {
+        g_lastError = "CreateTexture2D staging failed: " + std::to_string(hr);
+        if (ctx->codecApi) { ctx->codecApi->Release(); ctx->codecApi = nullptr; }
+        ctx->encoder->ProcessMessage(MFT_MESSAGE_NOTIFY_END_OF_STREAM, 0);
+        ctx->encoder->ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
+        ctx->encoder->Release();
+        SafeRelease(&ctx->deviceManager);
+        ctx->d3dDevice->Release();
+        ctx->d3dContext->Release();
+        delete ctx;
+        MFShutdown();
+        return QSV_WRAPPER_FAIL;
+    }
 
-    ctx->outputBuffer.resize(width * height * 2);
+    ctx->outputBuffer.resize(width * height * (useBgra ? 4 : 2));
     ctx->initialized = true;
     *outHandle = ctx;
 
@@ -377,6 +404,24 @@ QSVWRAPPER_API int QsvCreateEncoderEx(
     int width, int height, int fps, int bitrate, int useHevc)
 {
     return QsvCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, useHevc != 0);
+}
+
+// Create encoder with BGRA input (H.264)
+QSVWRAPPER_API int QsvCreateEncoderBgra(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate)
+{
+    return QsvCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, false, true);
+}
+
+// Create encoder with BGRA input and codec selection
+QSVWRAPPER_API int QsvCreateEncoderBgraEx(
+    QsvEncoderHandle* outHandle,
+    ID3D11Device* d3d11Device,
+    int width, int height, int fps, int bitrate, int useHevc)
+{
+    return QsvCreateEncoderInternal(outHandle, d3d11Device, width, height, fps, bitrate, useHevc != 0, true);
 }
 
 // Set callback
@@ -506,6 +551,29 @@ QSVWRAPPER_API int QsvEncodeTexture(QsvEncoderHandle handle, ID3D11Texture2D* nv
     ctx->frameIndex++;
 
     return QSV_WRAPPER_OK;
+}
+
+// Encode BGRA D3D11 texture (Intel MFT converts BGRA->NV12 internally)
+QSVWRAPPER_API int QsvEncodeBgraTexture(QsvEncoderHandle handle, ID3D11Texture2D* bgraTexture, int forceKeyframe)
+{
+    if (!handle || !bgraTexture) {
+        g_lastError = "Invalid parameters";
+        return QSV_WRAPPER_INVALID_PARAM;
+    }
+
+    auto ctx = static_cast<QsvEncoderContext*>(handle);
+    if (!ctx->initialized) {
+        g_lastError = "Encoder not initialized";
+        return QSV_WRAPPER_NOT_INITIALIZED;
+    }
+
+    if (!ctx->useBgraInput) {
+        g_lastError = "Encoder not in BGRA mode";
+        return QSV_WRAPPER_INVALID_PARAM;
+    }
+
+    // Delegate to QsvEncodeTexture — staging texture format matches BGRA
+    return QsvEncodeTexture(handle, bgraTexture, forceKeyframe);
 }
 
 // Flush

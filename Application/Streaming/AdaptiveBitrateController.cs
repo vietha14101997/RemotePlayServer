@@ -37,11 +37,11 @@ namespace RemotePlayServer.Application.Streaming
         private double _ewmaRtt;
         private const double EWMA_ALPHA = 0.3; // Smoothing factor (0.0-1.0, higher = more responsive)
 
-        // WiFi mode - faster adjustments and recovery
+        // WiFi mode - aggressive recovery (YouTube-like: recover in seconds, not minutes)
         public bool IsWiFiMode { get; set; }
         private const int WIFI_ADJUSTMENT_COOLDOWN_MS = 1500;  // Faster response on WiFi
-        private const int WIFI_RECOVERY_DELAY_MS = 5000;       // Recover sooner on WiFi
-        private const int WIFI_RECOVERY_COOLDOWN_MS = 3000;    // Recover more frequently
+        private const int WIFI_RECOVERY_DELAY_MS = 3000;       // 3s stable → start recovery (was 5s)
+        private const int WIFI_RECOVERY_COOLDOWN_MS = 1500;    // 1.5s between recovery steps (was 3s)
 
         // Rate limiting for adjustments
         private DateTime _lastAdjustmentTime = DateTime.MinValue;
@@ -63,9 +63,9 @@ namespace RemotePlayServer.Application.Streaming
         // provides stronger protection against over-recovery.
         private int _dcCongestionCeilingKbps;          // 0 = no ceiling (unlimited)
         private DateTime _lastDcCongestionTime = DateTime.MinValue;
-        private const int DC_CEILING_RELAX_INTERVAL_MS = 60000;  // Relax ceiling every 60s
-        private const float DC_CEILING_SAFETY_FACTOR = 0.85f;    // Cap at 85% of congestion trigger point (was 90% — more headroom)
-        private const float DC_CEILING_RELAX_STEP = 0.05f;       // +5% per relaxation
+        private const int DC_CEILING_RELAX_INTERVAL_MS = 15000;  // Relax ceiling every 15s (was 60s — YouTube-like fast recovery)
+        private const float DC_CEILING_SAFETY_FACTOR = 0.85f;    // Cap at 85% of congestion trigger point
+        private const float DC_CEILING_RELAX_STEP = 0.10f;       // +10% per relaxation (was 5% — faster probing)
 
         // Thresholds for bitrate decisions
         private const float PACKET_LOSS_INCREASE_THRESHOLD = 0.02f;  // >2% loss triggers decrease
@@ -362,8 +362,12 @@ namespace RemotePlayServer.Application.Streaming
                 timeSinceDcCongestion > recoveryDelayMs &&  // Must also wait after DC congestion
                 !hasNetworkIssue)
             {
-                // Gradually recover toward effective max (respects DC congestion ceiling)
-                int recoveryStep = Math.Max(500, (effectiveMax - current) / 4); // 25% of deficit, min 500kbps
+                // Aggressive recovery toward effective max (respects DC congestion ceiling)
+                // WiFi: 40% of deficit per step (reaches target in ~3 steps = ~5s)
+                // Wired: 25% of deficit per step (more conservative)
+                int divisor = IsWiFiMode ? 3 : 4;
+                int minStep = IsWiFiMode ? 1000 : 500;
+                int recoveryStep = Math.Max(minStep, (effectiveMax - current) / divisor);
                 int newBitrate = Math.Min(effectiveMax, current + recoveryStep);
                 string ceilingInfo = _dcCongestionCeilingKbps > 0 ? $", ceiling={_dcCongestionCeilingKbps}kbps" : "";
                 Logger.Info($"[AdaptiveBitrate] Auto-recovery: {current} → {newBitrate} kbps (stable for {timeSinceLastIssue/1000:F1}s{ceilingInfo})");

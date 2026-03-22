@@ -132,6 +132,7 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     private int _bitrate;
     private bool _useBgraMode;
     private bool _useHevc;
+    private byte[] _callbackBuffer = Array.Empty<byte>();
 
     #endregion
 
@@ -164,10 +165,10 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
     #region Events
 
     /// <summary>
-    /// Event fired when encoded data is available
-    /// Parameters: (byte[] nalData, bool isKeyFrame, long pts)
+    /// Event fired when encoded NAL data is available.
+    /// WARNING: The backing array is reused between calls — do NOT hold a reference after handler returns.
     /// </summary>
-    public event Action<byte[], bool, long>? OnEncodedData;
+    public event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
 
     #endregion
 
@@ -437,12 +438,12 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
 
         try
         {
-            // Copy NAL data from native memory
-            byte[] nalData = new byte[size];
-            Marshal.Copy(data, nalData, 0, (int)size);
+            int len = (int)size;
+            if (len > _callbackBuffer.Length)
+                _callbackBuffer = new byte[len * 2];
 
-            // Fire event
-            OnEncodedData?.Invoke(nalData, isKeyFrame != 0, pts);
+            Marshal.Copy(data, _callbackBuffer, 0, len);
+            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), isKeyFrame != 0, pts);
         }
         catch (Exception ex)
         {

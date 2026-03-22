@@ -248,15 +248,38 @@ public partial class SIPSorceryStreamer
             count = 1; // Single IDR is sufficient for H265 resync
         }
 
+        // Per-track cooldown: prevent keyframe burst storms during rapid scene changes
+        // (e.g., taskbar minimize/maximize spam). Without this, client can request
+        // 9+ bursts/minute → each IDR 150-300KB → SCTP buffer overload → client crash.
+        const long BurstCooldownMs = 3000;
+        long now = Environment.TickCount64;
+
         lock (_lock)
         {
             if (monitorIndex == -1)
             {
-                foreach (var t in _tracks) t.KeyframeBurstRemaining = count;
+                foreach (var t in _tracks)
+                {
+                    if (now - t.LastKeyframeRequestTicks >= BurstCooldownMs)
+                    {
+                        t.KeyframeBurstRemaining = count;
+                        t.LastKeyframeRequestTicks = now;
+                    }
+                }
             }
             else if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
             {
-                _tracks[monitorIndex].KeyframeBurstRemaining = count;
+                var t = _tracks[monitorIndex];
+                if (now - t.LastKeyframeRequestTicks >= BurstCooldownMs)
+                {
+                    t.KeyframeBurstRemaining = count;
+                    t.LastKeyframeRequestTicks = now;
+                }
+                else
+                {
+                    Logger.Debug($"[SIPSorcery] Keyframe burst throttled (monitor={monitorIndex}, cooldown={BurstCooldownMs - (now - t.LastKeyframeRequestTicks)}ms remaining)");
+                    return;
+                }
             }
         }
         Logger.Info($"[SIPSorcery] Keyframe burst: monitor={monitorIndex}, count={count}");

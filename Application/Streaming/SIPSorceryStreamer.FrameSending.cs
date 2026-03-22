@@ -21,7 +21,7 @@ public partial class SIPSorceryStreamer
     // Per-track DCs: each track has its own SCTP buffer → independent congestion detection.
     private const ulong DC_BUFFER_LOW_WATER  = 256_000;  // 256KB — buffer drained
     private const ulong DC_BUFFER_MID_WATER  = 768_000;  // 768KB — partially drained, allow IDR for resync
-    private const ulong DC_BUFFER_HIGH_WATER = 1_048_576;  // 1MB — must accommodate periodic GOP IDR frames
+    private const ulong DC_BUFFER_HIGH_WATER = 2_097_152;  // 2MB — accommodate scroll/animation bursts on WiFi
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     // Per-track congestion state moved to TrackInfo (DcSoftCongestion, CongestionBitrateReduced, etc.)
     // Staggered IDR after drain: global cooldown ensures only 1 track gets IDR at a time
@@ -87,13 +87,15 @@ public partial class SIPSorceryStreamer
             // Soft congestion: THIS track's buffer sustained above threshold → reduce THIS track's bitrate only.
             // Threshold lowered from 300KB→200KB to trigger earlier, before buffer spirals to 1MB.
             long now = Environment.TickCount64;
-            if (trackBuffered > 200_000 && !track.DcSoftCongestion)
+            // Soft congestion: 400KB sustained for 500ms. Previous 200KB/200ms was too sensitive
+            // for scroll content where SCTP buffers naturally spike during scene changes on WiFi.
+            if (trackBuffered > 400_000 && !track.DcSoftCongestion)
             {
                 if (track.DcSoftCongestionEntryTicks == 0)
                 {
                     track.DcSoftCongestionEntryTicks = now;
                 }
-                else if (now - track.DcSoftCongestionEntryTicks > 200) // 200ms sustained
+                else if (now - track.DcSoftCongestionEntryTicks > 500) // 500ms sustained
                 {
                     track.DcSoftCongestion = true;
                     track.DcSoftCongestionEntryTicks = 0;
@@ -118,12 +120,12 @@ public partial class SIPSorceryStreamer
                     }
                 }
             }
-            else if (!track.DcSoftCongestion && trackBuffered <= 200_000)
+            else if (!track.DcSoftCongestion && trackBuffered <= 400_000)
             {
                 track.DcSoftCongestionEntryTicks = 0;
             }
-            // Recovery: THIS track's buffer must stay below 100KB for 500ms before clearing.
-            else if (track.DcSoftCongestion && trackBuffered < 100_000)
+            // Recovery: THIS track's buffer must stay below 200KB for 500ms before clearing.
+            else if (track.DcSoftCongestion && trackBuffered < 200_000)
             {
                 if (track.DcSoftCongestionClearTicks == 0)
                 {
@@ -146,7 +148,7 @@ public partial class SIPSorceryStreamer
                     }
                 }
             }
-            else if (track.DcSoftCongestion && trackBuffered >= 100_000)
+            else if (track.DcSoftCongestion && trackBuffered >= 200_000)
             {
                 track.DcSoftCongestionClearTicks = 0;
             }
@@ -289,7 +291,7 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private void OnEncodedData(TrackInfo track, byte[] nalData, bool isKeyframe, long pts100ns)
+    private void OnEncodedData(TrackInfo track, ArraySegment<byte> nalData, bool isKeyframe, long pts100ns)
     {
         if (!_running || _mainPc == null || !_connected) return;
         if (_mainPc.connectionState != RTCPeerConnectionState.connected) return;
@@ -316,7 +318,7 @@ public partial class SIPSorceryStreamer
             if (!isKeyframe && Interlocked.Read(ref track.SentFrames) == 0)
             {
                 if (earlyFrameNum % 10 == 0)
-                    Logger.Info($"[SIPSorcery] Track {track.Index}: Dropping stale P-frame before first IDR ({nalData.Length} bytes) - requesting keyframe");
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: Dropping stale P-frame before first IDR ({nalData.Count} bytes) - requesting keyframe");
                 
                 // Force IDR on next encode opportunity
                 track.ForceNextKeyframe = true;
@@ -334,6 +336,10 @@ public partial class SIPSorceryStreamer
                 }
                 return;
             }
+
+            // Materialize ArraySegment to byte[] for send infrastructure.
+            // Dropped frames (above) skip this — saving one allocation per drop.
+            byte[] nalBytes = nalData.ToArray();
 
             if (isKeyframe)
             {
@@ -359,10 +365,10 @@ public partial class SIPSorceryStreamer
                     // Send codec config on first IDR after session start/reconnect.
                     if (track.IdrViaDcCount == 0)
                     {
-                        SendH265ParamSetsViaDataChannel(track, nalData);
+                        SendH265ParamSetsViaDataChannel(track, nalBytes);
                     }
 
-                    if (SendH265IdrViaDataChannel(track, nalData))
+                    if (SendH265IdrViaDataChannel(track, nalBytes))
                     {
                         track.IdrViaDcCount++;
 
@@ -374,7 +380,7 @@ public partial class SIPSorceryStreamer
                         // → text smearing artifacts on initial connection.
 
                         // IDR sent via DC — P-frames also go via DC below.
-                        Interlocked.Increment(ref track.SentFrames);
+                        IncrementSentFrames(track);
                         return;
                     }
                     // IDR deferred/failed — will retry on next keyframe
@@ -386,9 +392,9 @@ public partial class SIPSorceryStreamer
             // so ALL H.265 frames must go through DataChannel for reliable delivery.
             if (_negotiatedCodec == VideoCodec.H265)
             {
-                if (SendH265PFrameViaDataChannel(track, nalData))
+                if (SendH265PFrameViaDataChannel(track, nalBytes))
                 {
-                    Interlocked.Increment(ref track.SentFrames);
+                    IncrementSentFrames(track);
                     return;
                 }
                 // P-frame send failed (DC not ready or congested) — drop it.
@@ -405,28 +411,28 @@ public partial class SIPSorceryStreamer
                 {
                     // Send SPS/PPS config on first IDR of session
                     if (track.IdrViaDcCount == 0)
-                        SendCodecConfigViaDataChannel(track, nalData);
+                        SendCodecConfigViaDataChannel(track, nalBytes);
 
-                    if (SendH265IdrViaDataChannel(track, nalData))
+                    if (SendH265IdrViaDataChannel(track, nalBytes))
                     {
                         track.IdrViaDcCount++;
-                        Interlocked.Increment(ref track.SentFrames);
+                        IncrementSentFrames(track);
                         return;
                     }
                     // DC send failed — fall through to RTP
                 }
                 else
                 {
-                    if (SendH265PFrameViaDataChannel(track, nalData))
+                    if (SendH265PFrameViaDataChannel(track, nalBytes))
                     {
-                        Interlocked.Increment(ref track.SentFrames);
+                        IncrementSentFrames(track);
                         return;
                     }
                     // DC send failed — fall through to RTP
                 }
             }
 
-            byte[] au = nalData;
+            byte[] au = nalBytes;
             if (!ContainsAnnexBStartCode(au))
                 au = TryConvertAvccToAnnexB(au);
             au = StripLeadingAud(au);
@@ -496,7 +502,16 @@ public partial class SIPSorceryStreamer
             SendRtpPacket(track, au, track.RtpTimestamp, 1, frameNum);
         }
 
+        IncrementSentFrames(track);
+    }
+
+    private void IncrementSentFrames(TrackInfo track)
+    {
+        long prev = Interlocked.Read(ref track.SentFrames);
         Interlocked.Increment(ref track.SentFrames);
+        // Notify capture that initial frame has been delivered — stops forcing frames on idle desktops
+        if (prev == 0)
+            OnInitialFrameSent?.Invoke(track.Index);
     }
 
     private void SendRtpPacket(TrackInfo track, byte[] payload, uint rtpTimestamp, int markerBit, long frameNum)
