@@ -21,6 +21,7 @@ public static class InputReceiver
     private const byte TAG_TEXT         = 0x05; // 3+N bytes: [tag][len:u16][UTF8]
     private const byte TAG_WARP_CURSOR  = 0x06; // 10 bytes: [tag][monIdx:1][u:f32][v:f32]
     private const byte TAG_GAMEPAD      = 0x07; // 13 bytes: [tag][buttons:u16][LT:u8][RT:u8][LX:i16][LY:i16][RX:i16][RY:i16]
+    private const byte TAG_FOCUS_MONITOR = 0x08; // 2 bytes: [tag][monIdx:1] — confine cursor to monitor, 0xFF = release
 
     /// <summary>
     /// Called after any input is injected. Used to force frame capture
@@ -36,7 +37,7 @@ public static class InputReceiver
 
     public static void HandleInputMessage(byte[] data, IReadOnlyList<(int x, int y, int w, int h)> monitorRects)
     {
-        if (data == null || data.Length < 3) return;
+        if (data == null || data.Length < 2) return;
 
         byte tag = data[0];
         switch (tag)
@@ -98,6 +99,26 @@ public static class InputReceiver
             {
                 EnsureGamepad();
                 _gamepad?.UpdateState(data, 1); // skip tag byte
+                break;
+            }
+            case TAG_FOCUS_MONITOR when data.Length >= 2:
+            {
+                int monIdx = data[1];
+                if (monIdx == 0xFF)
+                {
+                    InputInjector.ReleaseCursorConfinement();
+                    Logger.Info("[Input] Cursor confinement released");
+                }
+                else if (monIdx >= 0 && monIdx < monitorRects.Count)
+                {
+                    var rect = monitorRects[monIdx];
+                    InputInjector.ConfineCursor(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+                    Logger.Info($"[Input] Cursor confined to monitor {monIdx}: ({rect.x},{rect.y})-({rect.x + rect.w},{rect.y + rect.h})");
+                }
+                else
+                {
+                    Logger.Info($"[Input] FOCUS_MONITOR invalid monIdx={monIdx}, monitors={monitorRects.Count}");
+                }
                 break;
             }
         }

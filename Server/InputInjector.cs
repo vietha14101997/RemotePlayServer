@@ -60,6 +60,11 @@ public static class InputInjector
     [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
     [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT lpPoint);
     [DllImport("user32.dll")] static extern bool GetCursorInfo(ref CURSORINFO pci);
+    [DllImport("user32.dll")] static extern bool ClipCursor(ref RECT lpRect);
+    [DllImport("user32.dll")] static extern bool ClipCursor(IntPtr lpRect); // null to release
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct RECT { public int Left, Top, Right, Bottom; }
 
     /// <summary>
     /// Returns true if the system cursor is currently visible (not hidden by app/game).
@@ -152,6 +157,25 @@ public static class InputInjector
     public static void MoveAbsolute(int px, int py)
     {
         SetCursorPos(px, py);
+    }
+
+    /// <summary>
+    /// Confine cursor to a rectangular area (monitor bounds).
+    /// Cursor cannot move outside this rect until released.
+    /// </summary>
+    public static void ConfineCursor(int left, int top, int right, int bottom)
+    {
+        var rect = new RECT { Left = left, Top = top, Right = right, Bottom = bottom };
+        bool result = ClipCursor(ref rect);
+        Console.WriteLine($"[InputInjector] ClipCursor({left},{top},{right},{bottom}) = {result}");
+    }
+
+    /// <summary>
+    /// Release cursor confinement — allow free movement across all monitors.
+    /// </summary>
+    public static void ReleaseCursorConfinement()
+    {
+        ClipCursor(IntPtr.Zero);
     }
 
     public static void MoveRelative(int dx, int dy)
