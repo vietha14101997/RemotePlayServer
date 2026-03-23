@@ -64,8 +64,6 @@ namespace RemotePlayServer.Application.Protocol
         // Client codec capabilities (received in hardware_info_ack)
         private ClientCodecCapability? _clientCodecCapability;
         private string _selectedCodec = "H264";
-        private volatile int _offerGeneration = 0; // Incremented on codec_fallback to invalidate stale offer processing
-
         // Client screen resolution (received in hardware_info_ack, used for resize decision)
         // Screens < 1440p get 50% resize; >= 1440p get original frame
         private int _clientScreenHeight = 0;

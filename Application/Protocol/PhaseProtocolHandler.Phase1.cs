@@ -173,9 +173,9 @@ namespace RemotePlayServer.Application.Protocol
                     throw new OperationCanceledException("Client closed connection");
 
                 // Handle binary data (Client upload test - Client sends binary for Server to measure)
+                // Only count bytes — no need to store the payload
                 if (result.MessageType == WebSocketMessageType.Binary)
                 {
-                    ms.Write(buffer, 0, result.Count);
                     continue;
                 }
 

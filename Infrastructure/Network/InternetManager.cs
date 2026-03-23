@@ -14,7 +14,7 @@ namespace RemotePlayServer.Infrastructure.Network;
 /// </summary>
 public class InternetManager
 {
-    private static InternetManager? _instance;
+    private static volatile InternetManager? _instance;
     public static InternetManager? Instance => _instance;
 
     public InternetConfig Config { get; }

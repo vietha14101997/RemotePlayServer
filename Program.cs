@@ -231,6 +231,7 @@ partial class Program
         Console.OutputEncoding = Encoding.UTF8;
 
         Console.WriteLine("=== RemotePlayServer ===");
+        Logger.InitFileLogging();
 
         if (OperatingSystem.IsWindows())
         {
@@ -505,6 +506,7 @@ partial class Program
         catch { }
 
         Console.WriteLine("[Shutdown] Server exited.");
+        Logger.Shutdown();
     }
 }
 

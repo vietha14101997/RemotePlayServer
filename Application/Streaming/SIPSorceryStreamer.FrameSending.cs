@@ -323,17 +323,6 @@ public partial class SIPSorceryStreamer
                 // Force IDR on next encode opportunity
                 track.ForceNextKeyframe = true;
 
-                // Track failures in H265 mode
-                if (_negotiatedCodec == VideoCodec.H265)
-                {
-                    track.H265FailureStreak++;
-                    if (track.H265FailureStreak == 60) // Threshold for fallback (approx 1-2s @ 30-60fps)
-                    {
-                        Logger.Warn($"[SIPSorcery] Track {track.Index} H265 stability threshold reached ({track.H265FailureStreak} drops). Suggesting H.264 fallback.");
-                        // Force a reconnect with H.264 preference if many tracks fail
-                        RequestH264Fallback();
-                    }
-                }
                 return;
             }
 
@@ -344,8 +333,6 @@ public partial class SIPSorceryStreamer
             if (isKeyframe)
             {
                 track.IsDecodable = true;
-                track.H265FailureStreak = 0; // Reset streak on successful keyframe sent
-
                 // H265 HYBRID MODE: Send IDR via reliable DataChannel for decoder bootstrap.
                 // P-frames go via standard RTP (handled below in SendFrameImmediate).
                 if (_negotiatedCodec == VideoCodec.H265)

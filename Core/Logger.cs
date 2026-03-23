@@ -1,10 +1,12 @@
+#nullable enable
 using System;
+using System.IO;
 
 namespace RemotePlayServer.Core
 {
     /// <summary>
-    /// Simple logging utility with log levels to reduce RAM usage.
-    /// Set LogLevel to control verbosity.
+    /// Simple logging utility with log levels and optional file output.
+    /// Set LogLevel to control verbosity. Call InitFileLogging() to enable file logging.
     /// </summary>
     public static class Logger
     {
@@ -13,13 +15,47 @@ namespace RemotePlayServer.Core
         /// </summary>
         public static LogLevel Level { get; set; } = LogLevel.Info;
 
+        private static StreamWriter? _fileWriter;
+        private static readonly object _fileLock = new object();
+
+        /// <summary>
+        /// Initialize file logging. Logs will be written to both console and file.
+        /// Creates a new log file per session with rotation (keeps last 5 files).
+        /// </summary>
+        public static void InitFileLogging(string? logDirectory = null)
+        {
+            try
+            {
+                var dir = logDirectory ?? Path.Combine(AppContext.BaseDirectory, "logs");
+                Directory.CreateDirectory(dir);
+
+                // Rotate: keep last 5 log files
+                var existing = Directory.GetFiles(dir, "server_*.log");
+                Array.Sort(existing);
+                for (int i = 0; i < existing.Length - 4; i++)
+                {
+                    try { File.Delete(existing[i]); } catch { }
+                }
+
+                var fileName = $"server_{DateTime.Now:yyyyMMdd_HHmmss}.log";
+                var filePath = Path.Combine(dir, fileName);
+                _fileWriter = new StreamWriter(filePath, append: true) { AutoFlush = true };
+
+                Info($"[Logger] File logging started: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to init file logging: {ex.Message}");
+            }
+        }
+
         /// <summary>
         /// Log a debug message (very verbose, disabled by default).
         /// </summary>
         public static void Debug(string message)
         {
             if (Level <= LogLevel.Debug)
-                Console.WriteLine($"[DEBUG] {message}");
+                WriteLog($"[DEBUG] {message}");
         }
 
         /// <summary>
@@ -28,7 +64,7 @@ namespace RemotePlayServer.Core
         public static void Info(string message)
         {
             if (Level <= LogLevel.Info)
-                Console.WriteLine(message);
+                WriteLog(message);
         }
 
         /// <summary>
@@ -37,7 +73,7 @@ namespace RemotePlayServer.Core
         public static void Warn(string message)
         {
             if (Level <= LogLevel.Warning)
-                Console.WriteLine($"[WARN] {message}");
+                WriteLog($"[WARN] {message}");
         }
 
         /// <summary>
@@ -45,7 +81,7 @@ namespace RemotePlayServer.Core
         /// </summary>
         public static void Error(string message)
         {
-            Console.WriteLine($"[ERROR] {message}");
+            WriteLog($"[ERROR] {message}");
         }
 
         /// <summary>
@@ -53,7 +89,35 @@ namespace RemotePlayServer.Core
         /// </summary>
         public static void Error(string message, Exception ex)
         {
-            Console.WriteLine($"[ERROR] {message}: {ex.Message}");
+            WriteLog($"[ERROR] {message}: {ex.Message}");
+        }
+
+        /// <summary>
+        /// Flush and close file logging.
+        /// </summary>
+        public static void Shutdown()
+        {
+            lock (_fileLock)
+            {
+                _fileWriter?.Flush();
+                _fileWriter?.Dispose();
+                _fileWriter = null;
+            }
+        }
+
+        private static void WriteLog(string message)
+        {
+            var timestamped = $"{DateTime.Now:HH:mm:ss.fff} {message}";
+            Console.WriteLine(timestamped);
+
+            if (_fileWriter != null)
+            {
+                lock (_fileLock)
+                {
+                    try { _fileWriter?.WriteLine(timestamped); }
+                    catch { /* Don't let file errors crash the server */ }
+                }
+            }
         }
     }
 

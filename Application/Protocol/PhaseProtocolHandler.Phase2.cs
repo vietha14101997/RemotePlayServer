@@ -363,18 +363,6 @@ namespace RemotePlayServer.Application.Protocol
                 catch { }
             };
 
-            // H264 Fallback subscription: detect H.265 instability and request downgrade
-            _streamer.OnH264FallbackSuggested += async () =>
-            {
-                Logger.Warn("[Protocol] SIPSorceryStreamer suggested H.264 fallback due to H.265 instability.");
-                _selectedCodec = "H264";
-                var msg = new ReconnectRequestMessage 
-                { 
-                    Reason = "h265_instability",
-                    SuggestedCodec = "H264"
-                };
-                await SendMessageAsync(msg);
-            };
             _streamer.OnAllTracksReady += async () =>
             {
                 try
@@ -876,9 +864,6 @@ namespace RemotePlayServer.Application.Protocol
         {
             if (_streamer == null) return;
 
-            // Capture generation to detect if a codec_fallback invalidated this offer during processing
-            int gen = _offerGeneration;
-
             // Reset RTP sync and encoder state for new session/reconnect
             _streamer.ResetSyncState();
 
@@ -977,14 +962,6 @@ namespace RemotePlayServer.Application.Protocol
                 // Process offer with all dimensions at once
                 // In perTrackPc mode: main PC handles audio + DataChannels only, no video tracks
                 var answerSdp = await _streamer.ProcessOfferAsync(offerSdp, dimensions, _perTrackPc);
-
-                // Check if a codec_fallback arrived while we were processing this offer.
-                // If so, discard this stale answer — the client already sent/will send a new offer.
-                if (_offerGeneration != gen)
-                {
-                    Logger.Warn($"[Protocol] Discarding stale answer (gen={gen}, current={_offerGeneration}) — codec_fallback received during offer processing");
-                    return;
-                }
 
                 // Fix m-line order: SIPSorcery may reorder (audio before video) breaking strict WebRTC
                 var reorderedSdp = ReorderAnswerToMatchOffer(answerSdp, offerSdp);

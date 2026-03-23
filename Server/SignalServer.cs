@@ -44,7 +44,11 @@ public class SignalServer
     {
         while (true)
         {
-            HttpListenerContext ctx; try { ctx = await _listener.GetContextAsync(); } catch { break; }
+            HttpListenerContext ctx;
+            try { ctx = await _listener.GetContextAsync(); }
+            catch (ObjectDisposedException) { break; } // Listener stopped normally
+            catch (HttpListenerException) { break; }   // Listener stopped normally
+            catch (Exception ex) { Console.WriteLine($"[HTTP] AcceptLoop error: {ex.GetType().Name}: {ex.Message}"); break; }
             var path = ctx.Request.Url!.AbsolutePath;
 
             // Quick validation endpoint
@@ -309,6 +313,17 @@ public class SignalServer
 
     internal static int TryParseInt(string? s, int def, int min, int max) => int.TryParse(s, out var v) ? Math.Clamp(v, min, max) : def;
 
+    private static readonly Mutex _singleInstanceMutex = new Mutex(false, "Global\\RemotePlayServer_SingleInstance");
+
+    /// <summary>
+    /// Try to acquire single-instance mutex. Returns false if another instance is already running.
+    /// </summary>
+    public static bool TryAcquireSingleInstance()
+    {
+        try { return _singleInstanceMutex.WaitOne(0); }
+        catch (AbandonedMutexException) { return true; } // Previous instance crashed — we can take over
+    }
+
     public static async Task ForceCleanupResources()
     {
         for (int i = 0; i < 3; i++)
@@ -317,23 +332,5 @@ public class SignalServer
             GC.WaitForPendingFinalizers();
             await Task.Delay(100);
         }
-
-        try
-        {
-            var processes = Process.GetProcessesByName("RemotePlayServer");
-            foreach (var p in processes.Where(p => p.Id != Process.GetCurrentProcess().Id))
-            {
-                try
-                {
-                    if (!p.HasExited)
-                    {
-                        p.Kill();
-                        await Task.Delay(1000);
-                    }
-                }
-                catch { }
-            }
-        }
-        catch { }
     }
 }

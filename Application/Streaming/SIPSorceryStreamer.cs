@@ -25,13 +25,7 @@ namespace RemotePlayServer.Application.Streaming;
 /// </summary>
 public partial class SIPSorceryStreamer : IDisposable
 {
-    public event Action? OnH264FallbackSuggested;
     public event Action<string>? OnFatalError;
-
-    public void RequestH264Fallback()
-    {
-        OnH264FallbackSuggested?.Invoke();
-    }
 
     private readonly int _monitorCount;
     private int _fps;
@@ -148,8 +142,6 @@ public partial class SIPSorceryStreamer : IDisposable
         // Diagnostic: flag to ensure session-start log only fires once per session
         public bool IsSessionStarted;
 
-        // Codec Stability: Track consecutive failures/stalls in H.265 mode
-        public int H265FailureStreak;
         public bool IsDecodable; // Flag to track if we've sent a valid IDR for the current session
         public int IdrViaDcCount; // Number of IDR frames sent via DataChannel for this session
         public byte[]? LastH265ParamSets; // Cached VPS/SPS/PPS for H265 bootstrap recovery

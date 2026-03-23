@@ -596,55 +596,6 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
-                    // ── codec_fallback: client H265 decoder failed, switch to H264 ──────────────
-                    // Client sends this when H265StreamReceiver.OnDecoderFailed fires, meaning the
-                    // Android device's hardware H265 decoder is not functional.
-                    // Server responds with codec_switch ACK (encoder will switch on the next reconnect offer).
-                    if (msgType == "codec_fallback")
-                    {
-                        try
-                        {
-                            var json = System.Text.Json.JsonDocument.Parse(text);
-                            string fromCodec = json.RootElement.TryGetProperty("from", out var fp) ? fp.GetString() ?? "H265" : "H265";
-                            string toCodec   = json.RootElement.TryGetProperty("to",   out var tp) ? tp.GetString() ?? "H264" : "H264";
-                            string reason    = json.RootElement.TryGetProperty("reason", out var rp) ? rp.GetString() ?? "" : "";
-
-                            Logger.Info($"[Protocol] codec_fallback received: {fromCodec} → {toCodec}, reason={reason}");
-
-                            // Invalidate any in-flight offer processing from stale H265 auto-heal reconnects.
-                            // The client will send a new offer with H264 preference after this ACK.
-                            _offerGeneration++;
-                            Logger.Info($"[Protocol] Offer generation bumped to {_offerGeneration} (stale H265 offers will be discarded)");
-
-                            // Update server-side codec preference so the next reconnect offer
-                            // is processed with H264 preference instead of H265.
-                            if (toCodec.Equals("H264", StringComparison.OrdinalIgnoreCase))
-                            {
-                                _selectedCodec = "H264";
-                                if (_streamer != null)
-                                {
-                                    _streamer.NegotiatedCodec = VideoCodec.H264;
-                                    _streamer.ForceReinitializeEncoders();
-                                }
-                            }
-
-                            // Pause encoder temporarily to avoid sending stale H265 frames
-                            // while client is resetting (brief pause, not full stop)
-                            _streamer?.Pause();
-                            await Task.Delay(100, _ct);
-                            _streamer?.Resume();
-
-                            // ACK the fallback so client knows server is ready
-                            var ackJson = $"{{\"type\":\"codec_switch\",\"codec\":\"{toCodec}\",\"reason\":\"client_fallback\"}}";
-                            await SendTextAsync(ackJson);
-                            Logger.Info($"[Protocol] codec_switch ACK sent → {toCodec}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"[Protocol] codec_fallback error: {ex.Message}");
-                        }
-                        continue;
-                    }
                 }
                 catch (WebSocketException ex)
                 {
