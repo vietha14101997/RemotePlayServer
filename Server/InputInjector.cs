@@ -45,9 +45,33 @@ public static class InputInjector
     [StructLayout(LayoutKind.Sequential)]
     struct POINT { public int X, Y; }
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct CURSORINFO
+    {
+        public int cbSize;
+        public int flags;
+        public IntPtr hCursor;
+        public POINT ptScreenPos;
+    }
+
+    const int CURSOR_SHOWING = 0x00000001;
+
     [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
     [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT lpPoint);
+    [DllImport("user32.dll")] static extern bool GetCursorInfo(ref CURSORINFO pci);
+
+    /// <summary>
+    /// Returns true if the system cursor is currently visible (not hidden by app/game).
+    /// Uses Win32 GetCursorInfo with CURSOR_SHOWING flag.
+    /// </summary>
+    public static bool IsCursorVisible()
+    {
+        var ci = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
+        if (GetCursorInfo(ref ci))
+            return (ci.flags & CURSOR_SHOWING) != 0;
+        return true; // assume visible on failure
+    }
 
     public static void Text(string s)
     {

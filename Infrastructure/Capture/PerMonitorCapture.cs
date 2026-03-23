@@ -696,14 +696,14 @@ public sealed class PerMonitorCapture : IDisposable
                 const int ACQUIRE_TIMEOUT_MS = 8; // ~120fps max check rate, allows proper frame caching
                 // If initial frame not yet sent and no cached frame, use longer timeout to force DXGI
                 // to return the current desktop content even if nothing has changed.
-                // When client is sending input, nudge cursor to force DXGI to return a frame.
-                // Cooldown prevents nudge spam under high-frequency input (e.g., holding gamepad stick).
-                // Nudge every ~33ms (2 vsync cycles) ensures app has time to render between nudges.
-                if (mon.InputForceFrames > 0)
+                // When client sends input AND desktop is idle, nudge cursor to force DXGI frame.
+                // ONLY nudge when idle — active desktops already produce frames naturally,
+                // and extra nudges waste bandwidth → SCTP congestion → ICE disconnect.
+                if (mon.InputForceFrames > 0 && mon.WasIdle)
                 {
                     long nowTicks = System.Diagnostics.Stopwatch.GetTimestamp();
                     long elapsed = nowTicks - mon.InputNudgeCooldownTicks;
-                    if (elapsed > System.Diagnostics.Stopwatch.Frequency / 120)
+                    if (elapsed > System.Diagnostics.Stopwatch.Frequency / 143) // ~7ms cooldown
                     {
                         mon.InputNudgeCooldownTicks = nowTicks;
                         InputInjector.NudgeCursor();

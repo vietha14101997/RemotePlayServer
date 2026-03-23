@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
+using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Protocol
 {
@@ -75,11 +76,11 @@ namespace RemotePlayServer.Application.Protocol
                             continue;
                         }
 
-                        // DXGI Visible flag is only true when cursor was updated in current frame
-                        // When cursor is stationary, this flag is false - but cursor should still be shown
-                        // So we always consider cursor visible (DXGI always has a cursor to show)
-                        // The cursor is only truly hidden when app explicitly hides it (which we can't detect reliably)
-                        bool visible = true; // Always visible - cursor overlay stays on
+                        // Use Win32 GetCursorInfo to detect if cursor is truly visible.
+                        // DXGI Visible flag only means "cursor moved this frame", NOT "cursor is shown".
+                        // Apps/games can hide the cursor (e.g., fullscreen video, 3D games, mouse idle).
+                        // GetCursorInfo CURSOR_SHOWING flag reflects the actual OS cursor visibility.
+                        bool visible = InputInjector.IsCursorVisible();
 
                         // Calculate UV coordinates from screen position
                         // DXGI cursor Position is RELATIVE to the monitor (not desktop coordinates!)
