@@ -328,6 +328,17 @@ namespace RemotePlayServer.Application.Protocol
                 };
             }
 
+            // Client input forwarding (BT mouse/keyboard via "input" DataChannel)
+            _streamer.OnInputReceived += data => InputReceiver.HandleInputMessage(data, _monitorRects);
+
+            // When client sends input, tell capture to force-produce frames for ~80ms.
+            // The capture loop will nudge the cursor each iteration to force DXGI to return frames.
+            if (_capture != null)
+            {
+                var captureForInput = _capture;
+                InputReceiver.OnInputInjected += () => captureForInput.ForceFramesForInput(5);
+            }
+
             // ICE candidate forwarding
             _streamer.OnIceCandidate += async (candidate) =>
             {

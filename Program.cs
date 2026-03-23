@@ -321,8 +321,6 @@ partial class Program
             .Where(w => WgcInterop.IsCapturableWindow(w.hwnd))
             .ToList());
         server.SetMonitors(monitors.Select(m => (m.hmon, m.name, m.width, m.height)).ToList());
-        InputInjector.OnLog = s => Console.WriteLine($"[INJECT] {DateTime.Now:HH:mm:ss.fff} {s}");
-
         await server.StartAsync();
 
         var preferredIP = NetUtil.GetPreferredLocalIP();

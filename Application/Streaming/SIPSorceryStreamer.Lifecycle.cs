@@ -380,6 +380,9 @@ public partial class SIPSorceryStreamer
         try { _cursorDc?.close(); } catch { }
         _cursorDc = null;
 
+        try { _inputDc?.close(); } catch { }
+        _inputDc = null;
+
         // Close per-track H265 video DataChannels (legacy mode on shared PC)
         lock (_h265VideoDcs)
         {

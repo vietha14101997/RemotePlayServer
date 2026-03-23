@@ -31,6 +31,7 @@
     <!-- FFmpeg for video encoding -->
     <PackageReference Include="FFmpeg.AutoGen" Version="7.1.1" />
     <PackageReference Include="LibUsbDotNet" Version="3.0.102-alpha" />
+    <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
 
     <!-- System utilities -->
     <PackageReference Include="System.Management" Version="9.0.0" />

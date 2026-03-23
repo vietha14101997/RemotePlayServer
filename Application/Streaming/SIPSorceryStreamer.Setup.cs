@@ -197,6 +197,14 @@ public partial class SIPSorceryStreamer
                 _cursorDc.onclose += () => { Logger.Info("[SIPSorcery] Main PC: Cursor DataChannel closed"); _cursorDc = null; };
                 Logger.Info("[SIPSorcery] Main PC: Cursor DataChannel wired for sending");
             }
+            else if (dc.label == "input")
+            {
+                _inputDc = dc;
+                _inputDc.onopen += () => Logger.Info("[SIPSorcery] Main PC: Input DataChannel opened (client mouse/keyboard)");
+                _inputDc.onclose += () => { Logger.Info("[SIPSorcery] Main PC: Input DataChannel closed"); _inputDc = null; };
+                _inputDc.onmessage += (_, _, data) => OnInputReceived?.Invoke(data);
+                Logger.Info("[SIPSorcery] Main PC: Input DataChannel wired for receiving");
+            }
             else if (!perTrackPc && dc.label == "h265video")
             {
                 // Legacy single-DC mode (backward compat with older clients)

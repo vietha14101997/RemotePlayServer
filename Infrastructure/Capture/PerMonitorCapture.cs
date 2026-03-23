@@ -7,6 +7,7 @@ using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using RemotePlayServer.Core;
+using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Infrastructure.Capture;
 
@@ -113,6 +114,13 @@ public sealed class PerMonitorCapture : IDisposable
         public long LastActiveFrameTime;  // Timestamp (ms) of last frame with actual desktop change
         public bool WasIdle;              // Previous idle state (for edge detection)
         public bool InitialFrameSent;     // True after first frame has been sent (ensures client gets immediate content)
+
+        // Input-driven frame forcing: when client sends input (mouse/keyboard/gamepad),
+        // force capture+encode for N frames to ensure visual feedback is captured and sent,
+        // even if the desktop appears "idle" to DXGI (e.g., virtual gamepad button press
+        // causes DOM update that DXGI detects, but P-frame arrives at client too late).
+        public volatile int InputForceFrames;
+        public long InputNudgeCooldownTicks; // Prevents nudge spam under high-frequency input
     }
     
     private volatile bool _running;
@@ -314,6 +322,21 @@ public sealed class PerMonitorCapture : IDisposable
         catch { /* non-critical */ }
 
         Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors + cursor nudge");
+    }
+
+    /// <summary>
+    /// Force capture+encode for the next N frames on all monitors.
+    /// Called when client sends input (mouse/keyboard/gamepad) to ensure
+    /// the resulting visual changes are captured even on "idle" desktops.
+    /// </summary>
+    public void ForceFramesForInput(int frameCount = 5)
+    {
+        foreach (var mon in Monitors)
+        {
+            // Only bump up, don't reduce if already higher
+            if (mon.InputForceFrames < frameCount)
+                mon.InputForceFrames = frameCount;
+        }
     }
 
     /// <summary>
@@ -673,6 +696,20 @@ public sealed class PerMonitorCapture : IDisposable
                 const int ACQUIRE_TIMEOUT_MS = 8; // ~120fps max check rate, allows proper frame caching
                 // If initial frame not yet sent and no cached frame, use longer timeout to force DXGI
                 // to return the current desktop content even if nothing has changed.
+                // When client is sending input, nudge cursor to force DXGI to return a frame.
+                // Cooldown prevents nudge spam under high-frequency input (e.g., holding gamepad stick).
+                // Nudge every ~33ms (2 vsync cycles) ensures app has time to render between nudges.
+                if (mon.InputForceFrames > 0)
+                {
+                    long nowTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                    long elapsed = nowTicks - mon.InputNudgeCooldownTicks;
+                    if (elapsed > System.Diagnostics.Stopwatch.Frequency / 120)
+                    {
+                        mon.InputNudgeCooldownTicks = nowTicks;
+                        InputInjector.NudgeCursor();
+                    }
+                }
+
                 int timeoutMs = (!mon.InitialFrameSent && mon.LastFrame == null) ? 500 : ACQUIRE_TIMEOUT_MS;
                 var result = mon.Duplication.AcquireNextFrame((uint)timeoutMs, out var frameInfo, out var desktopResource);
 
@@ -698,6 +735,13 @@ public sealed class PerMonitorCapture : IDisposable
                         // after the first frame is delivered (not just encoded).
                         if (!mon.InitialFrameSent)
                             desktopChanged = true; // Force frame through until sent confirmed
+
+                        // Force capture when client is actively sending input
+                        if (mon.InputForceFrames > 0)
+                        {
+                            desktopChanged = true;
+                            mon.InputForceFrames--;
+                        }
 
                         if (!desktopChanged)
                         {

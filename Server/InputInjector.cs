@@ -11,7 +11,7 @@ namespace RemotePlayServer.Server;
 /// </summary>
 public static class InputInjector
 {
-    public static Action<string>? OnLog;
+
 
     [StructLayout(LayoutKind.Sequential)]
     struct INPUT { public int type; public INPUTUNION U; }
@@ -30,17 +30,24 @@ public static class InputInjector
     struct KEYBDINPUT { public ushort wVk; public ushort wScan; public int dwFlags; public int time; public IntPtr dwExtraInfo; }
 
     const int INPUT_MOUSE = 0, INPUT_KEYBOARD = 1;
+    const int MOUSEEVENTF_MOVE = 0x0001;
     const int MOUSEEVENTF_LEFTDOWN = 0x0002;
     const int MOUSEEVENTF_LEFTUP = 0x0004;
     const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
     const int MOUSEEVENTF_RIGHTUP = 0x0010;
+    const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+    const int MOUSEEVENTF_MIDDLEUP = 0x0040;
     const int MOUSEEVENTF_WHEEL = 0x0800;
     const int MOUSEEVENTF_HWHEEL = 0x01000;
     const int KEYEVENTF_KEYUP = 0x0002;
     const int KEYEVENTF_UNICODE = 0x0004;
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct POINT { public int X, Y; }
+
     [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
+    [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT lpPoint);
 
     public static void Text(string s)
     {
@@ -79,7 +86,7 @@ public static class InputInjector
                 }
             });
         }
-        OnLog?.Invoke($"Text \"{s}\"");
+
         SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
     }
 
@@ -101,14 +108,47 @@ public static class InputInjector
                 }
             }
         };
-        OnLog?.Invoke($"Wheel {(horizontal ? "H" : "V")} delta={delta}");
+
         SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    /// <summary>
+    /// Nudge cursor 1px right then back. Forces DXGI Desktop Duplication
+    /// to detect a change and return the current desktop frame.
+    /// </summary>
+    public static void NudgeCursor()
+    {
+        if (GetCursorPos(out var pos))
+        {
+            SetCursorPos(pos.X + 1, pos.Y);
+            SetCursorPos(pos.X, pos.Y);
+        }
     }
 
     public static void MoveAbsolute(int px, int py)
     {
-        OnLog?.Invoke($"SetCursorPos x={px} y={py}");
         SetCursorPos(px, py);
+    }
+
+    public static void MoveRelative(int dx, int dy)
+    {
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = dx,
+                    dy = dy,
+                    mouseData = 0,
+                    dwFlags = MOUSEEVENTF_MOVE,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
 
     public static void Click(bool down, bool right = false)
@@ -131,13 +171,43 @@ public static class InputInjector
                 }
             }
         };
-        OnLog?.Invoke($"Click {(right ? "R" : "L")} {(down ? "DOWN" : "UP")}");
+
+        SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+    }
+
+    /// <summary>
+    /// Click a mouse button by index: 0=left, 1=right, 2=middle.
+    /// </summary>
+    public static void ClickButton(byte button, bool down)
+    {
+        int flags = button switch
+        {
+            0 => down ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP,
+            1 => down ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP,
+            2 => down ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP,
+            _ => 0
+        };
+        if (flags == 0) return;
+        var inp = new INPUT
+        {
+            type = INPUT_MOUSE,
+            U = new INPUTUNION
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0, dy = 0, mouseData = 0,
+                    dwFlags = flags,
+                    time = 0, dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
         SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
     }
 
     public static void Key(ushort vk, bool down)
     {
-        OnLog?.Invoke($"Key vk=0x{vk:X2} {(down ? "DOWN" : "UP")}");
+
         var inp = new INPUT
         {
             type = INPUT_KEYBOARD,
