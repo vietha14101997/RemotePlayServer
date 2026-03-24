@@ -99,6 +99,9 @@ namespace RemotePlayServer.Application.Protocol
         // Monitor rects for cursor tracking (x, y, w, h) - populated when monitors are refreshed
         private List<(int x, int y, int w, int h)> _monitorRects = new();
 
+        // Foreground window tracking (auto-switch client view)
+        private ForegroundWindowTracker? _foregroundTracker;
+
         // Cursor tracking (DXGI Desktop Duplication)
         private CancellationTokenSource? _cursorCts;
         private int _lastCursorMonitor = -1;

@@ -113,6 +113,20 @@ namespace RemotePlayServer.Application.Protocol
             // ensures Phase 3 frames start with clean RTP timestamps.
             _streamer?.ResetSyncState();
 
+            // Client always starts viewing monitor 0. Pause all other monitors immediately
+            // after ResetSyncState (which clears _monitorPaused). This prevents encoding
+            // frames for monitors the client isn't viewing, saving GPU and bandwidth.
+            // Without this, the client's pause_monitor message could arrive too late
+            // (consumed by WaitForStartStreamingAsync or wiped by ResetSyncState).
+            if (_streamer != null && _capture != null)
+            {
+                for (int i = 1; i < _streamer.MonitorCount; i++)
+                {
+                    _streamer.PauseMonitor(i);
+                    _capture.PauseMonitor(i);
+                }
+            }
+
             // Initial frame events (OnInitialFrameNeeded, OnInitialFrameSent) are wired
             // in Phase 2 when streamer is created — before DC can open during ICE exchange.
 
@@ -156,6 +170,22 @@ namespace RemotePlayServer.Application.Protocol
             // Start cursor tracking
             var cursorTrackingTask = StartCursorTrackingTask();
             Logger.Info("[Protocol] Cursor tracking started");
+
+            // Start foreground window tracker (auto-switch client view on taskbar click)
+            _foregroundTracker = new ForegroundWindowTracker(
+                onMonitorChanged: (monitorIndex) =>
+                {
+                    try
+                    {
+                        var msg = $"{{\"type\":\"foreground_monitor\",\"monitorIndex\":{monitorIndex}}}";
+                        Logger.Info($"[ForegroundTracker] Window focused on monitor {monitorIndex}");
+                        SendTextAsync(msg).GetAwaiter().GetResult();
+                    }
+                    catch { }
+                },
+                getMonitorRects: () => _monitorRects
+            );
+            _foregroundTracker.Start();
 
             // Start server-side keep-alive for early disconnect detection
             StartKeepAlive();
@@ -229,6 +259,16 @@ namespace RemotePlayServer.Application.Protocol
                     {
                         Logger.Info("[Protocol] Received resume_streaming");
                         _streamer?.Resume();
+
+                        // Force capture frames on all monitors to ensure client gets frames
+                        // even if desktop is idle (InitialFrameSent=true from previous session).
+                        // Also reset InitialFrameSent so idle detection forces initial frame.
+                        if (_capture != null)
+                        {
+                            foreach (var mon in _capture.Monitors)
+                                mon.InitialFrameSent = false;
+                            _capture.ForceFramesForInput(3);
+                        }
                         continue;
                     }
 
@@ -619,6 +659,10 @@ namespace RemotePlayServer.Application.Protocol
             StopCursorTracking();
             Logger.Info("[Protocol] Cursor tracking stopped");
 
+            // Stop foreground window tracker
+            _foregroundTracker?.Dispose();
+            _foregroundTracker = null;
+
             Logger.Info("[Protocol] Phase 3: Stream ended");
         }
 
@@ -687,11 +731,6 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Desktop idle detection — server-side only (skip encode on idle monitors).
-            // NO notification to client: cursor blink (~500ms cycle) causes IDLE↔ACTIVE
-            // transitions that spam the client and trigger unnecessary IDR keyframes.
-            // Intra refresh handles quality recovery automatically after idle periods.
-            // Client stall detection is suppressed by the absence of new frames (natural pause).
         }
 
         private void StartCaptureThread()

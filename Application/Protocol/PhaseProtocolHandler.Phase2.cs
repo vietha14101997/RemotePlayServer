@@ -336,7 +336,11 @@ namespace RemotePlayServer.Application.Protocol
             if (_capture != null)
             {
                 var captureForInput = _capture;
-                InputReceiver.OnInputInjected += () => captureForInput.ForceFramesForInput(5);
+                var streamerForInput = _streamer;
+                InputReceiver.OnInputInjected += () =>
+                {
+                    captureForInput.ForceFramesForInput(5);
+                };
             }
 
             // ICE candidate forwarding

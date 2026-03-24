@@ -28,26 +28,37 @@ public partial class SIPSorceryStreamer
             _audioCapture = new DesktopAudioCapture();
             _opusEncoder = new OpusAudioEncoder();
 
-            // Wire: capture -> encoder -> RTP send
+            // Wire: capture -> DC (raw PCM) + encoder -> RTP (Opus, fallback)
             _audioCapture.OnAudioData += (pcm, length, sampleRate, channels, timestampMs) =>
             {
-                if (_isPaused || !_connected || !_running) return;
+                if (_isPaused || !_connected || !_running || !_phase3Active) return;
+
+                // Primary: send raw PCM16 via DataChannel for lowest latency.
+                // Bypasses Opus encode+decode + libwebrtc jitter buffer entirely.
+                // 48kHz stereo PCM16 = 192KB/s (~1.5Mbps), acceptable for USB/LAN.
+                var dc = _audioDc;
+                if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                {
+                    try
+                    {
+                        var packet = new byte[length];
+                        Buffer.BlockCopy(pcm, 0, packet, 0, length);
+                        dc.send(packet);
+                        Interlocked.Increment(ref _audioPacketsSent);
+                    }
+                    catch { }
+                    return; // Don't also send via RTP
+                }
+
+                // Fallback: Opus via RTP when DC not available
                 _opusEncoder.EncodePcm(pcm, length, sampleRate, channels, timestampMs);
             };
 
             _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
             {
-                if (!_connected || !_running || _mainPc == null) return;
-                // Stop sending audio when paused — Opus encoder may still have buffered
-                // data from EncodePcm calls that arrived before _isPaused was set.
-                if (_isPaused) return;
-                // Don't send audio during early capture — contributes to WiFi congestion
-                if (!_phase3Active) return;
+                if (!_connected || !_running || _mainPc == null || _isPaused || !_phase3Active) return;
                 try
                 {
-                    // Primary: send Opus via RTP (independent UDP transport).
-                    // With H.265 video on DataChannel, SCTP congestion starves audio DC
-                    // causing 300-500ms delay + distortion. RTP travels separate UDP path.
                     var pc = _mainPc;
                     if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
                     {
@@ -56,48 +67,25 @@ public partial class SIPSorceryStreamer
                         pc.SendAudio(rtpDuration, packet);
                         Interlocked.Increment(ref _audioPacketsSent);
                     }
-                    else
-                    {
-                        // Fallback: send Opus via DataChannel if RTP not available
-                        var dc = _audioDc;
-                        if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
-                        {
-                            var packet = new byte[opusLength];
-                            Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-                            dc.send(packet);
-                            Interlocked.Increment(ref _audioPacketsSent);
-                        }
-                    }
                 }
-                catch (Exception ex)
-                {
-                    if (Environment.TickCount64 % 5000 < 20)
-                        Logger.Error($"[SIPSorcery] Audio send error: {ex.Message}");
-                }
+                catch { }
             };
 
-            // Log which audio path is active (one-time, after first successful send)
             bool audioPathLogged = false;
-
-            _opusEncoder.OnEncodedAudio += (_, _, _, _) =>
+            _audioCapture.OnAudioData += (_, _, _, _, _) =>
             {
                 if (audioPathLogged) return;
                 var dcCheck = _audioDc;
-                if (_mainPc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                 {
-                    Logger.Info("[SIPSorcery] Audio path: RTP primary (independent UDP, avoids SCTP congestion from H.265 video DC)");
-                    audioPathLogged = true;
-                }
-                else if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
-                {
-                    Logger.Info("[SIPSorcery] Audio path: DataChannel fallback (RTP not connected)");
+                    Logger.Info("[SIPSorcery] Audio path: DataChannel PCM (zero encode/decode latency)");
                     audioPathLogged = true;
                 }
             };
 
             _audioCapture.Start();
 
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI loopback -> Opus -> RTP primary)");
+            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI -> PCM DC primary, Opus RTP fallback)");
         }
         catch (Exception ex)
         {

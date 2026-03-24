@@ -43,7 +43,7 @@ public static class InputInjector
     const int KEYEVENTF_UNICODE = 0x0004;
 
     [StructLayout(LayoutKind.Sequential)]
-    struct POINT { public int X, Y; }
+    public struct POINT { public int X, Y; }
 
     [StructLayout(LayoutKind.Sequential)]
     struct CURSORINFO
@@ -58,7 +58,7 @@ public static class InputInjector
 
     [DllImport("user32.dll")] static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     [DllImport("user32.dll")] static extern bool SetCursorPos(int X, int Y);
-    [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT lpPoint);
+    [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT lpPoint);
     [DllImport("user32.dll")] static extern bool GetCursorInfo(ref CURSORINFO pci);
     [DllImport("user32.dll")] static extern bool ClipCursor(ref RECT lpRect);
     [DllImport("user32.dll")] static extern bool ClipCursor(IntPtr lpRect); // null to release
@@ -159,13 +159,19 @@ public static class InputInjector
         SetCursorPos(px, py);
     }
 
+    // Active confinement rect — enforced after each MoveRelative
+    // because Windows drag (WM_MOVING) overrides ClipCursor.
+    private static RECT? _confineRect;
+    private static readonly object _confineLock = new();
+
     /// <summary>
     /// Confine cursor to a rectangular area (monitor bounds).
-    /// Cursor cannot move outside this rect until released.
+    /// Uses both ClipCursor (OS-level) and post-move clamping (drag-safe).
     /// </summary>
     public static void ConfineCursor(int left, int top, int right, int bottom)
     {
         var rect = new RECT { Left = left, Top = top, Right = right, Bottom = bottom };
+        lock (_confineLock) { _confineRect = rect; }
         bool result = ClipCursor(ref rect);
         Console.WriteLine($"[InputInjector] ClipCursor({left},{top},{right},{bottom}) = {result}");
     }
@@ -175,6 +181,7 @@ public static class InputInjector
     /// </summary>
     public static void ReleaseCursorConfinement()
     {
+        lock (_confineLock) { _confineRect = null; }
         ClipCursor(IntPtr.Zero);
     }
 
@@ -197,6 +204,20 @@ public static class InputInjector
             }
         };
         SendInput(1, new[] { inp }, Marshal.SizeOf<INPUT>());
+
+        // Post-move clamp: Windows drag overrides ClipCursor, so enforce manually
+        RECT? confine;
+        lock (_confineLock) { confine = _confineRect; }
+        if (confine.HasValue && GetCursorPos(out var pos))
+        {
+            var r = confine.Value;
+            int cx = Math.Clamp(pos.X, r.Left, r.Right - 1);
+            int cy = Math.Clamp(pos.Y, r.Top, r.Bottom - 1);
+            if (cx != pos.X || cy != pos.Y)
+            {
+                SetCursorPos(cx, cy);
+            }
+        }
     }
 
     public static void Click(bool down, bool right = false)

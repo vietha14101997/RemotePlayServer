@@ -160,6 +160,7 @@ public partial class SIPSorceryStreamer : IDisposable
         // applied by next PushBgraTexture call. Prevents calling AMF SetBitrate while encode is active.
         public volatile int PendingBitrateKbps; // 0 = no pending change
 
+
         // Deferred send: buffer encoded frame for coordinated multi-track sending
         public volatile PendingFrameData? PendingFrame;
         public class PendingFrameData

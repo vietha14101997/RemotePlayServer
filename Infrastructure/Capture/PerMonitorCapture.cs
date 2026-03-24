@@ -113,6 +113,8 @@ public sealed class PerMonitorCapture : IDisposable
         public long IdleFrameCount;       // Consecutive frames with no desktop update
         public long LastActiveFrameTime;  // Timestamp (ms) of last frame with actual desktop change
         public bool WasIdle;              // Previous idle state (for edge detection)
+        public int IdleNudgePhase; // unused, kept for compilation
+        public ID3D11Texture2D? IdlePixelStaging; // unused, kept for cleanup
         public bool InitialFrameSent;     // True after first frame has been sent (ensures client gets immediate content)
 
         // Input-driven frame forcing: when client sends input (mouse/keyboard/gamepad),
@@ -269,13 +271,18 @@ public sealed class PerMonitorCapture : IDisposable
 
     /// <summary>
     /// Resume capture for a specific monitor.
+    /// Forces initial frame + a few capture cycles to ensure client gets content
+    /// even if desktop is idle.
     /// </summary>
     public void ResumeMonitor(int monitorIndex)
     {
         if (monitorIndex >= 0 && monitorIndex < Monitors.Count)
         {
-            Monitors[monitorIndex].Paused = false;
-            Logger.Info($"[PerMonitorCapture] Monitor {monitorIndex}: RESUMED");
+            var mon = Monitors[monitorIndex];
+            mon.Paused = false;
+            mon.InitialFrameSent = false;
+            mon.InputForceFrames = Math.Max(mon.InputForceFrames, 3);
+            Logger.Info($"[PerMonitorCapture] Monitor {monitorIndex}: RESUMED (forced initial frame)");
         }
     }
 
@@ -746,9 +753,8 @@ public sealed class PerMonitorCapture : IDisposable
                         if (!desktopChanged)
                         {
                             mon.IdleFrameCount++;
-                            // Debounced idle transition: require 5 consecutive idle frames (~83ms @ 60fps)
-                            // before notifying client. Prevents ACTIVE↔IDLE flicker from cursor blink,
-                            // clock updates, notification badges, etc.
+
+                            // Debounced idle notification (30 frames = ~500ms)
                             if (!mon.WasIdle && mon.IdleFrameCount >= 30)
                             {
                                 mon.WasIdle = true;
@@ -756,11 +762,10 @@ public sealed class PerMonitorCapture : IDisposable
                                 catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
                                 Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop IDLE (skipping encode)");
                             }
-                            // Still process cursor updates below, but skip CopyResource + encode
                             goto CursorOnly;
                         }
 
-                        // Desktop changed — reset idle counter and fire ACTIVE only if was truly idle
+                        // Desktop changed — reset idle counter
                         mon.IdleFrameCount = 0;
                         mon.LastActiveFrameTime = loopStart;
                         if (mon.WasIdle)

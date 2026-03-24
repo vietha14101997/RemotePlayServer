@@ -267,10 +267,10 @@ public sealed class DesktopAudioCapture : IDisposable
         long now = Environment.TickCount64;
         long elapsed = now - _lastDataTimeTicks;
 
-        // Phase 1: Detection — 100ms threshold avoids false triggers during WASAPI callback delays
-        // caused by CPU-intensive video encoding (AMF + capture + GPU scaling).
-        // 30ms was too low (caused mid-frame silence injection), 500ms was too high (caused drift).
-        if (elapsed < 100)
+        // Phase 1: Detection — 50ms threshold balances responsiveness vs false triggers.
+        // 30ms was too low (false triggers from WASAPI callback delays during heavy encoding).
+        // 100ms was too high (user-visible audio lag when music paused on server).
+        if (elapsed < 50)
         {
             _silenceActive = false;
             return;

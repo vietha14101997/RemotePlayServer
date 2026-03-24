@@ -22,6 +22,14 @@ public partial class SIPSorceryStreamer
     private const ulong DC_BUFFER_LOW_WATER  = 256_000;  // 256KB — buffer drained
     private const ulong DC_BUFFER_MID_WATER  = 768_000;  // 768KB — partially drained, allow IDR for resync
     private const ulong DC_BUFFER_HIGH_WATER = 2_097_152;  // 2MB — accommodate scroll/animation bursts on WiFi
+
+    // Frame padding: pad small SCTP messages to MIN_FRAME_MSG_SIZE to avoid Nagle batching delay.
+    // SCTP batches messages <~1KB waiting for MTU fill, adding 5-15ms latency to small P-frames.
+    // Protocol v2 header: [type(1)][trackIdx(1)][chunkIdx(1)][totalChunks(1)][originalSize(2 BE)][data...][padding...]
+    // Must exceed typical SCTP path MTU (~1200 IPv6, ~1400 IPv4) to force immediate flush.
+    // At 1024 the message still fits in one MTU → Nagle can delay it waiting for ACK.
+    private const int MIN_FRAME_MSG_SIZE = 1400;
+    private const int PADDED_HEADER_SIZE = 6; // type + trackIdx + chunkIdx + totalChunks + originalSize(2)
     private bool _dcWasAboveHigh;    // legacy single-DC: track transition from HIGH→LOW for IDR resync
     // Per-track congestion state moved to TrackInfo (DcSoftCongestion, CongestionBitrateReduced, etc.)
     // Staggered IDR after drain: global cooldown ensures only 1 track gets IDR at a time
@@ -797,14 +805,7 @@ public partial class SIPSorceryStreamer
                 int offset = chunk * MAX_CHUNK;
                 int len = Math.Min(MAX_CHUNK, idrData.Length - offset);
 
-                // Header: [type=0x03][trackIndex][chunkIndex][totalChunks]
-                var msg = new byte[4 + len];
-                msg[0] = 0x03; // message type: h265_idr_data
-                msg[1] = (byte)track.Index;
-                msg[2] = (byte)chunk;
-                msg[3] = (byte)totalChunks;
-                Buffer.BlockCopy(idrData, offset, msg, 4, len);
-
+                var msg = BuildPaddedMessage(0x03, track.Index, chunk, totalChunks, idrData, offset, len);
                 dc.send(msg);
             }
 
@@ -906,14 +907,7 @@ public partial class SIPSorceryStreamer
                 int offset = chunk * MAX_CHUNK;
                 int len = Math.Min(MAX_CHUNK, pframeData.Length - offset);
 
-                // Header: [type=0x04][trackIndex][chunkIndex][totalChunks]
-                var msg = new byte[4 + len];
-                msg[0] = 0x04; // message type: h265_pframe_data
-                msg[1] = (byte)track.Index;
-                msg[2] = (byte)chunk;
-                msg[3] = (byte)totalChunks;
-                Buffer.BlockCopy(pframeData, offset, msg, 4, len);
-
+                var msg = BuildPaddedMessage(0x04, track.Index, chunk, totalChunks, pframeData, offset, len);
                 dc.send(msg);
             }
 
@@ -1081,6 +1075,36 @@ public partial class SIPSorceryStreamer
             i = nalEnd;
         }
         return result.ToArray();
+    }
+
+    /// <summary>
+    /// Build a padded video frame message (protocol v2).
+    /// Format: [type(1)][trackIdx(1)][chunkIdx(1)][totalChunks(1)][originalSize(2 BE)][NAL data...][zero padding...]
+    /// Small messages (&lt;1KB) are padded to MIN_FRAME_MSG_SIZE to force immediate SCTP flush,
+    /// avoiding Nagle-like batching that adds 5-15ms latency to small P-frames.
+    /// Large messages (&gt;= MIN_FRAME_MSG_SIZE) are sent at actual size (no padding needed).
+    /// </summary>
+    private static byte[] BuildPaddedMessage(byte type, int trackIndex, int chunkIndex, int totalChunks,
+        byte[] data, int dataOffset, int dataLen)
+    {
+        int msgSize = Math.Max(PADDED_HEADER_SIZE + dataLen, MIN_FRAME_MSG_SIZE);
+        var msg = new byte[msgSize];
+
+        // Header
+        msg[0] = type;
+        msg[1] = (byte)trackIndex;
+        msg[2] = (byte)chunkIndex;
+        msg[3] = (byte)totalChunks;
+
+        // Original payload size (uint16 big-endian) — client uses this to strip padding
+        msg[4] = (byte)((dataLen >> 8) & 0xFF);
+        msg[5] = (byte)(dataLen & 0xFF);
+
+        // NAL data
+        Buffer.BlockCopy(data, dataOffset, msg, PADDED_HEADER_SIZE, dataLen);
+
+        // Remaining bytes (if any) are already zeroed by new byte[msgSize]
+        return msg;
     }
 
     /// <summary>

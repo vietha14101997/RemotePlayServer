@@ -448,7 +448,16 @@ public partial class SIPSorceryStreamer
         }
         _isPaused = false;
         _audioCapture?.Resume();
-        Logger.Info("[SIPSorcery] Streaming resumed");
+
+        // Reset IdrViaDcCount so codec config (VPS/SPS/PPS) is re-sent on next IDR.
+        // Client destroys decoders on pause and needs fresh codec config to reconfigure.
+        lock (_lock)
+        {
+            foreach (var track in _tracks)
+                track.IdrViaDcCount = 0;
+        }
+
+        Logger.Info("[SIPSorcery] Streaming resumed (codec config will be re-sent)");
 
         // Request keyframe on all tracks for immediate visual update (bypass throttle)
         RequestKeyframe(-1, force: true);

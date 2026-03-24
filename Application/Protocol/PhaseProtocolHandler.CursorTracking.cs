@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RemotePlayServer.Core;
@@ -9,6 +10,33 @@ using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Protocol
 {
+    public partial class PhaseProtocolHandler
+    {
+        // Caret (text cursor) tracking via GetGUIThreadInfo
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GUITHREADINFO
+        {
+            public int cbSize;
+            public int flags;
+            public IntPtr hwndActive;
+            public IntPtr hwndFocus;
+            public IntPtr hwndCapture;
+            public IntPtr hwndMenuOwner;
+            public IntPtr hwndMoveSize;
+            public IntPtr hwndCaret;
+            public int rcCaretLeft, rcCaretTop, rcCaretRight, rcCaretBottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WPOINT { public int X, Y; }
+
+        [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO info);
+        [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr hWnd, ref WPOINT lpPoint);
+
+        private float _lastCaretU = -1f;
+        private int _lastCaretMonitor = -1;
+    }
+
     public partial class PhaseProtocolHandler
     {
         /// <summary>
@@ -190,6 +218,35 @@ namespace RemotePlayServer.Application.Protocol
                                 await SendMessageAsync(msg);
                             }
                         }
+
+                        // Track text caret position for keyboard placement on client
+                        try
+                        {
+                            var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf<GUITHREADINFO>() };
+                            if (GetGUIThreadInfo(0, ref gti) && gti.hwndCaret != IntPtr.Zero)
+                            {
+                                var pt = new WPOINT { X = gti.rcCaretLeft, Y = gti.rcCaretTop };
+                                if (ClientToScreen(gti.hwndCaret, ref pt))
+                                {
+                                    for (int ci = 0; ci < _monitorRects.Count; ci++)
+                                    {
+                                        var r = _monitorRects[ci];
+                                        if (pt.X >= r.x && pt.X < r.x + r.w && pt.Y >= r.y && pt.Y < r.y + r.h)
+                                        {
+                                            float caretU = (float)(pt.X - r.x) / r.w;
+                                            if (Math.Abs(caretU - _lastCaretU) > 0.05f || ci != _lastCaretMonitor)
+                                            {
+                                                _lastCaretU = caretU;
+                                                _lastCaretMonitor = ci;
+                                                _ = SendTextAsync($"{{\"type\":\"caret_position\",\"monitorIndex\":{ci},\"u\":{caretU:F3}}}");
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
 
                         await Task.Delay(POLL_INTERVAL_MS, ct);
                     }
