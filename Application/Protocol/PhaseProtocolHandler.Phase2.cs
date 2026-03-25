@@ -938,15 +938,10 @@ namespace RemotePlayServer.Application.Protocol
                 var codecPayloadType = ParseCodecPayloadType(offerSdp, _selectedCodec);
                 Logger.Info($"[Protocol] Parsed {_selectedCodec} PT from offer: {codecPayloadType}");
 
-                // Single monitor: disable per-track PC mode.
-                // Per-track PCs exist to isolate SCTP buffers across monitors (no cross-track congestion).
-                // With 1 monitor there's no cross-track issue, and the client's offer includes a video
-                // track on the main PC for single-monitor mode — it won't respond to separate video_offers.
-                if (_perTrackPc && dimensions.Count <= 1)
-                {
-                    Logger.Info("[Protocol] Single monitor: disabling perTrackPc (unnecessary, client uses main PC video)");
-                    _perTrackPc = false;
-                }
+                // Always use per-track PC when client supports it — even for single monitor.
+                // Per-track PCs isolate video SCTP from audio SCTP on the main PC.
+                // Without this, large video frames (IDR 200-450KB) cause head-of-line blocking
+                // on the shared SCTP association, delaying audio PCM packets noticeably.
 
                 // H264 codec: disable per-track PC mode.
                 // SIPSorcery auto-matches H264 (standard WebRTC codec) and creates video m-lines

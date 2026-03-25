@@ -307,12 +307,12 @@ public partial class SIPSorceryStreamer : IDisposable
 
         var range = GetBitrateRange(_resolutionHeight, _fps);
         int maxBitrate = range.MaxBitrate;
-        // H265 via DataChannel/SCTP has lower throughput ceiling than H264 via RTP/UDP.
-        // Cap per-encoder bitrate to prevent SCTP buffer saturation.
-        // Production: 7Mbps stable (dc<25KB), 10Mbps caused client freeze with 2 monitors.
-        // Safe ceiling: 8Mbps per encoder (2 × 8 = 16Mbps total SCTP throughput).
+        // H265 via DataChannel/SCTP: per-track PC mode gives each monitor its own SCTP
+        // association, so no cross-track congestion. Cap per-encoder to 20Mbps to stay
+        // within WiFi SCTP throughput limits while allowing high quality 1080p streaming.
+        // Previous 8Mbps cap was set when all monitors shared one SCTP — no longer needed.
         if (codec == VideoCodec.H265)
-            maxBitrate = Math.Min(maxBitrate, 8000);
+            maxBitrate = Math.Min(maxBitrate, 20000);
         _bitrateController.Initialize(range.MinBitrate, maxBitrate);
 
         Logger.Info($"[SIPSorcery] Created: {monitorCount} monitors, {fps}fps, {_resolutionHeight}p, codec={codec}");

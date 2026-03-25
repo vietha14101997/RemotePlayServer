@@ -92,8 +92,8 @@ namespace RemotePlayServer.Application.Streaming
             MinBitrateKbps = minBitrateKbps;
             MaxBitrateKbps = maxBitrateKbps;
 
-            // "Start High, Adjust Down": default initial = 80% of max
-            int initial = initialBitrateKbps ?? (int)(maxBitrateKbps * 0.8);
+            // "Start High, Adjust Down": default initial = max (server adjusts down if needed)
+            int initial = initialBitrateKbps ?? maxBitrateKbps;
             initial = Math.Clamp(initial, minBitrateKbps, maxBitrateKbps);
 
             InitialBitrateKbps = initial;
