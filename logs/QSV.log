@@ -1,0 +1,726 @@
+=== RemotePlayServer ===
+22:33:23.604 [Logger] File logging started: C:\Program Files\RemotePlay Server\logs\server_20260325_223323.log
+[System] Running as Administrator: YES
+[System] Process: C:\Program Files\RemotePlay Server\RemotePlayServer.exe
+[System] Local IP: 192.168.1.13
+
+=== Dependency Check ===
+22:33:23.690 [Dependencies] FFmpeg binaries found.
+22:33:23.767 [Dependencies] ADB found at: C:\Program Files\RemotePlay Server\tools\platform-tools\adb.exe
+[Dependencies] All dependencies ready.
+[Encoder] FFmpeg x264 (Software)
+[Firewall] Rule 'RemotePlayServer' exists ✓
+[Firewall] Rule 'RemotePlayServer-Discovery' exists ✓
+22:33:24.469 [TextScale] Actual DPI for \\.\DISPLAY1: 96
+22:33:24.469 [Guard] Saved original text scale for \\.\DISPLAY1: 100%
+22:33:24.473 [Guard] DPI snapshot: Source 0 = 100% (logPixels=96)
+22:33:24.474 [Guard] Saved DPI snapshot for 1 active monitors (via API)
+22:33:24.812 [Guard] Snapshot captured.
+[System] Startup recovery task registered.
+=== Monitors ===
+  \\.\DISPLAY1: 1920x1080 [Physical]
+22:33:24.948 [ADB] Found adb at: C:\Program Files\RemotePlay Server\tools\platform-tools\adb.exe
+[USB] No USB connection. Plug in USB cable for USB streaming.
+[HTTP] http://+:8288/
+[HTTP] Server: 192.168.1.13:8288
+[Codec] Preferred codec: H265
+22:33:25.330 [SIPSorcery] Pre-warming DTLS crypto...
+22:33:28.249 [SIPSorcery] DTLS pre-warm done in 2919ms
+
+=== QRCode (Scan to connect) ===
+Data: {"ip":"192.168.1.13","port":"8288"}
+█████████████████████████████████████
+█████████████████████████████████████
+████ ▄▄▄▄▄ █ ▀█▀█ ▄▄  ██ █ ▄▄▄▄▄ ████
+████ █   █ ██▀ ██  ▀▄ ▀▄██ █   █ ████
+████ █▄▄▄█ █ ▀█▄ ▄█▄▀ ▀█▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█▄▀▄█▄▀ █▄▀ █▄█▄▄▄▄▄▄▄████
+████▄▄  ▀ ▄██▄▀▀▄▄█▀   █▄▄▀▄▄▀▀▄ ████
+█████▀█▄▄▄▄ ▄█▄█▀▄  ███▄ █  ▄███ ████
+████▀ ▄▄▄█▄▀ ▀█▄▀▄ ▀ ▀█▄▀▄ ▀ ▀█▄▀████
+████▄ ▄███▄▀▀ ▀▄▄▀ ▀▀ ▀  ▀ ██ ▀  ████
+████▄█▀▄▀ ▄▀ ▄▄ ▀█   █▄  ▀▄  █▄  ████
+█████ ▀▄▄▀▄▄███▀▀█▄▀ ▄██ █▀█  ▀█ ████
+█████▄██▄▄▄▄▄ █▀▄  ▀█▄▄▀ ▄▄▄ █▄  ████
+████ ▄▄▄▄▄ █▀▄▄▀▀▄▀▄█▄▀▀ █▄█ ▀▀▄█████
+████ █   █ █▀ ██▀ ▄▄█ ▄█  ▄▄▄▀▀██████
+████ █▄▄▄█ █  ███▄▄▀██ ██ ▄██▄▀▀▀████
+████▄▄▄▄▄▄▄█▄▄▄▄▄▄▄██▄▄█▄▄▄██▄▄▄█████
+█████████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+=== Connection Options ===
+  [USB]  Not available. Plug in USB cable
+  [LAN]  Auto-discovery active (UDP broadcast on port 8289)
+  [WiFi] 192.168.1.13:8288 (Scan QR code above)
+
+Server is running. Press ENTER to exit.
+22:33:28.654 [Discovery] Probe listener started on UDP port 8289
+22:33:28.661 [Discovery] Broadcasting on UDP port 8289 every 2s
+22:33:30.821 [Discovery] Probe received from 192.168.1.11:43753 — replying with beacon
+22:33:33.893 [Discovery] Probe received from 192.168.1.11:43753 — replying with beacon
+22:33:36.863 [Discovery] Probe received from 192.168.1.11:43753 — replying with beacon
+[Signal] Client connected e0c0b6ad-d860-414d-8411-e3abafa31198, protocol=v2, transport=LAN
+22:33:37.652 [Protocol] Client e0c0b6ad-d860-414d-8411-e3abafa31198 connected from 192.168.1.11 (v2 protocol, transport=WiFi)
+22:33:37.655 [Protocol] Phase changed to: Phase1_HardwareDetect
+22:33:37.656 [Protocol] Phase 1: Gathering hardware info...
+22:33:37.659 [HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+22:33:37.766 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+22:33:37.767 [HardwareInfo] DXGI VRAM: 134217728 bytes = 128 MB
+22:33:37.869 [HardwareInfo] SetDllDirectory: C:\Program Files\RemotePlay Server\bin
+22:33:37.898 [HardwareInfo] FFmpeg.RootPath: C:\Program Files\RemotePlay Server\bin
+22:33:37.898 [HardwareInfo] Added to PATH: C:\Program Files\RemotePlay Server\bin
+22:33:38.082 [HardwareInfo] HEVC encoder 'hevc_qsv': found, verifying with trial encode...
+[AVHWDeviceContext @ 000001d5009ccf00] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+[hevc_qsv @ 000001d500547940] some encoding parameters are not supported by the QSV runtime. Please double check the input parameters.
+22:33:38.209 [WARN] [HardwareInfo] Trial encode: avcodec_open2 failed for 'hevc_qsv' (error=-40)
+22:33:38.210 [HardwareInfo] HEVC encoder 'hevc_qsv': trial encode FAILED
+22:33:38.210 [HardwareInfo] Encoder: QSV, HwAccel: True, HEVC: False, Codecs: [H264]
+22:33:38.214 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+22:33:38.215 [Protocol] Refreshed 1 monitor rects for cursor tracking (from 1 DXGI outputs)
+22:33:38.225 [Protocol] Sent hardware info to client
+22:33:38.225 [Protocol] Waiting for hardware_info_ack...
+22:33:38.412 [Protocol] WaitForHardwareAck received: len=258, text={"type":"hardware_info_ack","clientCodecs":{"supportedCodecs":["H265","H264"],"preferredCodec":"H265...
+22:33:38.413 [Protocol] WaitForHardwareAck msgType=hardware_info_ack
+22:33:38.416 [Protocol] Client codec capabilities: HEVC=True, preferred=H265, device=V2352GA
+22:33:38.416 [Protocol] Client screen resolution: 1260x2800
+22:33:38.418 [Protocol] Encoder libvpx-vp9: available
+22:33:38.418 [Protocol] Encoder libvpx: available
+22:33:38.418 [Protocol] Server supported codecs: [H264, VP9, VP8]
+22:33:38.418 [Protocol] Client supported codecs: [H265, H264]
+22:33:38.419 [Protocol] Preferred codec (config): H265
+22:33:38.419 [WARN] [Protocol] Preferred codec H265 not supported by both sides, falling back to auto
+22:33:38.419 [Protocol] Codec negotiation: selected H264
+22:33:38.419 [Protocol] Client perTrackPc: True
+22:33:38.420 [Protocol] Received hardware_info_ack
+22:33:38.420 [Protocol] Phase changed to: Phase1_SpeedTest
+22:33:38.420 [Protocol] Phase 1: Waiting for client speed test result...
+22:33:38.839 [Protocol] WaitForSpeedTest received: type=speedtest_request, len=69
+22:33:38.839 [Protocol] Processing speedtest_request...
+22:33:38.843 [Protocol] Handling speedtest_request: direction=download, duration=2000ms
+22:33:41.312 [Protocol] Download test complete: sent 32MB in 2218ms = 121.0 Mbps
+22:33:41.312 [Protocol] speedtest_request handled, continuing to wait...
+22:33:41.320 [Protocol] WaitForSpeedTest received: type=speedtest_result, len=100
+22:33:41.320 [Protocol] Processing speedtest_result...
+22:33:41.326 [Protocol] speedtest_result parsed: 129.5Mbps, 6.5ms
+22:33:41.326 [Protocol] ✓ Received speedtest_result from client: 129.5Mbps, 6.5ms ping
+22:33:41.326 [Protocol] Calculating suggested config...
+22:33:41.335 [Protocol] Max supported monitor refresh rate: 60Hz
+22:33:41.337 [Protocol] Sending suggested_config: 3x1920x1080@60fps, bitrate=15000kbps, codec=H264, transport=WiFi
+22:33:41.341 [Protocol] ✓ suggested_config sent successfully
+22:33:41.341 [Protocol] Phase changed to: Phase1_WaitingProceed
+22:33:41.341 [Protocol] Phase 1: Waiting for client proceed...
+22:33:43.586 [Protocol] WaitForProceed received: ping:1774452823071...
+22:33:45.797 [Protocol] WaitForProceed received: {"type":"display_config","monitors":2,"resolution":{"w":1280,"h":720},"refreshRate":30,"bitrateKbps"...
+22:33:45.797 [Protocol] Buffering early display_config
+22:33:45.843 [Protocol] WaitForProceed received: {"type":"proceed","phase":2}...
+22:33:45.844 [Protocol] Received proceed message, phase=2, expected=2
+22:33:45.845 [Protocol] Phase 1 complete, proceeding to Phase 2
+22:33:45.847 [Protocol] Phase changed to: Phase2_ApplyConfig
+22:33:45.847 [Protocol] Phase 2: Waiting for display config...
+22:33:45.848 [Protocol] Using buffered display_config
+22:33:45.848 [Protocol] Received display config: 2x1280x720@30fps
+22:33:45.851 [Protocol] Applying new display config: 2 monitors @ 30fps (keeping native resolution)
+[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+22:33:45.855 [Protocol] Physical monitors (1) < requested (2), creating VDD...
+[VDD] Physical monitor: \\.\DISPLAY1 (1920x1080@60Hz)
+[VDD] Physical: 1, Virtual needed: 1 (target: 2)
+[VDD Pipe] Not available (driver not running or old version)
+[VDD] Pipe unavailable, using pnputil fallback...
+[VDD] Set monitor count to 1 in C:\VirtualDisplayDriver\vdd_settings.xml
+[VDD] Disabling VDD for config reload...
+[pnputil] /disable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+[pnputil] /scan-devices
+Microsoft PnP Utility
+
+Scanning for device hardware changes.
+Scan complete.
+
+
+[pnputil] /enable-device "ROOT\DISPLAY\0000"
+Microsoft PnP Utility
+
+Enabling device:          ROOT\DISPLAY\0000
+Device enabled successfully.
+
+
+[VDD] 2 monitors detected (225ms)
+[Display] Setting up multi-monitor system...
+[Display] Physical: 1, Virtual: 1
+[Display] Setting \\.\DISPLAY13 [VIRTUAL] -> 1920x1080@60Hz at (1920, 0)
+22:33:54.421 [DisplayUtil] \\.\DISPLAY13 current position: (1920,0)
+22:33:54.428 [DisplayUtil] SetResolutionAndPosition QUEUED for \\.\DISPLAY13: (1920,0) 1920x1080@60Hz
+22:33:54.444 [DisplayUtil] ApplyDisplayChanges: SUCCESS
+[Display] Ensuring \\.\DISPLAY1 is PRIMARY (original)
+[Display] \\.\DISPLAY1 set as primary at (0,0) 1920x1080@60Hz
+[Display] Multi-monitor system configured:
+[Display]   \\.\DISPLAY1 1920x1080 at (0,0) [PHYSICAL] [PRIMARY]
+[Display]   \\.\DISPLAY13 1920x1080 at (1920,0) [VIRTUAL]
+[Display] Setting Windows Scale and Layout to 125%...
+22:33:55.483 [DpiScaling] Setting 125% for 2 monitor(s)...
+22:33:55.483 [DpiScaling] Monitor 0: current=100%, recommended=150%, max=175%
+22:33:55.515 [DpiScaling] ✓ Set DPI to 125%
+22:33:55.520 [DpiScaling] Monitor 0: current=125%, recommended=100%, max=175%
+22:33:55.520 [DpiScaling] Already at 125%
+[Display] Scale and Layout set to 125%
+22:33:56.536 [Guard] Watchdog spawned (PID=12724), monitoring server PID=19084
+22:33:56.568 [Protocol] All monitors by X: \\.\DISPLAY1(P,x=0,PRI), \\.\DISPLAY13(V,x=1920)
+22:33:56.582 [Protocol] Selected (physical→virtual): \\.\DISPLAY1, \\.\DISPLAY13
+22:33:56.586 [Protocol] Monitor 0 (\\.\DISPLAY1): rect=(0,0) 1920x1080
+22:33:56.586 [Protocol] Monitor 1 (\\.\DISPLAY13): rect=(1920,0) 1920x1080
+22:33:56.586 [Protocol] Refreshed 2 monitor rects for cursor tracking (from 2 DXGI outputs)
+22:33:56.587 [Protocol] Available monitors: 2, using: 2
+22:33:56.971 [PerMonitorCapture] Initializing 2 monitors @ 30fps (PARALLEL MODE - separate D3D11 devices)
+22:33:57.038 [PerMonitorCapture] Monitor 0: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+22:33:57.041 [PerMonitorCapture] Monitor 0: \\.\DISPLAY1 1920x1080 - duplication ready
+22:33:57.070 [PerMonitorCapture] Monitor 1: Created D3D11 device (adapter=Intel(R) UHD Graphics 620)
+22:33:57.073 [PerMonitorCapture] Monitor 1: \\.\DISPLAY13 1920x1080 - duplication ready
+22:33:57.074 [PerMonitorCapture] Initialized 2 monitors with SEPARATE D3D11 devices
+22:33:57.078 [Protocol] Creating SIPSorceryStreamer with codec=H264, resolution=720p
+22:33:57.085 [AdaptiveBitrate] Initialized: target=6000kbps, range=[2000-6000]kbps, warmup=15000ms
+22:33:57.086 [SIPSorcery] Created: 2 monitors, 30fps, 720p, codec=H264
+22:33:57.087 [TextureResizer] Initialized for 2 monitors, targetHeight=720p
+22:33:57.088 [Protocol] Created TextureResizer for 2 monitors (targetHeight: 720p, type: standard)
+22:33:57.088 [SIPSorcery] Stored pending device for monitor 0
+22:33:57.089 [Protocol] Monitor 0: Using dedicated D3D11 device
+22:33:57.089 [SIPSorcery] Stored pending device for monitor 1
+22:33:57.089 [Protocol] Monitor 1: Using dedicated D3D11 device
+22:33:57.099 [Protocol] Sent config_complete, ready for ICE exchange
+22:33:57.100 [Protocol] Phase changed to: Phase2_IceExchange
+22:33:57.103 [Protocol] Starting ICE exchange...
+22:33:57.112 [Protocol] ICE RX: ping:1774452826072...
+22:33:57.117 [Protocol] ICE legacy format message
+22:33:57.121 [Protocol] ICE RX: ping:1774452829073...
+22:33:57.122 [Protocol] ICE legacy format message
+22:33:57.122 [Protocol] ICE RX: ping:1774452832074...
+22:33:57.122 [Protocol] ICE legacy format message
+22:33:57.123 [Protocol] ICE RX: ping:1774452835075...
+22:33:57.124 [Protocol] ICE legacy format message
+22:33:57.186 [Protocol] ICE RX: {"type":"offer","monitorIndex":0,"sdp":"v=0\r\no=- 7247861495712868483 2 IN IP4 ...
+22:33:57.187 [Protocol] ICE message type: offer
+22:33:57.213 [SIPSorcery] Sync state reset, Phase 3 pending activation
+22:33:57.213 [Protocol] Received single offer for all monitors
+22:33:57.214 [Protocol] Cleared answer state, preserved 0 pending ICE candidates
+22:33:57.215 [Protocol] Monitor 0 native=1920x1080 -> encoder=1280x720
+22:33:57.215 [Protocol] Monitor 1 native=1920x1080 -> encoder=1280x720
+22:33:57.217 [Protocol] Parsed H264 PT from offer: 96
+22:33:57.218 [Protocol] H264 codec: disabling perTrackPc (SIPSorcery H264 m-line conflict)
+22:33:57.232 [SIPSorcery] Connection closed
+22:33:57.235 [SIPSorcery] Sync state reset, Phase 3 pending activation
+22:33:57.237 [SIPSorcery] Offer H264 pt=96, fmtp=default, perTrackPc=False
+22:33:57.237 [SIPSorcery] Client SDP: a=fingerprint:sha-256 62:74:45:BF:BE:80:1A:FE:64:B1:60:CF:F2:FB:D2:14:92:63:00:47:36:4F:63:DE:C6:73:F1:C9:71:B4:FB:93
+22:33:57.237 [SIPSorcery] Client SDP: a=setup:actpass
+22:33:57.237 [SIPSorcery] Client SDP: a=fingerprint:sha-256 62:74:45:BF:BE:80:1A:FE:64:B1:60:CF:F2:FB:D2:14:92:63:00:47:36:4F:63:DE:C6:73:F1:C9:71:B4:FB:93
+22:33:57.238 [SIPSorcery] Client SDP: a=setup:actpass
+22:33:57.587 [SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)
+22:33:57.605 [SIPSorcery] Main PC: Added video track 0: 1280x720 (device=9AEB1295), SSRC=1618060029
+22:33:57.606 [SIPSorcery] Main PC: Added video track 1: 1280x720 (device=9B0371B5), SSRC=845613553
+22:33:57.610 [SIPSorcery] Main PC: Added SendOnly Opus audio track (RTP transport)
+22:33:57.615 [SIPSorcery] Main PC: Waiting for audio/cursor/h265video DataChannels (per-track or legacy)
+22:33:57.734 [SIPSorcery] Main PC: ICE state: checking
+22:33:57.737 [SIPSorcery] Main PC: Signaling state: have_remote_offer
+22:33:57.738 [SIPSorcery] Main PC: After setRemoteDescription: signalingState=have_remote_offer
+22:33:57.745 [SIPSorcery] Main PC: Local ICE: 3928909093 1 udp 2113937663 192.168.1.13 51480 typ...
+22:33:57.765 [SIPSorcery] Main PC: After createAnswer: signalingState=have_remote_offer, answer.type=answer
+22:33:57.765 [SIPSorcery] Main PC SDP: a=fingerprint:sha-256 33:A3:EE:E9:ED:F4:5C:52:CB:BF:CC:2C:4C:2E:C8:2B:E8:B6:BC:65:F0:7B:40:1C:0D:BF:67:0F:DB:F2:A0:83
+22:33:57.765 [SIPSorcery] Main PC SDP: a=setup:active
+22:33:57.766 [SIPSorcery] Main PC SDP: a=fingerprint:sha-256 33:A3:EE:E9:ED:F4:5C:52:CB:BF:CC:2C:4C:2E:C8:2B:E8:B6:BC:65:F0:7B:40:1C:0D:BF:67:0F:DB:F2:A0:83
+22:33:57.766 [SIPSorcery] Main PC SDP: a=setup:active
+22:33:57.766 [SIPSorcery] Main PC: Answer ready, 989 bytes
+22:33:57.774 [Protocol] Filtered SDP from 989 to 989 bytes
+22:33:57.775 [Protocol] Extracted 1 embedded ICE candidates from answer
+22:33:57.778 [Protocol] Answer JSON: {"type":"answer","monitorIndex":0,"sdp":"v=0\r\no=- 36085 0 IN IP4 127.0.0.1\r\ns=sipsorcery\r\nt=0 0\r\na=group:BUNDLE 0 1\r\nm=audio 9 UDP/TLS/RTP/S...
+22:33:57.779 [Protocol] Sent single answer, len=1010 bytes
+22:33:57.779 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:2957869131 1 udp 212...
+22:33:57.779 [Protocol] ICE message type: candidate
+22:33:57.786 [SIPSorcery] Main PC: Added remote ICE: candidate:2957869131 1 udp 2122194687 192.168.1.11...
+22:33:57.786 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:4111856933 1 udp 212...
+22:33:57.786 [Protocol] ICE message type: candidate
+22:33:57.786 [SIPSorcery] Main PC: Added remote ICE: candidate:4111856933 1 udp 2121998079 127.0.0.1 45...
+22:33:57.786 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:806814165 1 udp 2122...
+22:33:57.786 [Protocol] ICE message type: candidate
+22:33:57.787 [SIPSorcery] Main PC: Added remote ICE: candidate:806814165 1 udp 2122262783 2402:800:610d...
+22:33:57.787 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:3829000109 1 udp 212...
+22:33:57.787 [Protocol] ICE message type: candidate
+22:33:57.787 [SIPSorcery] Main PC: Added remote ICE: candidate:3829000109 1 udp 2122071295 ::1 57609 ty...
+22:33:57.787 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:1802736211 1 tcp 151...
+22:33:57.787 [Protocol] ICE message type: candidate
+22:33:57.787 [SIPSorcery] Main PC: Added remote ICE: candidate:1802736211 1 tcp 1518149375 5.28.205.117...
+22:33:57.787 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:197075377 1 tcp 1518...
+22:33:57.787 [Protocol] ICE message type: candidate
+22:33:57.787 [SIPSorcery] Main PC: Added remote ICE: candidate:197075377 1 tcp 1518018303 127.0.0.1 551...
+22:33:57.787 [Protocol] ICE RX: {"type":"candidate","monitorIndex":0,"candidate":"candidate:445854521 1 tcp 1518...
+22:33:57.788 [Protocol] ICE message type: candidate
+22:33:57.788 [SIPSorcery] Main PC: Added remote ICE: candidate:445854521 1 tcp 1518091519 ::1 35543 typ...
+22:33:57.808 [SIPSorcery] Main PC: Local ICE: 3029980965 1 udp 1677730047 171.241.57.182 51480 t...
+22:33:57.875 [SIPSorcery] Main PC: ICE state: connected
+22:33:57.875 [SIPSorcery] Main PC: ICE CONNECTED - waiting for DTLS...
+22:33:57.877 [SIPSorcery] Main PC: Peer state: connecting
+22:33:57.981 [SIPSorcery] Main PC: Peer state: connected
+22:33:57.981 [SIPSorcery] Main PC: DTLS CONNECTED - initializing encoders now
+22:33:57.983 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+22:33:57.984 [SIPSorcery] Detected GPU vendor: Intel
+22:33:57.985 [SIPSorcery] Track 0: Dimensions changed ( -> ) or (0x0 -> 1280x720), recreating encoder
+22:33:57.988 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+22:33:57.989 [SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+22:33:57.989 [SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+22:33:58.056 [SIPSorcery] Trying QSV native encoder (Media Foundation)...
+22:33:58.058 [QsvNativeWrapper] Initializing BGRA mode 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:58.390 [ERROR] [QsvNativeWrapper] QsvCreateEncoderBgra failed: Failed to find Intel QSV encoder with BGRA input
+22:33:58.390 [ERROR] [SIPSorcery] Track 0: BGRA mode failed, trying NV12 mode...
+22:33:58.392 [QsvNativeWrapper] Initializing 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:58.589 [Protocol] ICE RX: ping:1774452838076...
+22:33:58.589 [Protocol] ICE legacy format message
+22:33:58.706 [ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+22:33:58.706 [ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+22:33:58.707 [QsvNativeWrapper] Disposed
+22:33:58.707 [SIPSorcery] Track 0: Trying LibAv fallback for Intel (skipHEVC=False)...
+22:33:58.710 [SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+22:33:58.711 [SIPSorcery] Track 0: Trying LibAv with H264...
+22:33:58.713 [LibAvEncoderAdapter] Initializing 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:58.713 [LibAvEncoder] SetDllDirectory: C:\Program Files\RemotePlay Server\bin
+22:33:58.714 [LibAvEncoder] FFmpeg.RootPath: C:\Program Files\RemotePlay Server\bin
+22:33:58.715 [LibAvEncoder] SelectEncoder: preferredCodec=H264
+22:33:58.716 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+22:33:58.717 [LibAvEncoder] SelectEncoder: vendor=Intel
+22:33:58.717 [LibAvEncoder] Trying H.264 encoder...
+22:33:58.717 [LibAvEncoder] SelectH264Encoder: vendor=Intel
+22:33:58.717 [LibAvEncoder] Trying encoder: h264_qsv
+22:33:58.717 [ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+22:33:58.718 [LibAvEncoder] Selected H.264 encoder: h264_qsv
+22:33:58.718 [LibAvEncoder] Using encoder: h264_qsv
+22:33:58.719 [LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+22:33:58.719 [LibAvEncoder] QSV VBR mode: target 6000kbps, max 18000kbps
+22:33:58.719 [LibAvEncoder] Intel GPU: Trying QSV hardware context
+22:33:58.720 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002159af8cd80] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+22:33:58.842 [LibAvEncoder] QSV device created directly (matches known good config)
+22:33:58.843 [WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+22:33:58.846 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+22:33:58.847 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+22:33:58.847 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+22:33:58.868 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+22:33:58.869 [LibAvEncoder] Initialized 1280x720 @ 30fps, 6000kbps (D3D11 zero-copy)
+22:33:58.869 [LibAvEncoderAdapter] Initialized successfully with codec: H264
+22:33:58.869 [SIPSorcery] Track 0: LibAv encoder initialized (codec: H264)
+22:33:58.869 [SIPSorcery] Track 1: Dimensions changed ( -> ) or (0x0 -> 1280x720), recreating encoder
+22:33:58.870 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+22:33:58.873 [SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+22:33:58.873 [SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+22:33:58.897 [SIPSorcery] Trying QSV native encoder (Media Foundation)...
+22:33:58.897 [QsvNativeWrapper] Initializing BGRA mode 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:59.199 [ERROR] [QsvNativeWrapper] QsvCreateEncoderBgra failed: Failed to find Intel QSV encoder with BGRA input
+22:33:59.199 [ERROR] [SIPSorcery] Track 1: BGRA mode failed, trying NV12 mode...
+22:33:59.200 [QsvNativeWrapper] Initializing 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:59.510 [ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+22:33:59.510 [ERROR] [SIPSorcery] Track 1: Primary encoder init failed, trying fallback...
+22:33:59.511 [QsvNativeWrapper] Disposed
+22:33:59.511 [SIPSorcery] Track 1: Trying LibAv fallback for Intel (skipHEVC=False)...
+22:33:59.511 [SIPSorcery] Track 1: Codec priority: [H264, VP9, VP8]
+22:33:59.511 [SIPSorcery] Track 1: Trying LibAv with H264...
+22:33:59.511 [LibAvEncoderAdapter] Initializing 1280x720 @ 30fps, 6000kbps, codec=H264
+22:33:59.515 [LibAvEncoder] SelectEncoder: preferredCodec=H264
+22:33:59.515 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+22:33:59.516 [LibAvEncoder] SelectEncoder: vendor=Intel
+22:33:59.516 [LibAvEncoder] Trying H.264 encoder...
+22:33:59.516 [LibAvEncoder] SelectH264Encoder: vendor=Intel
+22:33:59.516 [LibAvEncoder] Trying encoder: h264_qsv
+22:33:59.516 [ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+22:33:59.516 [LibAvEncoder] Selected H.264 encoder: h264_qsv
+22:33:59.516 [LibAvEncoder] Using encoder: h264_qsv
+22:33:59.517 [LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+22:33:59.517 [LibAvEncoder] QSV VBR mode: target 6000kbps, max 18000kbps
+22:33:59.517 [LibAvEncoder] Intel GPU: Trying QSV hardware context
+22:33:59.517 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002159b251880] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+22:33:59.626 [LibAvEncoder] QSV device created directly (matches known good config)
+22:33:59.626 [WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+22:33:59.628 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+22:33:59.628 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+22:33:59.628 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+22:33:59.648 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+22:33:59.648 [LibAvEncoder] Initialized 1280x720 @ 30fps, 6000kbps (D3D11 zero-copy)
+22:33:59.648 [LibAvEncoderAdapter] Initialized successfully with codec: H264
+22:33:59.648 [SIPSorcery] Track 1: LibAv encoder initialized (codec: H264)
+22:33:59.989 [OpusEncoder] Created: 48000Hz, 2ch, 128000bps, frame=10ms (1920B)
+22:34:00.221 [AudioCapture] WASAPI format: 48000Hz, 2ch, 32bit, encoding=IeeeFloat, buffer=10ms (event-driven)
+22:34:00.359 [AudioCapture] Started: 48000Hz, 2ch
+22:34:00.359 [SIPSorcery] Audio pipeline started (WASAPI -> PCM DC primary, Opus RTP fallback)
+22:34:00.361 [Protocol] All 2 tracks ready, sending ice_ready
+22:34:00.363 [Protocol] Starting early capture to prevent browser track timeout...
+22:34:00.365 [Protocol] Independent track mode: 2 monitors, each track sends immediately after encoding
+22:34:00.366 [MultimediaTimer] Timer resolution set to 1ms
+22:34:00.366 [PerMonitorCapture] Created frame sync barrier for 2 monitors (capture sync only, no post-encode barrier)
+22:34:00.367 [PerMonitorCapture] Started 2 parallel capture threads (synchronized)
+22:34:00.370 [PerMonitorCapture] Monitor 0: Capture thread started @ 30fps, sleepThreshold=3ms (barrier sync: True)
+22:34:00.370 [PerMonitorCapture] Monitor 1: Capture thread started @ 30fps, sleepThreshold=3ms (barrier sync: True)
+22:34:00.373 [GpuColorConverter] Using COMPUTE SHADER for BGRA->NV12 (will test direct binding)
+22:34:00.376 [GpuColorConverter] Using COMPUTE SHADER for BGRA->NV12 (will test direct binding)
+22:34:00.379 [GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+22:34:00.379 [GpuColorConverter] Initialized 1920x1080 BGRA->NV12 converter
+22:34:00.379 [GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+22:34:00.379 [GpuColorConverter] Compiling Compute Shader for BGRA->NV12...
+22:34:00.401 [GpuColorConverter] Compute Shader compiled and created successfully
+22:34:00.401 [GpuColorConverter] Compute Shader compiled and created successfully
+22:34:00.402 [PerMonitorCapture] Monitor 0: GpuColorConverter created
+22:34:00.402 [PerMonitorCapture] Monitor 1: GpuColorConverter created
+22:34:00.457 [SIPSorcery] Main PC: DataChannel received: label=input, id=1
+22:34:00.458 [SIPSorcery] Main PC: Input DataChannel wired for receiving
+22:34:00.459 [SIPSorcery] Main PC: DataChannel received: label=cursor, id=3
+22:34:00.460 [SIPSorcery] Main PC: Cursor DataChannel wired for sending
+22:34:00.460 [SIPSorcery] Main PC: DataChannel received: label=audio, id=5
+22:34:00.461 [SIPSorcery] Main PC: Audio DataChannel wired for sending
+22:34:00.462 [SIPSorcery] Main PC: DataChannel received: label=h265video-0, id=7
+22:34:00.462 [SIPSorcery] Main PC: H265 Video DataChannel wired for track 0
+22:34:00.469 [SIPSorcery] Audio path: DataChannel PCM (zero encode/decode latency)
+22:34:00.574 [Protocol] ICE RX: {"type":"proceed","phase":3}...
+22:34:00.574 [Protocol] ICE message type: proceed
+22:34:00.575 [Protocol] Phase 2 complete, proceeding to Phase 3
+22:34:00.580 [Protocol] Phase changed to: Phase3_WaitingStart
+22:34:00.581 [Protocol] Phase 3: Waiting for start_streaming command...
+22:34:00.624 [Protocol] Phase 3: Waiting for all monitors to connect...
+22:34:00.624 [Protocol] Phase 3: All monitors connected!
+22:34:00.625 [Protocol] Phase changed to: Phase3_Streaming
+22:34:00.625 [Protocol] Phase 3: Starting stream...
+22:34:00.628 [SIPSorcery] Sync state reset, Phase 3 pending activation
+22:34:00.628 [SIPSorcery] Monitor 1 paused
+22:34:00.628 [PerMonitorCapture] Monitor 1: PAUSED
+22:34:00.629 [SIPSorcery] Sync state reset + Phase 3 active (frames will now be sent)
+22:34:00.631 [Protocol] Capture thread already running, skipping start
+22:34:00.631 [Protocol] Cursor tracking started
+22:34:00.634 [ForegroundTracker] Started tracking foreground window changes
+22:34:00.634 [KeepAlive] Server-side keep-alive started (5s interval)
+22:34:00.635 [StallDetect] Server-side stall detection started (1500ms threshold, 5000ms warmup, frame-aware, escalating response)
+22:34:00.635 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:34:00.635 [Protocol] Phase3 RX: type=pause_monitor, len=41
+22:34:00.635 [Protocol] Received pause_monitor: index=1
+22:34:00.635 [PerMonitorCapture] Monitor 1: PAUSED
+22:34:00.636 [Cursor] Converted COLOR 32x32: opaque=144, transparent=880/1024
+22:34:00.638 [SIPSorcery] Monitor 1 already paused
+22:34:00.648 [SIPSorcery] Track 0: Dimensions changed (H264 -> H264) or (1280x720 -> 1920x1080), recreating encoder
+22:34:00.666 [LibAvEncoder] Disposed (Safe)
+22:34:00.666 [LibAvEncoderAdapter] Disposed
+22:34:00.667 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+22:34:00.669 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+22:34:00.669 [SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+22:34:00.670 [SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+22:34:00.699 [SIPSorcery] Trying QSV native encoder (Media Foundation)...
+22:34:00.699 [QsvNativeWrapper] Initializing BGRA mode 1920x1080 @ 30fps, 6000kbps, codec=H264
+[InputInjector] ClipCursor(0,0,1920,1080) = True
+22:34:00.878 [Input] Cursor confined to monitor 0: (0,0)-(1920,1080)
+22:34:01.052 [ERROR] [QsvNativeWrapper] QsvCreateEncoderBgra failed: Failed to find Intel QSV encoder with BGRA input
+22:34:01.053 [ERROR] [SIPSorcery] Track 0: BGRA mode failed, trying NV12 mode...
+22:34:01.054 [QsvNativeWrapper] Initializing 1920x1080 @ 30fps, 6000kbps, codec=H264
+22:34:01.409 [ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+22:34:01.409 [ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+22:34:01.410 [QsvNativeWrapper] Disposed
+22:34:01.410 [SIPSorcery] Track 0: Trying LibAv fallback for Intel (skipHEVC=False)...
+22:34:01.410 [SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+22:34:01.410 [SIPSorcery] Track 0: Trying LibAv with H264...
+22:34:01.410 [LibAvEncoderAdapter] Initializing 1920x1080 @ 30fps, 6000kbps, codec=H264
+22:34:01.410 [LibAvEncoder] SelectEncoder: preferredCodec=H264
+22:34:01.411 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+22:34:01.411 [LibAvEncoder] SelectEncoder: vendor=Intel
+22:34:01.412 [LibAvEncoder] Trying H.264 encoder...
+22:34:01.412 [LibAvEncoder] SelectH264Encoder: vendor=Intel
+22:34:01.412 [LibAvEncoder] Trying encoder: h264_qsv
+22:34:01.412 [ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+22:34:01.412 [LibAvEncoder] Selected H.264 encoder: h264_qsv
+22:34:01.412 [LibAvEncoder] Using encoder: h264_qsv
+22:34:01.413 [LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+22:34:01.413 [LibAvEncoder] QSV VBR mode: target 6000kbps, max 18000kbps
+22:34:01.413 [LibAvEncoder] Intel GPU: Trying QSV hardware context
+22:34:01.413 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002159dd91b80] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+22:34:01.542 [LibAvEncoder] QSV device created directly (matches known good config)
+22:34:01.542 [WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+22:34:01.545 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+22:34:01.545 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+22:34:01.546 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+22:34:01.573 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+22:34:01.573 [LibAvEncoder] Initialized 1920x1080 @ 30fps, 6000kbps (D3D11 zero-copy)
+22:34:01.573 [LibAvEncoderAdapter] Initialized successfully with codec: H264
+22:34:01.573 [SIPSorcery] Track 0: LibAv encoder initialized (codec: H264)
+22:34:01.748 [SIPSorcery] Track 0: Sent H264 codec config via DataChannel (50 bytes)
+22:34:01.752 [Protocol] Monitor 0: Initial frame confirmed sent to client
+22:34:04.073 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:34:04.073 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+22:34:04.176 [Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
+22:34:04.178 [Cursor] Monochrome 32x32: black=72, white=72, inverse=0, transparent=880
+22:34:04.179 [Cursor] Converted MONOCHROME 32x32: opaque=144, transparent=880/1024
+22:34:04.342 [Cursor] Converting shape: type=MONOCHROME, size=32x64, pitch=4, bufLen=256
+22:34:04.342 [Cursor] Monochrome 32x32: black=0, white=0, inverse=26, transparent=998
+22:34:04.344 [Cursor] Converted MONOCHROME 32x32: opaque=90, transparent=934/1024
+22:34:05.823 [ForegroundTracker] Window focused on monitor 0
+22:34:07.767 [SIPSorcery] Stats: m0:57f(enc=61),lat=11546us, m1:0f(enc=0),lat=0us, audio:712pkts (71.2/sec)
+22:34:12.891 [Protocol] Phase3 RX: type=pause_monitor, len=41
+[InputInjector] ClipCursor(1920,0,3840,1080) = True
+22:34:12.893 [Input] Cursor confined to monitor 1: (1920,0)-(3840,1080)
+22:34:12.892 [Protocol] Received pause_monitor: index=0
+22:34:12.893 [PerMonitorCapture] Monitor 0: PAUSED
+22:34:12.893 [SIPSorcery] Monitor 0 paused
+22:34:12.948 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:34:12.948 [Protocol] Received resume_monitor: index=1
+22:34:12.949 [PerMonitorCapture] Monitor 1: RESUMED (forced initial frame)
+22:34:12.950 [SIPSorcery] Monitor 1 resumed
+22:34:12.957 [SIPSorcery] Track 1: Dimensions changed (H264 -> H264) or (1280x720 -> 1920x1080), recreating encoder
+22:34:12.975 [LibAvEncoder] Disposed (Safe)
+22:34:12.976 [LibAvEncoderAdapter] Disposed
+22:34:12.978 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+22:34:12.980 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+22:34:12.981 [SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+22:34:12.981 [SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+22:34:13.008 [SIPSorcery] Trying QSV native encoder (Media Foundation)...
+22:34:13.008 [QsvNativeWrapper] Initializing BGRA mode 1920x1080 @ 30fps, 6000kbps, codec=H264
+22:34:13.350 [ERROR] [QsvNativeWrapper] QsvCreateEncoderBgra failed: Failed to find Intel QSV encoder with BGRA input
+22:34:13.351 [ERROR] [SIPSorcery] Track 1: BGRA mode failed, trying NV12 mode...
+22:34:13.351 [QsvNativeWrapper] Initializing 1920x1080 @ 30fps, 6000kbps, codec=H264
+22:34:13.693 [ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+22:34:13.694 [ERROR] [SIPSorcery] Track 1: Primary encoder init failed, trying fallback...
+22:34:13.694 [QsvNativeWrapper] Disposed
+22:34:13.694 [SIPSorcery] Track 1: Trying LibAv fallback for Intel (skipHEVC=False)...
+22:34:13.695 [SIPSorcery] Track 1: Codec priority: [H264, VP9, VP8]
+22:34:13.695 [SIPSorcery] Track 1: Trying LibAv with H264...
+22:34:13.695 [LibAvEncoderAdapter] Initializing 1920x1080 @ 30fps, 6000kbps, codec=H264
+22:34:13.695 [LibAvEncoder] SelectEncoder: preferredCodec=H264
+22:34:13.696 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+22:34:13.696 [LibAvEncoder] SelectEncoder: vendor=Intel
+22:34:13.696 [LibAvEncoder] Trying H.264 encoder...
+22:34:13.696 [LibAvEncoder] SelectH264Encoder: vendor=Intel
+22:34:13.696 [LibAvEncoder] Trying encoder: h264_qsv
+22:34:13.696 [ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+22:34:13.697 [LibAvEncoder] Selected H.264 encoder: h264_qsv
+22:34:13.697 [LibAvEncoder] Using encoder: h264_qsv
+22:34:13.697 [LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+22:34:13.697 [LibAvEncoder] QSV VBR mode: target 6000kbps, max 18000kbps
+22:34:13.697 [LibAvEncoder] Intel GPU: Trying QSV hardware context
+22:34:13.697 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002159b2511c0] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+22:34:13.853 [LibAvEncoder] QSV device created directly (matches known good config)
+22:34:13.853 [WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+22:34:13.855 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+22:34:13.855 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+22:34:13.855 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+22:34:13.893 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+22:34:13.894 [LibAvEncoder] Initialized 1920x1080 @ 30fps, 6000kbps (D3D11 zero-copy)
+22:34:13.897 [LibAvEncoderAdapter] Initialized successfully with codec: H264
+22:34:13.898 [SIPSorcery] Track 1: LibAv encoder initialized (codec: H264)
+22:34:14.111 [SIPSorcery] Track 1: Sent H264 codec config via DataChannel (50 bytes)
+22:34:14.115 [Protocol] Monitor 1: Initial frame confirmed sent to client
+22:34:17.768 [SIPSorcery] Stats: m0:166f(enc=170),lat=13569us, m1:98f(enc=102),lat=12406us, audio:1712pkts (100.0/sec)
+22:34:19.098 [Protocol] Phase3 RX: type=pause_monitor, len=41
+[InputInjector] ClipCursor(0,0,1920,1080) = True
+22:34:19.100 [Input] Cursor confined to monitor 0: (0,0)-(1920,1080)
+22:34:19.098 [Protocol] Received pause_monitor: index=1
+22:34:19.100 [PerMonitorCapture] Monitor 1: PAUSED
+22:34:19.101 [SIPSorcery] Monitor 1 paused
+22:34:19.145 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:34:19.145 [Protocol] Received resume_monitor: index=0
+22:34:19.150 [PerMonitorCapture] Monitor 0: RESUMED (forced initial frame)
+22:34:19.150 [SIPSorcery] Monitor 0 resumed
+[InputInjector] ClipCursor(0,0,1920,1080) = True
+22:34:20.918 [Input] Cursor confined to monitor 0: (0,0)-(1920,1080)
+22:34:22.095 [Protocol] Phase3 RX: type=pause_monitor, len=41
+[InputInjector] ClipCursor(1920,0,3840,1080) = True
+22:34:22.097 [Input] Cursor confined to monitor 1: (1920,0)-(3840,1080)
+22:34:22.095 [Protocol] Received pause_monitor: index=0
+22:34:22.098 [PerMonitorCapture] Monitor 0: PAUSED
+22:34:22.098 [SIPSorcery] Monitor 0 paused
+22:34:22.145 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:34:22.145 [Protocol] Received resume_monitor: index=1
+22:34:22.146 [PerMonitorCapture] Monitor 1: RESUMED (forced initial frame)
+22:34:22.146 [SIPSorcery] Monitor 1 resumed
+22:34:25.924 [Protocol] Phase3 RX: type=pause_monitor, len=41
+[InputInjector] ClipCursor(0,0,1920,1080) = True
+22:34:25.925 [Input] Cursor confined to monitor 0: (0,0)-(1920,1080)
+22:34:25.924 [Protocol] Received pause_monitor: index=1
+22:34:25.925 [PerMonitorCapture] Monitor 1: PAUSED
+22:34:25.925 [SIPSorcery] Monitor 1 paused
+22:34:25.973 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:34:25.973 [Protocol] Received resume_monitor: index=0
+22:34:25.974 [PerMonitorCapture] Monitor 0: RESUMED (forced initial frame)
+22:34:25.974 [SIPSorcery] Monitor 0 resumed
+22:34:26.547 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:34:26.547 [Cursor] Converted COLOR 32x32: opaque=117, transparent=907/1024
+22:34:27.768 [SIPSorcery] Stats: m0:306f(enc=310),lat=13320us, m1:233f(enc=237),lat=12406us, audio:2712pkts (100.0/sec)
+22:34:35.495 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:34:35.496 [Cursor] Converted COLOR 32x32: opaque=348, transparent=676/1024
+22:34:37.768 [SIPSorcery] Stats: m0:602f(enc=606),lat=13931us, m1:233f(enc=237),lat=12406us, audio:3712pkts (100.0/sec)
+22:34:47.768 [SIPSorcery] Stats: m0:899f(enc=903),lat=13781us, m1:233f(enc=237),lat=12406us, audio:4712pkts (100.0/sec)
+22:34:51.749 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:34:51.749 [Cursor] Converted COLOR 32x32: opaque=285, transparent=739/1024
+22:34:57.768 [SIPSorcery] Stats: m0:1201f(enc=1205),lat=13530us, m1:233f(enc=237),lat=12406us, audio:5712pkts (100.0/sec)
+22:35:07.768 [SIPSorcery] Stats: m0:1501f(enc=1505),lat=13432us, m1:233f(enc=237),lat=12406us, audio:6712pkts (100.0/sec)
+22:35:09.802 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:35:09.802 [Cursor] Converted COLOR 32x32: opaque=364, transparent=660/1024
+22:35:15.938 [Protocol] Phase3 RX: type=pause_monitor, len=41
+[InputInjector] ClipCursor(1920,0,3840,1080) = True
+22:35:15.942 [Input] Cursor confined to monitor 1: (1920,0)-(3840,1080)
+22:35:15.938 [Protocol] Received pause_monitor: index=0
+22:35:15.943 [PerMonitorCapture] Monitor 0: PAUSED
+22:35:15.943 [SIPSorcery] Monitor 0 paused
+22:35:15.989 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:35:15.990 [Protocol] Received resume_monitor: index=1
+22:35:15.991 [PerMonitorCapture] Monitor 1: RESUMED (forced initial frame)
+22:35:15.991 [SIPSorcery] Monitor 1 resumed
+22:35:17.769 [SIPSorcery] Stats: m0:1739f(enc=1743),lat=13448us, m1:286f(enc=290),lat=12218us, audio:7712pkts (100.0/sec)
+22:35:19.770 [Protocol] Phase3 RX: type=pause_monitor, len=41
+22:35:19.770 [Protocol] Received pause_monitor: index=1
+22:35:19.772 [PerMonitorCapture] Monitor 1: PAUSED
+22:35:19.772 [SIPSorcery] Monitor 1 paused
+[InputInjector] ClipCursor(0,0,1920,1080) = True
+22:35:19.772 [Input] Cursor confined to monitor 0: (0,0)-(1920,1080)
+22:35:19.816 [Protocol] Phase3 RX: type=resume_monitor, len=42
+22:35:19.816 [Protocol] Received resume_monitor: index=0
+22:35:19.817 [PerMonitorCapture] Monitor 0: RESUMED (forced initial frame)
+22:35:19.817 [SIPSorcery] Monitor 0 resumed
+22:35:27.769 [SIPSorcery] Stats: m0:1976f(enc=1980),lat=13370us, m1:346f(enc=350),lat=12423us, audio:8714pkts (100.2/sec)
+22:35:32.275 [Cursor] Converting shape: type=COLOR, size=32x32, pitch=128, bufLen=4096
+22:35:32.276 [Cursor] Converted COLOR 32x32: opaque=115, transparent=909/1024
+22:35:37.769 [SIPSorcery] Stats: m0:2277f(enc=2281),lat=13397us, m1:346f(enc=350),lat=12423us, audio:9712pkts (99.8/sec)
+22:35:47.770 [SIPSorcery] Stats: m0:2575f(enc=2579),lat=13484us, m1:346f(enc=350),lat=12423us, audio:10714pkts (100.2/sec)
+22:35:57.771 [SIPSorcery] Stats: m0:2872f(enc=2876),lat=13372us, m1:346f(enc=350),lat=12423us, audio:11712pkts (99.8/sec)
+22:36:07.772 [SIPSorcery] Stats: m0:3170f(enc=3174),lat=13367us, m1:346f(enc=350),lat=12423us, audio:12714pkts (100.2/sec)
+22:36:17.772 [SIPSorcery] Stats: m0:3460f(enc=3464),lat=13493us, m1:346f(enc=350),lat=12423us, audio:13714pkts (100.0/sec)
+22:36:27.773 [SIPSorcery] Stats: m0:3752f(enc=3756),lat=13775us, m1:346f(enc=350),lat=12423us, audio:14714pkts (100.0/sec)
+22:36:37.774 [SIPSorcery] Stats: m0:4045f(enc=4049),lat=14145us, m1:346f(enc=350),lat=12423us, audio:15714pkts (100.0/sec)
+22:36:47.774 [SIPSorcery] Stats: m0:4345f(enc=4349),lat=14150us, m1:346f(enc=350),lat=12423us, audio:16714pkts (100.0/sec)
+22:36:49.265 [Protocol] Phase3 RX: type=update_config, len=33
+22:36:49.268 [Protocol] update_config received: fps=60, resolutionHeight=
+22:36:49.271 [SIPSorcery] FPS update: 30 → 60
+22:36:49.277 [WARN] [LibAvEncoderAdapter] Runtime FPS change not supported (requested: 60fps)
+22:36:49.277 [WARN] [LibAvEncoderAdapter] Runtime FPS change not supported (requested: 60fps)
+22:36:49.277 [SIPSorcery] Track 0: Recreating encoder for FPS change (1920x1080 @ 60fps)
+22:36:49.307 [LibAvEncoder] Disposed (Safe)
+22:36:49.307 [LibAvEncoderAdapter] Disposed
+22:36:49.308 [SIPSorcery] Track 1: Recreating encoder for FPS change (1920x1080 @ 60fps)
+22:36:49.308 [SIPSorcery] Track 0: Dimensions changed (H264 -> H264) or (0x0 -> 1920x1080), recreating encoder
+22:36:49.309 [GpuVendorDetector] Detected Intel GPU: Intel(R) UHD Graphics 620
+22:36:49.311 [GpuVendorDetector] Intel driver: 31.0.101.2134, recommended: qsv_native
+22:36:49.311 [SIPSorcery] Intel GPU: Intel(R) UHD Graphics 620
+22:36:49.311 [SIPSorcery] Intel driver: 31.0.101.2134, reason: Driver 31.0.101.2134 >= 27.20.100.0 (MF Hardware Encoder supported)
+22:36:49.333 [SIPSorcery] Trying QSV native encoder (Media Foundation)...
+22:36:49.333 [QsvNativeWrapper] Initializing BGRA mode 1920x1080 @ 60fps, 6000kbps, codec=H264
+22:36:49.342 [LibAvEncoder] Disposed (Safe)
+22:36:49.342 [LibAvEncoderAdapter] Disposed
+22:36:49.342 [AdaptiveBitrate] Initialized: target=8000kbps, range=[3000-8000]kbps, warmup=15000ms
+22:36:49.655 [ERROR] [QsvNativeWrapper] QsvCreateEncoderBgra failed: Failed to find Intel QSV encoder with BGRA input
+22:36:49.655 [ERROR] [SIPSorcery] Track 0: BGRA mode failed, trying NV12 mode...
+22:36:49.656 [QsvNativeWrapper] Initializing 1920x1080 @ 60fps, 8000kbps, codec=H264
+22:36:49.973 [ERROR] [QsvNativeWrapper] QsvCreateEncoder failed: Failed to find Intel QSV encoder
+22:36:49.973 [ERROR] [SIPSorcery] Track 0: Primary encoder init failed, trying fallback...
+22:36:49.974 [QsvNativeWrapper] Disposed
+22:36:49.974 [SIPSorcery] Track 0: Trying LibAv fallback for Intel (skipHEVC=False)...
+22:36:49.974 [SIPSorcery] Track 0: Codec priority: [H264, VP9, VP8]
+22:36:49.975 [SIPSorcery] Track 0: Trying LibAv with H264...
+22:36:49.975 [LibAvEncoderAdapter] Initializing 1920x1080 @ 60fps, 8000kbps, codec=H264
+22:36:49.975 [LibAvEncoder] SelectEncoder: preferredCodec=H264
+22:36:49.976 [LibAvEncoder] Detected GPU: Intel (Intel(R) UHD Graphics 620)
+22:36:49.976 [LibAvEncoder] SelectEncoder: vendor=Intel
+22:36:49.976 [LibAvEncoder] Trying H.264 encoder...
+22:36:49.976 [LibAvEncoder] SelectH264Encoder: vendor=Intel
+22:36:49.976 [LibAvEncoder] Trying encoder: h264_qsv
+22:36:49.976 [ERROR] [LibAvEncoder] Encoder h264_qsv: FOUND
+22:36:49.977 [LibAvEncoder] Selected H.264 encoder: h264_qsv
+22:36:49.977 [LibAvEncoder] Using encoder: h264_qsv
+22:36:49.977 [LibAvEncoder] Configuring Intel QSV encoder (quality + low latency)
+22:36:49.977 [LibAvEncoder] QSV VBR mode: target 8000kbps, max 24000kbps
+22:36:49.977 [LibAvEncoder] Intel GPU: Trying QSV hardware context
+22:36:49.977 [LibAvEncoder] Initializing Intel QSV hardware context (Direct + Bridge Mode)...
+[AVHWDeviceContext @ 000002159b251940] Using device 8086:5917 (Intel(R) UHD Graphics 620).
+22:36:50.092 [LibAvEncoder] QSV device created directly (matches known good config)
+22:36:50.092 [WARN] [LibAvEncoder] Warning: Could not derive D3D11VA from QSV device. Zero-Copy might fail if devices differ.
+22:36:50.094 [LibAvEncoder] Testing QSV Zero-Copy Capability (Alloc Check Only)...
+22:36:50.095 [LibAvEncoder] QSV Alloc Check Passed. Trusting Zero-Copy configuration.
+22:36:50.095 [LibAvEncoder] Intel QSV initialized in TRUE ZERO-COPY Mode.
+22:36:50.115 [LibAvEncoder] Using D3D11 hardware frames (zero-copy)
+22:36:50.115 [LibAvEncoder] Initialized 1920x1080 @ 60fps, 8000kbps (D3D11 zero-copy)
+22:36:50.115 [LibAvEncoderAdapter] Initialized successfully with codec: H264
+22:36:50.115 [SIPSorcery] Track 0: LibAv encoder initialized (codec: H264)
+22:36:50.171 [WARN] [LibAvEncoder] QSV encoder doesn't support runtime bitrate change (requested: 8000kbps)
+22:36:50.171 [SIPSorcery] UpdateConfig result: FPS: 60 (recreated 2 encoders), Target Bitrate reset to 8000kbps based on 720p @ 60fps
+22:36:50.173 [PerMonitorCapture] Target FPS changed: 30 → 60
+22:36:50.175 [Protocol] config_updated sent: FPS: 60 (recreated 2 encoders), Target Bitrate reset to 8000kbps based on 720p @ 60fps, resolution=720p
+22:36:50.242 [SIPSorcery] Track 0: Sent H264 codec config via DataChannel (50 bytes)
+22:36:50.243 [Protocol] Monitor 0: Initial frame confirmed sent to client
+22:36:57.774 [SIPSorcery] Stats: m0:248f(enc=252),lat=14249us, m1:346f(enc=350),lat=12423us, audio:17714pkts (100.0/sec)
+22:37:07.774 [SIPSorcery] Stats: m0:572f(enc=576),lat=14365us, m1:346f(enc=350),lat=12423us, audio:18714pkts (100.0/sec)
+22:37:17.774 [SIPSorcery] Stats: m0:901f(enc=905),lat=14451us, m1:346f(enc=350),lat=12423us, audio:19714pkts (100.0/sec)
+22:37:27.775 [SIPSorcery] Stats: m0:1227f(enc=1231),lat=14548us, m1:346f(enc=350),lat=12423us, audio:20714pkts (100.0/sec)
+22:37:37.776 [SIPSorcery] Stats: m0:1559f(enc=1563),lat=14603us, m1:346f(enc=350),lat=12423us, audio:21714pkts (100.0/sec)
+22:37:47.777 [SIPSorcery] Stats: m0:1894f(enc=1898),lat=14679us, m1:346f(enc=350),lat=12423us, audio:22714pkts (100.0/sec)
+22:37:57.778 [SIPSorcery] Stats: m0:2221f(enc=2225),lat=14723us, m1:346f(enc=350),lat=12423us, audio:23714pkts (100.0/sec)
+22:38:07.778 [SIPSorcery] Stats: m0:2535f(enc=2539),lat=14784us, m1:346f(enc=350),lat=12423us, audio:24714pkts (100.0/sec)
+22:38:17.779 [SIPSorcery] Stats: m0:2862f(enc=2866),lat=14825us, m1:346f(enc=350),lat=12423us, audio:25714pkts (100.0/sec)
+22:38:27.779 [SIPSorcery] Stats: m0:3195f(enc=3199),lat=14884us, m1:346f(enc=350),lat=12423us, audio:26714pkts (100.0/sec)
+22:38:37.780 [SIPSorcery] Stats: m0:3512f(enc=3516),lat=14922us, m1:346f(enc=350),lat=12423us, audio:27714pkts (100.0/sec)
+22:38:45.635 [Input] Cursor confinement released
+22:38:45.637 [Protocol] Phase3 RX: type=pause_streaming, len=26
+22:38:45.637 [Protocol] Received pause_streaming
+22:38:45.638 [SIPSorcery] Streaming paused (connection maintained)
+22:38:47.781 [SIPSorcery] Stats: m0:3705f(enc=3709),lat=14879us, m1:346f(enc=350),lat=12423us, audio:28500pkts (78.6/sec)
+22:38:49.831 [Protocol] Cursor tracking stopped
+22:38:49.833 [ForegroundTracker] Stopped
+22:38:49.835 [Protocol] Phase 3: Stream ended
+22:38:49.836 [Protocol] Phase changed to: Disconnecting
+22:38:49.852 [PerMonitorCapture] Monitor 0: Capture thread stopped
+22:38:49.936 [PerMonitorCapture] Monitor 1: Capture thread stopped
+22:38:49.938 [MultimediaTimer] Timer resolution restored
+22:38:49.938 [PerMonitorCapture] All capture threads stopped
+22:38:49.939 [SIPSorcery] Stopping...
+22:38:49.939 [OpusEncoder] Disposed
+22:38:50.248 [SIPSorcery] Main PC: Audio DataChannel closed
+22:38:50.248 [SIPSorcery] Main PC: Cursor DataChannel closed
+22:38:50.250 [SIPSorcery] Main PC: Input DataChannel closed
+22:38:50.251 [SIPSorcery] Main PC: H265 Video DataChannel closed for track 0
+22:38:50.255 [SIPSorcery] Main PC: Peer state: closed
+22:38:50.255 [SIPSorcery] Main PC: Peer state CLOSED unexpectedly - awaiting client reconnect offer
+22:38:50.255 [SIPSorcery] Connection closed
+22:38:50.285 [LibAvEncoder] Disposed (Safe)
+22:38:50.285 [LibAvEncoderAdapter] Disposed
+22:38:50.286 [SIPSorcery] Disposed
+22:38:50.287 [PerMonitorCapture] All capture threads stopped
+22:38:50.303 [Protocol] Restoring display settings...
+22:38:50.303 [Guard] RestoreAndCleanupWithTimeout called...
+22:38:50.304 [Guard] Stopping watchdog process...
+22:38:50.304 [Guard] SnapshotPath exists: True
+22:38:50.304 [Guard] Attempting to disable VDD...
+22:38:50.305 [Guard] ForceDisableVdd: Finding VDD instance...
+22:38:50.462 [Guard] ForceDisableVdd: Found VDD ID: ROOT\DISPLAY\0000
+22:38:50.612 [Guard] ForceDisableVdd: VDD is currently ENABLED
+22:38:50.617 [Guard] ForceDisableVdd: Physical monitors: \\.\DISPLAY1, \\.\DISPLAY13
+22:38:50.627 [Guard] ForceDisableVdd: Setting \\.\DISPLAY1 as primary...
+22:38:51.646 [Guard] ForceDisableVdd: Disabling VDD...
+22:38:51.647 [pnputil] /disable-device "ROOT\DISPLAY\0000"
+22:38:51.888 Microsoft PnP Utility
+
+Disabling device:          ROOT\DISPLAY\0000
+Device disabled successfully.
+
+
+22:38:53.530 [Guard] ForceDisableVdd: ⚠ VDD may still be enabled.
+22:38:53.530 [Guard] Restoring original state before exit...
+22:38:53.534 [Guard] Step 1: Restoring Scale and Layout (DPI)...
+22:38:53.534 [Guard] Restoring Scale and Layout (DPI)...
+22:38:53.536 [Guard] Restoring DPI to 100% (logPixels=96)
+22:38:53.536 [DpiScaling] Setting 100% for 1 monitor(s)...
+22:38:53.536 [DpiScaling] Monitor 0: current=125%, recommended=150%, max=175%
+22:38:53.556 [DpiScaling] ✓ Set DPI to 100%
+22:38:53.558 [Guard] ✓ Scale and Layout restored via API.
+22:38:53.558 [Guard] Step 2: Restoring monitor modes...
+22:38:53.562 [DisplayUtil] ForceResolution: \\.\DISPLAY1 current=1920x1080@60Hz, target=1920x1080@60Hz
+22:38:54.116 [Guard] Monitor modes restored.
+22:38:54.117 [Guard] Step 3: Restoring taskbar flag...
+22:38:54.122 [Guard] Taskbar multi-monitor flag restored to 0.
+22:38:54.123 [Guard] ℹ️ Taskbar setting will apply automatically (no Explorer restart needed).
+22:38:54.123 [Guard] Allowing system to settle after restore...
+22:38:56.134 [Guard] ✅ All settings restored and system settled.
+22:38:56.134 [Guard] Restore done.
+22:38:56.137 [Protocol] Display settings restored.
+22:38:56.137 [Protocol] Client e0c0b6ad-d860-414d-8411-e3abafa31198 disconnected

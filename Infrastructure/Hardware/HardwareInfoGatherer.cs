@@ -503,13 +503,13 @@ namespace RemotePlayServer.Infrastructure.Hardware
                         info.Type = "NVENC";
                         info.HwAccel = true;
 
-                        // Try FFmpeg detection first, fallback to GPU-based detection
                         bool hevcSupported = CheckHevcEncoderAvailable("hevc_nvenc");
 
-                        // Fallback: NVIDIA GTX 900+ (Maxwell), GTX 1000+ (Pascal), RTX series support HEVC
-                        if (!hevcSupported)
+                        // Only use name-based fallback if trial encode couldn't run at all
+                        if (!hevcSupported && !IsTrialEncodeResultCached("hevc_nvenc"))
                         {
                             hevcSupported = CheckNvidiaHevcSupport(gpuInfo.Name);
+                            Logger.Info($"[HardwareInfo] HEVC trial encode unavailable, GPU name heuristic: {hevcSupported}");
                         }
 
                         if (hevcSupported)
@@ -528,10 +528,11 @@ namespace RemotePlayServer.Infrastructure.Hardware
 
                         bool hevcSupported = CheckHevcEncoderAvailable("hevc_amf");
 
-                        // Fallback: AMD RX 400+ (Polaris), RX 5000+ (Navi) support HEVC
-                        if (!hevcSupported)
+                        // Only use name-based fallback if trial encode couldn't run at all
+                        if (!hevcSupported && !IsTrialEncodeResultCached("hevc_amf"))
                         {
                             hevcSupported = CheckAmdHevcSupport(gpuInfo.Name);
+                            Logger.Info($"[HardwareInfo] HEVC trial encode unavailable, GPU name heuristic: {hevcSupported}");
                         }
 
                         if (hevcSupported)
@@ -546,12 +547,17 @@ namespace RemotePlayServer.Infrastructure.Hardware
                     info.Type = "QSV";
                     info.HwAccel = true;
 
+                    // Trial encode is authoritative — if it ran and failed, the hardware
+                    // truly cannot encode HEVC regardless of GPU generation.
+                    // Only fall back to name-based check if FFmpeg DLLs are missing
+                    // (trial encode couldn't run at all).
                     bool intelHevcSupported = CheckHevcEncoderAvailable("hevc_qsv");
 
-                    // Fallback: Intel 6th gen (Skylake) and newer support HEVC
-                    if (!intelHevcSupported)
+                    if (!intelHevcSupported && !IsTrialEncodeResultCached("hevc_qsv"))
                     {
+                        // Trial encode didn't run (e.g., FFmpeg not available) — use GPU name heuristic
                         intelHevcSupported = CheckIntelHevcSupport(gpuInfo.Name);
+                        Logger.Info($"[HardwareInfo] HEVC trial encode unavailable, GPU name heuristic: {intelHevcSupported}");
                     }
 
                     if (intelHevcSupported)
@@ -754,30 +760,161 @@ namespace RemotePlayServer.Infrastructure.Hardware
             }
         }
 
+        // Cache trial encode results per encoder name (persists across connections within same process)
+        private static readonly Dictionary<string, bool> _hevcProbeCache = new();
+        private static readonly object _hevcProbeLock = new();
+
         /// <summary>
-        /// Check if a specific HEVC encoder is available via FFmpeg.
+        /// Check if a specific HEVC encoder is actually usable via FFmpeg trial encode.
+        /// Unlike just finding the codec by name, this actually tries to open the encoder
+        /// with real parameters to verify the hardware supports it at runtime.
+        /// Results are cached per-process to avoid repeating slow probes.
         /// </summary>
         private static unsafe bool CheckHevcEncoderAvailable(string encoderName)
         {
+            // Check cache first
+            lock (_hevcProbeLock)
+            {
+                if (_hevcProbeCache.TryGetValue(encoderName, out bool cached))
+                {
+                    Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': {(cached ? "available" : "not supported")} (cached)");
+                    return cached;
+                }
+            }
+
+            bool result = false;
             try
             {
-                // Ensure FFmpeg is initialized
                 EnsureFfmpegInitialized();
 
                 var codec = FFmpeg.AutoGen.ffmpeg.avcodec_find_encoder_by_name(encoderName);
-                bool available = codec != null;
-                Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': {(available ? "available" : "not found")}");
-                return available;
+                if (codec == null)
+                {
+                    Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': not found");
+                    CacheHevcProbeResult(encoderName, false);
+                    return false;
+                }
+
+                Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': found, verifying with trial encode...");
+                result = TryTrialEncode(codec, encoderName);
+                Logger.Info($"[HardwareInfo] HEVC encoder '{encoderName}': trial encode {(result ? "PASSED" : "FAILED")}");
             }
             catch (DllNotFoundException ex)
             {
                 Logger.Error($"[HardwareInfo] FFmpeg DLL not found for '{encoderName}': {ex.Message}");
-                return false;
             }
             catch (Exception ex)
             {
                 Logger.Error($"[HardwareInfo] Failed to check HEVC encoder '{encoderName}': {ex.Message}");
+            }
+
+            CacheHevcProbeResult(encoderName, result);
+            return result;
+        }
+
+        private static void CacheHevcProbeResult(string encoderName, bool result)
+        {
+            lock (_hevcProbeLock)
+            {
+                _hevcProbeCache[encoderName] = result;
+            }
+        }
+
+        /// <summary>
+        /// Check if trial encode result is cached (i.e., trial encode actually ran).
+        /// Used to decide whether name-based GPU heuristic should be used as fallback.
+        /// </summary>
+        private static bool IsTrialEncodeResultCached(string encoderName)
+        {
+            lock (_hevcProbeLock)
+            {
+                return _hevcProbeCache.ContainsKey(encoderName);
+            }
+        }
+
+        /// <summary>
+        /// Try to actually open and configure the HEVC encoder to verify hardware support.
+        /// Uses minimal 320x240 resolution to keep the probe fast.
+        /// </summary>
+        private static unsafe bool TryTrialEncode(FFmpeg.AutoGen.AVCodec* codec, string encoderName)
+        {
+            FFmpeg.AutoGen.AVCodecContext* ctx = null;
+            try
+            {
+                ctx = FFmpeg.AutoGen.ffmpeg.avcodec_alloc_context3(codec);
+                if (ctx == null)
+                {
+                    Logger.Error($"[HardwareInfo] Trial encode: failed to alloc context for '{encoderName}'");
+                    return false;
+                }
+
+                // Minimal parameters — just enough to test if the encoder can open
+                ctx->width = 320;
+                ctx->height = 240;
+                ctx->time_base = new FFmpeg.AutoGen.AVRational { num = 1, den = 30 };
+                ctx->framerate = new FFmpeg.AutoGen.AVRational { num = 30, den = 1 };
+                ctx->pix_fmt = FFmpeg.AutoGen.AVPixelFormat.AV_PIX_FMT_NV12;
+                ctx->bit_rate = 1_000_000;
+                ctx->gop_size = 30;
+                ctx->max_b_frames = 0;
+                ctx->flags |= FFmpeg.AutoGen.ffmpeg.AV_CODEC_FLAG_LOW_DELAY;
+                ctx->thread_count = 1;
+
+                // HEVC profile/level
+                ctx->profile = FFmpeg.AutoGen.ffmpeg.FF_PROFILE_HEVC_MAIN;
+                ctx->level = 120; // Level 4.0
+
+                // Set encoder-specific options based on name
+                if (encoderName.Contains("qsv"))
+                {
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "preset", "faster", 0);
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "low_power", "1", 0);
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "async_depth", "1", 0);
+
+                    // Try to create QSV hardware device for the probe
+                    FFmpeg.AutoGen.AVBufferRef* hwDeviceCtx = null;
+                    int hwRet = FFmpeg.AutoGen.ffmpeg.av_hwdevice_ctx_create(
+                        &hwDeviceCtx,
+                        FFmpeg.AutoGen.AVHWDeviceType.AV_HWDEVICE_TYPE_QSV,
+                        "auto", null, 0);
+                    if (hwRet >= 0 && hwDeviceCtx != null)
+                    {
+                        ctx->hw_device_ctx = FFmpeg.AutoGen.ffmpeg.av_buffer_ref(hwDeviceCtx);
+                        FFmpeg.AutoGen.ffmpeg.av_buffer_unref(&hwDeviceCtx);
+                    }
+                }
+                else if (encoderName.Contains("nvenc"))
+                {
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "preset", "p1", 0);
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "tune", "ull", 0);
+                }
+                else if (encoderName.Contains("amf"))
+                {
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "usage", "ultralowlatency", 0);
+                    FFmpeg.AutoGen.ffmpeg.av_opt_set(ctx->priv_data, "quality", "speed", 0);
+                }
+
+                int ret = FFmpeg.AutoGen.ffmpeg.avcodec_open2(ctx, codec, null);
+                if (ret < 0)
+                {
+                    Logger.Warn($"[HardwareInfo] Trial encode: avcodec_open2 failed for '{encoderName}' (error={ret})");
+                    return false;
+                }
+
+                // Encoder opened successfully — hardware truly supports HEVC
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[HardwareInfo] Trial encode exception for '{encoderName}': {ex.Message}");
                 return false;
+            }
+            finally
+            {
+                if (ctx != null)
+                {
+                    FFmpeg.AutoGen.ffmpeg.avcodec_free_context(&ctx);
+                }
             }
         }
 

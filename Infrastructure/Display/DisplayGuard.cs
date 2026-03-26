@@ -43,6 +43,11 @@ static class DisplayGuard
         public bool? ShowOnlyActive { get; set; }
         /// <summary>Device name of the Show Only target monitor.</summary>
         public string? ShowOnlyMonitorName { get; set; }
+
+        /// <summary>True when VDD-only (bind mobile screen) mode is active.</summary>
+        public bool? VddOnlyActive { get; set; }
+        /// <summary>UTC timestamp when VDD-only mode started (for max duration safety).</summary>
+        public DateTime? VddOnlyStartTime { get; set; }
     }
 
     public class Mon
@@ -56,6 +61,9 @@ static class DisplayGuard
         public int Refresh { get; set; } = 60;
         public bool IsVirtual { get; set; }
     }
+
+    // Lock for snapshot file read-modify-write operations (MarkVddOnlyActive, ClearVddOnlyActive, etc.)
+    private static readonly object _snapshotLock = new();
 
     // ==== API được Program.cs gọi ====
 
@@ -152,21 +160,94 @@ static class DisplayGuard
     /// </summary>
     public static void MarkShowOnlyActive(string monitorName)
     {
-        try
+        lock (_snapshotLock)
         {
-            if (!File.Exists(SnapshotPath)) return;
-            var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
-            if (snap == null) return;
+            try
+            {
+                if (!File.Exists(SnapshotPath)) return;
+                var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+                if (snap == null) return;
 
-            snap.ShowOnlyActive = true;
-            snap.ShowOnlyMonitorName = monitorName;
+                snap.ShowOnlyActive = true;
+                snap.ShowOnlyMonitorName = monitorName;
 
-            File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
-            Logger.Info($"[Guard] Marked ShowOnly active: {monitorName}");
+                File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
+                Logger.Info($"[Guard] Marked ShowOnly active: {monitorName}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Guard] MarkShowOnlyActive failed: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+    }
+
+    /// <summary>
+    /// Mark that VDD-only (bind mobile screen) mode is active.
+    /// Used by safety layers to detect and recover from crash during VDD-only mode.
+    /// </summary>
+    public static void MarkVddOnlyActive()
+    {
+        lock (_snapshotLock)
         {
-            Logger.Error($"[Guard] MarkShowOnlyActive failed: {ex.Message}");
+            try
+            {
+                if (!File.Exists(SnapshotPath)) return;
+                var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+                if (snap == null) return;
+
+                snap.VddOnlyActive = true;
+                snap.VddOnlyStartTime = DateTime.UtcNow;
+
+                File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
+                Logger.Info("[Guard] Marked VDD-only mode active");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Guard] MarkVddOnlyActive failed: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Clear VDD-only flag from snapshot (called on normal restore/disconnect).
+    /// </summary>
+    public static void ClearVddOnlyActive()
+    {
+        lock (_snapshotLock)
+        {
+            try
+            {
+                if (!File.Exists(SnapshotPath)) return;
+                var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+                if (snap == null) return;
+
+                snap.VddOnlyActive = false;
+                snap.VddOnlyStartTime = null;
+
+                File.WriteAllText(SnapshotPath, JsonSerializer.Serialize(snap, new JsonSerializerOptions { WriteIndented = true }));
+                Logger.Info("[Guard] Cleared VDD-only mode flag");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Guard] ClearVddOnlyActive failed: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if VDD-only mode is active and when it started (for max duration check).
+    /// </summary>
+    public static (bool Active, DateTime? StartTime) GetVddOnlyState()
+    {
+        lock (_snapshotLock)
+        {
+            try
+            {
+                if (!File.Exists(SnapshotPath)) return (false, null);
+                var snap = JsonSerializer.Deserialize<Snapshot>(File.ReadAllText(SnapshotPath));
+                return (snap?.VddOnlyActive == true, snap?.VddOnlyStartTime);
+            }
+            catch { return (false, null); }
         }
     }
 
@@ -817,8 +898,8 @@ static class DisplayGuard
         // Use CancellationToken.None for non-graceful startup/crash recovery
         var ct = CancellationToken.None;
 
-        // 0) Restore extend topology if Show Only was active (ultrawide mode)
-        if (snap.ShowOnlyActive == true && snap.Monitors != null)
+        // 0) Restore extend topology if Show Only or VDD-only was active
+        if ((snap.ShowOnlyActive == true || snap.VddOnlyActive == true) && snap.Monitors != null)
         {
             Logger.Info("[Guard] Step 0: Restoring extend topology (was Show Only)...");
             try

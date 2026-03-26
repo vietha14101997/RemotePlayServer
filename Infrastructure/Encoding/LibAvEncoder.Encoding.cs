@@ -166,7 +166,21 @@ public unsafe partial class LibAvEncoder
                 ret = ffmpeg.avcodec_send_frame(_codecCtx, _hwFrame);
                 if (ret < 0)
                 {
-                    Logger.Info($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
+                    if (ret == ffmpeg.AVERROR_EOF)
+                    {
+                        // EOF means encoder context is dead (flushed or device mismatch).
+                        // Signal unrecoverable — caller should recreate encoder.
+                        _eofDetected = true;
+                        if (!_eofLogged)
+                        {
+                            Logger.Error("[LibAvEncoder] Send frame: End of file — encoder context dead, needs recreation");
+                            _eofLogged = true;
+                        }
+                    }
+                    else
+                    {
+                        Logger.Info($"[LibAvEncoder] Send frame error: {GetErrorMessage(ret)}");
+                    }
                     return false;
                 }
 

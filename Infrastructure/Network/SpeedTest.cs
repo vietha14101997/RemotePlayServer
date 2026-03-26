@@ -367,22 +367,16 @@ namespace RemotePlayServer.Infrastructure.Network
             // Round to nearest dropdown option
             config.BitrateKbps = RoundToNearestBitrateOption(rawBitrate);
 
+            // RefreshRate will be overridden by caller with actual monitor Hz
+            config.RefreshRate = 60;
+
             // FPS based on encoder capability and ping
             if (encoder.HwAccel && network.PingMs < 20)
-            {
                 config.Fps = 60;
-                config.RefreshRate = 60;
-            }
             else if (encoder.HwAccel && network.PingMs < 50)
-            {
                 config.Fps = 45;
-                config.RefreshRate = 60;
-            }
             else
-            {
                 config.Fps = 30;
-                config.RefreshRate = 60;
-            }
 
             // Monitor count based on total available bandwidth
             double totalRequired = config.BitrateKbps * 3;

@@ -26,6 +26,11 @@ namespace RemotePlayServer.Application.Streaming;
 public partial class SIPSorceryStreamer : IDisposable
 {
     public event Action<string>? OnFatalError;
+    /// <summary>
+    /// Fired when encoder falls back to a different codec than negotiated.
+    /// Parameters: (negotiatedCodec, actualCodec, reason)
+    /// </summary>
+    public event Action<VideoCodec, VideoCodec, string>? OnCodecFallback;
 
     private readonly int _monitorCount;
     private int _fps;

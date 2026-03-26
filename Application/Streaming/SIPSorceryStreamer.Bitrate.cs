@@ -393,11 +393,45 @@ public partial class SIPSorceryStreamer
             }
             else if (trackCount > 0)
             {
-                // Even if encoder doesn't support FPS change, update the internal state
-                // so capture rate can be adjusted
+                // Encoder doesn't support runtime FPS change (QSV, LibAv) — recreate encoders
                 _fps = fps.Value;
                 appliedFps = fps.Value;
-                messages.Add($"FPS: {fps.Value} (encoder FPS change not supported, capture rate will be adjusted)");
+
+                int recreated = 0;
+                foreach (var track in fpsSnapshot)
+                {
+                    lock (track.EncodeLock)
+                    {
+                        if (track.Encoder != null)
+                        {
+                            int w = track.Encoder.Width;
+                            int h = track.Encoder.Height;
+                            bool paused = IsMonitorPaused(track.Index);
+
+                            if (paused)
+                            {
+                                // Paused track: keep encoder alive, just invalidate dimensions.
+                                // EnsureEncoderMatchesResolution will recreate on resume when
+                                // the first frame arrives. This avoids wasting ~1.4s on encoder
+                                // init for a track that won't produce frames until resumed.
+                                Logger.Info($"[SIPSorcery] Track {track.Index}: Paused — deferring FPS recreation to resume ({w}x{h} @ {fps.Value}fps)");
+                                track.Width = 0;
+                                track.Height = 0;
+                            }
+                            else
+                            {
+                                Logger.Info($"[SIPSorcery] Track {track.Index}: Recreating encoder for FPS change ({w}x{h} @ {fps.Value}fps)");
+                                track.Encoder.Dispose();
+                                track.Encoder = null;
+                                track.Width = 0;
+                                track.Height = 0;
+                            }
+                            recreated++;
+                        }
+                    }
+                }
+
+                messages.Add($"FPS: {fps.Value} (recreated {recreated} encoders)");
                 anySuccess = true;
                 configChanged = true;
             }

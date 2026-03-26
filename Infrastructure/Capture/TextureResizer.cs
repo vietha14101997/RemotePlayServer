@@ -77,7 +77,8 @@ namespace RemotePlayServer.Infrastructure.Capture
 
         /// <summary>
         /// Calculate target dimensions by scaling proportionally to TargetHeight.
-        /// Ensures even dimensions (required by many encoders).
+        /// Ensures both width and height are aligned for optimal encoder performance
+        /// (divisible by 128 preferred, then 64, 32, 16).
         /// </summary>
         public (int targetWidth, int targetHeight) CalculateTargetSize(int width, int height)
         {
@@ -86,18 +87,54 @@ namespace RemotePlayServer.Infrastructure.Capture
 
             // Scale proportionally based on height ratio
             double scale = (double)TargetHeight / height;
-            int targetWidth = (int)(width * scale);
-            int targetHeight = TargetHeight;
+            int rawTargetWidth = (int)(width * scale);
+            int rawTargetHeight = TargetHeight;
 
-            // Ensure even dimensions (required by many encoders)
-            targetWidth = (targetWidth + 1) & ~1;
-            targetHeight = (targetHeight + 1) & ~1;
+            // Align both dimensions for optimal encoder performance
+            return FindAlignedDimensions(width, height, rawTargetWidth, rawTargetHeight);
+        }
 
-            // Ensure minimum dimensions
-            targetWidth = Math.Max(targetWidth, 2);
-            targetHeight = Math.Max(targetHeight, 2);
+        /// <summary>
+        /// Find aligned dimensions where both width and height are divisible by an alignment factor.
+        /// Tries 128 first (best for NVENC/AMF/QSV), falls back to 64, 32, 16.
+        /// Maintains aspect ratio within 2% tolerance.
+        /// </summary>
+        public static (int alignedWidth, int alignedHeight) FindAlignedDimensions(
+            int sourceWidth, int sourceHeight, int targetWidth, int targetHeight)
+        {
+            int[] alignments = { 128, 64, 32, 16 };
+            float sourceAspect = (float)sourceWidth / sourceHeight;
+            const float maxAspectError = 0.02f;
+            const int minWidth = 640;
 
-            return (targetWidth, targetHeight);
+            foreach (int alignment in alignments)
+            {
+                int candidateWidth = (targetWidth / alignment) * alignment; // alignDown
+
+                while (candidateWidth >= minWidth)
+                {
+                    float idealHeight = candidateWidth / sourceAspect;
+                    int candidateHeight = (int)((idealHeight + alignment / 2.0f) / alignment) * alignment; // round to nearest
+
+                    if (candidateHeight > 0)
+                    {
+                        float candidateAspect = (float)candidateWidth / candidateHeight;
+                        float aspectError = Math.Abs(candidateAspect - sourceAspect) / sourceAspect;
+
+                        if (aspectError < maxAspectError)
+                        {
+                            return (candidateWidth, candidateHeight);
+                        }
+                    }
+
+                    candidateWidth -= alignment;
+                }
+            }
+
+            // Fallback: align to 16 (least strict)
+            int fallbackW = Math.Max((targetWidth / 16) * 16, minWidth);
+            int fallbackH = Math.Max((targetHeight / 16) * 16, 16);
+            return (fallbackW, fallbackH);
         }
 
         /// <summary>

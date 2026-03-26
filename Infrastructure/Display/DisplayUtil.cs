@@ -143,6 +143,27 @@ static class DisplayUtil
         return new DisplayModeSnapshot { DeviceName = deviceName, Width = 1920, Height = 1080, Frequency = 60 };
     }
 
+    /// <summary>
+    /// Get the maximum supported refresh rate for a monitor at its current resolution.
+    /// Enumerates all display modes and finds the highest Hz at current width/height.
+    /// </summary>
+    public static int GetMaxRefreshRate(string deviceName)
+    {
+        var current = GetCurrentMode(deviceName);
+        int maxHz = current.Frequency;
+
+        for (int i = 0; ; i++)
+        {
+            var dm = new DEVMODE { dmDeviceName = new string('\0', 32), dmFormName = new string('\0', 32), dmSize = (short)Marshal.SizeOf<DEVMODE>() };
+            if (!EnumDisplaySettingsEx(deviceName, i, ref dm, 0)) break;
+
+            if (dm.dmPelsWidth == current.Width && dm.dmPelsHeight == current.Height && dm.dmDisplayFrequency > maxHz)
+                maxHz = dm.dmDisplayFrequency;
+        }
+
+        return maxHz;
+    }
+
     public static List<DisplayModeSnapshot>? LoadSnapshot(string path)
     {
         try

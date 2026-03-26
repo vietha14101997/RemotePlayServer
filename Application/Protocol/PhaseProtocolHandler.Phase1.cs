@@ -80,6 +80,18 @@ namespace RemotePlayServer.Application.Protocol
             Logger.Info("[Protocol] Calculating suggested config...");
             var suggested = StreamingOptimizer.CalculateSuggestedConfig(_hardwareInfo, _encoderInfo, _speedTestResult);
 
+            // Override RefreshRate with max supported monitor Hz (for client FPS option generation)
+            // Uses max across all monitors' supported modes, not just current Hz.
+            // If user selects FPS > current Hz, server will auto-switch monitor to that Hz.
+            int maxMonitorHz = 60;
+            foreach (var mon in _monitors)
+            {
+                int monMaxHz = DisplayUtil.GetMaxRefreshRate(mon.name);
+                if (monMaxHz > maxMonitorHz) maxMonitorHz = monMaxHz;
+            }
+            suggested.RefreshRate = maxMonitorHz;
+            Logger.Info($"[Protocol] Max supported monitor refresh rate: {maxMonitorHz}Hz");
+
             // USB mode: Measure USB-specific latency and override bitrate
             int finalBitrate = suggested.BitrateKbps;
             string transportNote = "";

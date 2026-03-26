@@ -599,6 +599,14 @@ namespace RemotePlayServer.Application.Protocol
                 }
             }
 
+            // Stop safety monitor before display restore
+            _safetyMonitor?.Stop();
+            _safetyMonitor = null;
+
+            // Clear VDD-only flag before restore (prevents timer from re-triggering)
+            if (DisplayConfig.MonitorType == "bind_mobile")
+                DisplayGuard.ClearVddOnlyActive();
+
             // Restore display settings if they were modified
             // This runs even if _sharedCapture was already disposed (e.g., during reconnect attempts)
             if (_displayModified)

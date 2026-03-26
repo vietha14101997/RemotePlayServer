@@ -655,8 +655,15 @@ public partial class SIPSorceryStreamer
             if (_h265VideoDcs.TryGetValue(trackIndex, out var perTrackDc) &&
                 perTrackDc.readyState == RTCDataChannelState.open)
                 return perTrackDc;
+
+            // 2. Shared DC fallback: when perTrackPc=false (H264), client creates only h265video-0.
+            // All tracks must share this single DC. The trackIdx in the protocol header
+            // tells the client which monitor the frame belongs to.
+            if (trackIndex != 0 && _h265VideoDcs.TryGetValue(0, out var sharedDc) &&
+                sharedDc.readyState == RTCDataChannelState.open)
+                return sharedDc;
         }
-        // 2. Legacy single DC
+        // 3. Legacy single DC
         var legacyDc = _h265VideoDcLegacy;
         if (legacyDc?.readyState == RTCDataChannelState.open) return legacyDc;
         // 3. Cursor DC fallback (reliable, ordered)

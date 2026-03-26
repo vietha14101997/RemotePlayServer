@@ -25,6 +25,12 @@ partial class Program
     [DllImport("kernel32.dll")]
     static extern bool FreeLibrary(IntPtr hModule);
 
+    private delegate bool ConsoleCtrlDelegate(int ctrlType);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate handler, bool add);
+    // Must prevent GC from collecting the delegate while it's registered
+    private static ConsoleCtrlDelegate? _consoleCtrlHandler;
+
     static string GetLocalIPAddress() => NetUtil.GetPreferredLocalIP();
 
     /// <summary>
@@ -167,6 +173,18 @@ partial class Program
 
     static async Task Main()
     {
+        // === SYSTEM SHUTDOWN HOOK ===
+        // Restore display on Ctrl+C, console close, logoff, and system shutdown.
+        // This is independent of the watchdog — works even if watchdog hasn't spawned yet.
+        _consoleCtrlHandler = ctrlType =>
+        {
+            Logger.Info($"[Program] Console control event: {ctrlType} — restoring display...");
+            try { DisplayGuard.RestoreAndCleanupWithTimeout(TimeSpan.FromSeconds(5)); }
+            catch (Exception ex) { Logger.Error($"[Program] Shutdown restore failed: {ex.Message}"); }
+            return false; // Let default handler continue (process exit)
+        };
+        SetConsoleCtrlHandler(_consoleCtrlHandler, true);
+
         // === GLOBAL EXCEPTION HANDLERS FOR CRASH LOGGING ===
         var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
         Directory.CreateDirectory(logDir);
@@ -364,7 +382,7 @@ partial class Program
 
         await Task.WhenAll(dtlsTask, configTask);
 
-        // === CLOUDFLARE TUNNEL (zero-config internet, no router setup needed) ===
+        // === CLOUDFLARE TUNNEL (internet mode) ===
         if (internetConfig?.Enabled == true)
         {
             try

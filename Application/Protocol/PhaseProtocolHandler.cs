@@ -158,10 +158,14 @@ namespace RemotePlayServer.Application.Protocol
         private readonly bool _isUsbTransport;
 
         // Track if display settings were modified (for cleanup)
-        private bool _displayModified = false;
+        // Volatile: read from async cleanup + written from safety monitor callback thread
+        private volatile bool _displayModified = false;
 
-        // VDD monitor name for ultrawide mode (used to filter monitors for capture)
+        // VDD monitor name for ultrawide/bind_mobile mode (used to filter monitors for capture)
         private string? _ultrawideVddName;
+
+        // Safety monitor for VDD-only mode (Ctrl+Alt+F12 escape + max duration timer)
+        private DisplaySafetyMonitor? _safetyMonitor;
 
         // Buffer for display_config that might arrive before WaitForDisplayConfigAsync is called
         private DisplayConfigMessage? _bufferedDisplayConfig;

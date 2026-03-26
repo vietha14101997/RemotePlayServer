@@ -35,9 +35,12 @@ public partial class SIPSorceryStreamer
     private void EnsureEncoderMatchesResolution(TrackInfo track, int width, int height, GpuVendorDetector.GpuVendor? gpuVendor = null)
     {
         // Must be called with track.EncodeLock held
-        if (track.Encoder != null && track.Encoder.Width == width && track.Encoder.Height == height && track.LastUsedCodec == _negotiatedCodec)
+        // Compare with actual encoder codec (LastUsedCodec), not negotiated codec.
+        // After fallback, LastUsedCodec may differ from _negotiatedCodec (e.g., H264 vs H265).
+        var actualCodec = track.Encoder?.CurrentCodec ?? track.LastUsedCodec;
+        if (track.Encoder != null && track.Encoder.Width == width && track.Encoder.Height == height && track.LastUsedCodec == actualCodec)
         {
-            if (track.Width != width || track.Height != height) 
+            if (track.Width != width || track.Height != height)
             {
                 track.Width = width;
                 track.Height = height;
@@ -45,8 +48,8 @@ public partial class SIPSorceryStreamer
             return;
         }
 
-        string reason = (track.Encoder != null && track.LastUsedCodec != _negotiatedCodec) ? "Codec changed" : "Dimensions changed";
-        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {_negotiatedCodec}) or ({track.Encoder?.Width ?? 0}x{track.Encoder?.Height ?? 0} -> {width}x{height}), recreating encoder");
+        string reason = (track.Encoder != null && track.LastUsedCodec != actualCodec) ? "Codec changed" : "Dimensions changed";
+        Logger.Info($"[SIPSorcery] Track {track.Index}: {reason} ({track.LastUsedCodec} -> {actualCodec}) or ({track.Encoder?.Width ?? 0}x{track.Encoder?.Height ?? 0} -> {width}x{height}), recreating encoder");
 
         track.Width = width;
         track.Height = height;
@@ -74,7 +77,19 @@ public partial class SIPSorceryStreamer
         track.Encoder = TryInitializeEncoderWithFallback(track, device, vendor);
         if (track.Encoder != null)
         {
-            track.LastUsedCodec = _negotiatedCodec;
+            var encoderCodec = track.Encoder.CurrentCodec;
+            // Store the ACTUAL codec the encoder is using, not the negotiated one.
+            // This prevents EnsureEncoderMatchesResolution from thinking codec changed
+            // and triggering unnecessary encoder recreation loops.
+            track.LastUsedCodec = encoderCodec;
+
+            // Notify if encoder fell back to a different codec than negotiated
+            if (encoderCodec != _negotiatedCodec && track.Index == 0)
+            {
+                Logger.Warn($"[SIPSorcery] Codec fallback: negotiated={_negotiatedCodec}, actual={encoderCodec}");
+                OnCodecFallback?.Invoke(_negotiatedCodec, encoderCodec,
+                    $"Hardware does not support {_negotiatedCodec} encoding, fell back to {encoderCodec}");
+            }
         }
     }
 
@@ -129,34 +144,52 @@ public partial class SIPSorceryStreamer
             }
 
             Logger.Error($"[SIPSorcery] Track {track.Index}: Primary encoder init failed, trying fallback...");
+            // Cache QsvNative failure so subsequent tracks/recreations skip it immediately
+            if (encoder is QsvNativeWrapper) _qsvNativeInitFailed = true;
             encoder.Dispose();
         }
         catch (Exception ex)
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: Primary encoder error: {ex.Message}");
+            if (encoder is QsvNativeWrapper) _qsvNativeInitFailed = true;
             try { encoder.Dispose(); } catch { }
         }
 
         // Fallback: Try LibAvEncoderAdapter (FFmpeg-based, more compatible)
+        // Skip the negotiated codec in LibAv fallback — if native encoder failed for that codec,
+        // FFmpeg with the same hardware will also fail (same QSV/NVENC/AMF runtime limitation).
+        // This avoids ~500ms wasted per track on redundant init attempts.
+        bool skipNegotiatedInFallback = useHevc; // Native HEVC failed → skip LibAv HEVC too
         if (gpuVendor == GpuVendorDetector.GpuVendor.Intel)
         {
-            Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv fallback for Intel...");
-            return TryInitializeLibAvEncoder(track, device);
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv fallback for Intel (skipHEVC={skipNegotiatedInFallback})...");
+            return TryInitializeLibAvEncoder(track, device, skipNegotiatedInFallback);
         }
 
         // For other GPUs, also try LibAv as final fallback
-        Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv software fallback...");
-        return TryInitializeLibAvEncoder(track, device);
+        Logger.Info($"[SIPSorcery] Track {track.Index}: Trying LibAv software fallback (skipHEVC={skipNegotiatedInFallback})...");
+        return TryInitializeLibAvEncoder(track, device, skipNegotiatedInFallback);
     }
 
     /// <summary>
-    /// Initialize LibAv encoder as fallback
-    /// Uses negotiated codec first, then fallback to other compatible codecs
+    /// Initialize LibAv encoder as fallback.
+    /// Uses negotiated codec first, then fallback to other compatible codecs.
+    /// When skipNegotiatedCodec is true, skips the negotiated codec entirely
+    /// (used when native encoder already failed for that codec — same hardware limitation applies to FFmpeg).
     /// </summary>
-    private ITextureEncoder? TryInitializeLibAvEncoder(TrackInfo track, ID3D11Device device)
+    private ITextureEncoder? TryInitializeLibAvEncoder(TrackInfo track, ID3D11Device device, bool skipNegotiatedCodec = false)
     {
         // Build codec list with negotiated codec first, then fallbacks
-        var codecs = new System.Collections.Generic.List<VideoCodec> { _negotiatedCodec };
+        var codecs = new System.Collections.Generic.List<VideoCodec>();
+
+        if (!skipNegotiatedCodec)
+        {
+            codecs.Add(_negotiatedCodec);
+        }
+        else
+        {
+            Logger.Info($"[SIPSorcery] Track {track.Index}: Skipping {_negotiatedCodec} in LibAv fallback (native encoder already failed)");
+        }
 
         // Add fallbacks (only codecs client might support)
         if (_negotiatedCodec != VideoCodec.H264) codecs.Add(VideoCodec.H264);
@@ -245,6 +278,10 @@ public partial class SIPSorceryStreamer
         }
     }
 
+    // Cache: if QsvNativeWrapper init failed once, skip it for subsequent tracks/recreations.
+    // Saves ~700ms per track that would otherwise be wasted on doomed init attempts.
+    private static volatile bool _qsvNativeInitFailed = false;
+
     /// <summary>
     /// Create Intel encoder with driver version-aware fallback chain:
     /// 1. QsvNativeWrapper (Media Foundation) - requires driver >= 27.20.100.x
@@ -257,18 +294,21 @@ public partial class SIPSorceryStreamer
         Logger.Info($"[SIPSorcery] Intel GPU: {driverInfo.GpuName}");
         Logger.Info($"[SIPSorcery] Intel driver: {driverInfo.DriverVersionString}, reason: {driverInfo.Reason}");
 
-        // Step 1: Try native MF encoder if driver supports it
-        if (driverInfo.RecommendedEncoder == "qsv_native" || driverInfo.RecommendedEncoder == "qsv_try_native")
+        // Step 1: Try native MF encoder if driver supports it (skip if already failed)
+        if (!_qsvNativeInitFailed &&
+            (driverInfo.RecommendedEncoder == "qsv_native" || driverInfo.RecommendedEncoder == "qsv_try_native"))
         {
             if (QsvNativeWrapper.IsAvailable())
             {
                 Logger.Info("[SIPSorcery] Trying QSV native encoder (Media Foundation)...");
                 var encoder = new QsvNativeWrapper();
-                // Note: Actual initialization happens later in InitializeEncoders()
-                // If it fails there, we should have a retry mechanism
                 return encoder;
             }
             Logger.Info("[SIPSorcery] QSV native not available (DLL missing or QsvIsAvailable=false)");
+        }
+        else if (_qsvNativeInitFailed)
+        {
+            Logger.Info("[SIPSorcery] Skipping QSV native (previously failed, using LibAv directly)");
         }
 
         // Step 2: Try FFmpeg QSV (h264_qsv) - more compatible with older drivers

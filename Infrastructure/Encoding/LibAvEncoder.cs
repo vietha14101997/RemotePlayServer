@@ -74,6 +74,8 @@ public unsafe partial class LibAvEncoder : IDisposable
     private VideoCodec _currentCodec = VideoCodec.H264;
 
     private bool _initialized;
+    private bool _eofDetected;  // True when encoder context is dead (EOF from send_frame)
+    private bool _eofLogged;    // Log EOF only once to avoid spam
     private bool _useHardwareFrames;
     private GpuVendorType _gpuVendor = GpuVendorType.Unknown;
     private string _encoderName = "unknown";
@@ -86,6 +88,8 @@ public unsafe partial class LibAvEncoder : IDisposable
     public bool IsInitialized => _initialized;
     public int Width => _width;
     public int Height => _height;
+    /// <summary>True when encoder context is dead (EOF). Caller should recreate encoder.</summary>
+    public bool IsEof => _eofDetected;
 
     /// <summary>
     /// The currently active video codec (H264 or H265)

@@ -182,6 +182,57 @@ namespace RemotePlayServer.Application.Protocol
             _displayModified = true;
         }
 
+        private async Task ApplyBindMobileDisplayAsync(DisplayConfigMessage config)
+        {
+            // Swap phone portrait resolution to landscape: vddW = max, vddH = min
+            int phoneW = config.Resolution?.Width ?? 1920;
+            int phoneH = config.Resolution?.Height ?? 1080;
+            int vddW = Math.Max(phoneW, phoneH);
+            int vddH = Math.Min(phoneW, phoneH);
+            int hz = config.RefreshRate > 0 ? config.RefreshRate : 60;
+
+            // Validate bounds (prevent resource exhaustion from malicious/buggy client)
+            vddW = Math.Clamp(vddW, 720, 3840);
+            vddH = Math.Clamp(vddH, 480, 2160);
+            hz = Math.Clamp(hz, 30, 240);
+
+            Logger.Info($"[Protocol] Bind Mobile mode: phone={phoneW}x{phoneH} → VDD={vddW}x{vddH}@{hz}Hz");
+
+            StopExistingCapture();
+
+            DisplayConfig.MonitorCount = 1;
+            DisplayConfig.StreamFps = config.Fps;
+            DisplayConfig.RefreshRate = hz;
+
+            // Reuse ultrawide 7-step flow (VDD off → create → primary → ShowOnly → verify)
+            // Skip DPI override (step 5) — phone resolution is already small, 100% is better
+            await SendProgressAsync("vdd_setup", 20, $"Creating mobile-bound virtual display ({vddW}x{vddH}@{hz}Hz)...");
+            string? vddName = await Task.Run(() =>
+                VirtualDisplayManager.SetupUltrawideVirtualMonitor(vddW, vddH, hz));
+
+            if (vddName == null)
+            {
+                Logger.Error("[Protocol] Failed to create bind_mobile virtual monitor!");
+                await SendProgressAsync("vdd_setup", 30, "Virtual display creation failed, using standard mode...");
+                DisplayConfig.MonitorType = "standard";
+                return;
+            }
+
+            _ultrawideVddName = vddName;
+
+            DisplayGuard.MarkShowOnlyActive(vddName);
+            DisplayGuard.MarkVddOnlyActive();
+            DisplayGuard.SpawnWatchdog();
+            _displayModified = true;
+
+            // Start safety monitor (Ctrl+Alt+F12 escape hatch + 4h max duration)
+            _safetyMonitor?.Stop();
+            _safetyMonitor = new DisplaySafetyMonitor();
+            _safetyMonitor.Start(() => { _displayModified = false; });
+
+            Logger.Info($"[Protocol] Bind Mobile: VDD={vddName}, Show Only active, safety monitor started");
+        }
+
         private void StopExistingCapture()
         {
             lock (_captureLock)
@@ -208,6 +259,10 @@ namespace RemotePlayServer.Application.Protocol
             {
                 await ApplyUltrawideDisplayAsync(config);
             }
+            else if (DisplayConfig.MonitorType == "bind_mobile")
+            {
+                await ApplyBindMobileDisplayAsync(config);
+            }
             else
             {
                 // ── Standard flow: multi-monitor extend ──
@@ -225,6 +280,27 @@ namespace RemotePlayServer.Application.Protocol
                     DisplayConfig.MonitorCount = config.Monitors;
                     DisplayConfig.StreamFps = config.Fps;
                     DisplayConfig.RefreshRate = config.RefreshRate;
+
+                    // Auto-switch monitor refresh rate if requested FPS exceeds current Hz
+                    foreach (var mon in _monitors)
+                    {
+                        var current = DisplayUtil.GetCurrentMode(mon.name);
+                        if (config.Fps > current.Frequency)
+                        {
+                            int targetHz = config.Fps;
+                            Logger.Info($"[Protocol] Monitor {mon.name}: FPS {config.Fps} > current {current.Frequency}Hz, switching to {targetHz}Hz...");
+                            bool ok = DisplayUtil.ForceResolutionViaModeEnum(mon.name, current.Width, current.Height, targetHz);
+                            if (ok)
+                            {
+                                Logger.Info($"[Protocol] Monitor {mon.name}: Switched to {targetHz}Hz");
+                                _displayModified = true;
+                            }
+                            else
+                            {
+                                Logger.Warn($"[Protocol] Monitor {mon.name}: {targetHz}Hz not available, staying at {current.Frequency}Hz");
+                            }
+                        }
+                    }
 
                     // Snapshot physical monitors first to decide if VDD is needed
                     VirtualDisplayManager.SnapshotPhysicalMonitors();
@@ -327,6 +403,26 @@ namespace RemotePlayServer.Application.Protocol
                     }
                 };
             }
+
+            // Codec fallback notification — tell client to switch decoder if encoder fell back
+            _streamer.OnCodecFallback += async (negotiated, actual, reason) =>
+            {
+                try
+                {
+                    var msg = new CodecChangedMessage
+                    {
+                        NegotiatedCodec = negotiated.ToString(),
+                        ActualCodec = actual.ToString(),
+                        Reason = reason
+                    };
+                    Logger.Info($"[Protocol] Sending codec_changed: {negotiated} -> {actual}");
+                    await SendMessageAsync(msg);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[Protocol] Failed to send codec_changed: {ex.Message}");
+                }
+            };
 
             // Client input forwarding (BT mouse/keyboard via "input" DataChannel)
             _streamer.OnInputReceived += data => InputReceiver.HandleInputMessage(data, _monitorRects);

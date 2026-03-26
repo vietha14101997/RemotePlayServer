@@ -113,8 +113,16 @@ public class LibAvEncoderAdapter : ITextureEncoder
 
     public bool EncodeTexture(ID3D11Texture2D texture, bool forceKeyframe = false)
     {
-        if (_encoder == null || _disposed) 
+        if (_encoder == null || _disposed)
             return false;
+
+        // Encoder context dead (EOF) — signal for recreation by zeroing dimensions
+        if (_encoder.IsEof)
+        {
+            _width = 0;
+            _height = 0;
+            return false;
+        }
         
         try
         {

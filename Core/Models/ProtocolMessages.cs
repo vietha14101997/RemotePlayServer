@@ -878,6 +878,36 @@ namespace RemotePlayServer.Core.Models
         public string Message { get; set; } = "";
     }
 
+    // ==================== Codec Fallback ====================
+
+    /// <summary>
+    /// Server -> Client: Notify that the actual encoder codec differs from negotiated.
+    /// Sent during Phase 3 when encoder fallback occurs (e.g., HEVC not supported at runtime,
+    /// fell back to H.264). Client must switch decoder accordingly.
+    /// </summary>
+    public class CodecChangedMessage : ProtocolMessage
+    {
+        public override string Type => "codec_changed";
+
+        /// <summary>
+        /// The codec originally negotiated in Phase 1 (e.g., "H265").
+        /// </summary>
+        [JsonPropertyName("negotiatedCodec")]
+        public string NegotiatedCodec { get; set; } = "";
+
+        /// <summary>
+        /// The actual codec the server encoder is using (e.g., "H264").
+        /// </summary>
+        [JsonPropertyName("actualCodec")]
+        public string ActualCodec { get; set; } = "";
+
+        /// <summary>
+        /// Human-readable reason for the fallback.
+        /// </summary>
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+    }
+
     // ==================== Message Parser ====================
 
     /// <summary>
