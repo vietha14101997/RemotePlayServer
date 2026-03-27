@@ -570,6 +570,24 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+                    // Handle decoder_ready from client — re-send codec config + IDR
+                    if (msgType == "decoder_ready")
+                    {
+                        try
+                        {
+                            var readyMsg = ProtocolMessageParser.Parse<DecoderReadyMessage>(text);
+                            if (readyMsg != null && _streamer != null)
+                            {
+                                _streamer.ResetTrackForDecoderReady(readyMsg.MonitorIndex);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"[Protocol] decoder_ready error: {ex.Message}");
+                        }
+                        continue;
+                    }
+
                     // Handle update_config from client for dynamic FPS/Bitrate/Resolution changes
                     if (msgType == "update_config")
                     {
@@ -578,23 +596,47 @@ namespace RemotePlayServer.Application.Protocol
                             var updateMsg = ProtocolMessageParser.Parse<UpdateConfigMessage>(text);
                             if (updateMsg != null && _streamer != null)
                             {
-                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, resolutionHeight={updateMsg.ResolutionHeight}");
+                                Logger.Info($"[Protocol] update_config received: fps={updateMsg.Fps}, qualityPreset={updateMsg.QualityPreset}, screen={updateMsg.ScreenWidth}x{updateMsg.ScreenHeight}, resolutionHeight={updateMsg.ResolutionHeight}");
+
+                                // Resolve target resolution height
+                                int? resolvedHeight = null;
+                                int? resolvedWidth = null;
+
+                                if (updateMsg.QualityPreset != null
+                                    && updateMsg.ScreenWidth.HasValue
+                                    && updateMsg.ScreenHeight.HasValue
+                                    && Enum.TryParse<QualityPreset>(updateMsg.QualityPreset, true, out var preset))
+                                {
+                                    // Server-side resolution calculation from preset + screen dimensions + GPU tier
+                                    var gpuTier = GpuTierClassifier.Classify(
+                                        _encoderInfo?.Type, _hardwareInfo?.Gpu?.VramMB ?? 0);
+                                    var maxQH = GpuTierClassifier.GetMaxQualityHeight(gpuTier);
+                                    var (calcW, calcH) = EncoderResolutionCalculator.Calculate(
+                                        updateMsg.ScreenWidth.Value, updateMsg.ScreenHeight.Value, preset, maxQH);
+                                    resolvedHeight = calcH;
+                                    resolvedWidth = calcW;
+                                    Logger.Info($"[Protocol] Preset '{preset}' for {updateMsg.ScreenWidth}x{updateMsg.ScreenHeight} → {calcW}x{calcH}");
+                                }
+                                else if (updateMsg.ResolutionHeight.HasValue)
+                                {
+                                    // Legacy: direct resolution height
+                                    resolvedHeight = updateMsg.ResolutionHeight.Value;
+                                }
 
                                 // Handle resolution change
-                                if (updateMsg.ResolutionHeight.HasValue && _textureResizer != null)
+                                if (resolvedHeight.HasValue && _textureResizer != null)
                                 {
-                                    int newHeight = updateMsg.ResolutionHeight.Value;
+                                    int newHeight = resolvedHeight.Value;
                                     Logger.Info($"[Protocol] Dynamic resolution change requested: {_textureResizer.TargetHeight}p → {newHeight}p");
-                                    
+
                                     // SAFE RESOLUTION CHANGE:
                                     // 1. Pause streamer to clear encoder pipeline
                                     _streamer?.Pause();
-                                    
+
                                     // 2. Update resizer (recreates GPU scalers)
                                     _textureResizer.UpdateTargetHeight(newHeight);
 
                                     // 3. Force re-initialization of encoders BEFORE resume
-                                    // This ensures old encoder handles are closed and new ones created.
                                     _streamer?.ForceReinitializeEncoders();
 
                                     // 4. Resume streamer
@@ -605,7 +647,7 @@ namespace RemotePlayServer.Application.Protocol
 
                                 var (success, appliedFps, appliedResolutionHeight, message) = _streamer!.UpdateConfig(
                                     updateMsg.Fps,
-                                    updateMsg.ResolutionHeight);
+                                    resolvedHeight);
 
                                 // Also update capture FPS if FPS was changed
                                 if (updateMsg.Fps.HasValue && _capture != null)
@@ -621,12 +663,13 @@ namespace RemotePlayServer.Application.Protocol
                                 {
                                     Fps = appliedFps,
                                     BitrateKbps = currentBitrate,
+                                    ResolutionWidth = resolvedWidth ?? 0,
                                     ResolutionHeight = appliedResolutionHeight,
                                     Success = success,
                                     Message = message
                                 };
                                 await SendMessageAsync(ack);
-                                Logger.Info($"[Protocol] config_updated sent: {message}, resolution={ack.ResolutionHeight}p");
+                                Logger.Info($"[Protocol] config_updated sent: {message}, resolution={ack.ResolutionWidth}x{ack.ResolutionHeight}");
                             }
                         }
                         catch (Exception ex)

@@ -52,6 +52,12 @@ namespace RemotePlayServer.Application.Protocol
                     IsVirtual = DisplayUtil.IsVirtualDisplay(m.name, m.hmon)
                 }).ToList()
             };
+
+            // Set GPU-aware max quality height
+            var gpuTier = GpuTierClassifier.Classify(_encoderInfo.Type, _hardwareInfo.Gpu.VramMB);
+            hwMsg.MaxQualityHeight = GpuTierClassifier.GetMaxQualityHeight(gpuTier);
+            Logger.Info($"[Protocol] GPU tier: {gpuTier}, maxQualityHeight: {hwMsg.MaxQualityHeight}p");
+
             await SendMessageAsync(hwMsg);
             Logger.Info("[Protocol] Sent hardware info to client");
 

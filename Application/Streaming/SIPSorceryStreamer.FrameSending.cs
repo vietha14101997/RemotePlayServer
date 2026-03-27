@@ -357,7 +357,7 @@ public partial class SIPSorceryStreamer
                         return;
                     }
 
-                    // Send codec config on first IDR after session start/reconnect.
+                    // Send codec config on first IDR after session start/reconnect/decoder_ready.
                     if (track.IdrViaDcCount == 0)
                     {
                         SendH265ParamSetsViaDataChannel(track, nalBytes);
@@ -404,7 +404,7 @@ public partial class SIPSorceryStreamer
             {
                 if (isKeyframe)
                 {
-                    // Send SPS/PPS config on first IDR of session
+                    // Send SPS/PPS config on first IDR after session start/reconnect/decoder_ready
                     if (track.IdrViaDcCount == 0)
                         SendCodecConfigViaDataChannel(track, nalBytes);
 

@@ -31,6 +31,9 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("monitors")]
         public List<MonitorInfoDto> Monitors { get; set; } = new();
+
+        [JsonPropertyName("maxQualityHeight")]
+        public int MaxQualityHeight { get; set; } = 1440;
     }
 
     public class DeviceInfo
@@ -532,6 +535,18 @@ namespace RemotePlayServer.Core.Models
     }
 
     /// <summary>
+    /// Client -> Server: Signal that decoder for a monitor is configured and ready.
+    /// Server responds by re-sending codec config + forcing IDR on next frame.
+    /// </summary>
+    public class DecoderReadyMessage : ProtocolMessage
+    {
+        public override string Type => "decoder_ready";
+
+        [JsonPropertyName("monitorIndex")]
+        public int MonitorIndex { get; set; }
+    }
+
+    /// <summary>
     /// Client -> Server: Update streaming config during Phase 3.
     /// Allows dynamic FPS and Bitrate changes without reconnection.
     /// Bitrate is TOTAL for all monitors combined.
@@ -547,8 +562,27 @@ namespace RemotePlayServer.Core.Models
         public int? Fps { get; set; }
 
         /// <summary>
-        /// New target output resolution height in pixels (optional, null = no change).
-        /// Server will resize all frames to this height (e.g., 720, 1080, 1440).
+        /// Quality preset name: "Performance", "Balanced", "Quality" (optional, null = no change).
+        /// Server calculates encoder resolution from preset + screen dimensions.
+        /// </summary>
+        [JsonPropertyName("qualityPreset")]
+        public string? QualityPreset { get; set; }
+
+        /// <summary>
+        /// Client screen width in pixels (landscape). Required when qualityPreset is set.
+        /// </summary>
+        [JsonPropertyName("screenWidth")]
+        public int? ScreenWidth { get; set; }
+
+        /// <summary>
+        /// Client screen height in pixels (landscape). Required when qualityPreset is set.
+        /// </summary>
+        [JsonPropertyName("screenHeight")]
+        public int? ScreenHeight { get; set; }
+
+        /// <summary>
+        /// Legacy: direct resolution height override (optional).
+        /// Prefer qualityPreset + screen dimensions instead.
         /// </summary>
         [JsonPropertyName("resolutionHeight")]
         public int? ResolutionHeight { get; set; }
@@ -566,6 +600,9 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("bitrateKbps")]
         public int BitrateKbps { get; set; }
+
+        [JsonPropertyName("resolutionWidth")]
+        public int ResolutionWidth { get; set; }
 
         [JsonPropertyName("resolutionHeight")]
         public int ResolutionHeight { get; set; }

@@ -95,8 +95,23 @@ namespace RemotePlayServer.Infrastructure.Capture
         }
 
         /// <summary>
-        /// Find aligned dimensions where both width and height are divisible by an alignment factor.
-        /// Tries 128 first (best for NVENC/AMF/QSV), falls back to 64, 32, 16.
+        /// Standard display heights universally optimized by hardware encoders.
+        /// These bypass strict alignment search since all major encoders handle them efficiently.
+        /// </summary>
+        private static readonly HashSet<int> EncoderFriendlyHeights = new()
+            { 2160, 1440, 1200, 1080, 900, 720, 540, 480, 360 };
+
+        /// <summary>
+        /// Max candidates per alignment level before falling back to finer alignment.
+        /// Prevents search from drifting too far from target (e.g., Balanced collapsing to Performance).
+        /// </summary>
+        private const int MaxSearchSteps = 2;
+
+        /// <summary>
+        /// Find encoder-friendly dimensions for the given target resolution.
+        /// Strategy:
+        /// 1. If target maps to a standard encoder-friendly height → use directly.
+        /// 2. Otherwise, search for resolution where both dims are aligned (128 > 64 > 32 > 16).
         /// Maintains aspect ratio within 2% tolerance.
         /// </summary>
         public static (int alignedWidth, int alignedHeight) FindAlignedDimensions(
@@ -107,14 +122,27 @@ namespace RemotePlayServer.Infrastructure.Capture
             const float maxAspectError = 0.02f;
             const int minWidth = 640;
 
+            // Fast path: standard encoder-friendly height
+            int idealHeight = (int)Math.Round(targetWidth / sourceAspect);
+            if (EncoderFriendlyHeights.Contains(idealHeight) && targetWidth >= minWidth)
+            {
+                float aspectError = Math.Abs((float)targetWidth / idealHeight - sourceAspect) / sourceAspect;
+                if (aspectError < maxAspectError)
+                {
+                    return (targetWidth, idealHeight);
+                }
+            }
+
+            // Alignment search: both dims divisible by alignment
             foreach (int alignment in alignments)
             {
                 int candidateWidth = (targetWidth / alignment) * alignment; // alignDown
+                int steps = 0;
 
-                while (candidateWidth >= minWidth)
+                while (candidateWidth >= minWidth && steps < MaxSearchSteps)
                 {
-                    float idealHeight = candidateWidth / sourceAspect;
-                    int candidateHeight = (int)((idealHeight + alignment / 2.0f) / alignment) * alignment; // round to nearest
+                    float idealH = candidateWidth / sourceAspect;
+                    int candidateHeight = (int)((idealH + alignment / 2.0f) / alignment) * alignment;
 
                     if (candidateHeight > 0)
                     {
@@ -128,6 +156,7 @@ namespace RemotePlayServer.Infrastructure.Capture
                     }
 
                     candidateWidth -= alignment;
+                    steps++;
                 }
             }
 

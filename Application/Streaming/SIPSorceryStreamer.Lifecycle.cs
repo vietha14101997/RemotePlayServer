@@ -34,6 +34,9 @@ public partial class SIPSorceryStreamer
 
     private void EnsureEncoderMatchesResolution(TrackInfo track, int width, int height, GpuVendorDetector.GpuVendor? gpuVendor = null)
     {
+        // Skip invalid dims (paused tracks with invalidated dimensions — will be set on next real frame)
+        if (width <= 0 || height <= 0) return;
+
         // Must be called with track.EncodeLock held
         // Compare with actual encoder codec (LastUsedCodec), not negotiated codec.
         // After fallback, LastUsedCodec may differ from _negotiatedCodec (e.g., H264 vs H265).

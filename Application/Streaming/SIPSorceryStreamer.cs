@@ -253,6 +253,22 @@ public partial class SIPSorceryStreamer : IDisposable
     public bool IsPaused => _isPaused;
 
     /// <summary>
+    /// Reset track state so codec config + IDR is re-sent on next keyframe.
+    /// Called when client signals its decoder is ready.
+    /// </summary>
+    public void ResetTrackForDecoderReady(int monitorIndex)
+    {
+        lock (_lock)
+        {
+            if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
+            var track = _tracks[monitorIndex];
+            track.IdrViaDcCount = 0;
+            track.ForceNextKeyframe = true;
+            Logger.Info($"[SIPSorcery] Track {monitorIndex}: decoder_ready received, will re-send codec config + IDR");
+        }
+    }
+
+    /// <summary>
     /// Check if a specific monitor is paused.
     /// </summary>
     public bool IsMonitorPaused(int monitorIndex)
@@ -347,6 +363,17 @@ public partial class SIPSorceryStreamer : IDisposable
                     track.IdrViaDcCount = 0;
                     track.DcNotReadyCount = 0;
                     Interlocked.Exchange(ref track.SentFrames, 0);
+
+                    // Invalidate paused track dimensions so encoder is re-created
+                    // with correct resolution when the track resumes.
+                    if (IsMonitorPaused(track.Index))
+                    {
+                        lock (track.EncodeLock)
+                        {
+                            track.Width = 0;
+                            track.Height = 0;
+                        }
+                    }
                 }
             }
             InitializeEncoders();
