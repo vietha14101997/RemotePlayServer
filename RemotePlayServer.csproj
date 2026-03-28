@@ -3,7 +3,9 @@
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   
   <!-- Exclude test project from main compilation -->
@@ -24,6 +26,12 @@
     <None Include="Configuration\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Configuration" />
   </ItemGroup>
 
+  <!-- Use Program.cs Main() as entry point instead of WPF auto-generated -->
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WebRTC: libdatachannel (replaces SIPSorcery for multi-track support) -->
     <PackageReference Include="DataChannelDotnet" Version="*" />
@@ -37,6 +45,11 @@
     <PackageReference Include="System.Management" Version="9.0.0" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.5" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
+
+    <!-- WPF GUI -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.10" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.0" />
 
     <!-- SIPSorcery (kept for backward compatibility, will be removed later) -->
     <PackageReference Include="SIPSorcery" Version="8.0.23" />

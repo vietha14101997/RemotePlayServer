@@ -15,6 +15,8 @@ namespace RemotePlayServer.Core
         /// </summary>
         public static LogLevel Level { get; set; } = LogLevel.Info;
 
+        public static event Action<DateTime, string, LogLevel>? OnLogEntry;
+
         private static StreamWriter? _fileWriter;
         private static readonly object _fileLock = new object();
 
@@ -55,41 +57,29 @@ namespace RemotePlayServer.Core
         public static void Debug(string message)
         {
             if (Level <= LogLevel.Debug)
-                WriteLog($"[DEBUG] {message}");
+                WriteLog($"[DEBUG] {message}", LogLevel.Debug);
         }
 
-        /// <summary>
-        /// Log an info message (normal verbosity).
-        /// </summary>
         public static void Info(string message)
         {
             if (Level <= LogLevel.Info)
-                WriteLog(message);
+                WriteLog(message, LogLevel.Info);
         }
 
-        /// <summary>
-        /// Log a warning message.
-        /// </summary>
         public static void Warn(string message)
         {
             if (Level <= LogLevel.Warning)
-                WriteLog($"[WARN] {message}");
+                WriteLog($"[WARN] {message}", LogLevel.Warning);
         }
 
-        /// <summary>
-        /// Log an error message (always shown).
-        /// </summary>
         public static void Error(string message)
         {
-            WriteLog($"[ERROR] {message}");
+            WriteLog($"[ERROR] {message}", LogLevel.Error);
         }
 
-        /// <summary>
-        /// Log an error with exception.
-        /// </summary>
         public static void Error(string message, Exception ex)
         {
-            WriteLog($"[ERROR] {message}: {ex.Message}");
+            WriteLog($"[ERROR] {message}: {ex.Message}", LogLevel.Error);
         }
 
         /// <summary>
@@ -105,10 +95,13 @@ namespace RemotePlayServer.Core
             }
         }
 
-        private static void WriteLog(string message)
+        private static void WriteLog(string message, LogLevel level = LogLevel.Info)
         {
-            var timestamped = $"{DateTime.Now:HH:mm:ss.fff} {message}";
+            var now = DateTime.Now;
+            var timestamped = $"{now:HH:mm:ss.fff} {message}";
             Console.WriteLine(timestamped);
+
+            try { OnLogEntry?.Invoke(now, message, level); } catch { }
 
             if (_fileWriter != null)
             {

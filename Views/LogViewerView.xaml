@@ -1,0 +1,43 @@
+<UserControl x:Class="RemotePlayServer.Views.LogViewerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="📋" FontSize="64" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource AppTextDimBrush}" Opacity="0.3" />
+            <TextBlock Text="Log Viewer" FontSize="22" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AppTextBrush}" HorizontalAlignment="Center" Margin="0,16,0,8" />
+            <TextBlock Text="View server logs, connection events, and diagnostics"
+                       FontSize="13" Foreground="{DynamicResource AppTextDimBrush}" HorizontalAlignment="Center" />
+            <Border Background="{DynamicResource AppComingSoonBrush}" CornerRadius="4"
+                    Padding="12,6" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <TextBlock Text="COMING SOON" FontSize="11" FontWeight="Bold" Foreground="White" />
+            </Border>
+
+            <!-- Mockup -->
+            <Border Style="{StaticResource PlaceholderCard}" Margin="0,24,0,0" Width="500" HorizontalAlignment="Center">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="Filter:" FontSize="11" Foreground="{DynamicResource AppTextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <Border CornerRadius="4" Background="{DynamicResource AppSurfaceHoverBrush}" Padding="8,4" Margin="0,0,4,0">
+                            <TextBlock Text="All" FontSize="10" Foreground="{DynamicResource AppTextDimBrush}" />
+                        </Border>
+                        <Border CornerRadius="4" Background="{DynamicResource AppSurfaceHoverBrush}" Padding="8,4" Margin="0,0,4,0">
+                            <TextBlock Text="Error" FontSize="10" Foreground="{DynamicResource AppErrorBrush}" />
+                        </Border>
+                        <Border CornerRadius="4" Background="{DynamicResource AppSurfaceHoverBrush}" Padding="8,4">
+                            <TextBlock Text="Warning" FontSize="10" Foreground="{DynamicResource AppWarningBrush}" />
+                        </Border>
+                    </StackPanel>
+                    <TextBlock FontSize="11" Foreground="{DynamicResource AppTextDimBrush}" FontFamily="Consolas">
+                        <Run Text="12:00:01 [INFO]  Server started on port 8288" /><LineBreak />
+                        <Run Text="12:00:02 [INFO]  LAN discovery active" /><LineBreak />
+                        <Run Text="12:00:15 [INFO]  Client connected: 192.168.1.5" /><LineBreak />
+                        <Run Text="12:01:03 [WARN]  Encoder fallback: NVENC → FFmpeg" Foreground="{DynamicResource AppWarningBrush}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

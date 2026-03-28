@@ -50,6 +50,20 @@ namespace RemotePlayServer.Application.Protocol
     /// </summary>
     public partial class PhaseProtocolHandler
     {
+        // === GUI Connection Tracking ===
+        private static readonly ConcurrentDictionary<Guid, Models.ClientConnectionInfo> _activeClients = new();
+        private static readonly ConcurrentDictionary<Guid, CancellationTokenSource> _clientCts = new();
+        public static IReadOnlyDictionary<Guid, Models.ClientConnectionInfo> ActiveClients => _activeClients;
+        public static event Action<Models.ClientConnectionInfo>? OnClientConnected;
+        public static event Action<Guid>? OnClientDisconnected;
+        public static event Action<Guid, ConnectionPhase>? OnClientPhaseChanged;
+
+        public static void RequestDisconnect(Guid clientId)
+        {
+            if (_clientCts.TryGetValue(clientId, out var cts))
+                cts.Cancel();
+        }
+
         private readonly Guid _clientId;
         private readonly WebSocket _ws;
         private readonly System.Net.IPAddress? _remoteIp;
@@ -207,6 +221,20 @@ namespace RemotePlayServer.Application.Protocol
             string transportStr = _isUsbTransport ? "USB Tethering" : "WiFi";
             Logger.Info($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol, transport={transportStr})");
 
+            var clientInfo = new Models.ClientConnectionInfo
+            {
+                ClientId = _clientId,
+                RemoteIp = _remoteIp?.ToString() ?? "",
+                Phase = ConnectionPhase.Connected,
+                TransportType = transportStr,
+                IsUsbTransport = _isUsbTransport,
+                ConnectedAt = DateTime.UtcNow
+            };
+            _activeClients[_clientId] = clientInfo;
+            var disconnectCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+            _clientCts[_clientId] = disconnectCts;
+            OnClientConnected?.Invoke(clientInfo);
+
             try
             {
                 // Phase 1: Hardware discovery and speed test
@@ -238,6 +266,11 @@ namespace RemotePlayServer.Application.Protocol
             }
             finally
             {
+                _activeClients.TryRemove(_clientId, out _);
+                if (_clientCts.TryRemove(_clientId, out var removedCts))
+                    removedCts.Dispose();
+                OnClientDisconnected?.Invoke(_clientId);
+
                 await CleanupAsync();
                 _fatalErrorCts?.Dispose();
                 _fatalErrorCts = null;

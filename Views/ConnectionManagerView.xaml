@@ -1,0 +1,181 @@
+<UserControl x:Class="RemotePlayServer.Views.ConnectionManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:RemotePlayServer.Converters">
+    <UserControl.Resources>
+        <converters:PhaseToColorConverter x:Key="PhaseToColor" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <!-- Empty State -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasClients}" Value="False">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="🔌" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"
+                       Foreground="{DynamicResource AppTextDimBrush}" Opacity="0.3" />
+            <TextBlock Text="No active connections" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AppTextDimBrush}" HorizontalAlignment="Center" />
+            <TextBlock Text="Waiting for clients to connect..." FontSize="13"
+                       Foreground="{DynamicResource AppTextDimBrush}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+        </StackPanel>
+
+        <!-- Client List -->
+        <DockPanel Visibility="{Binding HasClients, Converter={StaticResource BoolToVis}}">
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource SectionHeader}" Margin="0,0,0,12">
+                <Run Text="Active Connections (" /><Run Text="{Binding Clients.Count, Mode=OneWay}" /><Run Text=")" />
+            </TextBlock>
+
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Clients}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <!-- Row 1: IP + badges -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="10" Height="10" Margin="0,0,8,0"
+                                                     Fill="{Binding Phase, Converter={StaticResource PhaseToColor}}" />
+                                            <TextBlock Text="{Binding RemoteIp, Mode=OneWay}" FontSize="15" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AppTextBrush}" />
+                                            <!-- Transport badge -->
+                                            <Border Style="{StaticResource StatusBadge}" Margin="10,0,0,0">
+                                                <TextBlock Text="{Binding TransportType}" FontSize="10"
+                                                           Foreground="{DynamicResource AppTextBrush}" />
+                                            </Border>
+                                            <!-- Phase badge -->
+                                            <Border Style="{StaticResource StatusBadge}" Margin="6,0,0,0">
+                                                <TextBlock Text="{Binding Phase}" FontSize="10"
+                                                           Foreground="{Binding Phase, Converter={StaticResource PhaseToColor}}" />
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Row 2: Phase timeline dots -->
+                                        <StackPanel Orientation="Horizontal" Margin="18,8,0,0">
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource AppAccentBrush}" />
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource AppBorderBrush}" VerticalAlignment="Center" />
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource AppBorderBrush}">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase1_HardwareDetect">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase1_SpeedTest">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase1_WaitingProceed">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase2_ApplyConfig">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase2_IceExchange">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_WaitingStart">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_Streaming">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource AppBorderBrush}" VerticalAlignment="Center" />
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource AppBorderBrush}">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase2_ApplyConfig">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase2_IceExchange">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_WaitingStart">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_Streaming">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource AppBorderBrush}" VerticalAlignment="Center" />
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource AppBorderBrush}">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_WaitingStart">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_Streaming">
+                                                                <Setter Property="Fill" Value="{StaticResource AppAccentBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <Rectangle Width="16" Height="2" Fill="{DynamicResource AppBorderBrush}" VerticalAlignment="Center" />
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource AppBorderBrush}">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Phase}" Value="Phase3_Streaming">
+                                                                <Setter Property="Fill" Value="{StaticResource AppSuccessBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                        </StackPanel>
+
+                                        <!-- Row 3: Codec + Duration -->
+                                        <StackPanel Orientation="Horizontal" Margin="18,6,0,0">
+                                            <TextBlock FontSize="12" Foreground="{DynamicResource AppTextDimBrush}">
+                                                <Run Text="Codec: " /><Run Text="{Binding Codec, Mode=OneWay}" Foreground="{DynamicResource AppTextBrush}" />
+                                            </TextBlock>
+                                            <TextBlock FontSize="12" Foreground="{DynamicResource AppTextDimBrush}" Margin="16,0">
+                                                <Run Text="Duration: " /><Run Text="{Binding Duration, Mode=OneWay, StringFormat=hh\\:mm\\:ss}" Foreground="{DynamicResource AppTextBrush}" />
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <!-- Row 4: Stats placeholder -->
+                                        <Border Background="{DynamicResource AppSurfaceHoverBrush}" CornerRadius="4"
+                                                Padding="8,4" Margin="18,8,0,0" Opacity="0.5" HorizontalAlignment="Left">
+                                            <TextBlock Text="FPS / Bitrate / Latency — stats in future update"
+                                                       FontSize="10" Foreground="{DynamicResource AppTextDimBrush}" FontStyle="Italic" />
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Disconnect button -->
+                                    <Button Grid.Column="1" Style="{StaticResource DangerButton}" VerticalAlignment="Center"
+                                            Command="{Binding DataContext.DisconnectClientCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding ClientId}"
+                                            Content="Disconnect" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</UserControl>

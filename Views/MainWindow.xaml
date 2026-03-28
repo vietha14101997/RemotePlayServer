@@ -1,0 +1,191 @@
+<mah:MetroWindow x:Class="RemotePlayServer.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+        xmlns:vm="clr-namespace:RemotePlayServer.ViewModels"
+        xmlns:views="clr-namespace:RemotePlayServer.Views"
+        xmlns:converters="clr-namespace:RemotePlayServer.Converters"
+        Title="RemotePlay Server"
+        Width="1000" Height="650"
+        MinWidth="750" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}"
+        GlowBrush="{DynamicResource AppAccentBrush}"
+        TitleCharacterCasing="Normal"
+        StateChanged="MetroWindow_StateChanged">
+
+    <mah:MetroWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </mah:MetroWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="32" />
+        </Grid.RowDefinitions>
+
+        <!-- Main Area -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ═══ SIDEBAR ═══ -->
+            <Border Grid.Column="0" Background="{DynamicResource AppSurfaceBrush}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Width" Value="200" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSidebarExpanded}" Value="False">
+                                <Setter Property="Width" Value="56" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <DockPanel>
+                    <!-- Header: Hamburger + Title -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,12,12,16">
+                        <Button Style="{StaticResource IconButton}" Command="{Binding ToggleSidebarCommand}">
+                            <TextBlock Text="☰" FontSize="16" />
+                        </Button>
+                        <TextBlock Text="RemotePlay" FontSize="15" FontWeight="Bold"
+                                   Foreground="{DynamicResource AppAccentLightBrush}"
+                                   VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Visibility="{Binding IsSidebarExpanded, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+
+                    <!-- Server Status Badge (bottom) -->
+                    <Border DockPanel.Dock="Bottom" Margin="8,0,8,12"
+                            Padding="10,8" CornerRadius="6"
+                            Background="{DynamicResource AppSurfaceElevatedBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="SidebarStatusDot" Width="8" Height="8" Margin="0,0,8,0"
+                                     Fill="{DynamicResource AppSuccessBrush}">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding State.IsRunning}" Value="False">
+                                                <Setter Property="Fill" Value="{StaticResource AppTextDimBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextDimBrush}"
+                                       Visibility="{Binding IsSidebarExpanded, Converter={StaticResource BoolToVis}}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Running" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding State.IsRunning}" Value="False">
+                                                <Setter Property="Text" Value="Stopped" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Navigation Items -->
+                    <ListBox SelectedIndex="{Binding SelectedNavIndex, Mode=TwoWay}"
+                             Style="{StaticResource NavListBox}"
+                             ItemContainerStyle="{StaticResource NavListBoxItem}">
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="▦" FontSize="16" Width="28" TextAlignment="Center" />
+                                <TextBlock Text="Dashboard" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙" FontSize="16" Width="28" TextAlignment="Center" />
+                                <TextBlock Text="Settings" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚡" FontSize="16" Width="28" TextAlignment="Center" />
+                                <TextBlock Text="Connections" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="≡" FontSize="18" Width="28" TextAlignment="Center" />
+                                <TextBlock Text="Logs" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </ListBoxItem>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Separator -->
+            <Rectangle Grid.Column="1" Fill="{DynamicResource AppBorderBrush}" />
+
+            <!-- ═══ CONTENT AREA ═══ -->
+            <ContentControl x:Name="ContentArea" Grid.Column="2" Content="{Binding CurrentView}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                        <views:DashboardView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                        <views:SettingsView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:ConnectionManagerViewModel}">
+                        <views:ConnectionManagerView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:LogViewerViewModel}">
+                        <views:LogViewerView />
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+        </Grid>
+
+        <!-- ═══ STATUS BAR ═══ -->
+        <Border Grid.Row="1" Background="{DynamicResource AppSurfaceBrush}"
+                BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0"
+                Padding="12,0">
+            <DockPanel>
+                <TextBlock FontSize="11" Foreground="{DynamicResource AppTextDimBrush}" VerticalAlignment="Center">
+                    <Run Text="Uptime: " /><Run Text="{Binding Uptime, Mode=OneWay}" />
+                </TextBlock>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Text="CPU: --%" FontSize="11" Foreground="{DynamicResource AppDisabledTextBrush}"
+                               VerticalAlignment="Center" Margin="16,0" ToolTip="Coming in a future update" />
+                    <TextBlock Text="GPU: --%" FontSize="11" Foreground="{DynamicResource AppDisabledTextBrush}"
+                               VerticalAlignment="Center" Margin="0,0,16,0" ToolTip="Coming in a future update" />
+                    <TextBlock FontSize="11" Foreground="{DynamicResource AppTextDimBrush}" VerticalAlignment="Center">
+                        <Run Text="Clients: " /><Run Text="{Binding ActiveClientCount, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <TextBlock /> <!-- spacer -->
+            </DockPanel>
+        </Border>
+
+        <!-- ═══ SYSTEM TRAY ═══ -->
+        <tb:TaskbarIcon x:Name="TrayIcon" Grid.Row="0"
+                        ToolTipText="{Binding TrayTooltip}"
+                        Visibility="Visible"
+                        DoubleClickCommand="{Binding ShowWindowCommand}">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show" Command="{Binding ShowWindowCommand}" />
+                    <Separator />
+                    <MenuItem Header="Restart Server" IsEnabled="False" ToolTip="Coming in a future update" />
+                    <Separator />
+                    <MenuItem Header="Exit" Command="{Binding ExitAppCommand}" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+    </Grid>
+</mah:MetroWindow>
