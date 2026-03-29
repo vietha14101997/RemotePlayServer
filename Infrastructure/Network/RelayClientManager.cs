@@ -1,10 +1,6 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using RemotePlayServer.Core;
-using RemotePlayServer.Core.Models;
-using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Infrastructure.Network;
 
@@ -23,49 +19,13 @@ public class RelayClientManager
     private RelayClientManager(RelayClient client) { Client = client; }
 
     /// <summary>
-    /// Authenticates, registers device, fetches ICE servers, and opens presence WebSocket.
-    /// Returns false if relay is disabled or any step fails.
+    /// Sets the singleton instance with a pre-authenticated RelayClient.
+    /// Called from ServerService.ConnectRelayAsync after login.
     /// </summary>
-    public static async Task<bool> InitializeAsync(InternetConfig config)
+    public static void SetInstance(RelayClient client)
     {
-        if (!config.UseRelay || string.IsNullOrEmpty(config.RelayUrl)) return false;
-
-        var client = new RelayClient();
-
-        if (!await client.LoginAsync(config.RelayUrl!, config.RelayEmail!, config.RelayPassword!))
-        {
-            client.Dispose();
-            return false;
-        }
-
-        await client.RegisterDeviceAsync(Environment.MachineName);
-        await client.FetchIceServersAsync();
-        await client.ConnectPresenceAsync();
-
-        // Register guest access (UltraViewer-style ID + password)
-        GuestIdManager.Generate();
-
-        var guestRegistered = false;
-        for (int i = 0; i < 3 && !guestRegistered; i++)
-        {
-            guestRegistered = await client.RegisterGuestDeviceAsync(
-                GuestIdManager.CurrentId,
-                GuestIdManager.CurrentPassword,
-                Environment.MachineName);
-            if (!guestRegistered)
-            {
-                GuestIdManager.Generate(); // retry with new ID
-            }
-        }
-
-        if (guestRegistered)
-        {
-            Logger.Info($"[Relay] Guest Access: ID={GuestIdManager.DisplayId} Password={GuestIdManager.CurrentPassword}");
-        }
-
         _instance = new RelayClientManager(client);
-        Logger.Info("[RelayClientManager] Initialized successfully");
-        return true;
+        Logger.Info("[RelayClientManager] Instance set with authenticated client");
     }
 
     /// <summary>

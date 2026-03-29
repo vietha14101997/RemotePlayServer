@@ -1,9 +1,11 @@
 #nullable enable
 using System;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RemotePlayServer.Application.Protocol;
+using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Models;
 using RemotePlayServer.Services;
 
@@ -16,6 +18,7 @@ public partial class MainViewModel : ObservableObject
     private readonly SettingsViewModel _settings;
     private readonly ConnectionManagerViewModel _connections;
     private readonly LogViewerViewModel _logViewer = new();
+    private readonly LoginViewModel _login;
     private readonly DispatcherTimer _statusTimer;
 
     [ObservableProperty] private ObservableObject _currentView;
@@ -33,7 +36,11 @@ public partial class MainViewModel : ObservableObject
         _dashboard = new DashboardViewModel(serverService);
         _settings = new SettingsViewModel(serverService);
         _connections = new ConnectionManagerViewModel();
-        _currentView = _dashboard;
+        _login = new LoginViewModel();
+        _currentView = _dashboard; // start on dashboard
+
+        _login.OnLoginSuccess += OnLoginSuccess;
+        _login.OnLogoutRequested += OnLogout;
 
         PhaseProtocolHandler.OnClientConnected += _ => UpdateClientCount();
         PhaseProtocolHandler.OnClientDisconnected += _ => UpdateClientCount();
@@ -44,6 +51,60 @@ public partial class MainViewModel : ObservableObject
         _statusTimer.Start();
     }
 
+    /// <summary>
+    /// Load saved credentials into login form + try auto-login.
+    /// Call from App.xaml.cs after startup completes.
+    /// </summary>
+    public async Task TryAutoLoginAsync()
+    {
+        var config = _serverService.GetInternetConfig();
+        if (config != null)
+            Dispatch(() => _login.LoadFromConfig(config));
+
+        if (config is not { UseRelay: true } ||
+            string.IsNullOrEmpty(config.RelayEmail) ||
+            string.IsNullOrEmpty(config.RelayPassword))
+            return;
+
+        var client = new RelayClient();
+        var success = await client.LoginAsync(config.RelayUrl!, config.RelayEmail!, config.RelayPassword!);
+        if (success)
+        {
+            Dispatch(() => _login.SetLoggedIn(config.RelayEmail!));
+            _ = Task.Run(() => _serverService.ConnectRelayAsync(client));
+        }
+        else
+        {
+            client.Dispose();
+        }
+    }
+
+    private void OnLoginSuccess(RelayClient client)
+    {
+        // Save credentials if remember me
+        if (_login.RememberMe)
+        {
+            _serverService.SaveRelayCredentials(
+                _login.RelayUrl.Trim(),
+                _login.Email.Trim(),
+                _login.Password);
+        }
+
+        // Start relay connection with the authenticated client
+        _ = Task.Run(() => _serverService.ConnectRelayAsync(client));
+    }
+
+    public void OnLogout()
+    {
+        RelayClientManager.Shutdown();
+        Dispatch(() =>
+        {
+            State.IsRelayConnected = false;
+            State.GuestId = null;
+            State.GuestPassword = null;
+        });
+    }
+
     partial void OnSelectedNavIndexChanged(int value)
     {
         CurrentView = value switch
@@ -52,6 +113,7 @@ public partial class MainViewModel : ObservableObject
             1 => _settings,
             2 => _connections,
             3 => _logViewer,
+            4 => _login,
             _ => _dashboard
         };
     }
@@ -86,10 +148,15 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateClientCount()
     {
+        Dispatch(() => ActiveClientCount = PhaseProtocolHandler.ActiveClients.Count);
+    }
+
+    private static void Dispatch(Action action)
+    {
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null && !dispatcher.CheckAccess())
-            dispatcher.Invoke(() => ActiveClientCount = PhaseProtocolHandler.ActiveClients.Count);
+            dispatcher.Invoke(action);
         else
-            ActiveClientCount = PhaseProtocolHandler.ActiveClients.Count;
+            action();
     }
 }

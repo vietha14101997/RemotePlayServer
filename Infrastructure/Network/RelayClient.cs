@@ -37,6 +37,46 @@ public class RelayClient : IDisposable
 
     public List<IceServerConfig>? IceServers { get; private set; }
 
+    public async Task<(bool Success, string? Error)> RegisterAsync(string relayUrl, string email, string username, string password)
+    {
+        _relayUrl = relayUrl.TrimEnd('/');
+
+        var body = JsonSerializer.Serialize(new { email, username, password });
+        var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+
+        try
+        {
+            var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/register", content);
+            var json = await resp.Content.ReadAsStringAsync();
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var errorMsg = "Registration failed";
+                try
+                {
+                    var errObj = JsonSerializer.Deserialize<JsonElement>(json);
+                    if (errObj.TryGetProperty("error", out var errProp))
+                        errorMsg = errProp.GetString() ?? errorMsg;
+                }
+                catch { }
+                Logger.Error($"[Relay] Register failed: {resp.StatusCode} - {errorMsg}");
+                return (false, errorMsg);
+            }
+
+            var result = JsonSerializer.Deserialize<LoginResponse>(json);
+            _accessToken = result?.AccessToken;
+            _refreshToken = result?.RefreshToken;
+
+            Logger.Info("[Relay] Registration successful");
+            return (_accessToken != null, null);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Relay] Register error: {ex.Message}");
+            return (false, ex.Message);
+        }
+    }
+
     public async Task<bool> LoginAsync(string relayUrl, string email, string password)
     {
         _relayUrl = relayUrl.TrimEnd('/');

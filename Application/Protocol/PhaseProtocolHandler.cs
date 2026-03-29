@@ -85,6 +85,10 @@ namespace RemotePlayServer.Application.Protocol
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
         private SIPSorceryStreamer? _streamer;
+        public SIPSorceryStreamer? Streamer => _streamer;
+
+        /// <summary>Fired when streamer is created and ready (after Phase 2 ICE setup).</summary>
+        public event Action<SIPSorceryStreamer>? OnStreamerReady;
         private CancellationTokenSource? _captureCts;
         private Thread? _captureThread;
         private TextureResizer? _textureResizer;
@@ -171,6 +175,7 @@ namespace RemotePlayServer.Application.Protocol
         // Transport mode (USB Tethering vs WiFi vs Relay)
         private readonly bool _isUsbTransport;
         private readonly bool _isRelayTransport;
+        private readonly bool _isViewerMode;
 
         // Track if display settings were modified (for cleanup)
         // Volatile: read from async cleanup + written from safety monitor callback thread
@@ -201,7 +206,8 @@ namespace RemotePlayServer.Application.Protocol
             System.Net.IPAddress? remoteIp,
             CancellationToken ct,
             bool isUsbTransport = false,
-            bool isRelayTransport = false)
+            bool isRelayTransport = false,
+            bool isViewerMode = false)
         {
             _clientId = clientId;
             _ws = ws;
@@ -209,6 +215,7 @@ namespace RemotePlayServer.Application.Protocol
             _ct = ct;
             _isUsbTransport = isUsbTransport;
             _isRelayTransport = isRelayTransport;
+            _isViewerMode = isViewerMode;
         }
 
         /// <summary>
@@ -241,14 +248,18 @@ namespace RemotePlayServer.Application.Protocol
 
             try
             {
-                // Phase 1: Hardware discovery and speed test
-                await RunPhase1Async();
-
-                // Phase 2: Configuration and ICE exchange
-                await RunPhase2Async();
-
-                // Phase 3: Streaming
-                await RunPhase3Async();
+                if (_isViewerMode)
+                {
+                    // Viewer: skip capture/encode, only ICE + receive pre-encoded frames
+                    await RunViewerFastPathAsync();
+                }
+                else
+                {
+                    // Host: full pipeline
+                    await RunPhase1Async();
+                    await RunPhase2Async();
+                    await RunPhase3Async();
+                }
             }
             catch (OperationCanceledException)
             {

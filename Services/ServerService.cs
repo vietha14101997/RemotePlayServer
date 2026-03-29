@@ -31,6 +31,20 @@ public class ServerService : IDisposable
     private InternetConfig? _internetConfig;
     private bool _disposed;
 
+    /// <summary>Returns loaded internet config (available after StartAsync completes LoadConfigParallel).</summary>
+    public InternetConfig? GetInternetConfig() => _internetConfig;
+
+    /// <summary>Save relay credentials to internet-settings.json.</summary>
+    public void SaveRelayCredentials(string relayUrl, string email, string password)
+    {
+        if (_internetConfig == null) return;
+        _internetConfig.RelayUrl = relayUrl;
+        _internetConfig.RelayEmail = email;
+        _internetConfig.RelayPassword = password;
+        _internetConfig.UseRelay = true;
+        _ = InternetManager.SaveConfigAsync(_internetConfig);
+    }
+
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr LoadLibrary(string lpFileName);
 
@@ -86,7 +100,8 @@ public class ServerService : IDisposable
 
             await StartTunnelIfEnabled();
 
-            await StartRelayIfEnabled();
+            // Relay connection is now deferred until user logs in via LoginView.
+            // See ConnectRelayAsync(RelayClient) called from MainViewModel.
 
             BuildQrData();
 
@@ -421,20 +436,34 @@ public class ServerService : IDisposable
         Logger.Info($"[Port] HTTP.sys restarted, port {port} should be free");
     }
 
-    private async Task StartRelayIfEnabled()
+    /// <summary>
+    /// Connect to relay using a pre-authenticated RelayClient (from LoginViewModel).
+    /// Registers device, fetches ICE, opens presence WS, creates room.
+    /// </summary>
+    public async Task ConnectRelayAsync(RelayClient client)
     {
-        if (_internetConfig?.UseRelay != true) return;
-
         try
         {
-            Logger.Info("[Relay] Starting relay connection...");
-            var success = await RelayClientManager.InitializeAsync(_internetConfig);
+            Logger.Info("[Relay] Starting relay connection with authenticated client...");
 
-            if (!success)
+            await client.RegisterDeviceAsync(Environment.MachineName);
+            await client.FetchIceServersAsync();
+            await client.ConnectPresenceAsync();
+
+            // Register guest access
+            GuestIdManager.Generate();
+            var guestRegistered = false;
+            for (int i = 0; i < 3 && !guestRegistered; i++)
             {
-                Logger.Error("[Relay] Failed to connect to relay server");
-                return;
+                guestRegistered = await client.RegisterGuestDeviceAsync(
+                    GuestIdManager.CurrentId, GuestIdManager.CurrentPassword, Environment.MachineName);
+                if (!guestRegistered) GuestIdManager.Generate();
             }
+            if (guestRegistered)
+                Logger.Info($"[Relay] Guest Access: ID={GuestIdManager.DisplayId} Password={GuestIdManager.CurrentPassword}");
+
+            // Set singleton
+            RelayClientManager.SetInstance(client);
 
             // Register TURN server IPs for P2P vs TURN detection
             var iceServers = RelayClientManager.Instance!.IceServers;
@@ -454,35 +483,67 @@ public class ServerService : IDisposable
             }
 
             // Setup relay event handlers
-            var client = RelayClientManager.Instance!.Client;
+            var relayBridge = new MultiClientRelayBridge(client);
+            SharedEncoderManager.Initialize();
 
-            RelayWebSocketAdapter? _currentAdapter = null;
             client.OnRoomReady += () =>
             {
-                // Prevent duplicate handlers — only 1 active session at a time
-                if (_currentAdapter != null)
-                {
-                    Logger.Info("[Relay] Room ready — ignoring (handler already active)");
-                    return;
-                }
+                var isFirstClient = relayBridge.ActiveCount == 0;
+                Logger.Info($"[Relay] Room ready — creating handler (active: {relayBridge.ActiveCount}, role: {(isFirstClient ? "host" : "viewer")})");
 
-                Logger.Info("[Relay] Room ready — starting protocol handler for relay session");
-                var adapter = new RelayWebSocketAdapter(client);
-                _currentAdapter = adapter;
-                var clientId = Guid.NewGuid();
+                var handlerClientId = Guid.NewGuid();
+                var clientIdStr = handlerClientId.ToString();
+                var adapter = relayBridge.CreateAdapter(clientIdStr);
+
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         var handler = new PhaseProtocolHandler(
-                            clientId, adapter, null, CancellationToken.None,
-                            isUsbTransport: false, isRelayTransport: true);
+                            handlerClientId, adapter, null, CancellationToken.None,
+                            isUsbTransport: false, isRelayTransport: true,
+                            isViewerMode: !isFirstClient);
+
+                        // Register streamer with SharedEncoderManager when ready
+                        handler.OnStreamerReady += streamer =>
+                        {
+                            var mgr = SharedEncoderManager.Instance;
+                            if (mgr == null) return;
+
+                            if (isFirstClient)
+                            {
+                                mgr.SetHostStreamer(streamer);
+                                // Store host config for viewers
+                                mgr.SetHostConfig(new HostStreamConfig
+                                {
+                                    MonitorCount = streamer.MonitorCount,
+                                    Codec = streamer.NegotiatedCodec,
+                                    ResolutionHeight = streamer.ResolutionHeight,
+                                    Fps = streamer.Fps,
+                                }, streamer.SharedDevice);
+                                Logger.Info("[SharedEncoder] Host streamer + config registered");
+                            }
+                            else
+                            {
+                                mgr.AddViewer(handlerClientId, streamer);
+                                Logger.Info($"[SharedEncoder] Viewer {handlerClientId} attached");
+                            }
+                        };
+
                         await handler.HandleAsync();
                     }
                     finally
                     {
-                        _currentAdapter = null;
-                        Logger.Info("[Relay] Protocol handler ended, ready for next client");
+                        var mgr = SharedEncoderManager.Instance;
+                        if (mgr != null)
+                        {
+                            if (isFirstClient)
+                                mgr.RemoveHost();
+                            else
+                                mgr.RemoveViewer(handlerClientId);
+                        }
+                        relayBridge.RemoveAdapter(clientIdStr);
+                        Logger.Info($"[Relay] Handler ended for {clientIdStr} (remaining: {relayBridge.ActiveCount})");
                     }
                 });
             };

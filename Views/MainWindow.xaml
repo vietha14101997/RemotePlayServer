@@ -123,6 +123,13 @@
                                            Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
                             </StackPanel>
                         </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="👤" FontSize="16" Width="28" TextAlignment="Center" />
+                                <TextBlock Text="Account" VerticalAlignment="Center"
+                                           Visibility="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </ListBoxItem>
                     </ListBox>
                 </DockPanel>
             </Border>
@@ -144,6 +151,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:LogViewerViewModel}">
                         <views:LogViewerView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+                        <views:LoginView />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

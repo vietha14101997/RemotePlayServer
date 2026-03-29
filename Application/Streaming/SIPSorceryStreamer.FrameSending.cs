@@ -338,6 +338,9 @@ public partial class SIPSorceryStreamer
             // Dropped frames (above) skip this — saving one allocation per drop.
             byte[] nalBytes = nalData.ToArray();
 
+            // Fan-out: notify viewers with pre-encoded frame (no re-encode needed)
+            OnEncodedFrameAvailable?.Invoke(track.Index, nalBytes, isKeyframe, track.LastH265ParamSets);
+
             if (isKeyframe)
             {
                 track.IsDecodable = true;

@@ -653,6 +653,70 @@ public partial class SIPSorceryStreamer
     /// <summary>
     /// Echo ping data back via cursor DataChannel for P2P RTT measurement.
     /// </summary>
+    /// <summary>
+    /// Send a pre-encoded frame (from host's encoder) via this viewer's DataChannel.
+    /// Used in multi-client mode: host encodes once, viewers receive and forward via their own DCs.
+    /// </summary>
+    public void SendPreEncodedFrame(int trackIndex, byte[] nalBytes, bool isKeyframe, byte[]? paramSets)
+    {
+        if (!_running || !_connected) return;
+
+        try
+        {
+            var dc = GetH265VideoChannel(trackIndex);
+            if (dc == null || dc.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+
+            // For keyframes: send param sets first (VPS/SPS/PPS) as type 0x02
+            if (isKeyframe && paramSets != null && paramSets.Length > 0)
+            {
+                var psMsg = new byte[2 + paramSets.Length];
+                psMsg[0] = 0x02; // type: codec config
+                psMsg[1] = (byte)trackIndex;
+                Buffer.BlockCopy(paramSets, 0, psMsg, 2, paramSets.Length);
+                dc.send(psMsg);
+            }
+
+            // Send frame data via DC (same chunking as host)
+            byte type = isKeyframe ? (byte)0x03 : (byte)0x04;
+            int maxChunkSize = 1200;
+
+            if (nalBytes.Length <= maxChunkSize)
+            {
+                var msg = new byte[6 + nalBytes.Length];
+                msg[0] = type;
+                msg[1] = (byte)trackIndex;
+                msg[2] = 0; // chunkIndex
+                msg[3] = 1; // totalChunks
+                msg[4] = (byte)(nalBytes.Length & 0xFF);
+                msg[5] = (byte)((nalBytes.Length >> 8) & 0xFF);
+                Buffer.BlockCopy(nalBytes, 0, msg, 6, nalBytes.Length);
+                dc.send(msg);
+            }
+            else
+            {
+                int totalChunks = (nalBytes.Length + maxChunkSize - 1) / maxChunkSize;
+                for (int i = 0; i < totalChunks; i++)
+                {
+                    int offset = i * maxChunkSize;
+                    int len = Math.Min(maxChunkSize, nalBytes.Length - offset);
+                    var msg = new byte[6 + len];
+                    msg[0] = type;
+                    msg[1] = (byte)trackIndex;
+                    msg[2] = (byte)i;
+                    msg[3] = (byte)totalChunks;
+                    msg[4] = (byte)(nalBytes.Length & 0xFF);
+                    msg[5] = (byte)((nalBytes.Length >> 8) & 0xFF);
+                    Buffer.BlockCopy(nalBytes, offset, msg, 6, len);
+                    dc.send(msg);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] SendPreEncodedFrame track {trackIndex}: {ex.Message}");
+        }
+    }
+
     public void SendPingEcho(byte[] pingData)
     {
         var dc = _cursorDc;

@@ -501,6 +501,9 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     _allConnectedTcs?.TrySetResult(true);
 
+                    // Notify that streamer is ready for SharedEncoderManager registration
+                    OnStreamerReady?.Invoke(_streamer);
+
                     // Detect actual ICE connection type from nominated candidate pair
                     if (_activeClients.TryGetValue(_clientId, out var info))
                     {

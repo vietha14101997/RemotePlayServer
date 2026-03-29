@@ -30,7 +30,12 @@ public partial class App : System.Windows.Application
         MainWindow.Show();
 
         // Run entire startup on thread pool — Dispatch() marshals UI updates back
-        _ = Task.Run(() => _serverService.StartAsync());
+        _ = Task.Run(async () =>
+        {
+            await _serverService.StartAsync();
+            // Try auto-login with saved credentials after server is ready
+            await mainVm.TryAutoLoginAsync();
+        });
     }
 
     protected override async void OnExit(System.Windows.ExitEventArgs e)
