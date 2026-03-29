@@ -22,4 +22,7 @@ public partial class ServerState : ObservableObject
     [ObservableProperty] private string _qrData = "";
     [ObservableProperty] private string _statusMessage = "Starting...";
     [ObservableProperty] private DateTime _startedAt;
+    [ObservableProperty] private string? _guestId;
+    [ObservableProperty] private string? _guestPassword;
+    [ObservableProperty] private bool _isRelayConnected;
 }

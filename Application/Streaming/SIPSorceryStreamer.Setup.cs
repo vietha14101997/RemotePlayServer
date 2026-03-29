@@ -26,23 +26,16 @@ public partial class SIPSorceryStreamer
     /// </summary>
     private static RTCConfiguration BuildIceConfiguration()
     {
+        // STUN only — enables P2P across different networks.
+        // TURN not used server-side to avoid SIPSorcery ICE compatibility issues
+        // and to prevent VPS bandwidth consumption.
         var servers = new List<RTCIceServer>
         {
-            new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+            new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
+            new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
         };
 
-        var config = InternetManager.Instance?.Config;
-        if (config is { Enabled: true, TurnServerUrl: not null })
-        {
-            servers.Add(new RTCIceServer
-            {
-                urls = config.TurnServerUrl,
-                username = config.TurnUsername ?? "",
-                credential = config.TurnPassword ?? ""
-            });
-            Logger.Info($"[SIPSorcery] TURN server configured: {config.TurnServerUrl}");
-        }
-
+        Logger.Info($"[SIPSorcery] Using {servers.Count} STUN servers (P2P mode)");
         return new RTCConfiguration { iceServers = servers };
     }
 

@@ -127,6 +127,47 @@
                 </Border>
             </Grid>
 
+            <!-- ═══ REMOTE ACCESS (Guest ID + Password) ═══ -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12"
+                    Visibility="{Binding State.GuestId, Converter={StaticResource NullToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Remote Access" Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="Share this ID and Password to allow remote connections"
+                               FontSize="11" Foreground="{DynamicResource AppTextDimBrush}" Margin="0,0,0,12" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Guest ID -->
+                        <Border Grid.Column="0" Background="{DynamicResource AppSurfaceHoverBrush}"
+                                CornerRadius="8" Padding="16,12" Margin="0,0,6,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="Your ID" FontSize="11" Foreground="{DynamicResource AppTextDimBrush}"
+                                           HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding State.GuestId}" FontSize="28" FontWeight="Bold"
+                                           Foreground="{DynamicResource AppAccentBrush}" HorizontalAlignment="Center"
+                                           FontFamily="Consolas" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Password -->
+                        <Border Grid.Column="1" Background="{DynamicResource AppSurfaceHoverBrush}"
+                                CornerRadius="8" Padding="16,12" Margin="6,0,0,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="Password" FontSize="11" Foreground="{DynamicResource AppTextDimBrush}"
+                                           HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding State.GuestPassword}" FontSize="28" FontWeight="Bold"
+                                           Foreground="{DynamicResource AppSuccessBrush}" HorizontalAlignment="Center"
+                                           FontFamily="Consolas" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <!-- ═══ CONNECTION OPTIONS + MONITORS ROW ═══ -->
             <Grid>
                 <Grid.ColumnDefinitions>

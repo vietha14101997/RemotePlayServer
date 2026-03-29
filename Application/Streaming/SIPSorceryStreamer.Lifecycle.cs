@@ -612,6 +612,54 @@ public partial class SIPSorceryStreamer
     /// Binary format (little-endian): [type(1)][monitorIndex(1)][u(4)][v(4)][flags(1)][cursorId(8)] = 19 bytes
     /// Allocates fresh buffer each call to avoid race with SCTP send queue.
     /// </summary>
+    /// <summary>
+    /// Detect actual ICE connection type from nominated candidate pair.
+    /// Returns "P2P Direct" (host/srflx) or "TURN Relay" (relay).
+    /// </summary>
+    /// <summary>
+    /// Detect ICE connection type by checking the connected remote endpoint.
+    /// If connected to TURN server IP → relay. Otherwise → P2P direct.
+    /// </summary>
+    /// <summary>
+    /// TURN server IPs to check against. Set externally before detection.
+    /// </summary>
+    public static System.Collections.Generic.HashSet<string> TurnServerIps { get; } = new();
+
+    public string DetectIceConnectionType()
+    {
+        try
+        {
+            foreach (var vpc in _videoPcs.Values)
+            {
+                var ep = vpc.AudioDestinationEndPoint;
+                if (ep != null)
+                {
+                    var ip = ep.Address.ToString();
+                    var isTurn = TurnServerIps.Contains(ip);
+                    var result = isTurn ? "TURN Relay" : "P2P Direct";
+                    Logger.Info($"[SIPSorcery] ICE type: {result} (connected to {ip})");
+                    return result;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Failed to detect ICE type: {ex.Message}");
+        }
+
+        return "P2P Direct";
+    }
+
+    /// <summary>
+    /// Echo ping data back via cursor DataChannel for P2P RTT measurement.
+    /// </summary>
+    public void SendPingEcho(byte[] pingData)
+    {
+        var dc = _cursorDc;
+        if (dc?.readyState != SIPSorcery.Net.RTCDataChannelState.open) return;
+        dc.send(pingData); // echo same bytes back (tag 0x09 + timestamp)
+    }
+
     public void SendCursorPosition(int monitorIndex, float u, float v, bool visible, int cursorType, long cursorId)
     {
         var dc = _cursorDc;

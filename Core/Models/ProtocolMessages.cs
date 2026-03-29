@@ -344,6 +344,13 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("isUsbMode")]
         public bool IsUsbMode { get; set; }
+
+        /// <summary>
+        /// Windows display scale percentage (100, 125, 150). Default 125.
+        /// Applied to all monitors before capture starts.
+        /// </summary>
+        [JsonPropertyName("windowsScale")]
+        public int WindowsScale { get; set; } = 125;
     }
 
     /// <summary>

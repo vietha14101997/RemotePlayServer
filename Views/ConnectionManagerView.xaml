@@ -4,6 +4,7 @@
              xmlns:converters="clr-namespace:RemotePlayServer.Converters">
     <UserControl.Resources>
         <converters:PhaseToColorConverter x:Key="PhaseToColor" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
 
@@ -56,6 +57,22 @@
                                             <Border Style="{StaticResource StatusBadge}" Margin="10,0,0,0">
                                                 <TextBlock Text="{Binding TransportType}" FontSize="10"
                                                            Foreground="{DynamicResource AppTextBrush}" />
+                                            </Border>
+                                            <!-- ICE connection type badge (P2P / TURN) -->
+                                            <Border Margin="6,0,0,0" CornerRadius="4" Padding="6,2"
+                                                    Visibility="{Binding IceConnectionType, Converter={StaticResource NullToVis}}">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource AppSuccessBrush}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRelayTransport}" Value="True">
+                                                                <Setter Property="Background" Value="{DynamicResource AppWarningBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding IceConnectionType}" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource AppBackgroundBrush}" />
                                             </Border>
                                             <!-- Phase badge -->
                                             <Border Style="{StaticResource StatusBadge}" Margin="6,0,0,0">

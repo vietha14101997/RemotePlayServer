@@ -66,21 +66,15 @@ namespace RemotePlayServer.Application.Protocol
             await WaitForHardwareAckAsync();
             Logger.Info("[Protocol] Received hardware_info_ack");
 
-            // NEW FLOW: Wait for Client to run speed test and send results
-            SetPhase(ConnectionPhase.Phase1_SpeedTest);
-            Logger.Info("[Protocol] Phase 1: Waiting for client speed test result...");
-
-            // Wait for speedtest_result from Client (Client measures bandwidth/ping)
-            try
+            // Speed test removed — use sensible defaults based on transport type
+            Logger.Info("[Protocol] Skipping speed test, using defaults");
+            _speedTestResult = new SpeedTestResult
             {
-                _speedTestResult = await WaitForSpeedTestResultAsync();
-                Logger.Info($"[Protocol] ✓ Received speedtest_result from client: {_speedTestResult.BandwidthMbps:F1}Mbps, {_speedTestResult.PingMs:F1}ms ping");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"[Protocol] ✗ Failed to receive speedtest_result: {ex.Message}");
-                throw;
-            }
+                BandwidthMbps = _isUsbTransport ? 500.0 : 50.0,
+                PingMs = _isUsbTransport ? 1.0 : 30.0,
+                JitterMs = _isUsbTransport ? 0.5 : 5.0,
+                ConnectionType = _isUsbTransport ? "USB" : (_isRelayTransport ? "Internet" : "LAN")
+            };
 
             // Calculate and send suggested config based on Client's speed test results
             Logger.Info("[Protocol] Calculating suggested config...");

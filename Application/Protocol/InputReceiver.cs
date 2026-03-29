@@ -22,12 +22,15 @@ public static class InputReceiver
     private const byte TAG_WARP_CURSOR  = 0x06; // 10 bytes: [tag][monIdx:1][u:f32][v:f32]
     private const byte TAG_GAMEPAD      = 0x07; // 13 bytes: [tag][buttons:u16][LT:u8][RT:u8][LX:i16][LY:i16][RX:i16][RY:i16]
     private const byte TAG_FOCUS_MONITOR = 0x08; // 2 bytes: [tag][monIdx:1] — confine cursor to monitor, 0xFF = release
+    private const byte TAG_PING         = 0x09; // 9 bytes: [tag][timestamp:i64] — echo back for RTT measurement
 
     /// <summary>
     /// Called after any input is injected. Used to force frame capture
     /// so the visual result of the input is sent to the client promptly.
     /// </summary>
     public static Action? OnInputInjected;
+    /// <summary>Called when a ping message is received. Data should be echoed back on cursor DC.</summary>
+    public static Action<byte[]>? OnPingReceived;
 
     private static VirtualGamepad? _gamepad;
     private static readonly object _gamepadLock = new();
@@ -100,6 +103,12 @@ public static class InputReceiver
                 EnsureGamepad();
                 _gamepad?.UpdateState(data, 1); // skip tag byte
                 break;
+            }
+            case TAG_PING when data.Length >= 9:
+            {
+                // Echo timestamp back via OnPingReceived callback (sent on cursor DC)
+                OnPingReceived?.Invoke(data);
+                return; // Don't trigger OnInputInjected for ping
             }
             case TAG_FOCUS_MONITOR when data.Length >= 2:
             {

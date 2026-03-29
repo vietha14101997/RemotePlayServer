@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using RemotePlayServer.Application.Protocol;
 using RemotePlayServer.Application.Streaming;
 using RemotePlayServer.Configuration;
 using RemotePlayServer.Core;
@@ -66,6 +67,7 @@ public class ServerService : IDisposable
             SetupAdbReverse();
 
             UpdateStatus("Starting signal server...");
+            await KillProcessOnPort(State.Port);
             _server = new SignalServer($"http://+:{State.Port}/");
             var monitors = WgcInterop.ListMonitorsDXGI();
             _server.SetWindows(Win32.ListTopLevelWindows()
@@ -83,6 +85,8 @@ public class ServerService : IDisposable
             await LoadConfigParallel();
 
             await StartTunnelIfEnabled();
+
+            await StartRelayIfEnabled();
 
             BuildQrData();
 
@@ -322,6 +326,215 @@ public class ServerService : IDisposable
             Logger.Error($"[Tunnel] Error: {ex.Message}");
             _tunnel?.Dispose();
             _tunnel = null;
+        }
+    }
+
+    /// <summary>
+    /// Kill any process holding the given TCP port so HttpListener can bind.
+    /// Prevents "conflicts with an existing registration" after unclean shutdown.
+    /// </summary>
+    private static async Task KillProcessOnPort(int port)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "netstat",
+                Arguments = $"-ano",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc == null) return;
+            var output = await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+
+            var myPid = Environment.ProcessId;
+
+            foreach (var line in output.Split('\n'))
+            {
+                if (!line.Contains($":{port} ") || !line.Contains("LISTENING")) continue;
+
+                var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 5) continue;
+
+                if (int.TryParse(parts[^1], out var pid) && pid != myPid)
+                {
+                    if (pid <= 4)
+                    {
+                        // PID 4 = System (HTTP.sys) — release the URL reservation
+                        Logger.Info($"[Port] HTTP.sys holding port {port}, releasing URL reservation...");
+                        await ReleaseHttpSysPort(port);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var target = System.Diagnostics.Process.GetProcessById(pid);
+                            Logger.Info($"[Port] Killing process {target.ProcessName} (PID {pid}) holding port {port}");
+                            target.Kill();
+                            await Task.Delay(500);
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Port] Failed to check port {port}: {ex.Message}");
+        }
+    }
+
+    private static async Task ReleaseHttpSysPort(int port)
+    {
+        // Stop and restart HTTP.sys to release stale registrations
+        var cmds = new[]
+        {
+            ("net", "stop http /y"),
+            ("net", "start http")
+        };
+
+        foreach (var (cmd, args) in cmds)
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = cmd,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc == null) continue;
+                await proc.WaitForExitAsync();
+            }
+            catch { }
+        }
+
+        await Task.Delay(1000);
+        Logger.Info($"[Port] HTTP.sys restarted, port {port} should be free");
+    }
+
+    private async Task StartRelayIfEnabled()
+    {
+        if (_internetConfig?.UseRelay != true) return;
+
+        try
+        {
+            Logger.Info("[Relay] Starting relay connection...");
+            var success = await RelayClientManager.InitializeAsync(_internetConfig);
+
+            if (!success)
+            {
+                Logger.Error("[Relay] Failed to connect to relay server");
+                return;
+            }
+
+            // Register TURN server IPs for P2P vs TURN detection
+            var iceServers = RelayClientManager.Instance!.IceServers;
+            if (iceServers != null)
+            {
+                foreach (var server in iceServers)
+                {
+                    foreach (var url in server.Urls)
+                    {
+                        // Extract IP from "turn:1.2.3.4:3478?transport=udp"
+                        var parts = url.Replace("turn:", "").Replace("turns:", "").Split(':');
+                        if (parts.Length > 0)
+                            SIPSorceryStreamer.TurnServerIps.Add(parts[0]);
+                    }
+                }
+                Logger.Info($"[Relay] TURN IPs for detection: {string.Join(", ", SIPSorceryStreamer.TurnServerIps)}");
+            }
+
+            // Setup relay event handlers
+            var client = RelayClientManager.Instance!.Client;
+
+            RelayWebSocketAdapter? _currentAdapter = null;
+            client.OnRoomReady += () =>
+            {
+                // Prevent duplicate handlers — only 1 active session at a time
+                if (_currentAdapter != null)
+                {
+                    Logger.Info("[Relay] Room ready — ignoring (handler already active)");
+                    return;
+                }
+
+                Logger.Info("[Relay] Room ready — starting protocol handler for relay session");
+                var adapter = new RelayWebSocketAdapter(client);
+                _currentAdapter = adapter;
+                var clientId = Guid.NewGuid();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var handler = new PhaseProtocolHandler(
+                            clientId, adapter, null, CancellationToken.None,
+                            isUsbTransport: false, isRelayTransport: true);
+                        await handler.HandleAsync();
+                    }
+                    finally
+                    {
+                        _currentAdapter = null;
+                        Logger.Info("[Relay] Protocol handler ended, ready for next client");
+                    }
+                });
+            };
+
+            client.OnPeerDisconnected += async () =>
+            {
+                // Regenerate password after each session ends
+                GuestIdManager.RegeneratePassword();
+                var currentRoomId = State.GuestId?.Replace("-", "");
+                if (currentRoomId != null)
+                    await client.SetRoomPasswordAsync(currentRoomId, GuestIdManager.CurrentPassword);
+                Logger.Info($"[Relay] Guest password regenerated. New password: {GuestIdManager.CurrentPassword}");
+                Dispatch(() =>
+                {
+                    State.GuestPassword = GuestIdManager.CurrentPassword;
+                });
+            };
+
+            client.OnConnectionStateChanged += (connected) =>
+            {
+                if (connected)
+                {
+                    Logger.Info("[Relay] Reconnected to relay server");
+                }
+            };
+
+            // Create room via relay (relay generates unique room_id)
+            var roomId = await client.CreateRoomAsync();
+            if (roomId != null)
+            {
+                // Set password (auto-generated)
+                GuestIdManager.Generate(); // reuse for password generation only
+                var password = GuestIdManager.CurrentPassword;
+
+                await client.SetRoomPasswordAsync(roomId, password);
+
+                Dispatch(() =>
+                {
+                    State.GuestId = roomId.Length == 6 ? $"{roomId[..3]}-{roomId[3..]}" : roomId;
+                    State.GuestPassword = password;
+                });
+
+                Logger.Info($"[Relay] Room ready: ID={State.GuestId} Password={password}");
+            }
+
+            Dispatch(() => State.IsRelayConnected = true);
+
+            Logger.Info("[Relay] Connected to relay server");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Relay] Startup error: {ex.Message}");
         }
     }
 

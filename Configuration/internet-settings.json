@@ -1,7 +1,11 @@
 {
-  "enabled": false,
+  "enabled": true,
   "turnServerUrl": null,
   "turnUsername": null,
   "turnPassword": null,
-  "requireToken": true
+  "requireToken": false,
+  "relayUrl": "http://34.87.150.141:8443",
+  "relayEmail": "test@remoteplay.app",
+  "relayPassword": "Test1234",
+  "useRelay": true
 }

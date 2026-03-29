@@ -14,5 +14,7 @@ public partial class ClientConnectionInfo : ObservableObject
     [ObservableProperty] private string _transportType = "";
     [ObservableProperty] private DateTime _connectedAt;
     [ObservableProperty] private bool _isUsbTransport;
+    [ObservableProperty] private bool _isRelayTransport;
+    [ObservableProperty] private string _iceConnectionType = ""; // "P2P" or "TURN Relay"
     [ObservableProperty] private TimeSpan _duration;
 }

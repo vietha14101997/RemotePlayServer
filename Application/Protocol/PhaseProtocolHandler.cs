@@ -168,8 +168,9 @@ namespace RemotePlayServer.Application.Protocol
         // skip WaitForStartStreamingAsync in Phase 3
         private volatile bool _startStreamingReceived;
 
-        // Transport mode (USB Tethering vs WiFi)
+        // Transport mode (USB Tethering vs WiFi vs Relay)
         private readonly bool _isUsbTransport;
+        private readonly bool _isRelayTransport;
 
         // Track if display settings were modified (for cleanup)
         // Volatile: read from async cleanup + written from safety monitor callback thread
@@ -199,13 +200,15 @@ namespace RemotePlayServer.Application.Protocol
             WebSocket ws,
             System.Net.IPAddress? remoteIp,
             CancellationToken ct,
-            bool isUsbTransport = false)
+            bool isUsbTransport = false,
+            bool isRelayTransport = false)
         {
             _clientId = clientId;
             _ws = ws;
             _remoteIp = remoteIp;
             _ct = ct;
             _isUsbTransport = isUsbTransport;
+            _isRelayTransport = isRelayTransport;
         }
 
         /// <summary>
@@ -224,10 +227,11 @@ namespace RemotePlayServer.Application.Protocol
             var clientInfo = new Models.ClientConnectionInfo
             {
                 ClientId = _clientId,
-                RemoteIp = _remoteIp?.ToString() ?? "",
+                RemoteIp = _remoteIp?.ToString() ?? (_isRelayTransport ? "Relay" : ""),
                 Phase = ConnectionPhase.Connected,
-                TransportType = transportStr,
+                TransportType = _isRelayTransport ? "Relay" : transportStr,
                 IsUsbTransport = _isUsbTransport,
+                IsRelayTransport = _isRelayTransport,
                 ConnectedAt = DateTime.UtcNow
             };
             _activeClients[_clientId] = clientInfo;

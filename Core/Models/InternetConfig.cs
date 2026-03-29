@@ -23,4 +23,16 @@ public class InternetConfig
 
     [JsonPropertyName("requireToken")]
     public bool RequireToken { get; set; } = true;
+
+    [JsonPropertyName("relayUrl")]
+    public string? RelayUrl { get; set; }
+
+    [JsonPropertyName("relayEmail")]
+    public string? RelayEmail { get; set; }
+
+    [JsonPropertyName("relayPassword")]
+    public string? RelayPassword { get; set; }
+
+    [JsonPropertyName("useRelay")]
+    public bool UseRelay { get; set; } = false;
 }
