@@ -40,6 +40,26 @@ static class VirtualDisplayManager
 
     internal static IReadOnlySet<string> PhysicalMonitorNames => _physicalMonitorNames;
 
+    /// <summary>
+    /// Read saved scale % from display-settings.json, default 100 if not found.
+    /// </summary>
+    static int GetSavedScalePercent()
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Configuration", "display-settings.json");
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("scalePercent", out var prop))
+                    return prop.GetInt32();
+            }
+        }
+        catch { }
+        return 100;
+    }
+
     // ================================================================
     // Public API
     // ================================================================
@@ -349,10 +369,11 @@ static class VirtualDisplayManager
             Console.WriteLine($"[Display]   {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
 
-        Console.WriteLine("[Display] Setting Windows Scale and Layout to 125%...");
+        int savedScale = GetSavedScalePercent();
+        Console.WriteLine($"[Display] Setting Windows Scale and Layout to {savedScale}%...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
-        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
-            Console.WriteLine("[Display] Scale set to 125% ✓");
+        if (DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale))
+            Console.WriteLine($"[Display] Scale set to {savedScale}% ✓");
         else
             Console.WriteLine("[Display] Failed to set scale");
     }
@@ -426,9 +447,10 @@ static class VirtualDisplayManager
         SetAsPrimaryDisplay(virtualMonitorName);
         Thread.Sleep(500);
 
-        Console.WriteLine("[Bind Mobile]   Setting 125% scale...");
+        int savedScale = GetSavedScalePercent();
+        Console.WriteLine($"[Bind Mobile]   Setting {savedScale}% scale...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
-        DpiScalingHelper.SetAllMonitorsDpiScaling(125);
+        DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale);
         Thread.Sleep(300);
 
         // ── Step 4: Show Only — disconnect physical monitors ──

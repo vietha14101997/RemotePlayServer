@@ -153,6 +153,69 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task SaveDisplayConfigAsDefaultAsync()
+    {
+        try
+        {
+            // Snapshot current display state
+            var monitors = Infrastructure.Capture.WgcInterop.ListMonitorsDXGI();
+            int physicalCount = 0;
+            int totalCount = monitors.Count;
+            int width = 1920, height = 1080, refreshRate = 60;
+
+            foreach (var mon in monitors)
+            {
+                if (!Infrastructure.Display.DisplayUtil.IsVirtualDisplay(mon.name, mon.hmon))
+                {
+                    physicalCount++;
+                    width = mon.width;
+                    height = mon.height;
+                    var mode = Infrastructure.Display.DisplayUtil.GetCurrentMode(mon.name);
+                    if (mode.Frequency > 0) refreshRate = mode.Frequency;
+                }
+            }
+
+            // Get current DPI scale from first monitor
+            int scalePercent = 100;
+            var dpiInfos = Infrastructure.Display.DpiScalingHelper.GetAllMonitorsDpiInfo();
+            if (dpiInfos.Count > 0)
+                scalePercent = (int)dpiInfos[0].info.Current;
+
+            var config = new
+            {
+                monitorCount = totalCount,
+                refreshRate,
+                width,
+                height,
+                scalePercent,
+                monitorType = DisplayConfig.MonitorType,
+                preferredCodec = DisplayConfig.PreferredCodec,
+                savedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            var path = Path.Combine(AppContext.BaseDirectory, "Configuration", "display-settings.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(path, json);
+
+            // Apply to runtime
+            DisplayConfig.MonitorCount = totalCount;
+            DisplayConfig.RefreshRate = refreshRate;
+
+            // Reset display snapshot to current state
+            Infrastructure.Display.DisplayGuard.ResetAndCaptureSnapshot();
+
+            SetStatusWithAutoClear($"Display config saved: {totalCount} monitors, {width}x{height}@{refreshRate}Hz, {scalePercent}%");
+            Logger.Info($"[Settings] Display config saved as default: {json}");
+        }
+        catch (Exception ex)
+        {
+            SetStatusWithAutoClear($"Error: {ex.Message}");
+            Logger.Error($"[Settings] Display config save failed: {ex.Message}");
+        }
+    }
+
     private void SetStatusWithAutoClear(string msg)
     {
         SaveStatus = msg;
