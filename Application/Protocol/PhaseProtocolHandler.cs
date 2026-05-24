@@ -50,6 +50,20 @@ namespace RemotePlayServer.Application.Protocol
     /// </summary>
     public partial class PhaseProtocolHandler
     {
+        // === GUI Connection Tracking ===
+        private static readonly ConcurrentDictionary<Guid, Models.ClientConnectionInfo> _activeClients = new();
+        private static readonly ConcurrentDictionary<Guid, CancellationTokenSource> _clientCts = new();
+        public static IReadOnlyDictionary<Guid, Models.ClientConnectionInfo> ActiveClients => _activeClients;
+        public static event Action<Models.ClientConnectionInfo>? OnClientConnected;
+        public static event Action<Guid>? OnClientDisconnected;
+        public static event Action<Guid, ConnectionPhase>? OnClientPhaseChanged;
+
+        public static void RequestDisconnect(Guid clientId)
+        {
+            if (_clientCts.TryGetValue(clientId, out var cts))
+                cts.Cancel();
+        }
+
         private readonly Guid _clientId;
         private readonly WebSocket _ws;
         private readonly System.Net.IPAddress? _remoteIp;
@@ -71,6 +85,10 @@ namespace RemotePlayServer.Application.Protocol
         // Capture and streaming resources
         private PerMonitorCapture? _capture;
         private SIPSorceryStreamer? _streamer;
+        public SIPSorceryStreamer? Streamer => _streamer;
+
+        /// <summary>Fired when streamer is created and ready (after Phase 2 ICE setup).</summary>
+        public event Action<SIPSorceryStreamer>? OnStreamerReady;
         private CancellationTokenSource? _captureCts;
         private Thread? _captureThread;
         private TextureResizer? _textureResizer;
@@ -154,8 +172,10 @@ namespace RemotePlayServer.Application.Protocol
         // skip WaitForStartStreamingAsync in Phase 3
         private volatile bool _startStreamingReceived;
 
-        // Transport mode (USB Tethering vs WiFi)
+        // Transport mode (USB Tethering vs WiFi vs Relay)
         private readonly bool _isUsbTransport;
+        private readonly bool _isRelayTransport;
+        private readonly bool _isViewerMode;
 
         // Track if display settings were modified (for cleanup)
         // Volatile: read from async cleanup + written from safety monitor callback thread
@@ -185,13 +205,17 @@ namespace RemotePlayServer.Application.Protocol
             WebSocket ws,
             System.Net.IPAddress? remoteIp,
             CancellationToken ct,
-            bool isUsbTransport = false)
+            bool isUsbTransport = false,
+            bool isRelayTransport = false,
+            bool isViewerMode = false)
         {
             _clientId = clientId;
             _ws = ws;
             _remoteIp = remoteIp;
             _ct = ct;
             _isUsbTransport = isUsbTransport;
+            _isRelayTransport = isRelayTransport;
+            _isViewerMode = isViewerMode;
         }
 
         /// <summary>
@@ -207,16 +231,35 @@ namespace RemotePlayServer.Application.Protocol
             string transportStr = _isUsbTransport ? "USB Tethering" : "WiFi";
             Logger.Info($"[Protocol] Client {_clientId} connected from {_remoteIp} (v2 protocol, transport={transportStr})");
 
+            var clientInfo = new Models.ClientConnectionInfo
+            {
+                ClientId = _clientId,
+                RemoteIp = _remoteIp?.ToString() ?? (_isRelayTransport ? "Relay" : ""),
+                Phase = ConnectionPhase.Connected,
+                TransportType = _isRelayTransport ? "Relay" : transportStr,
+                IsUsbTransport = _isUsbTransport,
+                IsRelayTransport = _isRelayTransport,
+                ConnectedAt = DateTime.UtcNow
+            };
+            _activeClients[_clientId] = clientInfo;
+            var disconnectCts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+            _clientCts[_clientId] = disconnectCts;
+            OnClientConnected?.Invoke(clientInfo);
+
             try
             {
-                // Phase 1: Hardware discovery and speed test
-                await RunPhase1Async();
-
-                // Phase 2: Configuration and ICE exchange
-                await RunPhase2Async();
-
-                // Phase 3: Streaming
-                await RunPhase3Async();
+                if (_isViewerMode)
+                {
+                    // Viewer: skip capture/encode, only ICE + receive pre-encoded frames
+                    await RunViewerFastPathAsync();
+                }
+                else
+                {
+                    // Host: full pipeline
+                    await RunPhase1Async();
+                    await RunPhase2Async();
+                    await RunPhase3Async();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -238,6 +281,11 @@ namespace RemotePlayServer.Application.Protocol
             }
             finally
             {
+                _activeClients.TryRemove(_clientId, out _);
+                if (_clientCts.TryRemove(_clientId, out var removedCts))
+                    removedCts.Dispose();
+                OnClientDisconnected?.Invoke(_clientId);
+
                 await CleanupAsync();
                 _fatalErrorCts?.Dispose();
                 _fatalErrorCts = null;

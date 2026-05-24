@@ -25,6 +25,10 @@ namespace RemotePlayServer.Application.Protocol
         {
             _phase = phase;
             Logger.Info($"[Protocol] Phase changed to: {phase}");
+
+            if (_activeClients.TryGetValue(_clientId, out var ci))
+                ci.Phase = phase;
+            OnClientPhaseChanged?.Invoke(_clientId, phase);
         }
 
         private int GetPhaseNumber()

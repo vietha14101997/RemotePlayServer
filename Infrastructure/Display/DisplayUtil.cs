@@ -390,14 +390,17 @@ static class DisplayUtil
     /// Trả về true nếu \\.\DISPLAYx trông giống màn hình ảo (chuỗi nhận diện + không có physical monitor).
     public static bool IsVirtualDisplay(string displayName, IntPtr hmon)
     {
-        // Bắt cặp DISPLAYx -> adapter
+        // Primary method: compare against pre-VDD physical monitor snapshot
+        if (_knownPhysicalNames.Count > 0)
+            return displayName == null || !_knownPhysicalNames.Contains(displayName);
+
+        // Fallback (no snapshot yet): use adapter string detection + physical monitor count
         for (uint devNum = 0; ; devNum++)
         {
             var dd = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
             if (!EnumDisplayDevices(null, devNum, ref dd, 0)) break;
             if (!string.Equals(dd.DeviceName, displayName, StringComparison.OrdinalIgnoreCase)) continue;
 
-            // Thiết bị con
             var mon = new DISPLAY_DEVICE { cb = Marshal.SizeOf<DISPLAY_DEVICE>() };
             if (EnumDisplayDevices(dd.DeviceName, 0, ref mon, 0))
             {
@@ -407,6 +410,14 @@ static class DisplayUtil
             return HasNoPhysicalMonitors(hmon);
         }
         return HasNoPhysicalMonitors(hmon);
+    }
+
+    // Known physical display names from snapshot (set by VirtualDisplayManager)
+    private static readonly HashSet<string> _knownPhysicalNames = new(StringComparer.OrdinalIgnoreCase);
+    public static void SetKnownPhysicalNames(IEnumerable<string> names)
+    {
+        _knownPhysicalNames.Clear();
+        foreach (var n in names) _knownPhysicalNames.Add(n);
     }
 
     /// Kiểm tra một \\.\DISPLAYx có phải Primary không
@@ -511,11 +522,11 @@ static class DisplayUtil
     [StructLayout(LayoutKind.Sequential)]
     struct DISPLAYCONFIG_MODE_INFO
     {
-        public uint infoType; // DISPLAYCONFIG_MODE_INFO_TYPE
+        public uint infoType; // DISPLAYCONFIG_MODE_INFO_TYPE: 1=SOURCE, 2=TARGET
         public uint id;
         public LUID adapterId;
-        // Union: DISPLAYCONFIG_TARGET_MODE / DISPLAYCONFIG_SOURCE_MODE — use raw bytes
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+        // Union: TARGET_MODE(48B) / SOURCE_MODE(20B) / DESKTOP_IMAGE_INFO(40B)
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 48)]
         public byte[] modeData;
     }
 
@@ -534,6 +545,111 @@ static class DisplayUtil
         public uint size;
         public LUID adapterId;
         public uint id;
+    }
+
+    /// <summary>
+    /// Set display positions using CCD API (reliable for IDD/VDD virtual monitors).
+    /// ChangeDisplaySettingsEx doesn't reliably move IDD virtual displays — CCD is required.
+    /// </summary>
+    /// <param name="positions">Map of device name → (x, y) position</param>
+    public static bool SetMonitorPositionsViaCCD(Dictionary<string, (int x, int y)> positions)
+    {
+        try
+        {
+            // Query current active config
+            int err = GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, out uint pathCount, out uint modeCount);
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[CCD Position] GetDisplayConfigBufferSizes failed: {err}");
+                return false;
+            }
+
+            var paths = new DISPLAYCONFIG_PATH_INFO[pathCount];
+            var modes = new DISPLAYCONFIG_MODE_INFO[modeCount];
+            err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero);
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[CCD Position] QueryDisplayConfig failed: {err}");
+                return false;
+            }
+
+            // Build path→deviceName mapping
+            var pathDeviceNames = new string[pathCount];
+            for (int i = 0; i < pathCount; i++)
+            {
+                var deviceName = new DISPLAYCONFIG_SOURCE_DEVICE_NAME();
+                deviceName.header.type = 1; // DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME
+                deviceName.header.size = (uint)Marshal.SizeOf<DISPLAYCONFIG_SOURCE_DEVICE_NAME>();
+                deviceName.header.adapterId = paths[i].sourceInfo.adapterId;
+                deviceName.header.id = paths[i].sourceInfo.id;
+
+                err = DisplayConfigGetDeviceInfo(ref deviceName);
+                pathDeviceNames[i] = err == ERROR_SUCCESS
+                    ? deviceName.viewGdiDeviceName?.TrimEnd('\0') ?? ""
+                    : "";
+            }
+
+            // Modify source mode positions
+            // Source mode layout: uint width(4) + uint height(4) + uint pixelFormat(4) + int posX(4) + int posY(4)
+            // Position offset in modeData: byte 12 (posX) and byte 16 (posY)
+            int modified = 0;
+            for (int i = 0; i < pathCount; i++)
+            {
+                string gdiName = pathDeviceNames[i];
+                if (!positions.TryGetValue(gdiName, out var pos))
+                    continue;
+
+                uint sourceModeIdx = paths[i].sourceInfo.modeInfoIdx;
+                if (sourceModeIdx >= modeCount || sourceModeIdx == 0xFFFFFFFF)
+                    continue;
+
+                // infoType == 1 means SOURCE mode
+                if (modes[sourceModeIdx].infoType != 1)
+                {
+                    Logger.Warn($"[CCD Position] Mode[{sourceModeIdx}] for {gdiName} is not SOURCE mode (type={modes[sourceModeIdx].infoType})");
+                    continue;
+                }
+
+                // Read current position for logging
+                int oldX = BitConverter.ToInt32(modes[sourceModeIdx].modeData, 12);
+                int oldY = BitConverter.ToInt32(modes[sourceModeIdx].modeData, 16);
+
+                // Write new position
+                byte[] xBytes = BitConverter.GetBytes(pos.x);
+                byte[] yBytes = BitConverter.GetBytes(pos.y);
+                Buffer.BlockCopy(xBytes, 0, modes[sourceModeIdx].modeData, 12, 4);
+                Buffer.BlockCopy(yBytes, 0, modes[sourceModeIdx].modeData, 16, 4);
+
+                Logger.Info($"[CCD Position] {gdiName}: ({oldX},{oldY}) → ({pos.x},{pos.y})");
+                modified++;
+            }
+
+            if (modified == 0)
+            {
+                Logger.Warn("[CCD Position] No positions modified");
+                return false;
+            }
+
+            // Apply modified config
+            err = SetDisplayConfig(
+                pathCount, paths,
+                modeCount, modes,
+                SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE | SDC_ALLOW_CHANGES);
+
+            if (err != ERROR_SUCCESS)
+            {
+                Logger.Error($"[CCD Position] SetDisplayConfig failed: {err}");
+                return false;
+            }
+
+            Logger.Info($"[CCD Position] SetDisplayConfig applied successfully ({modified} monitors repositioned)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[CCD Position] Exception: {ex.Message}");
+            return false;
+        }
     }
 
     /// <summary>

@@ -68,6 +68,24 @@ static class DisplayGuard
     // ==== API được Program.cs gọi ====
 
     // Gọi sớm nhất có thể (trước các bước 1→6) để chụp trạng thái và tạo marker.
+    /// <summary>
+    /// Delete old snapshot + session marker, then capture fresh snapshot from current state.
+    /// Called from Settings "Save Config as Default" button.
+    /// </summary>
+    public static void ResetAndCaptureSnapshot()
+    {
+        try
+        {
+            if (File.Exists(SnapshotPath)) File.Delete(SnapshotPath);
+            if (File.Exists(SessionMarker)) File.Delete(SessionMarker);
+            Logger.Info("[Guard] Old snapshot cleared.");
+        }
+        catch (Exception ex) { Logger.Warn($"[Guard] Failed to clear snapshot: {ex.Message}"); }
+
+        CaptureSnapshotAtStartup();
+        Logger.Info("[Guard] Fresh snapshot captured from current display state.");
+    }
+
     public static void CaptureSnapshotAtStartup()
     {
         Directory.CreateDirectory(DataDir);
@@ -622,31 +640,45 @@ static class DisplayGuard
             {
                 Logger.Info("[Guard] Restoring Scale and Layout (DPI)...");
 
-                // Convert DpiValue (logPixels) to percentage: 96=100%, 120=125%, 144=150%
-                var firstDpi = snap.DpiSnapshot.FirstOrDefault(s => s.DpiValue.HasValue);
-                if (firstDpi.DpiValue.HasValue)
+                // Prefer user-saved scale from display-settings.json over snapshot
+                int percent = 100;
+                try
                 {
-                    int percent = firstDpi.DpiValue.Value * 100 / 96;
-                    Logger.Info($"[Guard] Restoring DPI to {percent}% (logPixels={firstDpi.DpiValue.Value})");
-
-                    // Use DpiScalingHelper API which applies immediately (not just registry write)
-                    bool success = DpiScalingHelper.SetAllMonitorsDpiScaling((uint)percent);
-
-                    if (success)
+                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "display-settings.json");
+                    if (File.Exists(configPath))
                     {
-                        Logger.Info("[Guard] ✓ Scale and Layout restored via API.");
+                        var json = File.ReadAllText(configPath);
+                        var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("scalePercent", out var prop))
+                        {
+                            percent = prop.GetInt32();
+                            Logger.Info($"[Guard] Using saved scale from display-settings.json: {percent}%");
+                        }
                     }
-                    else
+                }
+                catch { }
+
+                // Fallback to snapshot if no saved config
+                if (percent == 100)
+                {
+                    var firstDpi = snap.DpiSnapshot.FirstOrDefault(s => s.DpiValue.HasValue);
+                    if (firstDpi.DpiValue.HasValue)
                     {
-                        // Fallback to registry method if API fails
-                        Logger.Error("[Guard] API failed, falling back to registry method...");
-                        DpiPerMonitorUtil.Restore(snap.DpiSnapshot);
-                        Logger.Info("[Guard] ✓ Scale and Layout restored via registry.");
+                        percent = firstDpi.DpiValue.Value * 100 / 96;
                     }
+                }
+
+                Logger.Info($"[Guard] Restoring DPI to {percent}%");
+                bool success = DpiScalingHelper.SetAllMonitorsDpiScaling((uint)percent);
+                if (success)
+                {
+                    Logger.Info("[Guard] ✓ Scale and Layout restored via API.");
                 }
                 else
                 {
-                    Logger.Info("[Guard] No valid DpiValue in snapshot, skipping.");
+                    Logger.Error("[Guard] API failed, falling back to registry method...");
+                    DpiPerMonitorUtil.Restore(snap.DpiSnapshot);
+                    Logger.Info("[Guard] ✓ Scale and Layout restored via registry.");
                 }
             }
             else

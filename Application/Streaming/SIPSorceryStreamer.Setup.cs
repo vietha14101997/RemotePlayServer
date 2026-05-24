@@ -21,28 +21,36 @@ namespace RemotePlayServer.Application.Streaming;
 public partial class SIPSorceryStreamer
 {
     /// <summary>
-    /// Build RTCConfiguration with STUN + optional TURN servers.
-    /// Centralized to avoid DRY violation across all PeerConnection creation sites.
+    /// Build RTCConfiguration with STUN + TURN servers from relay.
+    /// TURN is required for cross-NAT connections (different WiFi networks).
     /// </summary>
     private static RTCConfiguration BuildIceConfiguration()
     {
         var servers = new List<RTCIceServer>
         {
-            new RTCIceServer { urls = "stun:stun.l.google.com:19302" }
+            new RTCIceServer { urls = "stun:stun.l.google.com:19302" },
+            new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
         };
 
-        var config = InternetManager.Instance?.Config;
-        if (config is { Enabled: true, TurnServerUrl: not null })
+        // Add TURN servers from relay (if available)
+        var relayIce = RelayClientManager.Instance?.IceServers;
+        if (relayIce != null)
         {
-            servers.Add(new RTCIceServer
+            foreach (var ice in relayIce)
             {
-                urls = config.TurnServerUrl,
-                username = config.TurnUsername ?? "",
-                credential = config.TurnPassword ?? ""
-            });
-            Logger.Info($"[SIPSorcery] TURN server configured: {config.TurnServerUrl}");
+                foreach (var url in ice.Urls)
+                {
+                    servers.Add(new RTCIceServer
+                    {
+                        urls = url,
+                        username = ice.Username,
+                        credential = ice.Credential
+                    });
+                }
+            }
         }
 
+        Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers ({servers.Count(s => s.urls?.StartsWith("turn") == true)} TURN)");
         return new RTCConfiguration { iceServers = servers };
     }
 

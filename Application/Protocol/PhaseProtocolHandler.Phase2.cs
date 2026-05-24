@@ -251,6 +251,32 @@ namespace RemotePlayServer.Application.Protocol
         {
             await SendProgressAsync("vdd_setup", 0, "Checking display configuration...");
 
+            // Apply Windows display scale (100%, 125%, 150%)
+            var requestedScale = config.WindowsScale;
+            if (requestedScale == 100 || requestedScale == 125 || requestedScale == 150)
+            {
+                Logger.Info($"[Protocol] Setting Windows scale to {requestedScale}%...");
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        if (Infrastructure.Display.DpiScalingHelper.SetAllMonitorsDpiScaling((uint)requestedScale))
+                        {
+                            Logger.Info($"[Protocol] Windows scale set to {requestedScale}% ✓");
+                            _displayModified = true;
+                        }
+                        else
+                        {
+                            Logger.Error($"[Protocol] Failed to set Windows scale to {requestedScale}%");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"[Protocol] Scale error: {ex.Message}");
+                    }
+                });
+            }
+
             // Store monitor type in runtime config
             DisplayConfig.MonitorType = config.MonitorType ?? "standard";
             bool isUltrawide = DisplayConfig.MonitorType == "ultrawide" || DisplayConfig.MonitorType == "super_ultrawide";
@@ -439,6 +465,12 @@ namespace RemotePlayServer.Application.Protocol
                 };
             }
 
+            // Ping echo: client sends ping via input DC, server echoes back via cursor DC
+            InputReceiver.OnPingReceived = (pingData) =>
+            {
+                _streamer?.SendPingEcho(pingData);
+            };
+
             // ICE candidate forwarding
             _streamer.OnIceCandidate += async (candidate) =>
             {
@@ -468,6 +500,17 @@ namespace RemotePlayServer.Application.Protocol
                 try
                 {
                     _allConnectedTcs?.TrySetResult(true);
+
+                    // Notify that streamer is ready for SharedEncoderManager registration
+                    OnStreamerReady?.Invoke(_streamer);
+
+                    // Detect actual ICE connection type from nominated candidate pair
+                    if (_activeClients.TryGetValue(_clientId, out var info))
+                    {
+                        info.IceConnectionType = _streamer?.DetectIceConnectionType() ?? "Unknown";
+                        info.IsRelayTransport = info.IceConnectionType == "TURN Relay";
+                    }
+
                     if (_ws.State != WebSocketState.Open) return;
                     var streamer = _streamer;
                     if (streamer == null) return;

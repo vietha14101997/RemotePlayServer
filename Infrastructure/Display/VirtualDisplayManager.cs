@@ -30,7 +30,7 @@ static class VirtualDisplayManager
 
     // Physical monitor state (populated during setup)
     private static readonly HashSet<string> _physicalMonitorNames = new();
-    private static readonly List<(string name, int width, int height, int refreshRate)> _originalPhysicalMonitors = new();
+    private static readonly List<(string name, int width, int height, int refreshRate, int x, int y)> _originalPhysicalMonitors = new();
 
     // Original DPI settings for restore on shutdown
     private static List<(DpiScalingHelper.LUID adapterId, uint sourceId, DpiScalingHelper.DpiScalingInfo info)>? _originalDpiSettings;
@@ -39,6 +39,26 @@ static class VirtualDisplayManager
     private static string? _cachedAdapterId;
 
     internal static IReadOnlySet<string> PhysicalMonitorNames => _physicalMonitorNames;
+
+    /// <summary>
+    /// Read saved scale % from display-settings.json, default 100 if not found.
+    /// </summary>
+    static int GetSavedScalePercent()
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Configuration", "display-settings.json");
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("scalePercent", out var prop))
+                    return prop.GetInt32();
+            }
+        }
+        catch { }
+        return 100;
+    }
 
     // ================================================================
     // Public API
@@ -117,7 +137,19 @@ static class VirtualDisplayManager
         }
 
         // Step 3: Try fast path — named pipe IPC
-        if (TrySetDisplayCountViaPipe(virtualNeeded))
+        // Cycle: disable → wait → re-enable to force driver reload XML (picks up new resolution)
+        if (TrySetDisplayCountViaPipe(0))
+        {
+            Thread.Sleep(500);
+            if (TrySetDisplayCountViaPipe(virtualNeeded))
+            {
+                Console.WriteLine("[VDD] Display count set via pipe (cycled), waiting for monitors...");
+                WaitForMonitorCount(TARGET_TOTAL_MONITORS, timeoutMs: 5000);
+                TryExtendDesktop();
+                return;
+            }
+        }
+        else if (TrySetDisplayCountViaPipe(virtualNeeded))
         {
             Console.WriteLine("[VDD] Display count set via pipe, waiting for monitors...");
             WaitForMonitorCount(TARGET_TOTAL_MONITORS, timeoutMs: 5000);
@@ -166,9 +198,17 @@ static class VirtualDisplayManager
         Console.WriteLine($"[VDD] Set monitor count to {count} in {settingsPath}");
     }
 
+    /// <summary>
+    /// Configure multi-monitor extend desktop with virtual displays.
+    /// 4-step pipeline — each step is a single display command + apply + wait.
+    /// Step 1: Quantity — VDD count already set by caller, just classify monitors
+    /// Step 2: Resolution — ensure virtual monitors match physical resolution
+    /// Step 3: Primary — restore original primary display
+    /// Step 4: Position — place virtual monitors to the RIGHT of all physical
+    /// </summary>
     public static void EnsureExtendDesktopWithVirtual()
     {
-        Console.WriteLine("[Display] Setting up multi-monitor system...");
+        Console.WriteLine("[Display] ══════ Multi-Monitor Setup Pipeline ══════");
 
         var mons = WgcInterop.ListMonitorsDXGI();
         if (mons.Count == 0)
@@ -177,9 +217,9 @@ static class VirtualDisplayManager
             return;
         }
 
+        // Classify monitors using snapshot
         var physicalMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
         var virtualMonitors = new List<(IntPtr hmon, string name, int width, int height)>();
-
         foreach (var mon in mons)
         {
             if (_physicalMonitorNames.Contains(mon.name))
@@ -187,115 +227,139 @@ static class VirtualDisplayManager
             else
                 virtualMonitors.Add(mon);
         }
-
         Console.WriteLine($"[Display] Physical: {physicalMonitors.Count}, Virtual: {virtualMonitors.Count}");
 
+        if (virtualMonitors.Count == 0)
+        {
+            Console.WriteLine("[Display] No virtual monitors to configure.");
+            return;
+        }
+
+        // Reference resolution from primary physical monitor
         var primaryOriginal = _originalPhysicalMonitors.FirstOrDefault();
-        int targetWidth = primaryOriginal.width > 0 ? primaryOriginal.width : 1920;
-        int targetHeight = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
-        int targetRefresh = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
+        int targetW = primaryOriginal.width > 0 ? primaryOriginal.width : 1920;
+        int targetH = primaryOriginal.height > 0 ? primaryOriginal.height : 1080;
+        int targetHz = primaryOriginal.refreshRate > 0 ? primaryOriginal.refreshRate : 60;
 
-        // Check if any physical monitor is still primary
+        // ── Step 1: Quantity Check (already done by caller — log only) ──
+        Console.WriteLine($"[Display] Step 1/4 Quantity: {mons.Count} monitors ({physicalMonitors.Count} physical + {virtualMonitors.Count} virtual) ✓");
+
+        // ── Step 2: Resolution — set virtual monitors to match physical resolution ──
+        Console.WriteLine($"[Display] Step 2/4 Resolution: setting virtual to {targetW}x{targetH}@{targetHz}Hz...");
+        foreach (var mon in virtualMonitors)
+        {
+            var current = DisplayUtil.GetCurrentMode(mon.name);
+            if (current.Width != targetW || current.Height != targetH || current.Frequency != targetHz)
+            {
+                Console.WriteLine($"[Display]   {mon.name}: {current.Width}x{current.Height}@{current.Frequency}Hz → {targetW}x{targetH}@{targetHz}Hz");
+                DisplayUtil.ForceResolution(mon.name, targetW, targetH, targetHz);
+            }
+            else
+            {
+                Console.WriteLine($"[Display]   {mon.name}: already {targetW}x{targetH}@{targetHz}Hz ✓");
+            }
+        }
+        Thread.Sleep(500);
+
+        // ── Step 3: Primary — ensure original primary physical monitor is still primary ──
         string? originalPrimary = null;
-        foreach (var mon in physicalMonitors)
+        foreach (var orig in _originalPhysicalMonitors)
         {
-            if (DisplayUtil.IsPrimary(mon.name))
-                originalPrimary = mon.name;
+            if (DisplayUtil.IsPrimary(orig.name))
+            {
+                originalPrimary = orig.name;
+                break;
+            }
         }
+        // If no physical is primary (VDD stole it), pick first from snapshot
+        if (originalPrimary == null && _originalPhysicalMonitors.Count > 0)
+            originalPrimary = _originalPhysicalMonitors[0].name;
 
-        bool vddStolePrimary = originalPrimary == null && physicalMonitors.Count > 0;
-        if (vddStolePrimary)
+        if (originalPrimary != null)
         {
-            originalPrimary = physicalMonitors[0].name;
-            Console.WriteLine($"[Display] VDD stole primary! Will reposition all monitors from scratch.");
-        }
-
-        if (vddStolePrimary)
-        {
-            // VDD stole primary → Windows shifted positions. Ignore current positions entirely.
-            // Lay out from scratch: physical at (0,0), VDD to the right.
-            // Step 1: Set primary FIRST to anchor physical at (0,0)
-            Console.WriteLine($"[Display] Setting {originalPrimary} as PRIMARY first...");
-            SetAsPrimaryDisplay(originalPrimary!);
+            Console.WriteLine($"[Display] Step 3/4 Primary: ensuring {originalPrimary} is main display...");
+            SetAsPrimaryDisplay(originalPrimary);
             Thread.Sleep(500);
 
-            // Step 2: Explicitly position physical monitors starting at origin
-            int currentX = 0;
+            // Also restore physical monitors to original resolution (may have been affected)
             foreach (var mon in physicalMonitors)
             {
                 var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
-                int w = original.name != null ? original.width : targetWidth;
-                int h = original.name != null ? original.height : targetHeight;
-                int hz = original.name != null ? original.refreshRate : targetRefresh;
-                Console.WriteLine($"[Display] Positioning {mon.name} [PHYSICAL] -> {w}x{h}@{hz}Hz at ({currentX}, 0)");
-                DisplayUtil.SetResolutionAndPosition(mon.name, w, h, hz, currentX, 0);
-                currentX += w;
+                if (original.name != null)
+                {
+                    var cur = DisplayUtil.GetCurrentMode(mon.name);
+                    if (cur.Width != original.width || cur.Height != original.height)
+                    {
+                        Console.WriteLine($"[Display]   Restoring {mon.name} resolution: {original.width}x{original.height}@{original.refreshRate}Hz");
+                        DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
+                    }
+                }
             }
-
-            // Step 3: Place VDD monitors to the RIGHT of all physical
-            foreach (var mon in virtualMonitors)
-            {
-                Console.WriteLine($"[Display] Positioning {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, 0)");
-                DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, 0);
-                currentX += targetWidth;
-            }
-
-            DisplayUtil.ApplyDisplayChanges();
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
         }
         else
         {
-            // Normal case: physical is still primary, positions are valid
-            // Find the rightmost edge of all physical monitors to place VDD after them.
-            int rightmostX = 0;
-            int placeY = 0;
-            foreach (var mon in physicalMonitors)
+            Console.WriteLine("[Display] Step 3/4 Primary: no physical primary found, skipping");
+        }
+
+        // ── Step 4: Position via CCD API (ChangeDisplaySettingsEx doesn't work for IDD) ──
+        Console.WriteLine("[Display] Step 4/4 Position: using CCD API...");
+
+        // Read confirmed physical positions
+        int rightmostX = 0;
+        int placeY = 0;
+        foreach (var mon in physicalMonitors)
+        {
+            // Use original snapshot positions (more reliable than current which may be shifted)
+            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+            if (original.name != null)
             {
-                var (px, py, pw, ph, ok) = DisplayUtil.TryGetLayout(mon.name);
-                if (ok && px + pw > rightmostX)
+                Console.WriteLine($"[Display]   Physical {mon.name}: ({original.x},{original.y}) {original.width}x{original.height}");
+                if (original.x + original.width > rightmostX)
                 {
-                    rightmostX = px + pw;
-                    placeY = py;
+                    rightmostX = original.x + original.width;
+                    placeY = original.y;
                 }
-            }
-
-            // Place virtual monitors to the RIGHT of the rightmost physical monitor.
-            int currentX = rightmostX;
-            foreach (var mon in virtualMonitors)
-            {
-                Console.WriteLine($"[Display] Setting {mon.name} [VIRTUAL] -> {targetWidth}x{targetHeight}@{targetRefresh}Hz at ({currentX}, {placeY})");
-                DisplayUtil.SetResolutionAndPosition(mon.name, targetWidth, targetHeight, targetRefresh, currentX, placeY);
-                currentX += targetWidth;
-            }
-
-            if (virtualMonitors.Count > 0)
-            {
-                DisplayUtil.ApplyDisplayChanges();
-                Thread.Sleep(500);
-            }
-
-            foreach (var mon in physicalMonitors)
-            {
-                var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
-                if (original.name != null && (mon.width != original.width || mon.height != original.height))
-                {
-                    Console.WriteLine($"[Display] Restoring {mon.name} [PHYSICAL] to {original.width}x{original.height}@{original.refreshRate}Hz");
-                    DisplayUtil.ForceResolution(mon.name, original.width, original.height, original.refreshRate);
-                    Thread.Sleep(300);
-                }
-            }
-
-            Thread.Sleep(500);
-
-            if (originalPrimary != null)
-            {
-                Console.WriteLine($"[Display] Ensuring {originalPrimary} is PRIMARY (original)");
-                SetAsPrimaryDisplay(originalPrimary);
             }
         }
 
-        // Log final layout
-        Console.WriteLine("[Display] Multi-monitor system configured:");
+        // Build position map: physical at original + virtual to the right
+        var positions = new Dictionary<string, (int x, int y)>();
+        foreach (var mon in physicalMonitors)
+        {
+            var original = _originalPhysicalMonitors.FirstOrDefault(m => m.name == mon.name);
+            if (original.name != null)
+                positions[mon.name] = (original.x, original.y);
+        }
+        int currentX = rightmostX;
+        foreach (var mon in virtualMonitors)
+        {
+            Console.WriteLine($"[Display]   Virtual {mon.name} → ({currentX}, {placeY})");
+            positions[mon.name] = (currentX, placeY);
+            currentX += targetW;
+        }
+
+        // Apply ALL positions atomically via CCD (legacy ChangeDisplaySettingsEx does NOT work for IDD)
+        if (DisplayUtil.SetMonitorPositionsViaCCD(positions))
+        {
+            Console.WriteLine("[Display]   CCD positioning applied ✓");
+        }
+        else
+        {
+            Console.WriteLine("[Display]   CCD positioning failed — positions may be incorrect");
+        }
+        Thread.Sleep(500);
+
+        // Verify all positions
+        foreach (var kvp in positions)
+        {
+            var (vx, vy, vw, vh, vok) = DisplayUtil.TryGetLayout(kvp.Key);
+            bool correct = vok && vx == kvp.Value.x && vy == kvp.Value.y;
+            Console.WriteLine($"[Display]   Verify {kvp.Key}: expected ({kvp.Value.x},{kvp.Value.y}) → actual ({vx},{vy}) {(correct ? "✓" : "⚠ MISMATCH")}");
+        }
+
+        // ── Final: Log + DPI ──
+        Console.WriteLine("[Display] ══════ Final Layout ══════");
         mons = WgcInterop.ListMonitorsDXGI();
         foreach (var mon in mons)
         {
@@ -305,132 +369,106 @@ static class VirtualDisplayManager
             Console.WriteLine($"[Display]   {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
 
-        // Set DPI scaling
-        Console.WriteLine("[Display] Setting Windows Scale and Layout to 125%...");
+        int savedScale = GetSavedScalePercent();
+        Console.WriteLine($"[Display] Setting Windows Scale and Layout to {savedScale}%...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
-        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
-            Console.WriteLine("[Display] Scale and Layout set to 125%");
+        if (DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale))
+            Console.WriteLine($"[Display] Scale set to {savedScale}% ✓");
         else
-            Console.WriteLine("[Display] Failed to set Scale and Layout");
+            Console.WriteLine("[Display] Failed to set scale");
     }
 
     /// <summary>
-    /// Setup a single ultrawide virtual monitor for Ultrawide/Super Ultrawide mode.
-    /// Complete 7-step flow:
-    ///   1. Ensure VDD is disabled (clean slate)
-    ///   2. Snapshot physical monitors (whatever exists = physical)
-    ///   3. Enable 1 VDD, find the new virtual monitor
-    ///   4. Set primary to virtual monitor
-    ///   5. Set 125% scale on virtual monitor
-    ///   6. Disconnect all physical monitors (Show Only on virtual)
-    ///   7. Verify virtual monitor resolution
+    /// Setup a single ultrawide virtual monitor for bind_mobile mode.
+    /// 4-step pipeline — each step is a single display command + apply + wait.
+    /// Step 1: Create — enable 1 VDD, find the new virtual monitor
+    /// Step 2: Resolution — set ultrawide resolution on virtual monitor
+    /// Step 3: Primary — switch main display to virtual monitor
+    /// Step 4: Show Only — disconnect all physical monitors
     /// </summary>
     /// <returns>The device name of the virtual monitor, or null on failure</returns>
     public static string? SetupUltrawideVirtualMonitor(int width, int height, int refreshRate,
         string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
     {
-        // ── Step 1: Ensure VDD is disabled (clean slate) ──
-        Console.WriteLine("[VDD Ultrawide] Step 1: Ensuring VDD is disabled...");
+        Console.WriteLine("[Bind Mobile] ══════ Virtual Monitor Setup Pipeline ══════");
+
+        // Pre: Ensure VDD is disabled (clean slate) + snapshot physical
         TrySetDisplayCountViaPipe(0);
         Thread.Sleep(500);
-        // If pipe not available, VDD might already be off — that's fine
 
-        // ── Step 2: Snapshot physical monitors ──
-        Console.WriteLine("[VDD Ultrawide] Step 2: Checking physical monitors...");
         SnapshotPhysicalMonitors();
         int physicalCount = _physicalMonitorNames.Count;
-        Console.WriteLine($"[VDD Ultrawide] Physical monitors: {physicalCount} ({string.Join(", ", _physicalMonitorNames)})");
+        Console.WriteLine($"[Bind Mobile] Physical: {physicalCount} ({string.Join(", ", _physicalMonitorNames)})");
 
-        // Ensure ultrawide resolution exists in VDD XML
-        try
-        {
-            EnsureResolutionInVddXml(settingsPath, width, height, refreshRate);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[VDD Ultrawide] XML resolution edit failed: {ex.Message}");
-        }
+        try { EnsureResolutionInVddXml(settingsPath, width, height, refreshRate); }
+        catch (Exception ex) { Console.WriteLine($"[Bind Mobile] XML resolution edit failed: {ex.Message}"); }
 
-        // ── Step 3: Enable 1 VDD and find the virtual monitor ──
-        Console.WriteLine($"[VDD Ultrawide] Step 3: Creating 1 virtual monitor {width}x{height}@{refreshRate}Hz...");
+        // ── Step 1: Create — enable 1 VDD ──
+        Console.WriteLine($"[Bind Mobile] Step 1/4 Create: enabling 1 virtual monitor...");
         if (!TrySetDisplayCountViaPipe(1))
         {
-            Console.WriteLine("[VDD Ultrawide] Pipe failed, trying pnputil fallback...");
+            Console.WriteLine("[Bind Mobile] Pipe failed, pnputil fallback...");
             try { SetVddMonitorCount(settingsPath, 1); } catch { }
             ToggleVddViaPnputil();
         }
+        WaitForMonitorCount(physicalCount + 1, timeoutMs: 5000);
+        Thread.Sleep(500);
 
-        int expectedTotal = physicalCount + 1;
-        WaitForMonitorCount(expectedTotal, timeoutMs: 5000);
-        Thread.Sleep(500); // Allow Windows to stabilize
-
-        // Find the NEW monitor (not in physical snapshot = virtual)
         string? virtualMonitorName = null;
-        var mons = WgcInterop.ListMonitorsDXGI();
-        foreach (var mon in mons)
+        foreach (var mon in WgcInterop.ListMonitorsDXGI())
         {
             if (!_physicalMonitorNames.Contains(mon.name))
             {
                 virtualMonitorName = mon.name;
-                Console.WriteLine($"[VDD Ultrawide] Virtual monitor found: {mon.name}");
+                Console.WriteLine($"[Bind Mobile]   Found: {mon.name} ✓");
                 break;
             }
         }
-
         if (virtualMonitorName == null)
         {
-            Console.WriteLine("[VDD Ultrawide] ERROR: Virtual monitor not found!");
+            Console.WriteLine("[Bind Mobile] ERROR: Virtual monitor not found!");
             return null;
         }
 
-        // Set ultrawide resolution on virtual monitor
+        // ── Step 2: Resolution — set ultrawide resolution ──
+        Console.WriteLine($"[Bind Mobile] Step 2/4 Resolution: {width}x{height}@{refreshRate}Hz...");
         bool resOk = DisplayUtil.ForceResolution(virtualMonitorName, width, height, refreshRate);
-        Console.WriteLine($"[VDD Ultrawide] ForceResolution {width}x{height}@{refreshRate}Hz: {(resOk ? "OK" : "FAILED")}");
         if (!resOk)
         {
-            DisplayUtil.SetResolutionAndPosition(virtualMonitorName, width, height, refreshRate, 0, 0);
-            DisplayUtil.ApplyDisplayChanges();
-            Thread.Sleep(300);
+            DisplayUtil.ForceResolutionViaModeEnum(virtualMonitorName, width, height, refreshRate);
         }
+        Thread.Sleep(500);
 
-        // ── Step 4: Set primary to virtual monitor ──
-        Console.WriteLine($"[VDD Ultrawide] Step 4: Setting primary to {virtualMonitorName}...");
+        var current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+        Console.WriteLine($"[Bind Mobile]   Result: {current.Width}x{current.Height}@{current.Frequency}Hz {(current.Width == width ? "✓" : "⚠")}");
+
+        // ── Step 3: Primary — switch main display to virtual ──
+        Console.WriteLine($"[Bind Mobile] Step 3/4 Primary: setting {virtualMonitorName} as main display...");
         SetAsPrimaryDisplay(virtualMonitorName);
         Thread.Sleep(500);
 
-        // ── Step 5: Set 125% scale on virtual monitor ──
-        Console.WriteLine("[VDD Ultrawide] Step 5: Setting 125% scale...");
+        int savedScale = GetSavedScalePercent();
+        Console.WriteLine($"[Bind Mobile]   Setting {savedScale}% scale...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
-        if (DpiScalingHelper.SetAllMonitorsDpiScaling(125))
-            Console.WriteLine("[VDD Ultrawide] Scale set to 125%");
-        else
-            Console.WriteLine("[VDD Ultrawide] Failed to set 125% scale");
+        DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale);
         Thread.Sleep(300);
 
-        // ── Step 6: Disconnect all physical monitors (Show Only on virtual) ──
-        Console.WriteLine($"[VDD Ultrawide] Step 6: Disconnecting physical monitors...");
+        // ── Step 4: Show Only — disconnect physical monitors ──
+        Console.WriteLine($"[Bind Mobile] Step 4/4 Show Only: disconnecting physical monitors...");
         DisplayUtil.SetTopologyShowOnly(virtualMonitorName);
-        Thread.Sleep(2000); // Wait for Windows to apply topology
+        Thread.Sleep(2000);
 
-        // ── Step 7: Verify virtual monitor resolution ──
-        Console.WriteLine("[VDD Ultrawide] Step 7: Verifying resolution...");
-        var current = DisplayUtil.GetCurrentMode(virtualMonitorName);
-        if (current.Width == width && current.Height == height)
+        // Verify final resolution (topology change may reset VDD)
+        current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+        if (current.Width != width || current.Height != height)
         {
-            Console.WriteLine($"[VDD Ultrawide] ✓ Resolution verified: {current.Width}x{current.Height}@{current.Frequency}Hz");
-        }
-        else
-        {
-            Console.WriteLine($"[VDD Ultrawide] Resolution mismatch: got {current.Width}x{current.Height}, expected {width}x{height}");
-            Console.WriteLine("[VDD Ultrawide] Attempting recovery...");
-            // Topology change may reset VDD — try to fix
+            Console.WriteLine($"[Bind Mobile]   Resolution lost after topology change, recovering...");
             DisplayUtil.ForceResolutionViaModeEnum(virtualMonitorName, width, height, refreshRate);
             Thread.Sleep(500);
             current = DisplayUtil.GetCurrentMode(virtualMonitorName);
             if (current.Width != width || current.Height != height)
             {
-                // Last resort: re-toggle VDD
-                Console.WriteLine("[VDD Ultrawide] Re-toggling VDD for mode refresh...");
+                Console.WriteLine("[Bind Mobile]   Re-toggling VDD...");
                 ToggleVddForModeRefresh();
                 Thread.Sleep(1000);
                 var newName = FindVirtualMonitorName();
@@ -442,10 +480,10 @@ static class VirtualDisplayManager
                     Thread.Sleep(1000);
                 }
             }
-            current = DisplayUtil.GetCurrentMode(virtualMonitorName);
-            Console.WriteLine($"[VDD Ultrawide] Final resolution: {current.Width}x{current.Height}@{current.Frequency}Hz");
         }
 
+        current = DisplayUtil.GetCurrentMode(virtualMonitorName);
+        Console.WriteLine($"[Bind Mobile] ══════ Done: {virtualMonitorName} {current.Width}x{current.Height}@{current.Frequency}Hz ══════");
         return virtualMonitorName;
     }
 
@@ -590,10 +628,15 @@ static class VirtualDisplayManager
             {
                 _physicalMonitorNames.Add(mon.name);
                 var mode = DisplayUtil.GetCurrentMode(mon.name);
-                _originalPhysicalMonitors.Add((mon.name, mode.Width, mode.Height, mode.Frequency));
-                Console.WriteLine($"[VDD] Physical monitor: {mon.name} ({mode.Width}x{mode.Height}@{mode.Frequency}Hz)");
+                var (px, py, _, _, posOk) = DisplayUtil.TryGetLayout(mon.name);
+                if (!posOk) { px = 0; py = 0; }
+                _originalPhysicalMonitors.Add((mon.name, mode.Width, mode.Height, mode.Frequency, px, py));
+                Console.WriteLine($"[VDD] Physical monitor: {mon.name} ({mode.Width}x{mode.Height}@{mode.Frequency}Hz) at ({px},{py})");
             }
         }
+
+        // Share known physical names with DisplayUtil for reliable virtual detection
+        DisplayUtil.SetKnownPhysicalNames(_physicalMonitorNames);
     }
 
     /// <summary>

@@ -26,6 +26,13 @@ namespace RemotePlayServer.Application.Streaming;
 public partial class SIPSorceryStreamer : IDisposable
 {
     public event Action<string>? OnFatalError;
+
+    /// <summary>
+    /// Fired after encoding, before DC send. Used for multi-client fan-out.
+    /// Parameters: (trackIndex, nalBytes, isKeyframe, paramSets)
+    /// Viewers subscribe to receive pre-encoded frames without running their own encoder.
+    /// </summary>
+    public event Action<int, byte[], bool, byte[]?>? OnEncodedFrameAvailable;
     /// <summary>
     /// Fired when encoder falls back to a different codec than negotiated.
     /// Parameters: (negotiatedCodec, actualCodec, reason)
@@ -33,8 +40,11 @@ public partial class SIPSorceryStreamer : IDisposable
     public event Action<VideoCodec, VideoCodec, string>? OnCodecFallback;
 
     private readonly int _monitorCount;
+    public int MonitorCount => _monitorCount;
     private int _fps;
+    public int Fps => _fps;
     private int _resolutionHeight;
+    public int ResolutionHeight => _resolutionHeight;
     private VideoCodec _negotiatedCodec;
     public VideoCodec NegotiatedCodec
     {
@@ -42,6 +52,7 @@ public partial class SIPSorceryStreamer : IDisposable
         set => _negotiatedCodec = value;
     }
     private ID3D11Device? _sharedDevice;
+    public ID3D11Device? SharedDevice => _sharedDevice;
 
     private RTCPeerConnection? _mainPc; // Renamed from _pc: carries audio RTP + cursor/audio DCs (always)
     private readonly ConcurrentDictionary<int, RTCPeerConnection> _videoPcs = new(); // Per-track PeerConnections (per-track mode only)
@@ -245,7 +256,6 @@ public partial class SIPSorceryStreamer : IDisposable
     }
 
     public bool IsConnected => _connected;
-    public int MonitorCount => _monitorCount;
 
     /// <summary>
     /// Indicates if streaming is paused (capture/encode stopped but connection maintained).

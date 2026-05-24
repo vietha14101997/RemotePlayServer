@@ -69,6 +69,18 @@ public class InternetManager
         return config;
     }
 
+    public static async Task SaveConfigAsync(InternetConfig config)
+    {
+        var configPath = GetConfigPath();
+        var dir = Path.GetDirectoryName(configPath);
+        if (dir != null) Directory.CreateDirectory(dir);
+
+        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(configPath, json);
+        _instance = new InternetManager(config);
+        Logger.Info($"[Internet] Config saved to {configPath}");
+    }
+
     private static string GetConfigPath()
     {
         return Path.Combine(AppContext.BaseDirectory, "Configuration", ConfigFileName);
