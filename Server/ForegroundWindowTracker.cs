@@ -42,6 +42,9 @@ public sealed class ForegroundWindowTracker : IDisposable
     [DllImport("kernel32.dll")]
     private static extern uint GetCurrentThreadId();
 
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
     [StructLayout(LayoutKind.Sequential)]
     private struct MSG
     {
@@ -81,15 +84,19 @@ public sealed class ForegroundWindowTracker : IDisposable
     private uint _threadId;
     private WinEventDelegate? _delegate;
     private readonly Action<int> _onMonitorChanged;
+    private readonly Action<string> _onProcessChanged;
     private readonly Func<IReadOnlyList<(int x, int y, int w, int h)>> _getMonitorRects;
     private int _lastMonitorIndex = -1;
+    private string _lastProcessName = "";
     private bool _disposed;
 
     public ForegroundWindowTracker(
         Action<int> onMonitorChanged,
+        Action<string> onProcessChanged,
         Func<IReadOnlyList<(int x, int y, int w, int h)>> getMonitorRects)
     {
         _onMonitorChanged = onMonitorChanged;
+        _onProcessChanged = onProcessChanged;
         _getMonitorRects = getMonitorRects;
     }
 
@@ -153,14 +160,36 @@ public sealed class ForegroundWindowTracker : IDisposable
 
         try
         {
-            var hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-            if (hMonitor == IntPtr.Zero) return;
-
-            int monitorIndex = GetMonitorIndexFromHandle(hMonitor);
-            if (monitorIndex >= 0 && monitorIndex != _lastMonitorIndex)
+            // 1. Get process name of active window
+            string processName = "";
+            GetWindowThreadProcessId(hwnd, out uint pid);
+            if (pid != 0)
             {
-                _lastMonitorIndex = monitorIndex;
-                _onMonitorChanged(monitorIndex);
+                try
+                {
+                    using var proc = System.Diagnostics.Process.GetProcessById((int)pid);
+                    processName = proc.ProcessName;
+                }
+                catch { }
+            }
+
+            // 2. Track monitor index change
+            var hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (hMonitor != IntPtr.Zero)
+            {
+                int monitorIndex = GetMonitorIndexFromHandle(hMonitor);
+                if (monitorIndex >= 0 && monitorIndex != _lastMonitorIndex)
+                {
+                    _lastMonitorIndex = monitorIndex;
+                    _onMonitorChanged(monitorIndex);
+                }
+            }
+
+            // 3. Track process change and fire callback
+            if (processName != _lastProcessName)
+            {
+                _lastProcessName = processName;
+                _onProcessChanged(processName);
             }
         }
         catch (Exception ex)

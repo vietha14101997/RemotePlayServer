@@ -10,6 +10,7 @@ using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Server;
+using RemotePlayServer.Configuration;
 
 namespace RemotePlayServer.Application.Protocol
 {
@@ -180,12 +181,62 @@ namespace RemotePlayServer.Application.Protocol
                         var msg = $"{{\"type\":\"foreground_monitor\",\"monitorIndex\":{monitorIndex}}}";
                         Logger.Info($"[ForegroundTracker] Window focused on monitor {monitorIndex}");
                         SendTextAsync(msg).GetAwaiter().GetResult();
+
+                        _activeMonitorIndex = monitorIndex;
+                        if (_isVrModeActive)
+                        {
+                            ConfineCursorToMonitor(monitorIndex);
+                        }
                     }
                     catch { }
+                },
+                onProcessChanged: (processName) =>
+                {
+                    try
+                    {
+                        bool isVrGame = VRGameConfig.IsVRGame(processName);
+                        if (isVrGame && !_isVrModeActive)
+                        {
+                            _isVrModeActive = true;
+                            var msg = "{\"type\":\"vr_mode_changed\",\"enabled\":true}";
+                            Logger.Info($"[ForegroundTracker] VR Game '{processName}' gained focus. Activating VR Mode.");
+                            SendTextAsync(msg).GetAwaiter().GetResult();
+                            
+                            // Confine cursor to active monitor
+                            ConfineCursorToMonitor(_activeMonitorIndex);
+                        }
+                        else if (!isVrGame && _isVrModeActive)
+                        {
+                            _isVrModeActive = false;
+                            var msg = "{\"type\":\"vr_mode_changed\",\"enabled\":false}";
+                            Logger.Info($"[ForegroundTracker] VR Game lost focus. Deactivating VR Mode.");
+                            SendTextAsync(msg).GetAwaiter().GetResult();
+                            
+                            // Release cursor confinement
+                            ReleaseCursorConfinement();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"[ForegroundTracker] VR focus check failed: {ex.Message}");
+                    }
                 },
                 getMonitorRects: () => _monitorRects
             );
             _foregroundTracker.Start();
+
+            // Ensure we release cursor confinement if disconnected/cleaned up
+            CancellationTokenRegistration? vrCleanupReg = null;
+            if (_fatalErrorCts != null)
+            {
+                vrCleanupReg = _fatalErrorCts.Token.Register(() => {
+                    if (_isVrModeActive)
+                    {
+                        _isVrModeActive = false;
+                        ReleaseCursorConfinement();
+                    }
+                });
+            }
 
             // Start server-side keep-alive for early disconnect detection
             StartKeepAlive();
@@ -1143,6 +1194,36 @@ namespace RemotePlayServer.Application.Protocol
                 _stallDetectTimer = null;
             }
             catch { }
+        }
+
+        private void ConfineCursorToMonitor(int monitorIndex)
+        {
+            try
+            {
+                if (monitorIndex >= 0 && monitorIndex < _monitorRects.Count)
+                {
+                    var rect = _monitorRects[monitorIndex];
+                    InputInjector.ConfineCursor(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+                    Logger.Info($"[Protocol] Confined cursor to monitor {monitorIndex} ({rect.x},{rect.y} to {rect.x + rect.w},{rect.y + rect.h})");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] Failed to confine cursor: {ex.Message}");
+            }
+        }
+
+        private void ReleaseCursorConfinement()
+        {
+            try
+            {
+                InputInjector.ReleaseCursorConfinement();
+                Logger.Info("[Protocol] Released cursor confinement");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] Failed to release cursor confinement: {ex.Message}");
+            }
         }
     }
 }

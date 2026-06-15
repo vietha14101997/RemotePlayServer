@@ -119,6 +119,8 @@ namespace RemotePlayServer.Application.Protocol
 
         // Foreground window tracking (auto-switch client view)
         private ForegroundWindowTracker? _foregroundTracker;
+        private bool _isVrModeActive = false;
+        private int _activeMonitorIndex = 0;
 
         // Cursor tracking (DXGI Desktop Duplication)
         private CancellationTokenSource? _cursorCts;

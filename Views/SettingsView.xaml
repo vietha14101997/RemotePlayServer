@@ -51,6 +51,112 @@
                 </StackPanel>
             </Border>
 
+            <!-- ═══ VR MODE SETTINGS ═══ -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="VR Game Mode Settings" Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="Select running applications or enter process names manually to assign them to VR Mode. When focused, stereoscopic SBS VR Mode will be activated."
+                               Style="{StaticResource InfoLabel}" FontStyle="Italic" Margin="0,0,0,12" />
+
+                    <!-- Dual List Container -->
+                    <Grid Height="200" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left: Running Applications -->
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Applications:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="{DynamicResource AppTextDimBrush}" FontSize="12" />
+                            <Border Grid.Row="1" BorderThickness="1" BorderBrush="{DynamicResource AppBorderBrush}" CornerRadius="4" Background="{DynamicResource AppSurfaceBrush}">
+                                <ListBox ItemsSource="{Binding RunningApps}"
+                                         SelectedItem="{Binding SelectedRunningApp}"
+                                         DisplayMemberPath="DisplayName"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Center: Commands -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Button Content="▶" FontSize="16" Width="40" Height="32" Margin="0,4" Padding="0"
+                                    ToolTip="Add selected app to VR Favorites"
+                                    Command="{Binding AddFavoriteCommand}" Style="{StaticResource PrimaryButton}" />
+                            <Button Content="◀" FontSize="16" Width="40" Height="32" Margin="0,4" Padding="0"
+                                    ToolTip="Remove selected app from VR Favorites"
+                                    Command="{Binding RemoveFavoriteCommand}" Style="{StaticResource PrimaryButton}" />
+                            <Button Content="▲" FontSize="12" Width="36" Height="28" Margin="0,12,0,4" Padding="0"
+                                    ToolTip="Move up"
+                                    Command="{Binding MoveFavoriteUpCommand}" Style="{StaticResource SecondaryButton}" />
+                            <Button Content="▼" FontSize="12" Width="36" Height="28" Margin="0,4" Padding="0"
+                                    ToolTip="Move down"
+                                    Command="{Binding MoveFavoriteDownCommand}" Style="{StaticResource SecondaryButton}" />
+                        </StackPanel>
+
+                        <!-- Right: VR Favorites -->
+                        <Grid Grid.Column="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Favorites (automatic):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="{DynamicResource AppTextDimBrush}" FontSize="12" />
+                            <Border Grid.Row="1" BorderThickness="1" BorderBrush="{DynamicResource AppBorderBrush}" CornerRadius="4" Background="{DynamicResource AppSurfaceBrush}">
+                                <ListBox ItemsSource="{Binding FavoriteVRGames}"
+                                         SelectedItem="{Binding SelectedFavoriteVRGame}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Add Custom Game & Refresh Panels -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Manual Entry -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <TextBox Text="{Binding CustomGameName, UpdateSourceTrigger=PropertyChanged}" 
+                                     mah:TextBoxHelper.Watermark="Or enter process name (e.g. Subnautica)"
+                                     Width="260" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <Button Content="Add Manual" Command="{Binding AddCustomFavoriteCommand}" Style="{StaticResource SecondaryButton}" VerticalAlignment="Center" Padding="12,6" />
+                        </StackPanel>
+
+                        <!-- Refresh Running Apps -->
+                        <Button Grid.Column="1" Content="🔄 Refresh Apps" Command="{Binding RefreshRunningAppsCommand}" Style="{StaticResource SecondaryButton}" VerticalAlignment="Center" Padding="12,6" />
+                    </Grid>
+
+                    <!-- Actions -->
+                    <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Padding="16,8"
+                            Command="{Binding SaveVRGamesListCommand}">
+                        <Grid>
+                            <TextBlock Text="Save VR Games Settings">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSavingVRGames}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <mah:ProgressRing Width="14" Height="14" IsActive="{Binding IsSavingVRGames}"
+                                              Visibility="{Binding IsSavingVRGames, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Border>
+
             <!-- ═══ INTERNET MODE ═══ -->
             <Border Style="{StaticResource CardBorder}">
                 <StackPanel>

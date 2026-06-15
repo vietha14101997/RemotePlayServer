@@ -7,13 +7,21 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
+using System.Linq;
 using RemotePlayServer.Configuration;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
+using RemotePlayServer.Infrastructure;
 using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Services;
 
 namespace RemotePlayServer.ViewModels;
+
+public record RunningApp(IntPtr Hwnd, string Title, string ProcessName)
+{
+    public string DisplayName => $"{Title} [{ProcessName}]";
+}
 
 public partial class SettingsViewModel : ObservableObject
 {
@@ -31,6 +39,13 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _saveStatus = "";
     [ObservableProperty] private bool _isSavingCodec;
     [ObservableProperty] private bool _isSavingInternet;
+    [ObservableProperty] private bool _isSavingVRGames;
+    
+    [ObservableProperty] private ObservableCollection<RunningApp> _runningApps = new();
+    [ObservableProperty] private ObservableCollection<string> _favoriteVRGames = new();
+    [ObservableProperty] private RunningApp? _selectedRunningApp;
+    [ObservableProperty] private string? _selectedFavoriteVRGame;
+    [ObservableProperty] private string _customGameName = "";
 
     public SettingsViewModel(ServerService serverService)
     {
@@ -42,6 +57,9 @@ public partial class SettingsViewModel : ObservableObject
     {
         PreferredCodec = _serverService.State.PreferredCodec;
         InternetEnabled = _serverService.State.InternetEnabled;
+        
+        FavoriteVRGames = new ObservableCollection<string>(VRGameConfig.VRGames);
+        RefreshRunningApps();
 
         var config = InternetManager.Instance?.Config;
         if (config != null)
@@ -77,6 +95,103 @@ public partial class SettingsViewModel : ObservableObject
             Logger.Error($"[Settings] Codec save failed: {ex.Message}");
         }
         finally { IsSavingCodec = false; }
+    }
+
+    [RelayCommand]
+    private void RefreshRunningApps()
+    {
+        RunningApps.Clear();
+        try
+        {
+            var apps = Win32.ListRunningApplications();
+            var sorted = apps
+                .OrderBy(a => a.Title, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var app in sorted)
+            {
+                RunningApps.Add(new RunningApp(app.Hwnd, app.Title, app.ProcessName));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Settings] Failed to refresh running apps: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void AddFavorite()
+    {
+        if (SelectedRunningApp == null) return;
+        var procName = SelectedRunningApp.ProcessName;
+        if (!FavoriteVRGames.Contains(procName))
+        {
+            FavoriteVRGames.Add(procName);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveFavorite()
+    {
+        if (string.IsNullOrEmpty(SelectedFavoriteVRGame)) return;
+        FavoriteVRGames.Remove(SelectedFavoriteVRGame);
+    }
+
+    [RelayCommand]
+    private void AddCustomFavorite()
+    {
+        if (string.IsNullOrWhiteSpace(CustomGameName)) return;
+        var trimmed = CustomGameName.Trim();
+        if (!FavoriteVRGames.Contains(trimmed))
+        {
+            FavoriteVRGames.Add(trimmed);
+        }
+        CustomGameName = "";
+    }
+
+    [RelayCommand]
+    private void MoveFavoriteUp()
+    {
+        if (string.IsNullOrEmpty(SelectedFavoriteVRGame)) return;
+        int index = FavoriteVRGames.IndexOf(SelectedFavoriteVRGame);
+        if (index > 0)
+        {
+            var item = SelectedFavoriteVRGame;
+            FavoriteVRGames.RemoveAt(index);
+            FavoriteVRGames.Insert(index - 1, item);
+            SelectedFavoriteVRGame = item;
+        }
+    }
+
+    [RelayCommand]
+    private void MoveFavoriteDown()
+    {
+        if (string.IsNullOrEmpty(SelectedFavoriteVRGame)) return;
+        int index = FavoriteVRGames.IndexOf(SelectedFavoriteVRGame);
+        if (index >= 0 && index < FavoriteVRGames.Count - 1)
+        {
+            var item = SelectedFavoriteVRGame;
+            FavoriteVRGames.RemoveAt(index);
+            FavoriteVRGames.Insert(index + 1, item);
+            SelectedFavoriteVRGame = item;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveVRGamesListAsync()
+    {
+        IsSavingVRGames = true;
+        try
+        {
+            await VRGameConfig.SaveAsync(FavoriteVRGames);
+            SetStatusWithAutoClear("VR games list saved successfully");
+        }
+        catch (Exception ex)
+        {
+            SetStatusWithAutoClear($"Error: {ex.Message}");
+            Logger.Error($"[Settings] VR games list save failed: {ex.Message}");
+        }
+        finally { IsSavingVRGames = false; }
     }
 
     [RelayCommand]

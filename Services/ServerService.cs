@@ -280,6 +280,9 @@ public class ServerService : IDisposable
             try { _internetConfig = await InternetManager.LoadConfigAsync(); }
             catch (Exception ex) { Logger.Warn($"[Internet] Config load failed: {ex.Message}"); }
 
+            try { await VRGameConfig.LoadAsync(); }
+            catch (Exception ex) { Logger.Warn($"[VRGameConfig] Load failed: {ex.Message}"); }
+
             try
             {
                 var codecConfigPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "codec-settings.json");
