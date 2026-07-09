@@ -13,7 +13,9 @@ using TextEncoding = System.Text.Encoding;
 
 namespace RemotePlayServer.Infrastructure.Network;
 
-public class RelayClient : IDisposable
+// Reconnect state machine (backoff loop, single-flight guard, token cooperation) lives in
+// RelayClient.Reconnect.cs — split by concern, see that file's header comment.
+public partial class RelayClient : IDisposable
 {
     private readonly HttpClient _httpClient = new();
     private ClientWebSocket? _presenceWs;
@@ -23,6 +25,11 @@ public class RelayClient : IDisposable
     private string? _accessToken;
     private string? _refreshToken;
     private string? _deviceId;
+
+    // H1: serializes token refreshes. The relay rotates+revokes the refresh token on every
+    // /auth/refresh, so the 14-min TokenRefreshLoop racing a reconnect's EnsureFreshTokenAsync
+    // must not both refresh with the same _refreshToken (the loser would 401 on a revoked token).
+    private readonly SemaphoreSlim _tokenRefreshLock = new(1, 1);
     private bool _disposed;
 
     public event Action<string>? OnSessionRequest;
@@ -64,8 +71,7 @@ public class RelayClient : IDisposable
             }
 
             var result = JsonSerializer.Deserialize<LoginResponse>(json);
-            _accessToken = result?.AccessToken;
-            _refreshToken = result?.RefreshToken;
+            ApplyAuthTokens(result);
 
             Logger.Info("[Relay] Registration successful");
             return (_accessToken != null, null);
@@ -95,8 +101,7 @@ public class RelayClient : IDisposable
 
             var json = await resp.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<LoginResponse>(json);
-            _accessToken = result?.AccessToken;
-            _refreshToken = result?.RefreshToken;
+            ApplyAuthTokens(result);
 
             Logger.Info("[Relay] Login successful");
             return _accessToken != null;
@@ -167,9 +172,28 @@ public class RelayClient : IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens the presence WebSocket (device/session identity is read from stored instance
+    /// fields, so this is also the reconnect entry point — see RelayClient.Reconnect.cs).
+    /// Reusable: tears down any previous connection/loops before establishing a new one so
+    /// repeated calls (reconnect attempts) don't leak read/token-refresh loops.
+    /// </summary>
     public async Task ConnectPresenceAsync()
     {
         if (_accessToken == null || _relayUrl == null || _deviceId == null) return;
+
+        // Tear down the previous attempt's loops/socket before starting a new one —
+        // without this, a reconnect would orphan the old ReadLoopAsync/TokenRefreshLoopAsync
+        // (they'd keep running on the stale CancellationTokenSource forever). Cancel() only
+        // (no Dispose()): SendTextAsync/SendBinaryAsync may concurrently read _cts.Token, which
+        // throws ObjectDisposedException post-Dispose but is always safe after a plain Cancel().
+        _cts?.Cancel();
+        _presenceWs?.Dispose();
+
+        // Preserve the Reconnecting state set by the backoff loop across each attempt;
+        // only show "Connecting" for a fresh (non-reconnect) connection.
+        if (State != RelayConnectionState.Reconnecting)
+            SetState(RelayConnectionState.Connecting);
 
         _cts = new CancellationTokenSource();
         _presenceWs = new ClientWebSocket();
@@ -182,6 +206,7 @@ public class RelayClient : IDisposable
             await _presenceWs.ConnectAsync(uri, _cts.Token);
             Logger.Info("[Relay] Presence WebSocket connected");
             OnConnectionStateChanged?.Invoke(true);
+            SetState(RelayConnectionState.Connected);
 
             _ = ReadLoopAsync(_cts.Token);
             _ = TokenRefreshLoopAsync(_cts.Token);
@@ -190,6 +215,12 @@ public class RelayClient : IDisposable
         {
             Logger.Error($"[Relay] Presence connect error: {ex.Message}");
             OnConnectionStateChanged?.Invoke(false);
+
+            // Only clear back to Disconnected outside a reconnect attempt — inside the backoff
+            // loop, State must stay Reconnecting so the loop keeps retrying (and the UI keeps
+            // showing "Reconnecting…" rather than flashing "Disconnected" between attempts).
+            if (State != RelayConnectionState.Reconnecting)
+                SetState(RelayConnectionState.Disconnected);
         }
     }
 
@@ -231,6 +262,18 @@ public class RelayClient : IDisposable
         {
             OnConnectionStateChanged?.Invoke(false);
             Logger.Info("[Relay] Presence WS disconnected");
+
+            if (_userDisconnectRequested)
+            {
+                // Graceful/user-initiated teardown (Dispose()) — do not reconnect.
+                SetState(RelayConnectionState.Disconnected);
+            }
+            else
+            {
+                // Transport drop (network blip, relay restart, etc.) — auto-reconnect.
+                SetState(RelayConnectionState.Reconnecting);
+                _ = TryStartReconnectLoopAsync();
+            }
         }
     }
 
@@ -326,29 +369,39 @@ public class RelayClient : IDisposable
 
     private async Task TokenRefreshLoopAsync(CancellationToken ct)
     {
-        while (!ct.IsCancellationRequested)
+        try
         {
-            await Task.Delay(TimeSpan.FromMinutes(14), ct); // Refresh 1 min before 15 min expiry
-            await RefreshTokenAsync();
+            while (!ct.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(14), ct); // Refresh 1 min before 15 min expiry
+                await RefreshTokenAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on reconnect/disconnect teardown (ConnectPresenceAsync/Dispose cancel _cts).
         }
     }
 
     private async Task RefreshTokenAsync()
     {
-        if (_refreshToken == null || _relayUrl == null) return;
-
-        var body = JsonSerializer.Serialize(new { refresh_token = _refreshToken });
-        var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
-
+        // H1: single-flight. Concurrent callers serialize here; each reads the CURRENT
+        // _refreshToken inside the lock, so a caller that waits picks up the token the
+        // prior refresh just rotated in (instead of replaying a now-revoked one).
+        await _tokenRefreshLock.WaitAsync();
         try
         {
+            if (_refreshToken == null || _relayUrl == null) return;
+
+            var body = JsonSerializer.Serialize(new { refresh_token = _refreshToken });
+            var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+
             var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/refresh", content);
             if (resp.IsSuccessStatusCode)
             {
                 var json = await resp.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<LoginResponse>(json);
-                _accessToken = result?.AccessToken;
-                _refreshToken = result?.RefreshToken;
+                ApplyAuthTokens(result);
                 Logger.Info("[Relay] Token refreshed");
             }
             else
@@ -360,6 +413,24 @@ public class RelayClient : IDisposable
         {
             Logger.Error($"[Relay] Token refresh error: {ex.Message}");
         }
+        finally
+        {
+            _tokenRefreshLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Stores tokens from a login/register/refresh response and tracks the access token's
+    /// expiry so reconnect logic (RelayClient.Reconnect.cs) can refresh proactively instead
+    /// of retrying the presence WS with a stale JWT.
+    /// </summary>
+    private void ApplyAuthTokens(LoginResponse? result)
+    {
+        _accessToken = result?.AccessToken;
+        _refreshToken = result?.RefreshToken;
+        _tokenExpiresAt = result != null && result.ExpiresIn > 0
+            ? DateTimeOffset.UtcNow.AddSeconds(result.ExpiresIn)
+            : null;
     }
 
     public async Task<bool> RegisterGuestDeviceAsync(string shortId, string password, string deviceName)
@@ -472,6 +543,15 @@ public class RelayClient : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+
+        // Mark as a graceful/user-initiated disconnect BEFORE cancelling — ReadLoopAsync's
+        // finally block checks this flag to decide whether to auto-reconnect (it must not).
+        // Cancel() only (no Dispose()) here: other in-flight code may still read _cts.Token /
+        // _reconnectLoopCts concurrently, and CancellationTokenSource.Token throws
+        // ObjectDisposedException post-Dispose but Cancel() is always safe to call.
+        _userDisconnectRequested = true;
+        _reconnectLoopCts?.Cancel();
+
         _cts?.Cancel();
         _presenceWs?.Dispose();
         _httpClient.Dispose();
