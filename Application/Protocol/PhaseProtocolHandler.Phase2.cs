@@ -477,6 +477,11 @@ namespace RemotePlayServer.Application.Protocol
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
+                    if (!IceCandidateInspector.IsRoutable(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping non-routable local ICE candidate: {candidate}");
+                        return;
+                    }
                     var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(msg);
                 }
@@ -489,6 +494,11 @@ namespace RemotePlayServer.Application.Protocol
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
+                    if (!IceCandidateInspector.IsRoutable(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping non-routable audio ICE candidate: {candidate}");
+                        return;
+                    }
                     var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
                     await SendTextAsync(json);
                 }
@@ -929,6 +939,11 @@ namespace RemotePlayServer.Application.Protocol
                     try
                     {
                         if (_ws.State != System.Net.WebSockets.WebSocketState.Open) return;
+                        if (!IceCandidateInspector.IsRoutable(candidate))
+                        {
+                            Logger.Info($"[Protocol] Skipping non-routable video ICE candidate (mon {monitorIndex}): {candidate}");
+                            return;
+                        }
                         var msg = System.Text.Json.JsonSerializer.Serialize(new
                         {
                             type = "video_candidate",
@@ -1195,6 +1210,11 @@ namespace RemotePlayServer.Application.Protocol
                 // Send extracted ICE candidates separately (trickle ICE style)
                 foreach (var candidate in embeddedCandidates)
                 {
+                    if (!IceCandidateInspector.IsRoutable(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping non-routable embedded ICE candidate: {candidate}");
+                        continue;
+                    }
                     var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(candMsg);
                 }
@@ -1746,6 +1766,7 @@ namespace RemotePlayServer.Application.Protocol
             candidate = await MdnsHelper.MaybeResolveMdnsCandidateAsync(candidate);
             candidate = MdnsHelper.MaybeReplaceMdnsWithRemoteIp(candidate, _remoteIp);
 
+            bool buffered = false;
             lock (_iceLock)
             {
                 // Cache for DTLS retry re-application
@@ -1758,11 +1779,15 @@ namespace RemotePlayServer.Application.Protocol
                 }
                 else
                 {
+                    buffered = true;
                     if (!_pendingIce.ContainsKey(0))
                         _pendingIce[0] = new List<string>();
                     _pendingIce[0].Add(candidate);
                 }
             }
+
+            if (buffered)
+                Logger.Info($"[Protocol] Buffering client ICE candidate until answer ready: {candidate}");
         }
 
         [DllImport("combase.dll")]

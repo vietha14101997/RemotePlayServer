@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 
 namespace RemotePlayServer.Core
@@ -17,8 +18,25 @@ namespace RemotePlayServer.Core
 
         public static event Action<DateTime, string, LogLevel>? OnLogEntry;
 
+        /// <summary>
+        /// Max entries kept in the in-memory history ring buffer (for the UI log viewer).
+        /// </summary>
+        private const int HistoryCapacity = 2000;
+        private static readonly ConcurrentQueue<LogEntry> _history = new();
+
         private static StreamWriter? _fileWriter;
         private static readonly object _fileLock = new object();
+
+        /// <summary>
+        /// Snapshot of the in-memory log history (oldest first).
+        /// Lets late subscribers (e.g. the UI log viewer) see entries logged before they attached.
+        /// </summary>
+        public static LogEntry[] GetHistorySnapshot() => _history.ToArray();
+
+        /// <summary>
+        /// Clear the in-memory history. Does not touch the log file.
+        /// </summary>
+        public static void ClearHistory() => _history.Clear();
 
         /// <summary>
         /// Initialize file logging. Logs will be written to both console and file.
@@ -101,6 +119,9 @@ namespace RemotePlayServer.Core
             var timestamped = $"{now:HH:mm:ss.fff} {message}";
             Console.WriteLine(timestamped);
 
+            _history.Enqueue(new LogEntry(now, message, level));
+            while (_history.Count > HistoryCapacity && _history.TryDequeue(out _)) { }
+
             try { OnLogEntry?.Invoke(now, message, level); } catch { }
 
             if (_fileWriter != null)
@@ -121,4 +142,9 @@ namespace RemotePlayServer.Core
         Warning = 2, // Only warnings and errors
         Error = 3    // Only errors
     }
+
+    /// <summary>
+    /// Single log line kept in the in-memory history buffer.
+    /// </summary>
+    public readonly record struct LogEntry(DateTime Timestamp, string Message, LogLevel Level);
 }

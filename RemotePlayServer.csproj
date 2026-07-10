@@ -16,6 +16,11 @@
     <None Remove="RemotePlayServer.Tests\**" />
   </ItemGroup>
 
+  <!-- Let the test project see internal helpers (e.g. IceCandidateInspector) -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="RemotePlayServer.Tests" />
+  </ItemGroup>
+
   <!-- Copy FFmpeg DLLs from bin folder to output -->
   <ItemGroup>
     <None Include="bin\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="bin" />
