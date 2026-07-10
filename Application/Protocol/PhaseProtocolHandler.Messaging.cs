@@ -444,6 +444,30 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
+        /// Handles a client <c>restart_phase2</c> request (full Phase-2 ICE renegotiation) with the
+        /// restart-count cap. Shared by the Phase-2 AND Phase-3 message loops (H1): the client sends
+        /// <c>restart_phase2</c> mid-stream when an ICE restart exhausts its budget, or immediately
+        /// for every trigger when the host did not advertise <c>supportsIceRestart</c>. Previously
+        /// only the Phase-2 loop handled it, so a mid-stream fallback was silently dropped.
+        /// Returns true if the cap was exceeded (WS already closed → caller must exit its loop).
+        /// </summary>
+        private async Task<bool> HandleRestartPhase2RequestAsync()
+        {
+            _phase2RestartCount++;
+            if (_phase2RestartCount > MAX_PHASE2_RESTARTS)
+            {
+                Logger.Error($"[Protocol] Phase 2 restart limit reached ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS}), closing for full reconnect");
+                try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"max_restarts_exceeded\",\"message\":\"Connection failed. Reconnecting...\"}"); } catch { }
+                // Force close WebSocket — client will auto-reconnect with fresh state
+                try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "restart_limit_exceeded", CancellationToken.None); } catch { }
+                return true;
+            }
+            Logger.Info($"[Protocol] Client requested Phase 2 restart ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS})");
+            await HandleRestartPhase2Async();
+            return false;
+        }
+
+        /// <summary>
         /// Handle Phase 2 restart request from client.
         /// Lightweight restart: stops PeerConnection but keeps capture and streamer alive
         /// for fast ICE renegotiation (~300ms vs 2-5s with full teardown).

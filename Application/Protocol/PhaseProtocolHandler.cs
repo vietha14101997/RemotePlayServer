@@ -192,6 +192,12 @@ namespace RemotePlayServer.Application.Protocol
         // Buffer for display_config that might arrive before WaitForDisplayConfigAsync is called
         private DisplayConfigMessage? _bufferedDisplayConfig;
 
+        // Phase 5 (ICE restart): DTLS fingerprint captured from the last full offer that
+        // established the CURRENT live session (initial handshake, reconnect "offer", or
+        // restart_phase2's renegotiated offer). A later "ice_restart_offer" must carry this
+        // SAME fingerprint (same DTLS cert/peer) or it is rejected as a possible hijack (F11).
+        private string? _liveSessionDtlsFingerprint;
+
         /// <summary>
         /// Default bitrate for USB mode (higher due to stable bandwidth).
         /// </summary>

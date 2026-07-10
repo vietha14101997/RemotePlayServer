@@ -61,6 +61,58 @@ public class ProtocolMessageSerializationTests
         Assert.Equal(1920, parsed.Monitors[0].Width);
     }
 
+    // ==================== Phase 5: ICE Restart (F8 capability + messages) ====================
+
+    [Fact]
+    public void HardwareInfoMessage_SupportsIceRestart_SerializesAsCamelCaseKey()
+    {
+        // F8: wire key MUST be exactly "supportsIceRestart" (camelCase) to match every other
+        // hardware_info field AND the Android client (`@Json(name="supportsIceRestart")`).
+        var msg = new HardwareInfoMessage { SupportsIceRestart = true };
+
+        var json = ProtocolMessageParser.Serialize(msg);
+
+        Assert.Contains("\"supportsIceRestart\":true", json);
+    }
+
+    [Fact]
+    public void HardwareInfoMessage_SupportsIceRestart_RoundTrips()
+    {
+        var msg = new HardwareInfoMessage { SupportsIceRestart = true };
+
+        var json = ProtocolMessageParser.Serialize(msg);
+        var parsed = ProtocolMessageParser.Parse<HardwareInfoMessage>(json);
+
+        Assert.NotNull(parsed);
+        Assert.True(parsed!.SupportsIceRestart);
+    }
+
+    [Fact]
+    public void IceRestartOfferMessage_RoundTrip()
+    {
+        var msg = new IceRestartOfferMessage { Sdp = "v=0\r\no=- 1 2 IN IP4 0.0.0.0\r\n" };
+
+        var json = ProtocolMessageParser.Serialize(msg);
+        var parsed = ProtocolMessageParser.Parse<IceRestartOfferMessage>(json);
+
+        Assert.Equal("ice_restart_offer", ProtocolMessageParser.GetMessageType(json));
+        Assert.NotNull(parsed);
+        Assert.Equal(msg.Sdp, parsed!.Sdp);
+    }
+
+    [Fact]
+    public void IceRestartAnswerMessage_RoundTrip()
+    {
+        var msg = new IceRestartAnswerMessage { Sdp = "v=0\r\no=- 2 3 IN IP4 0.0.0.0\r\n" };
+
+        var json = ProtocolMessageParser.Serialize(msg);
+        var parsed = ProtocolMessageParser.Parse<IceRestartAnswerMessage>(json);
+
+        Assert.Equal("ice_restart_answer", ProtocolMessageParser.GetMessageType(json));
+        Assert.NotNull(parsed);
+        Assert.Equal(msg.Sdp, parsed!.Sdp);
+    }
+
     [Fact]
     public void QualityFeedbackMessage_RoundTrip()
     {

@@ -382,21 +382,12 @@ public partial class SIPSorceryStreamer
         // Start stats logging
         _ = Task.Run(LogStatsAsync);
 
-        var answerSdp = answer.sdp ?? "";
-
-        // RFC 5763: Answerer MUST use "active" or "passive", NOT "actpass".
+        // RFC 5763 actpass->active + SAVPF fixes + private-candidate filtering.
         // When signalingState works correctly (Android), SIPSorcery generates "active" natively.
         // When signalingState is broken (Unity Editor), it falls back to "actpass" which
-        // libwebrtc rejects. Fix: replace with "active" for RFC compliance.
-        if (answerSdp.Contains("a=setup:actpass"))
-        {
-            answerSdp = answerSdp.Replace("a=setup:actpass", "a=setup:active");
-            Logger.Info("[SIPSorcery] Main PC: SDP: fixed actpass -> active in answer (RFC 5763)");
-        }
-
-        if (!answerSdp.Contains("SAVPF"))
-            answerSdp = answerSdp.Replace("SAVP", "SAVPF");
-        answerSdp = FilterAnswerSdpIceCandidates(answerSdp);
+        // libwebrtc rejects — NormalizeSipSorceryAnswerSdp (shared with the ICE-restart path
+        // in SIPSorceryStreamer.IceRestart.cs) fixes this for RFC compliance.
+        var answerSdp = NormalizeSipSorceryAnswerSdp(answer.sdp ?? "");
 
         // Log DTLS-critical SDP attributes for debugging
         foreach (var line in answerSdp.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))

@@ -376,6 +376,26 @@ namespace RemotePlayServer.Application.Protocol
                         continue;
                     }
 
+                    // Handle mid-session ICE restart (Phase 5, F8/F10). Android is always the
+                    // offerer; this applies directly to the LIVE main PC — deliberately does NOT
+                    // call ResetSyncState()/reset stall-detection like the "offer" reconnect
+                    // branch below, because the encoder/session must stay alive (no teardown).
+                    if (msgType == "ice_restart_offer")
+                    {
+                        await HandleIceRestartOfferAsync(text);
+                        continue;
+                    }
+
+                    // H1: the client falls back to restart_phase2 mid-stream when an ICE restart
+                    // exhausts its budget (or immediately if the host lacks supportsIceRestart).
+                    // The Phase-2 loop handles this too; without this branch a mid-stream fallback
+                    // was silently dropped and recovery stalled until keep-alive death.
+                    if (msgType == "restart_phase2")
+                    {
+                        if (await HandleRestartPhase2RequestAsync()) break; // limit hit → WS closed, exit loop
+                        continue;
+                    }
+
                     // Handle per-track video PC signaling (perTrackPc=true mode)
                     if (msgType == "video_answer" && _perTrackPc)
                     {

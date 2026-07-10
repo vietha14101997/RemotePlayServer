@@ -50,7 +50,12 @@ namespace RemotePlayServer.Application.Protocol
                     Width = m.width,
                     Height = m.height,
                     IsVirtual = DisplayUtil.IsVirtualDisplay(m.name, m.hmon)
-                }).ToList()
+                }).ToList(),
+                // F8 capability negotiation (Phase 5): active transport is SIPSorcery, which
+                // Phase-0 gate G7 proved CAN apply a remote ICE-restart offer + answer on a live
+                // PC. Hardcode true here — flip only if/when the active transport changes to
+                // libdatachannel (gate G3 showed libjuice refuses ICE restart outright).
+                SupportsIceRestart = true
             };
 
             // Set GPU-aware max quality height

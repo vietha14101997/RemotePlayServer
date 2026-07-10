@@ -34,6 +34,19 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("maxQualityHeight")]
         public int MaxQualityHeight { get; set; } = 1440;
+
+        /// <summary>
+        /// Whether the host's ACTIVE transport can apply a mid-session ICE-restart offer
+        /// without tearing down the encoder/session (Phase 5). True for SIPSorcery (Phase-0
+        /// gate G7: PASS — setRemoteDescription+createAnswer accept a restart offer on a live
+        /// PC). Must flip to false if/when the host migrates to libdatachannel (gate G3: FAIL —
+        /// libjuice refuses ICE restart entirely). Client MUST gate ice_restart_offer on this
+        /// flag; if false, it must fall back to the existing restart_phase2 full renegotiation.
+        /// Wire key is camelCase to match every other hardware_info field + the Android client
+        /// (`@Json(name="supportsIceRestart")`); the `type` discriminator is the only snake_case key.
+        /// </summary>
+        [JsonPropertyName("supportsIceRestart")]
+        public bool SupportsIceRestart { get; set; }
     }
 
     public class DeviceInfo
@@ -447,6 +460,31 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("monitorCount")]
         public int MonitorCount { get; set; }
+    }
+
+    /// <summary>
+    /// Client -> Server: Mid-session ICE-restart offer (Phase 5, F8/F10). Android is always the
+    /// offerer — the host never spontaneously re-offers (glare avoidance). Sent when the client
+    /// detects a network change (or ICE disconnect) and host advertised supports_ice_restart=true.
+    /// Applied directly to the LIVE PeerConnection; encoder/session stay alive (no teardown).
+    /// </summary>
+    public class IceRestartOfferMessage : ProtocolMessage
+    {
+        public override string Type => "ice_restart_offer";
+
+        [JsonPropertyName("sdp")]
+        public string Sdp { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Server -> Client: Answer to a mid-session ICE-restart offer (Phase 5).
+    /// </summary>
+    public class IceRestartAnswerMessage : ProtocolMessage
+    {
+        public override string Type => "ice_restart_answer";
+
+        [JsonPropertyName("sdp")]
+        public string Sdp { get; set; } = "";
     }
 
     /// <summary>

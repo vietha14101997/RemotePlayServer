@@ -672,6 +672,14 @@ namespace RemotePlayServer.Application.Protocol
                     HandleAudioIceCandidate(json);
                     break;
 
+                case "ice_restart_offer":
+                    // Mid-session ICE restart (Phase 5, F8/F10): Android is always the offerer.
+                    // Handled on both the initial ICE-exchange loop and the Phase-3 streaming
+                    // loop (which dispatches here too) since a network change can occur any
+                    // time after the host advertised supports_ice_restart in Phase 1.
+                    await HandleIceRestartOfferAsync(json);
+                    break;
+
                 case "video_answer":
                     if (_perTrackPc)
                         await HandleVideoAnswerAsync(json);
@@ -765,18 +773,9 @@ namespace RemotePlayServer.Application.Protocol
                     break;
 
                 case "restart_phase2":
-                    // Client is requesting full Phase 2 restart (ICE renegotiation)
-                    _phase2RestartCount++;
-                    if (_phase2RestartCount > MAX_PHASE2_RESTARTS)
-                    {
-                        Logger.Error($"[Protocol] Phase 2 restart limit reached ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS}), closing for full reconnect");
-                        try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"max_restarts_exceeded\",\"message\":\"Connection failed. Reconnecting...\"}"); } catch { }
-                        // Force close WebSocket — client will auto-reconnect with fresh state
-                        try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "restart_limit_exceeded", CancellationToken.None); } catch { }
-                        return true; // Exit ICE loop → WS close triggers cleanup
-                    }
-                    Logger.Info($"[Protocol] Client requested Phase 2 restart ({_phase2RestartCount}/{MAX_PHASE2_RESTARTS})");
-                    await HandleRestartPhase2Async();
+                    // Client is requesting full Phase 2 restart (ICE renegotiation).
+                    // Shared with the Phase-3 loop (H1) — see HandleRestartPhase2RequestAsync.
+                    if (await HandleRestartPhase2RequestAsync()) return true; // limit hit → WS closed, exit loop
                     break;
 
                 case "reconnect_ack":
@@ -819,6 +818,66 @@ namespace RemotePlayServer.Application.Protocol
             catch (Exception ex)
             {
                 Logger.Error($"[Protocol] audio_offer handling failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle a mid-session ICE-restart offer from the client (Phase 5). Android is always
+        /// the offerer — the host never spontaneously re-offers (F10 glare avoidance). Applies
+        /// the offer directly to the LIVE main PeerConnection: unlike restart_phase2 (full
+        /// teardown + renegotiation) or a plain "offer" during Phase 3 (treated as full
+        /// reconnect), this keeps the encoder/session alive — only ICE re-gathers.
+        ///
+        /// F11 MITM guard (BLOCKING): rejects the offer if its DTLS fingerprint differs from
+        /// the one captured at the current live session's last full handshake — a changed
+        /// fingerprint means a different DTLS peer (hijack/MITM attempt), not a legitimate
+        /// network-change restart.
+        /// </summary>
+        private async Task HandleIceRestartOfferAsync(string json)
+        {
+            if (_streamer == null)
+            {
+                Logger.Warn("[Protocol] ice_restart_offer received but no active streamer — ignoring");
+                return;
+            }
+
+            var msg = ProtocolMessageParser.Parse<IceRestartOfferMessage>(json);
+            if (msg == null || string.IsNullOrEmpty(msg.Sdp))
+            {
+                Logger.Error("[Protocol] ice_restart_offer missing sdp — ignoring");
+                return;
+            }
+
+            // F11: the restart offer's DTLS fingerprint MUST match the one established for the
+            // current live session. A mismatch means a different DTLS peer — reject, do NOT apply.
+            var incomingFingerprint = SdpFingerprintExtractor.ExtractDtlsFingerprint(msg.Sdp);
+            if (!SdpFingerprintExtractor.FingerprintsMatch(incomingFingerprint, _liveSessionDtlsFingerprint))
+            {
+                Logger.Error("[Protocol] ice_restart_offer REJECTED — DTLS fingerprint mismatch vs " +
+                    "the established session. Possible MITM/hijack attempt; NOT applying offer.");
+                await SendErrorAsync(GetPhaseNumber(), "ICE_RESTART_FINGERPRINT_MISMATCH",
+                    "ICE restart rejected: DTLS fingerprint does not match the established session.");
+                return;
+            }
+
+            try
+            {
+                Logger.Info("[Protocol] ice_restart_offer accepted (fingerprint verified) — applying to live PC");
+                var answerSdp = await _streamer.ProcessIceRestartOfferAsync(msg.Sdp);
+                if (string.IsNullOrEmpty(answerSdp))
+                {
+                    Logger.Error("[Protocol] ice_restart_offer: streamer produced an empty answer");
+                    await SendErrorAsync(GetPhaseNumber(), "ICE_RESTART_FAILED", "Failed to apply ICE restart offer.");
+                    return;
+                }
+
+                await SendMessageAsync(new IceRestartAnswerMessage { Sdp = answerSdp });
+                Logger.Info("[Protocol] Sent ice_restart_answer — encoder/session kept alive, ICE re-gathering");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] ice_restart_offer handling failed: {ex.Message}");
+                await SendErrorAsync(GetPhaseNumber(), "ICE_RESTART_FAILED", $"ICE restart failed: {ex.Message}");
             }
         }
 
@@ -1013,6 +1072,20 @@ namespace RemotePlayServer.Application.Protocol
             // Cache offer for video m-line counting
             _lastOfferSdp = offerSdp;
             lock (_iceLock) { _allReceivedIceCandidates.Clear(); }
+
+            // Capture the DTLS fingerprint baseline for the ICE-restart MITM guard (F11).
+            // This offer (initial handshake, reconnect, or restart_phase2 renegotiation)
+            // establishes a NEW live session; any later ice_restart_offer must match it.
+            var offerFingerprint = SdpFingerprintExtractor.ExtractDtlsFingerprint(offerSdp);
+            if (offerFingerprint != null)
+            {
+                _liveSessionDtlsFingerprint = offerFingerprint;
+                Logger.Info($"[Protocol] Captured live-session DTLS fingerprint baseline for ICE-restart guard");
+            }
+            else
+            {
+                Logger.Warn("[Protocol] Offer SDP has no a=fingerprint line — ICE-restart MITM guard baseline not set");
+            }
 
             Logger.Info("[Protocol] Received single offer for all monitors");
 
