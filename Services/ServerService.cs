@@ -16,6 +16,7 @@ using RemotePlayServer.Infrastructure;
 using RemotePlayServer.Infrastructure.Capture;
 using RemotePlayServer.Infrastructure.Display;
 using RemotePlayServer.Infrastructure.Network;
+using RemotePlayServer.Infrastructure.Network.Upnp;
 using RemotePlayServer.Models;
 using RemotePlayServer.Server;
 
@@ -95,6 +96,10 @@ public class ServerService : IDisposable
             Dispatch(() => State.LocalIp = preferredIP);
             Logger.Info($"[HTTP] Server: {preferredIP}:{State.Port}");
 
+            // Discover the UPnP gateway in the background so per-connection
+            // WebRTC port mappings (direct P2P from internet) are instant later.
+            UpnpPortMappingService.WarmUp();
+
             UpdateStatus("Pre-warming DTLS & loading config...");
             await LoadConfigParallel();
 
@@ -155,6 +160,8 @@ public class ServerService : IDisposable
             _tunnel = null;
             Logger.Info("[Shutdown] Tunnel stopped");
         }
+
+        try { await UpnpPortMappingService.ShutdownAsync(); } catch { }
 
         try { await SignalServer.ForceCleanupResources(); } catch { }
 

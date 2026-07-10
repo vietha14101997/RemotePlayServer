@@ -484,6 +484,13 @@ namespace RemotePlayServer.Application.Protocol
                     }
                     var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(msg);
+
+                    // LAN host candidate → also advertise a router-forwarded public door (UPnP)
+                    UpnpCandidateAugmenter.TryAugment(candidate, "main PC", async (publicCand) =>
+                    {
+                        if (_ws.State != WebSocketState.Open) return;
+                        await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
+                    });
                 }
                 catch { }
             };
@@ -501,6 +508,14 @@ namespace RemotePlayServer.Application.Protocol
                     }
                     var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
                     await SendTextAsync(json);
+
+                    UpnpCandidateAugmenter.TryAugment(candidate, "audio PC", async (publicCand) =>
+                    {
+                        if (_ws.State != WebSocketState.Open) return;
+                        var publicJson = System.Text.Json.JsonSerializer.Serialize(
+                            new { type = "audio_candidate", candidate = publicCand });
+                        await SendTextAsync(publicJson);
+                    });
                 }
                 catch { }
             };
@@ -883,6 +898,14 @@ namespace RemotePlayServer.Application.Protocol
 
                 await SendMessageAsync(new IceRestartAnswerMessage { Sdp = answerSdp });
                 Logger.Info("[Protocol] Sent ice_restart_answer — encoder/session kept alive, ICE re-gathering");
+
+                // SIPSorcery does not re-gather on restart, so the UPnP srflx door mapped
+                // during the initial exchange must be re-trickled or the peer loses it.
+                UpnpCandidateAugmenter.ReAdvertise("main PC", async (publicCand) =>
+                {
+                    if (_ws.State != WebSocketState.Open) return;
+                    await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
+                });
             }
             catch (Exception ex)
             {
@@ -951,6 +974,18 @@ namespace RemotePlayServer.Application.Protocol
                             candidate
                         });
                         await SendTextAsync(msg);
+
+                        UpnpCandidateAugmenter.TryAugment(candidate, $"video PC {monitorIndex}", async (publicCand) =>
+                        {
+                            if (_ws.State != System.Net.WebSockets.WebSocketState.Open) return;
+                            var publicJson = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                type = "video_candidate",
+                                monitorIndex,
+                                candidate = publicCand
+                            });
+                            await SendTextAsync(publicJson);
+                        });
                     }
                     catch (Exception ex)
                     {
