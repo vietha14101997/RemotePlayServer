@@ -526,8 +526,10 @@ namespace RemotePlayServer.Application.Protocol
             {
                 try
                 {
-                    // Auto-upgrade: a background ICE restart re-established WebRTC while we
-                    // were on the relay path — switch media back to direct DataChannels/RTP.
+                    // P2P is up: cancel the head-start fallback timer and, if we were on the
+                    // relay, switch media back to direct DataChannels/RTP (auto-upgrade).
+                    _p2pConnected = true;
+                    CancelRelayFallbackTimer();
                     if (_mediaRelayMode) ExitMediaRelayMode();
 
                     _allConnectedTcs?.TrySetResult(true);
@@ -602,26 +604,32 @@ namespace RemotePlayServer.Application.Protocol
                 try
                 {
                     if (_ws.State != WebSocketState.Open) return;
+                    if (_mediaRelayMode) { _dtlsRetrying = false; return; } // already relaying
                     if (_dtlsRetrying) return;
                     _dtlsRetrying = true;
 
-                    if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
+                    // A DTLS/ICE failure means the FULL ICE attempt (host + srflx + IPv6 +
+                    // the client's TURN-relay candidate) could not connect. If IPv6 or any
+                    // P2P path were viable it would have connected on this attempt, so a
+                    // failure here = P2P is not going to work (symmetric CGNAT both sides).
+                    // Fall back to DERP-style media relay immediately rather than burning
+                    // minutes on restart cycles the user won't wait for. The client keeps
+                    // attempting ICE restart in the background; if one ever succeeds we
+                    // auto-upgrade back to direct (OnAllTracksReady -> ExitMediaRelayMode).
+                    _dtlsFailCount++;
+                    if (_dtlsFailCount >= DERP_AFTER_DTLS_FAILURES && _streamer != null)
                     {
-                        // Both peers unreachable by WebRTC (typically symmetric CGNAT both
-                        // sides). Instead of giving up, fall back to DERP-style media relay
-                        // over the WebSocket. Only reached on an already-failed P2P path.
-                        Logger.Error($"[Protocol] WebRTC failed after {MAX_PHASE2_RESTARTS} restarts — falling back to media relay");
+                        Logger.Error($"[Protocol] WebRTC DTLS failed (x{_dtlsFailCount}) — falling back to media relay");
                         try { EnterMediaRelayMode(); }
                         catch (Exception mrEx)
                         {
-                            Logger.Error($"[Protocol] Media relay fallback failed: {mrEx.Message} — closing connection");
-                            try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection failed. Reconnecting...\"}"); } catch { }
-                            try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "dtls_failed_exhausted", CancellationToken.None); } catch { }
+                            Logger.Error($"[Protocol] Media relay fallback failed: {mrEx.Message} — asking client to reconnect");
+                            try { await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}"); } catch { }
                         }
                     }
                     else
                     {
-                        Logger.Error($"[Protocol] DTLS failed, requesting client reconnect (restart {_phase2RestartCount + 1}/{MAX_PHASE2_RESTARTS})");
+                        Logger.Error($"[Protocol] DTLS failed (x{_dtlsFailCount}), requesting client reconnect");
                         await SendTextAsync("{\"type\":\"reconnect_required\",\"reason\":\"dtls_failed\"}");
                     }
 
@@ -640,6 +648,10 @@ namespace RemotePlayServer.Application.Protocol
         private async Task RunIceExchangeAsync()
         {
             Logger.Info("[Protocol] Starting ICE exchange...");
+
+            // Give P2P a short head start; bring up the media relay if nothing connects
+            // in time (fast path for CGNAT-both-sides without the ~30s ICE timeout wait).
+            ArmRelayFallbackTimer();
 
             // RX loop for offers and ICE candidates
             var buffer = new byte[128 * 1024];

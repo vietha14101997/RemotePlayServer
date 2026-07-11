@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using RemotePlayServer.Core;
 using RemotePlayServer.Server;
 
@@ -13,7 +14,52 @@ namespace RemotePlayServer.Application.Protocol
     public partial class PhaseProtocolHandler
     {
         private volatile bool _mediaRelayMode;
+        private volatile bool _p2pConnected; // WebRTC DTLS ever completed this session
         private int _mediaRelayWired; // 0/1 — subscribe streamer relay events only once
+        private int _dtlsFailCount;   // host-side DTLS/ICE failures observed this session
+        private CancellationTokenSource? _relayFallbackCts;
+
+        // Fall back to media relay after this many DTLS/ICE failures. 1 = on the first
+        // failure: the initial ICE attempt already tried every P2P path (incl. IPv6), so
+        // its failure means direct won't work here — no point waiting for slow restarts.
+        private const int DERP_AFTER_DTLS_FAILURES = 1;
+
+        // P2P head-start before relay kicks in (Tailscale-style, but P2P-preferred):
+        // LAN/IPv6 connect in ~1-2s and win outright; if nothing has connected by this
+        // deadline we bring up the relay fast instead of waiting the ~30s ICE timeout.
+        // Background ICE keeps trying and auto-upgrades to P2P if it ever connects.
+        private const int RELAY_FALLBACK_DELAY_MS = 8000;
+
+        /// <summary>
+        /// Arm the P2P head-start timer when ICE exchange begins. If no WebRTC connection
+        /// lands within RELAY_FALLBACK_DELAY_MS, start the media relay. Cancelled the moment
+        /// P2P connects (OnAllTracksReady) or if relay is entered another way.
+        /// </summary>
+        private void ArmRelayFallbackTimer()
+        {
+            _relayFallbackCts?.Cancel();
+            var cts = new CancellationTokenSource();
+            _relayFallbackCts = cts;
+            _ = Task.Run(async () =>
+            {
+                try { await Task.Delay(RELAY_FALLBACK_DELAY_MS, cts.Token); }
+                catch (OperationCanceledException) { return; }
+                if (cts.IsCancellationRequested) return;
+                if (_p2pConnected || _mediaRelayMode) return;
+                try
+                {
+                    Logger.Info($"[RelayMedia] No P2P after {RELAY_FALLBACK_DELAY_MS}ms — starting media relay (P2P keeps trying in background)");
+                    EnterMediaRelayMode();
+                }
+                catch (Exception ex) { Logger.Error($"[RelayMedia] Fallback timer error: {ex.Message}"); }
+            });
+        }
+
+        private void CancelRelayFallbackTimer()
+        {
+            _relayFallbackCts?.Cancel();
+            _relayFallbackCts = null;
+        }
 
         public bool IsMediaRelayMode => _mediaRelayMode;
 
@@ -31,6 +77,7 @@ namespace RemotePlayServer.Application.Protocol
                 return;
             }
 
+            CancelRelayFallbackTimer();
             _mediaRelayMode = true;
             Logger.Info("[RelayMedia] Entering media relay mode (WebRTC unavailable, using WS relay)");
 

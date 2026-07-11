@@ -482,6 +482,11 @@ namespace RemotePlayServer.Application.Protocol
         /// </summary>
         private async Task<bool> HandleRestartPhase2RequestAsync()
         {
+            // Already on the media relay — ignore full-renegotiation requests so we don't
+            // tear down the working relay session. Background ICE restart still runs and
+            // will auto-upgrade to P2P if it ever connects.
+            if (_mediaRelayMode) return false;
+
             _phase2RestartCount++;
             if (_phase2RestartCount > MAX_PHASE2_RESTARTS)
             {
