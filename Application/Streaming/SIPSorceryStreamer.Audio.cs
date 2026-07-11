@@ -43,6 +43,7 @@ public partial class SIPSorceryStreamer
                         var packet = new byte[length];
                         Buffer.BlockCopy(pcm, 0, packet, 0, length);
                         OnRelayAudioChunk?.Invoke(packet);
+                        Interlocked.Increment(ref _audioPacketsSent); // count relay audio in stats too
                     }
                     catch { }
                     return;

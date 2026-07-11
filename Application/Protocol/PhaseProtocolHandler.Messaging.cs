@@ -411,13 +411,20 @@ namespace RemotePlayServer.Application.Protocol
         /// <summary>
         /// Send a binary WS frame to the client (relay-media path). Shares the same
         /// send lock as SendTextAsync so media chunks and signaling never interleave
-        /// on the underlying socket. Short lock timeout: if the relay is backed up we
-        /// drop this chunk rather than stall the encode loop (media is loss-tolerant).
+        /// on the underlying socket.
+        /// lockTimeoutMs >= 0: drop the payload if the lock isn't acquired in time —
+        /// ONLY for loss-tolerant per-packet channels (audio PCM: one lost packet is a
+        /// 10ms glitch). lockTimeoutMs &lt; 0: wait indefinitely — used by the relay
+        /// video send loop, where load shedding happens upstream at FRAME granularity
+        /// (dropping a mid-frame chunk corrupts the NAL and poisons all later P-frames).
         /// </summary>
-        private async Task SendBytesAsync(byte[] data)
+        private async Task SendBytesAsync(byte[] data, int lockTimeoutMs = 1000)
         {
             if (_ws.State != WebSocketState.Open) return;
-            if (!await _sendLock.WaitAsync(1000, _ct)) return; // drop chunk under backpressure
+            if (lockTimeoutMs < 0)
+                await _sendLock.WaitAsync(_ct);
+            else if (!await _sendLock.WaitAsync(lockTimeoutMs, _ct))
+                return; // drop under backpressure (loss-tolerant channels only)
 
             try
             {

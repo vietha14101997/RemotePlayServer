@@ -16,7 +16,7 @@ public partial class SIPSorceryStreamer
 {
     /// <summary>
     /// Relay-media fallback: bring up the encode/audio pipeline WITHOUT a WebRTC
-    /// PeerConnection (no ICE/DTLS). Frames then flow through OnRelayVideoChunk /
+    /// PeerConnection (no ICE/DTLS). Frames then flow through OnRelayVideoFrame /
     /// OnRelayAudioChunk. Idempotent — safe to call once ICE-restart budget is spent.
     /// The caller (PhaseProtocolHandler) drives capture via StartCaptureThread().
     /// </summary>

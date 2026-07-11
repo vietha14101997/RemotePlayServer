@@ -39,7 +39,10 @@ public partial class SIPSorceryStreamer : IDisposable
     // WebRTC DataChannels — used when ICE fails and both peers are behind CGNAT.
     // Default off: the normal P2P/DataChannel path is completely untouched.
     public volatile bool RelayMediaMode;
-    public event Action<int, byte[]>? OnRelayVideoChunk; // (trackIdx, protocol-v2 framed chunk)
+    // (trackIdx, ordered v2-framed chunks of ONE frame, isKeyframe) — chunks of a frame
+    // are emitted atomically so the relay sender can drop whole frames (never a single
+    // chunk: a missing chunk corrupts the NAL and poisons every following P-frame).
+    public event Action<int, System.Collections.Generic.List<byte[]>, bool>? OnRelayVideoFrame;
     public event Action<byte[]>? OnRelayAudioChunk;      // raw PCM16
     /// <summary>
     /// Fired when encoder falls back to a different codec than negotiated.

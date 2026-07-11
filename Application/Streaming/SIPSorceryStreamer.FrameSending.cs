@@ -62,7 +62,7 @@ public partial class SIPSorceryStreamer
     public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || _isPaused) return;
-        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoChunk,
+        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoFrame,
         // so the WebRTC-connected gate must not block the encode pipeline.
         if (!_connected && !RelayMediaMode) return;
         if (!_phase3Active) return;
@@ -220,7 +220,7 @@ public partial class SIPSorceryStreamer
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
     {
         if (!_running || _disposed || _isPaused) return;
-        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoChunk,
+        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoFrame,
         // so the WebRTC-connected gate must not block the encode pipeline.
         if (!_connected && !RelayMediaMode) return;
         if (!_phase3Active) return;
@@ -1114,16 +1114,20 @@ public partial class SIPSorceryStreamer
 
     /// <summary>
     /// Relay-media fallback: emit one encoded frame as protocol-v2 chunks to
-    /// OnRelayVideoChunk (carried over the WebSocket relay). Mirrors the DataChannel
+    /// OnRelayVideoFrame (carried over the WebSocket relay). Mirrors the DataChannel
     /// framing (param-sets 0x02, IDR 0x03, P-frame 0x04) so the client's existing
     /// VideoFrameParser handles it unchanged. Reuses BuildPaddedMessage + the 60KB
-    /// chunk size. No DataChannel flow control here — TCP backpressure is handled
-    /// separately (see phase-04). Keyframe-first gating already happened in caller.
+    /// chunk size. All chunks of a frame go out as ONE atomic ordered list — the
+    /// relay sender (PhaseProtocolHandler.RelayMedia) drops whole frames under TCP
+    /// backpressure, never individual chunks (a missing chunk corrupts the NAL and
+    /// poisons every following P-frame → macroblock garbage on the client).
     /// </summary>
     private void EmitFrameToRelay(TrackInfo track, byte[] frameData, bool isKeyframe)
     {
         try
         {
+            var chunks = new System.Collections.Generic.List<byte[]>(4);
+
             if (isKeyframe)
             {
                 var paramSets = ExtractH265ParamSets(frameData);
@@ -1138,7 +1142,7 @@ public partial class SIPSorceryStreamer
                     cfg[0] = 0x02; // h265_codec_config
                     cfg[1] = (byte)track.Index;
                     Buffer.BlockCopy(paramSets, 0, cfg, 2, paramSets.Length);
-                    OnRelayVideoChunk?.Invoke(track.Index, cfg);
+                    chunks.Add(cfg);
                 }
             }
 
@@ -1151,10 +1155,10 @@ public partial class SIPSorceryStreamer
             {
                 int offset = chunk * MAX_CHUNK;
                 int len = Math.Min(MAX_CHUNK, frameData.Length - offset);
-                var msg = BuildPaddedMessage(frameType, track.Index, chunk, totalChunks, frameData, offset, len);
-                OnRelayVideoChunk?.Invoke(track.Index, msg);
+                chunks.Add(BuildPaddedMessage(frameType, track.Index, chunk, totalChunks, frameData, offset, len));
             }
 
+            OnRelayVideoFrame?.Invoke(track.Index, chunks, isKeyframe);
             IncrementSentFrames(track);
         }
         catch (Exception ex)
