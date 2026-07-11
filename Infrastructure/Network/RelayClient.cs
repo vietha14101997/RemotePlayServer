@@ -30,6 +30,9 @@ public partial class RelayClient : IDisposable
     // /auth/refresh, so the 14-min TokenRefreshLoop racing a reconnect's EnsureFreshTokenAsync
     // must not both refresh with the same _refreshToken (the loser would 401 on a revoked token).
     private readonly SemaphoreSlim _tokenRefreshLock = new(1, 1);
+    // Serializes all WS sends: ClientWebSocket.SendAsync forbids concurrent calls,
+    // and relay-media fires frames from encoder threads alongside signaling sends.
+    private readonly SemaphoreSlim _sendLock = new(1, 1);
     private bool _disposed;
 
     public event Action<string>? OnSessionRequest;
@@ -335,36 +338,42 @@ public partial class RelayClient : IDisposable
         if (_presenceWs?.State != WebSocketState.Open) return;
 
         var bytes = TextEncoding.UTF8.GetBytes(text);
+        var token = _cts?.Token ?? CancellationToken.None;
+        await _sendLock.WaitAsync(token);
         try
         {
             await _presenceWs.SendAsync(
                 new ArraySegment<byte>(bytes),
                 WebSocketMessageType.Text,
                 true,
-                _cts?.Token ?? CancellationToken.None);
+                token);
         }
         catch (Exception ex)
         {
             Logger.Error($"[Relay] Send text error: {ex.Message}");
         }
+        finally { _sendLock.Release(); }
     }
 
     public async Task SendBinaryAsync(byte[] data)
     {
         if (_presenceWs?.State != WebSocketState.Open) return;
 
+        var token = _cts?.Token ?? CancellationToken.None;
+        await _sendLock.WaitAsync(token);
         try
         {
             await _presenceWs.SendAsync(
                 new ArraySegment<byte>(data),
                 WebSocketMessageType.Binary,
                 true,
-                _cts?.Token ?? CancellationToken.None);
+                token);
         }
         catch (Exception ex)
         {
             Logger.Error($"[Relay] Send binary error: {ex.Message}");
         }
+        finally { _sendLock.Release(); }
     }
 
     private async Task TokenRefreshLoopAsync(CancellationToken ct)
