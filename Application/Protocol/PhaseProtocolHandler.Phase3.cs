@@ -264,6 +264,18 @@ namespace RemotePlayServer.Application.Protocol
                     ms.Write(buffer, 0, result.Count);
                     if (!result.EndOfMessage) continue;
 
+                    // Relay-media mode: client input arrives as a binary WS frame
+                    // (0xF5 envelope) instead of over the WebRTC input DataChannel.
+                    if (result.MessageType == WebSocketMessageType.Binary)
+                    {
+                        var bin = ms.ToArray();
+                        ms.SetLength(0);
+                        var input = RelayMediaProtocol.TryUnwrapInput(bin);
+                        if (input != null)
+                            InputReceiver.HandleInputMessage(input, _monitorRects);
+                        continue;
+                    }
+
                     var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
                     ms.SetLength(0);
 

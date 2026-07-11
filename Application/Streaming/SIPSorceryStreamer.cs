@@ -33,6 +33,14 @@ public partial class SIPSorceryStreamer : IDisposable
     /// Viewers subscribe to receive pre-encoded frames without running their own encoder.
     /// </summary>
     public event Action<int, byte[], bool, byte[]?>? OnEncodedFrameAvailable;
+
+    // Relay-media fallback (DERP-style): when RelayMediaMode is on, encoded media is
+    // emitted to these events (carried host->relay->client over WebSocket) instead of
+    // WebRTC DataChannels — used when ICE fails and both peers are behind CGNAT.
+    // Default off: the normal P2P/DataChannel path is completely untouched.
+    public volatile bool RelayMediaMode;
+    public event Action<int, byte[]>? OnRelayVideoChunk; // (trackIdx, protocol-v2 framed chunk)
+    public event Action<byte[]>? OnRelayAudioChunk;      // raw PCM16
     /// <summary>
     /// Fired when encoder falls back to a different codec than negotiated.
     /// Parameters: (negotiatedCodec, actualCodec, reason)

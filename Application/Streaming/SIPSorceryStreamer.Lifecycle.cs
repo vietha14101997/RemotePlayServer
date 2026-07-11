@@ -14,6 +14,30 @@ namespace RemotePlayServer.Application.Streaming;
 
 public partial class SIPSorceryStreamer
 {
+    /// <summary>
+    /// Relay-media fallback: bring up the encode/audio pipeline WITHOUT a WebRTC
+    /// PeerConnection (no ICE/DTLS). Frames then flow through OnRelayVideoChunk /
+    /// OnRelayAudioChunk. Idempotent — safe to call once ICE-restart budget is spent.
+    /// The caller (PhaseProtocolHandler) drives capture via StartCaptureThread().
+    /// </summary>
+    public void StartRelayMediaMode()
+    {
+        if (RelayMediaMode) return;
+        Logger.Info("[SIPSorcery] Entering relay-media mode (encode pipeline without WebRTC)");
+        _running = true;
+        RelayMediaMode = true;
+        InitializeEncoders();
+        InitializeAudio();
+    }
+
+    /// <summary>Leave relay-media mode when a WebRTC P2P path recovers (auto-upgrade).</summary>
+    public void StopRelayMediaMode()
+    {
+        if (!RelayMediaMode) return;
+        Logger.Info("[SIPSorcery] Leaving relay-media mode — WebRTC path resumed");
+        RelayMediaMode = false;
+    }
+
     private void InitializeEncoders()
     {
         // Detect GPU vendor once for all tracks

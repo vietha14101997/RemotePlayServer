@@ -409,6 +409,34 @@ namespace RemotePlayServer.Application.Protocol
         }
 
         /// <summary>
+        /// Send a binary WS frame to the client (relay-media path). Shares the same
+        /// send lock as SendTextAsync so media chunks and signaling never interleave
+        /// on the underlying socket. Short lock timeout: if the relay is backed up we
+        /// drop this chunk rather than stall the encode loop (media is loss-tolerant).
+        /// </summary>
+        private async Task SendBytesAsync(byte[] data)
+        {
+            if (_ws.State != WebSocketState.Open) return;
+            if (!await _sendLock.WaitAsync(1000, _ct)) return; // drop chunk under backpressure
+
+            try
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                cts.CancelAfter(5000);
+                await _ws.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, cts.Token);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] SendBytesAsync error: {ex.Message}");
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
+        }
+
+        /// <summary>
         /// Handles ping messages with sequence support for accurate RTT measurement.
         /// Supports both "ping" and "ping:N" formats.
         /// Returns true if the message was a ping, false otherwise.

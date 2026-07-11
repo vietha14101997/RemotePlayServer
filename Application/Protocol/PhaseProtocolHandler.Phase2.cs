@@ -526,6 +526,10 @@ namespace RemotePlayServer.Application.Protocol
             {
                 try
                 {
+                    // Auto-upgrade: a background ICE restart re-established WebRTC while we
+                    // were on the relay path — switch media back to direct DataChannels/RTP.
+                    if (_mediaRelayMode) ExitMediaRelayMode();
+
                     _allConnectedTcs?.TrySetResult(true);
 
                     // Notify that streamer is ready for SharedEncoderManager registration
@@ -603,10 +607,17 @@ namespace RemotePlayServer.Application.Protocol
 
                     if (_phase2RestartCount >= MAX_PHASE2_RESTARTS)
                     {
-                        Logger.Error($"[Protocol] DTLS failed, all {MAX_PHASE2_RESTARTS} restarts exhausted — closing connection for full reconnect");
-                        try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection failed. Reconnecting...\"}"); } catch { }
-                        // Force close WebSocket so client triggers a completely fresh connection
-                        try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "dtls_failed_exhausted", CancellationToken.None); } catch { }
+                        // Both peers unreachable by WebRTC (typically symmetric CGNAT both
+                        // sides). Instead of giving up, fall back to DERP-style media relay
+                        // over the WebSocket. Only reached on an already-failed P2P path.
+                        Logger.Error($"[Protocol] WebRTC failed after {MAX_PHASE2_RESTARTS} restarts — falling back to media relay");
+                        try { EnterMediaRelayMode(); }
+                        catch (Exception mrEx)
+                        {
+                            Logger.Error($"[Protocol] Media relay fallback failed: {mrEx.Message} — closing connection");
+                            try { await SendTextAsync("{\"type\":\"connection_failed\",\"reason\":\"dtls_handshake_failed\",\"message\":\"WebRTC connection failed. Reconnecting...\"}"); } catch { }
+                            try { await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "dtls_failed_exhausted", CancellationToken.None); } catch { }
+                        }
                     }
                     else
                     {

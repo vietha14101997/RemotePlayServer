@@ -301,8 +301,13 @@ public partial class SIPSorceryStreamer
 
     private void OnEncodedData(TrackInfo track, ArraySegment<byte> nalData, bool isKeyframe, long pts100ns)
     {
-        if (!_running || _mainPc == null || !_connected) return;
-        if (_mainPc.connectionState != RTCPeerConnectionState.connected) return;
+        if (!_running) return;
+        // Relay-media mode has no PeerConnection/DTLS — skip the WebRTC-connected gate.
+        if (!RelayMediaMode)
+        {
+            if (_mainPc == null || !_connected) return;
+            if (_mainPc.connectionState != RTCPeerConnectionState.connected) return;
+        }
 
         // Track encode latency (from PushTexture/PushBgraTexture start to callback)
         long startTicks = track.LastEncodeStartTicks;
@@ -340,6 +345,14 @@ public partial class SIPSorceryStreamer
 
             // Fan-out: notify viewers with pre-encoded frame (no re-encode needed)
             OnEncodedFrameAvailable?.Invoke(track.Index, nalBytes, isKeyframe, track.LastH265ParamSets);
+
+            // Relay-media fallback: emit protocol-v2 framed chunks to the relay path
+            // (same wire format the client's VideoFrameParser expects) instead of DC/RTP.
+            if (RelayMediaMode)
+            {
+                EmitFrameToRelay(track, nalBytes, isKeyframe);
+                return;
+            }
 
             if (isKeyframe)
             {
@@ -1085,6 +1098,57 @@ public partial class SIPSorceryStreamer
             i = nalEnd;
         }
         return result.ToArray();
+    }
+
+    /// <summary>
+    /// Relay-media fallback: emit one encoded frame as protocol-v2 chunks to
+    /// OnRelayVideoChunk (carried over the WebSocket relay). Mirrors the DataChannel
+    /// framing (param-sets 0x02, IDR 0x03, P-frame 0x04) so the client's existing
+    /// VideoFrameParser handles it unchanged. Reuses BuildPaddedMessage + the 60KB
+    /// chunk size. No DataChannel flow control here — TCP backpressure is handled
+    /// separately (see phase-04). Keyframe-first gating already happened in caller.
+    /// </summary>
+    private void EmitFrameToRelay(TrackInfo track, byte[] frameData, bool isKeyframe)
+    {
+        try
+        {
+            if (isKeyframe)
+            {
+                var paramSets = ExtractH265ParamSets(frameData);
+                if (paramSets != null && paramSets.Length > 0)
+                    track.LastH265ParamSets = paramSets;
+                else
+                    paramSets = track.LastH265ParamSets;
+
+                if (paramSets != null && paramSets.Length > 0)
+                {
+                    var cfg = new byte[2 + paramSets.Length];
+                    cfg[0] = 0x02; // h265_codec_config
+                    cfg[1] = (byte)track.Index;
+                    Buffer.BlockCopy(paramSets, 0, cfg, 2, paramSets.Length);
+                    OnRelayVideoChunk?.Invoke(track.Index, cfg);
+                }
+            }
+
+            byte frameType = isKeyframe ? (byte)0x03 : (byte)0x04;
+            const int MAX_CHUNK = 60_000;
+            int totalChunks = (frameData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
+            if (totalChunks > 255) totalChunks = 255;
+
+            for (int chunk = 0; chunk < totalChunks; chunk++)
+            {
+                int offset = chunk * MAX_CHUNK;
+                int len = Math.Min(MAX_CHUNK, frameData.Length - offset);
+                var msg = BuildPaddedMessage(frameType, track.Index, chunk, totalChunks, frameData, offset, len);
+                OnRelayVideoChunk?.Invoke(track.Index, msg);
+            }
+
+            IncrementSentFrames(track);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[SIPSorcery] Track {track.Index}: relay emit error: {ex.Message}");
+        }
     }
 
     /// <summary>

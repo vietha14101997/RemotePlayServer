@@ -33,6 +33,19 @@ public partial class SIPSorceryStreamer
             {
                 if (_isPaused || !_connected || !_running || !_phase3Active) return;
 
+                // Relay-media fallback: raw PCM16 over the WebSocket relay instead of DC.
+                if (RelayMediaMode)
+                {
+                    try
+                    {
+                        var packet = new byte[length];
+                        Buffer.BlockCopy(pcm, 0, packet, 0, length);
+                        OnRelayAudioChunk?.Invoke(packet);
+                    }
+                    catch { }
+                    return;
+                }
+
                 // Primary: send raw PCM16 via DataChannel for lowest latency.
                 // Bypasses Opus encode+decode + libwebrtc jitter buffer entirely.
                 // 48kHz stereo PCM16 = 192KB/s (~1.5Mbps), acceptable for USB/LAN.
