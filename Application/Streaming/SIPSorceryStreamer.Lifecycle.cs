@@ -34,6 +34,13 @@ public partial class SIPSorceryStreamer
         // gets a clean decodable start (no bufferedAmount signal to drive drops here).
         try { ForceSetBitrate(RelayMediaBitrateKbps); } catch { }
         try { RequestKeyframe(force: true); } catch { }
+
+        // The relay path has no DTLS/start_streaming handshake to trigger the normal
+        // Phase-3 activation, so activate it here — otherwise PushBgraTexture/PushTexture
+        // keep dropping every frame until the (possibly never-completing) WebRTC Phase 3
+        // flow runs. ResetSyncState gives a clean time origin + forces an IDR first frame.
+        ResetSyncState();
+        ActivatePhase3();
     }
 
     /// <summary>Conservative per-session bitrate cap while media flows over the TCP relay.</summary>

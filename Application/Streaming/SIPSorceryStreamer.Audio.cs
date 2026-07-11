@@ -31,7 +31,9 @@ public partial class SIPSorceryStreamer
             // Wire: capture -> DC (raw PCM) + encoder -> RTP (Opus, fallback)
             _audioCapture.OnAudioData += (pcm, length, sampleRate, channels, timestampMs) =>
             {
-                if (_isPaused || !_connected || !_running || !_phase3Active) return;
+                if (_isPaused || !_running || !_phase3Active) return;
+                // Relay-media mode streams without DTLS — don't gate on WebRTC connect.
+                if (!_connected && !RelayMediaMode) return;
 
                 // Relay-media fallback: raw PCM16 over the WebSocket relay instead of DC.
                 if (RelayMediaMode)

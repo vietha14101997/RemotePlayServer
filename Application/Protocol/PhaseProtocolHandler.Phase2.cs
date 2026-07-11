@@ -752,7 +752,8 @@ namespace RemotePlayServer.Application.Protocol
                         //
                         // By waiting here, we ensure DTLS is done before entering Phase 3,
                         // so ice_ready + start_streaming exchange happens reliably.
-                        if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
+                        // Media-relay mode streams without DTLS — skip the wait entirely.
+                        if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted && !_mediaRelayMode)
                         {
                             // WiFi has higher latency → longer DTLS timeout
                             int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
@@ -768,6 +769,13 @@ namespace RemotePlayServer.Application.Protocol
                                 if (completed == dtlsTask && dtlsTask.IsCompletedSuccessfully)
                                 {
                                     Logger.Info("[Protocol] DTLS completed, proceeding to Phase 3");
+                                }
+                                else if (_mediaRelayMode)
+                                {
+                                    // Relay fallback kicked in while we were waiting — media flows
+                                    // over the WS relay, so proceed to Phase 3 instead of forcing a
+                                    // client reconnect (which the room would misclassify as a viewer).
+                                    Logger.Info($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) but media relay active — proceeding to Phase 3 over relay");
                                 }
                                 else
                                 {
@@ -796,7 +804,8 @@ namespace RemotePlayServer.Application.Protocol
                     // After restart_phase2, client may send start_streaming directly
                     // instead of proceed→start_streaming sequence. Treat as proceed phase 3.
                     Logger.Info("[Protocol] Received start_streaming during ICE exchange — treating as proceed phase 3");
-                    if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted)
+                    // Media-relay mode streams without DTLS — skip the wait entirely.
+                    if (_allConnectedTcs != null && !_allConnectedTcs.Task.IsCompleted && !_mediaRelayMode)
                     {
                         int dtlsTimeoutSec = _isUsbTransport ? 6 : 15;
                         Logger.Info($"[Protocol] Waiting for DTLS before proceeding (timeout={dtlsTimeoutSec}s)...");
@@ -808,8 +817,15 @@ namespace RemotePlayServer.Application.Protocol
                             var completed2 = await Task.WhenAny(dtlsTask2, Task.Delay(Timeout.Infinite, linkedCts2.Token));
                             if (!(completed2 == dtlsTask2 && dtlsTask2.IsCompletedSuccessfully))
                             {
-                                Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) after start_streaming");
-                                break;
+                                if (_mediaRelayMode)
+                                {
+                                    Logger.Info($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) but media relay active — proceeding over relay");
+                                }
+                                else
+                                {
+                                    Logger.Error($"[Protocol] DTLS timeout ({dtlsTimeoutSec}s) after start_streaming");
+                                    break;
+                                }
                             }
                         }
                         catch (OperationCanceledException) { throw; }

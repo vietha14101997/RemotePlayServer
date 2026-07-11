@@ -61,18 +61,24 @@ public partial class SIPSorceryStreamer
     /// </summary>
     public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
     {
-        if (!_running || _disposed || !_connected || _isPaused) return;
+        if (!_running || _disposed || _isPaused) return;
+        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoChunk,
+        // so the WebRTC-connected gate must not block the encode pipeline.
+        if (!_connected && !RelayMediaMode) return;
         if (!_phase3Active) return;
 
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
-        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack
-        bool trackReady = _perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null);
+        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack.
+        // Relay-media mode needs no WebRTC track/DC — the WS relay carries the frames.
+        bool trackReady = RelayMediaMode
+            || (_perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null));
         if (!trackReady || track.Encoder == null) return;
 
         // H265 hybrid mode: Only need DC for first IDR bootstrap.
         // After that, P-frames go via RTP — no need to block on DC.
-        if (_negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
+        // (Relay mode never opens a DC — skip the gate or no frame would ever pass.)
+        if (!RelayMediaMode && _negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
             && Interlocked.Read(ref track.SentFrames) == 0)
             return;
 
@@ -213,18 +219,24 @@ public partial class SIPSorceryStreamer
 
     public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
     {
-        if (!_running || _disposed || !_connected || _isPaused) return;
+        if (!_running || _disposed || _isPaused) return;
+        // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoChunk,
+        // so the WebRTC-connected gate must not block the encode pipeline.
+        if (!_connected && !RelayMediaMode) return;
         if (!_phase3Active) return;
 
         if (monitorIndex < 0 || monitorIndex >= _tracks.Count) return;
         var track = _tracks[monitorIndex];
-        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack
-        bool trackReady = _perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null);
+        // Per-track PC mode: video goes via dedicated video DC, not RTP MediaStreamTrack.
+        // Relay-media mode needs no WebRTC track/DC — the WS relay carries the frames.
+        bool trackReady = RelayMediaMode
+            || (_perTrackPcMode ? (_videoDcs.ContainsKey(track.Index)) : (track.Track != null));
         if (!trackReady || track.Encoder == null) return;
 
         // H265 hybrid mode: Only need DC for first IDR bootstrap.
         // After that, P-frames go via RTP — no need to block on DC.
-        if (_negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
+        // (Relay mode never opens a DC — skip the gate or no frame would ever pass.)
+        if (!RelayMediaMode && _negotiatedCodec == VideoCodec.H265 && !IsH265DataChannelReady()
             && Interlocked.Read(ref track.SentFrames) == 0)
             return;
 
