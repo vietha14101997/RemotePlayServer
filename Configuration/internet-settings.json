@@ -4,7 +4,7 @@
   "turnUsername": null,
   "turnPassword": null,
   "requireToken": false,
-  "relayUrl": "http://34.87.150.141:8443",
+  "relayUrl": "http://180.93.2.132:8443",
   "relayEmail": "test@remoteplay.app",
   "relayPassword": "Test1234",
   "useRelay": true

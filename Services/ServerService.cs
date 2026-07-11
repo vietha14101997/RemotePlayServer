@@ -603,6 +603,7 @@ public class ServerService : IDisposable
                 {
                     State.GuestPassword = GuestIdManager.CurrentPassword;
                 });
+                BuildQrData(); // QR carries the guest password — keep it in sync
             };
 
             client.OnConnectionStateChanged += (connected) =>
@@ -634,6 +635,10 @@ public class ServerService : IDisposable
 
             Dispatch(() => State.IsRelayConnected = true);
 
+            // Refresh the QR so it carries the relay room credentials — scanning it
+            // connects via the relay instead of the flaky Cloudflare quick tunnel.
+            BuildQrData();
+
             Logger.Info("[Relay] Connected to relay server");
         }
         catch (Exception ex)
@@ -646,7 +651,19 @@ public class ServerService : IDisposable
     {
         string usbIPJson = State.UsbTetheringIp != null ? $",\"usbIP\":\"{State.UsbTetheringIp}\"" : "";
         string tunnelJson = State.TunnelUrl != null ? $",\"tunnelUrl\":\"{State.TunnelUrl}\"" : "";
-        string qrData = $"{{\"ip\":\"{State.LocalIp}\",\"port\":\"{State.Port}\"{usbIPJson}{tunnelJson}}}";
+
+        // Relay room credentials — the client prefers this signaling path over the
+        // Cloudflare quick tunnel (which is rate-limited and changes URL per run).
+        string relayJson = "";
+        if (State.IsRelayConnected &&
+            !string.IsNullOrEmpty(State.GuestId) &&
+            !string.IsNullOrEmpty(_internetConfig?.RelayUrl))
+        {
+            relayJson = $",\"relayUrl\":\"{_internetConfig!.RelayUrl!.TrimEnd('/')}\"" +
+                        $",\"guestId\":\"{State.GuestId}\",\"guestPass\":\"{State.GuestPassword}\"";
+        }
+
+        string qrData = $"{{\"ip\":\"{State.LocalIp}\",\"port\":\"{State.Port}\"{usbIPJson}{tunnelJson}{relayJson}}}";
 
         Dispatch(() => State.QrData = qrData);
         Logger.Info($"[QR] Data: {qrData}");
