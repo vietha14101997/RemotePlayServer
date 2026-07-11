@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -111,7 +110,9 @@ internal static class UpnpDiscovery
                     "MAN: \"ssdp:discover\"\r\n" +
                     "MX: 2\r\n" +
                     $"ST: {searchTarget}\r\n\r\n";
-                var bytes = Encoding.ASCII.GetBytes(request);
+                // Fully qualified: bare "Encoding" resolves to the sibling namespace
+                // RemotePlayServer.Infrastructure.Encoding, shadowing System.Text.Encoding.
+                var bytes = System.Text.Encoding.ASCII.GetBytes(request);
                 await udp.SendAsync(bytes, bytes.Length, target);
             }
 
@@ -121,7 +122,7 @@ internal static class UpnpDiscovery
                 while (!cts.IsCancellationRequested)
                 {
                     var result = await udp.ReceiveAsync(cts.Token);
-                    var text = Encoding.ASCII.GetString(result.Buffer);
+                    var text = System.Text.Encoding.ASCII.GetString(result.Buffer);
                     var location = ParseHeader(text, "LOCATION");
                     if (location == null || !Uri.TryCreate(location, UriKind.Absolute, out var uri))
                         continue;

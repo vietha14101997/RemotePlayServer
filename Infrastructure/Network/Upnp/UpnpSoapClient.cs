@@ -3,7 +3,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Security;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -67,7 +66,9 @@ internal sealed class UpnpSoapClient
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _gateway.ControlUrl)
         {
-            Content = new StringContent(envelope, Encoding.UTF8, "text/xml")
+            // Fully qualified: bare "Encoding" resolves to the sibling namespace
+            // RemotePlayServer.Infrastructure.Encoding, shadowing System.Text.Encoding.
+            Content = new StringContent(envelope, System.Text.Encoding.UTF8, "text/xml")
         };
         request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{_gateway.ServiceType}#{action}\"");
 
