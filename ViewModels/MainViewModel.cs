@@ -64,7 +64,14 @@ public partial class MainViewModel : ObservableObject
         if (config is not { UseRelay: true } ||
             string.IsNullOrEmpty(config.RelayEmail) ||
             string.IsNullOrEmpty(config.RelayPassword))
+        {
+            // Without relay login there is no room, so the QR stays tunnel-only.
+            // Say so loudly — a hand-edited internet-settings.json losing one of
+            // these fields previously failed silently and looked like a QR bug.
+            RemotePlayServer.Core.Logger.Warn(
+                "[Relay] Auto-login skipped: useRelay/relayEmail/relayPassword incomplete in internet-settings.json — QR will NOT carry relay room credentials");
             return;
+        }
 
         var client = new RelayClient();
         var success = await client.LoginAsync(config.RelayUrl!, config.RelayEmail!, config.RelayPassword!);
