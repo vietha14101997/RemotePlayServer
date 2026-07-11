@@ -85,7 +85,11 @@ public static class TurnCredentialProvider
             Urls = new List<string>
             {
                 $"turn:{cfg.TurnHost}:{port}?transport=udp",
-                $"turn:{cfg.TurnHost}:{port}?transport=tcp"
+                $"turn:{cfg.TurnHost}:{port}?transport=tcp",
+                // Port 443/TCP: mobile carriers throttle UDP/TCP 3478 (observed on
+                // Viettel 4G: allocation took ~16s) but never touch the HTTPS port.
+                // coturn listens there via alt-listening-port=443.
+                $"turn:{cfg.TurnHost}:443?transport=tcp"
             },
             Username = username,
             Credential = ComputeCredential(cfg.TurnSecret!, username)
