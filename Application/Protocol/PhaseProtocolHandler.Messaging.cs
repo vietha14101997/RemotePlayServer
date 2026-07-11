@@ -14,6 +14,7 @@ using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Infrastructure.Display;
 using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
+using RemotePlayServer.Infrastructure.Network;
 using RemotePlayServer.Application.Streaming;
 using RemotePlayServer.Server;
 
@@ -506,7 +507,9 @@ namespace RemotePlayServer.Application.Protocol
                 actualMonitors = Math.Min(actualMonitors, _monitors.Count);
 
                 // 4. Send config_complete to client to trigger new ICE negotiation
+                // (fresh ephemeral TURN credentials so the new PCs can allocate)
                 Logger.Info("[Protocol] Sending config_complete for Phase 2 restart");
+                var sessionIce = TurnCredentialProvider.GetSessionIceServers();
                 var completeMsg = new ConfigCompleteMessage
                 {
                     Monitors = _monitors.Take(actualMonitors).Select((m, i) => new MonitorInfoDto
@@ -516,7 +519,8 @@ namespace RemotePlayServer.Application.Protocol
                         Width = m.width,
                         Height = m.height
                     }).ToList(),
-                    CaptureReady = false // Will be ready after new ICE negotiation
+                    CaptureReady = false, // Will be ready after new ICE negotiation
+                    IceServers = sessionIce.Count > 0 ? sessionIce : null
                 };
                 await SendMessageAsync(completeMsg);
 

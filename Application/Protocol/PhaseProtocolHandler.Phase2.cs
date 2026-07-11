@@ -117,7 +117,8 @@ namespace RemotePlayServer.Application.Protocol
             // Create capture and streamer
             await CreateCaptureAndStreamerAsync(actualMonitors, _displayConfig);
 
-            // Send config_complete
+            // Send config_complete (includes ephemeral TURN credentials for the client's PCs)
+            var sessionIce = TurnCredentialProvider.GetSessionIceServers();
             var completeMsg = new ConfigCompleteMessage
             {
                 Monitors = _monitors.Take(actualMonitors).Select((m, i) => new MonitorInfoDto
@@ -128,7 +129,8 @@ namespace RemotePlayServer.Application.Protocol
                     Height = m.height,
                     IsVirtual = DisplayUtil.IsVirtualDisplay(m.name, m.hmon)
                 }).ToList(),
-                CaptureReady = true
+                CaptureReady = true,
+                IceServers = sessionIce.Count > 0 ? sessionIce : null
             };
             await SendMessageAsync(completeMsg);
             Logger.Info("[Protocol] Sent config_complete, ready for ICE exchange");

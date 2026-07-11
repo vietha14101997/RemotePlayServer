@@ -32,21 +32,18 @@ public partial class SIPSorceryStreamer
             new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
         };
 
-        // Add TURN servers from relay (if available)
-        var relayIce = RelayClientManager.Instance?.IceServers;
-        if (relayIce != null)
+        // TURN servers: locally-minted coturn credentials + any relay-provided ones.
+        // Same list is sent to the client in config_complete so both ends share the server.
+        foreach (var ice in TurnCredentialProvider.GetSessionIceServers())
         {
-            foreach (var ice in relayIce)
+            foreach (var url in ice.Urls)
             {
-                foreach (var url in ice.Urls)
+                servers.Add(new RTCIceServer
                 {
-                    servers.Add(new RTCIceServer
-                    {
-                        urls = url,
-                        username = ice.Username,
-                        credential = ice.Credential
-                    });
-                }
+                    urls = url,
+                    username = ice.Username,
+                    credential = ice.Credential
+                });
             }
         }
 

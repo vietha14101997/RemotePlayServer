@@ -395,6 +395,31 @@ namespace RemotePlayServer.Core.Models
 
         [JsonPropertyName("captureReady")]
         public bool CaptureReady { get; set; }
+
+        /// <summary>
+        /// Optional STUN/TURN servers the client should use for its PeerConnections.
+        /// Carries ephemeral coturn credentials so the client needs no relay access
+        /// of its own (works over LAN/tunnel signaling too). Null when host has no
+        /// TURN configured — older clients ignore the field entirely.
+        /// </summary>
+        [JsonPropertyName("iceServers")]
+        public List<IceServerDto>? IceServers { get; set; }
+    }
+
+    /// <summary>
+    /// One ICE server entry shared with the client (matches the client's
+    /// IceServerConfig JSON shape: urls / username / credential).
+    /// </summary>
+    public class IceServerDto
+    {
+        [JsonPropertyName("urls")]
+        public List<string> Urls { get; set; } = new();
+
+        [JsonPropertyName("username")]
+        public string? Username { get; set; }
+
+        [JsonPropertyName("credential")]
+        public string? Credential { get; set; }
     }
 
     /// <summary>

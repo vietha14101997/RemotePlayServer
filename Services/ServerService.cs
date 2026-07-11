@@ -315,6 +315,39 @@ public class ServerService : IDisposable
         await Task.WhenAll(dtlsTask, configTask);
 
         Dispatch(() => State.InternetEnabled = _internetConfig?.Enabled == true);
+
+        // Locally-minted TURN credentials (coturn static-auth-secret) — independent of the relay
+        TurnCredentialProvider.Configure(_internetConfig);
+        if (TurnCredentialProvider.IsConfigured)
+        {
+            Logger.Info($"[TURN] Local credential minting enabled for {TurnCredentialProvider.ConfiguredTurnHost}");
+            RegisterTurnHostForDetection(TurnCredentialProvider.ConfiguredTurnHost!);
+        }
+    }
+
+    /// <summary>
+    /// Register the coturn host's IP in SIPSorceryStreamer.TurnServerIps so the
+    /// P2P-vs-TURN connection-type detection recognizes relayed candidates.
+    /// </summary>
+    private static void RegisterTurnHostForDetection(string turnHost)
+    {
+        try
+        {
+            if (System.Net.IPAddress.TryParse(turnHost, out _))
+            {
+                SIPSorceryStreamer.TurnServerIps.Add(turnHost);
+            }
+            else
+            {
+                foreach (var ip in System.Net.Dns.GetHostAddresses(turnHost))
+                    SIPSorceryStreamer.TurnServerIps.Add(ip.ToString());
+            }
+            Logger.Info($"[TURN] IPs for detection: {string.Join(", ", SIPSorceryStreamer.TurnServerIps)}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[TURN] Could not resolve TURN host '{turnHost}' for detection: {ex.Message}");
+        }
     }
 
     private async Task StartTunnelIfEnabled()

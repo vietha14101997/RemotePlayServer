@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using RemotePlayServer.Application.Streaming;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
+using RemotePlayServer.Infrastructure.Network;
 
 namespace RemotePlayServer.Application.Protocol;
 
@@ -113,14 +114,16 @@ public partial class PhaseProtocolHandler
             Logger.Error($"[Protocol] Viewer fatal: {msg}");
         };
 
-        // 8. Send config_complete
+        // 8. Send config_complete (includes ephemeral TURN credentials for the client's PCs)
+        var sessionIce = TurnCredentialProvider.GetSessionIceServers();
         var completeMsg = new ConfigCompleteMessage
         {
             Monitors = _monitors.Select((m, i) => new MonitorInfoDto
             {
                 Id = i, Name = m.name, Width = m.width, Height = m.height
             }).Take(actualMonitors).ToList(),
-            CaptureReady = true
+            CaptureReady = true,
+            IceServers = sessionIce.Count > 0 ? sessionIce : null
         };
         await SendMessageAsync(completeMsg);
 
