@@ -21,8 +21,15 @@ namespace RemotePlayServer.Application.Streaming;
 public partial class SIPSorceryStreamer
 {
     /// <summary>
-    /// Build RTCConfiguration with STUN + TURN servers from relay.
-    /// TURN is required for cross-NAT connections (different WiFi networks).
+    /// Build RTCConfiguration for the host's own PeerConnections — STUN ONLY.
+    /// Feeding TURN servers to SIPSorcery silently breaks its candidate gathering
+    /// (observed 2026-07-11: with TURN entries present it never emitted a single
+    /// srflx candidate, leaving only LAN/IPv6 host candidates — cross-network ICE
+    /// died because the client could not learn the host's public address and thus
+    /// never opened a coturn permission for it). TURN relaying is done by the
+    /// CLIENT side only: the full STUN+TURN list still goes to the client via
+    /// config_complete (TurnCredentialProvider.GetSessionIceServers), and one
+    /// relayed side is sufficient — client-relay ↔ host-srflx pairs connect.
     /// </summary>
     private static RTCConfiguration BuildIceConfiguration()
     {
@@ -32,22 +39,7 @@ public partial class SIPSorceryStreamer
             new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
         };
 
-        // TURN servers: locally-minted coturn credentials + any relay-provided ones.
-        // Same list is sent to the client in config_complete so both ends share the server.
-        foreach (var ice in TurnCredentialProvider.GetSessionIceServers())
-        {
-            foreach (var url in ice.Urls)
-            {
-                servers.Add(new RTCIceServer
-                {
-                    urls = url,
-                    username = ice.Username,
-                    credential = ice.Credential
-                });
-            }
-        }
-
-        Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers ({servers.Count(s => s.urls?.StartsWith("turn") == true)} TURN)");
+        Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN-only; TURN is client-side)");
         return new RTCConfiguration { iceServers = servers };
     }
 
