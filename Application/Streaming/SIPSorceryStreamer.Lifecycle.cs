@@ -28,7 +28,16 @@ public partial class SIPSorceryStreamer
         RelayMediaMode = true;
         InitializeEncoders();
         InitializeAudio();
+
+        // Backpressure v1: the relay path is TCP + a server hop, so it can't sustain the
+        // P2P bitrate. Cap conservatively and force an immediate keyframe so the client
+        // gets a clean decodable start (no bufferedAmount signal to drive drops here).
+        try { ForceSetBitrate(RelayMediaBitrateKbps); } catch { }
+        try { RequestKeyframe(force: true); } catch { }
     }
+
+    /// <summary>Conservative per-session bitrate cap while media flows over the TCP relay.</summary>
+    private const int RelayMediaBitrateKbps = 6000;
 
     /// <summary>Leave relay-media mode when a WebRTC P2P path recovers (auto-upgrade).</summary>
     public void StopRelayMediaMode()
