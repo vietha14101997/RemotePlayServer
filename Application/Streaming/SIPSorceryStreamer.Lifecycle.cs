@@ -8,6 +8,8 @@ using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
+using RemotePlayServer.Infrastructure.Network.Telemetry;
+using RemotePlayServer.Server;
 using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
@@ -639,7 +641,81 @@ public partial class SIPSorceryStreamer
                 }
                 Logger.Info($"[SIPSorcery] Stats: {stats}{audioInfo}{dcInfo}");
             }
+
+            EmitPathSnapshots();
         }
+    }
+
+    /// <summary>
+    /// Emit one telemetry "snapshot" event per active PC (main + every video PC) with the
+    /// REAL selected candidate pair read via HostSelectedPathReader — the media-path source
+    /// of truth per telemetry-snapshot-contract-v1. Fire-and-forget; a snapshot is simply
+    /// skipped (not sent as garbage) when the selected pair isn't known yet. QoE fields the
+    /// Host doesn't measure (rtt/jitter/loss/qp/drops/ttff/freeze) are left null by design.
+    /// </summary>
+    private void EmitPathSnapshots()
+    {
+        try
+        {
+            EmitOnePathSnapshot("main", monitorIndex: 0, _mainPc);
+
+            foreach (var kvp in _videoPcs)
+            {
+                EmitOnePathSnapshot("video", monitorIndex: kvp.Key, kvp.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Telemetry must never affect streaming — log and move on.
+            Logger.Debug($"[SIPSorcery] EmitPathSnapshots failed (non-fatal): {ex.Message}");
+        }
+    }
+
+    private void EmitOnePathSnapshot(string pcRole, int monitorIndex, SIPSorcery.Net.RTCPeerConnection? pc)
+    {
+        var pair = HostSelectedPathReader.TryRead(pc);
+        if (pair == null) return; // Not nominated yet this interval — nothing fabricated, just skipped.
+
+        string pcRoleKey = pcRole == "main" ? "main" : $"video-{monitorIndex}";
+        string codecStr = _negotiatedCodec switch
+        {
+            VideoCodec.H264 => "h264",
+            VideoCodec.H265 => "h265",
+            _ => "unknown"
+        };
+
+        int? width = null, height = null;
+        lock (_lock)
+        {
+            if (monitorIndex >= 0 && monitorIndex < _tracks.Count)
+            {
+                width = _tracks[monitorIndex].Width > 0 ? _tracks[monitorIndex].Width : null;
+                height = _tracks[monitorIndex].Height > 0 ? _tracks[monitorIndex].Height : null;
+            }
+        }
+
+        var snapshot = new ConnectionTelemetrySnapshot
+        {
+            Event = "snapshot",
+            SessionId = SessionId,
+            PcRole = pcRole,
+            MonitorIndex = monitorIndex,
+            Generation = CurrentIceGeneration(pcRoleKey),
+            Sequence = HostTelemetryReporter.NextSequence(SessionId, pcRole, monitorIndex),
+            LocalCandidateType = pair.Value.LocalCandidateType,
+            RemoteCandidateType = pair.Value.RemoteCandidateType,
+            AddressFamily = pair.Value.AddressFamily,
+            Protocol = pair.Value.Protocol,
+            RelayProtocol = pair.Value.RelayProtocol,
+            PathClass = pair.Value.PathClass,
+            SendBitrateKbps = _bitrateController.TargetBitrateKbps > 0 ? _bitrateController.TargetBitrateKbps : null,
+            Codec = codecStr,
+            Width = width,
+            Height = height,
+            Fps = _fps > 0 ? _fps : null
+        };
+
+        HostTelemetryReporter.ReportFireAndForget(snapshot);
     }
 
     /// <summary>

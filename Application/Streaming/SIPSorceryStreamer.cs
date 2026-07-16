@@ -50,6 +50,24 @@ public partial class SIPSorceryStreamer : IDisposable
     /// </summary>
     public event Action<VideoCodec, VideoCodec, string>? OnCodecFallback;
 
+    /// <summary>
+    /// Opaque per-connection identifier for telemetry (contract-v1 session_id). Set by
+    /// PhaseProtocolHandler right after construction (mirrors its own _clientId). Left
+    /// as "unknown" if never set — telemetry MUST send "unknown" rather than omit the field.
+    /// </summary>
+    public string SessionId { get; set; } = "unknown";
+
+    // Monotonic ICE generation per PC role key ("main" or "video-{index}"), incremented every
+    // time a NEW RTCPeerConnection is created for that role (initial offer, ICE-restart,
+    // RecreateVideoPc). Used only for telemetry identity — never read back for logic.
+    private readonly ConcurrentDictionary<string, int> _iceGenerationByPcRole = new();
+
+    private int NextIceGeneration(string pcRoleKey) =>
+        _iceGenerationByPcRole.AddOrUpdate(pcRoleKey, 1, (_, prev) => prev + 1);
+
+    private int CurrentIceGeneration(string pcRoleKey) =>
+        _iceGenerationByPcRole.TryGetValue(pcRoleKey, out var g) ? g : 0;
+
     private readonly int _monitorCount;
     public int MonitorCount => _monitorCount;
     private int _fps;

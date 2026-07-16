@@ -15,6 +15,7 @@ using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
 using RemotePlayServer.Infrastructure.Network;
+using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -40,7 +41,18 @@ public partial class SIPSorceryStreamer
         };
 
         Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN-only; TURN is client-side)");
-        return new RTCConfiguration { iceServers = servers };
+        var cfg = new RTCConfiguration { iceServers = servers };
+
+        // DEBUG-only, local-admin-set forced-path flag (default OFF; no-op in release builds
+        // — see DebugForcedIcePolicy for why this is fail-closed by construction, and the
+        // documented gap: STUN-only servers can't actually satisfy a relay-only policy today).
+        if (DebugForcedIcePolicy.ForceRelayOnly)
+        {
+            cfg.iceTransportPolicy = RTCIceTransportPolicy.relay;
+            Logger.Warn("[SIPSorcery] DEBUG forced-relay ICE policy ACTIVE (iceTransportPolicy=relay)");
+        }
+
+        return cfg;
     }
 
     /// <summary>
@@ -74,6 +86,7 @@ public partial class SIPSorceryStreamer
         // Create Main PeerConnection with STUN + optional TURN
         var cfg = BuildIceConfiguration();
         _mainPc = new RTCPeerConnection(cfg);
+        NextIceGeneration("main");
         Logger.Info("[SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)");
 
         // 2. Manage Video Tracks — only added to main PC in legacy mode
@@ -401,6 +414,7 @@ public partial class SIPSorceryStreamer
             int capturedIndex = i; // capture for closures
             var vpc = new RTCPeerConnection(cfg);
             _videoPcs[i] = vpc;
+            NextIceGeneration($"video-{i}");
 
             // Wire events on video PC before createOffer (which triggers DC creation)
             vpc.oniceconnectionstatechange += (state) =>
@@ -531,6 +545,7 @@ public partial class SIPSorceryStreamer
             int capturedIndex = monitorIndex;
             var vpc = new RTCPeerConnection(cfg);
             _videoPcs[monitorIndex] = vpc;
+            NextIceGeneration($"video-{monitorIndex}");
 
             vpc.oniceconnectionstatechange += (state) =>
                 Logger.Info($"[SIPSorcery] Video PC {capturedIndex}: ICE state: {state}");

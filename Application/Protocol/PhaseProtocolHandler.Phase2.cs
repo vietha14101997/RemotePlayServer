@@ -392,6 +392,9 @@ namespace RemotePlayServer.Application.Protocol
             Logger.Info($"[Protocol] Creating SIPSorceryStreamer with codec={negotiatedCodec}, resolution={resolutionHeight}p");
             _streamer = new SIPSorceryStreamer(
                 actualMonitors, config.Fps, resolutionHeight, _capture.Device, negotiatedCodec);
+            // Opaque session id for the runtime-truth telemetry snapshots (contract-v1) —
+            // reuses this connection's own clientId GUID, never a raw network address.
+            _streamer.SessionId = _clientId.ToString();
 
             // Create texture resizer with target output height
             _textureResizer = new TextureResizer(actualMonitors, resolutionHeight);

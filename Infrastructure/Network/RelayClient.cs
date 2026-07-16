@@ -45,6 +45,9 @@ public partial class RelayClient : IDisposable
     public bool IsConnected => _presenceWs?.State == WebSocketState.Open;
     public string? DeviceId => _deviceId;
 
+    /// <summary>Base HTTP(S) URL of the relay this client is registered/connected to (e.g. "https://relay.example.com"). Null until Login/RegisterAsync sets it.</summary>
+    public string? RelayUrl => _relayUrl;
+
     public List<IceServerConfig>? IceServers { get; private set; }
 
     public async Task<(bool Success, string? Error)> RegisterAsync(string relayUrl, string email, string username, string password)

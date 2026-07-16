@@ -71,6 +71,8 @@ public partial class PhaseProtocolHandler
             actualMonitors, fps, resolutionHeight,
             mgr.GetHostDevice(),
             negotiatedCodec);
+        // Opaque session id for the runtime-truth telemetry snapshots (contract-v1).
+        _streamer.SessionId = _clientId.ToString();
 
         // Wire ICE candidate forwarding + input handling (same as host)
         _streamer.OnIceCandidate += async (candidate) =>

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using RemotePlayServer.Core;
+using RemotePlayServer.Infrastructure.Network.Telemetry;
 using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Protocol
@@ -91,6 +92,7 @@ namespace RemotePlayServer.Application.Protocol
             CancelRelayFallbackTimer();
             _mediaRelayMode = true;
             Logger.Info("[RelayMedia] Entering media relay mode (WebRTC unavailable, using WS relay)");
+            EmitWsSafeModeTelemetry("ws_safe_mode_enter");
 
             // Wire encoder → relay exactly once. Video goes through a bounded ordered
             // queue with a single-writer send loop; audio PCM stays fire-and-forget
@@ -207,6 +209,35 @@ namespace RemotePlayServer.Application.Protocol
             _streamer?.StopRelayMediaMode();
             _ = SendTextAsync("{\"type\":\"media_relay_stop\"}");
             Logger.Info("[RelayMedia] Left media relay mode — WebRTC path resumed");
+            EmitWsSafeModeTelemetry("ws_safe_mode_exit");
+        }
+
+        /// <summary>
+        /// Explicit WS-safe-mode lifecycle telemetry (contract-v1). No selected-pair/QoE
+        /// block applies to these events — only the identity block is meaningful. pc_role is
+        /// reported as "main" and generation as 0: WS safe mode is a whole-connection fallback,
+        /// not tied to a specific PC's ICE generation.
+        /// </summary>
+        private void EmitWsSafeModeTelemetry(string eventName)
+        {
+            try
+            {
+                var sessionId = _clientId.ToString();
+                var snapshot = new ConnectionTelemetrySnapshot
+                {
+                    Event = eventName,
+                    SessionId = sessionId,
+                    PcRole = "main",
+                    MonitorIndex = 0,
+                    Generation = 0,
+                    Sequence = HostTelemetryReporter.NextSequence(sessionId, "main", 0)
+                };
+                HostTelemetryReporter.ReportFireAndForget(snapshot);
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"[RelayMedia] EmitWsSafeModeTelemetry({eventName}) failed (non-fatal): {ex.Message}");
+            }
         }
     }
 }
