@@ -134,14 +134,14 @@ public class AdaptiveBitrateControllerTests
     // ==================== Initialization Tests ====================
 
     [Fact]
-    public void Initialize_SetsCorrectTargetBitrate_At80PercentOfMax()
+    public void Initialize_SetsDefaultTargetBitrate_ToMax()
     {
         var controller = new AdaptiveBitrateController();
         controller.Initialize(2000, 50000);
 
-        // Default initial = 80% of max = 40000
-        Assert.Equal(40000, controller.TargetBitrateKbps);
-        Assert.Equal(40000, controller.InitialBitrateKbps);
+        // "Start High, Adjust Down": default initial = max
+        Assert.Equal(50000, controller.TargetBitrateKbps);
+        Assert.Equal(50000, controller.InitialBitrateKbps);
     }
 
     [Fact]
@@ -324,8 +324,9 @@ public class AdaptiveBitrateControllerTests
         int afterDecrease = controller.TargetBitrateKbps;
         Assert.True(afterDecrease < 20000);
 
-        // Bypass cooldown for next feedback
+        // Bypass cooldown + recovery delay so a stable good sample is allowed to climb
         BypassCooldown(controller);
+        BypassRecoveryDelay(controller);
 
         // Now send good feedback - should increase
         var decision = controller.ProcessFeedback(GoodFeedback());
@@ -558,14 +559,14 @@ public class AdaptiveBitrateControllerTests
     // ==================== Start High Strategy ====================
 
     [Fact]
-    public void Initialize_DefaultInitial_Is80PercentOfMax()
+    public void Initialize_DefaultInitial_IsMax()
     {
         var controller = new AdaptiveBitrateController();
         controller.Initialize(6000, 15000); // 1080p@60fps range
 
-        // 80% of 15000 = 12000
-        Assert.Equal(12000, controller.TargetBitrateKbps);
-        Assert.Equal(12000, controller.InitialBitrateKbps);
+        // "Start High, Adjust Down": default initial = max
+        Assert.Equal(15000, controller.TargetBitrateKbps);
+        Assert.Equal(15000, controller.InitialBitrateKbps);
         Assert.Equal(6000, controller.MinBitrateKbps);
         Assert.Equal(15000, controller.MaxBitrateKbps);
     }

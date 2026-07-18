@@ -82,11 +82,11 @@ namespace RemotePlayServer.Application.Streaming
 
         /// <summary>
         /// Initialize controller with separate min, initial, and max bitrates.
-        /// Strategy: "Start High, Adjust Down" - initial is set to 80% of max by default.
+        /// Strategy: "Start High, Adjust Down" - initial defaults to max (server adjusts down if needed).
         /// </summary>
         /// <param name="minBitrateKbps">Minimum allowed bitrate (floor).</param>
         /// <param name="maxBitrateKbps">Maximum allowed bitrate (ceiling).</param>
-        /// <param name="initialBitrateKbps">Starting bitrate (optional, defaults to 80% of max).</param>
+        /// <param name="initialBitrateKbps">Starting bitrate (optional, defaults to max).</param>
         public void Initialize(int minBitrateKbps, int maxBitrateKbps, int? initialBitrateKbps = null)
         {
             MinBitrateKbps = minBitrateKbps;

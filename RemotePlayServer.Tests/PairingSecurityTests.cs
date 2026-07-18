@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using RemotePlayServer.Application.Security;
 
 namespace RemotePlayServer.Tests;
@@ -214,5 +215,26 @@ public class PairingSecretManagerTests
         var sas2 = PairingSecretManager.ComputeSas("psk", "sid", "n", HostFp, ClientFp);
         Assert.Equal(sas1, sas2);
         Assert.Matches(@"^\d{4}$", sas1);
+    }
+
+    [Fact]
+    public void VerifyClientProof_Fails_AfterExpiry()
+    {
+        var mgr = new PairingSecretManager(TimeSpan.FromMilliseconds(1));
+        var offer = mgr.Mint();
+        var macC = PairingSecretManager.ComputeMac(offer.Psk, "C", offer.Sid, offer.Nonce, HostFp, ClientFp);
+        Thread.Sleep(10); // offer TTL elapses
+        Assert.Null(mgr.VerifyClientProof(offer.Sid, macC, HostFp, ClientFp)); // expired → fail-closed
+    }
+
+    [Fact]
+    public void Mint_SweepsExpiredUnconsumedSecrets_NoUnboundedGrowth()
+    {
+        var mgr = new PairingSecretManager(TimeSpan.FromMilliseconds(1));
+        mgr.Mint();                              // displayed-but-never-scanned QR
+        Thread.Sleep(10);                        // it expires
+        Assert.Equal(1, mgr.PendingSecretCount); // still retained until the next mint sweeps
+        mgr.Mint();                              // lazy sweep purges the stale sid
+        Assert.Equal(1, mgr.PendingSecretCount); // only the fresh offer survives
     }
 }

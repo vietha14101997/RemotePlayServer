@@ -21,7 +21,15 @@ public sealed class PairingSecretManager
     private const string MacVersion = "RS-PAIR-v1";
     private const int PskBytes = 32;
     private const int NonceBytes = 16;
-    private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan DefaultTtl = TimeSpan.FromSeconds(120);
+
+    private readonly TimeSpan _ttl;
+
+    /// <summary>
+    /// Create a manager. <paramref name="ttl"/> overrides the 120s offer lifetime — only tests
+    /// pass a custom value (e.g. to exercise the expired-secret sweep deterministically).
+    /// </summary>
+    public PairingSecretManager(TimeSpan? ttl = null) => _ttl = ttl ?? DefaultTtl;
 
     // Process-wide instance so the QR-minting side (ServerService) and the handshake-verifying
     // side (PhaseProtocolHandler, on any transport — LAN/relay/USB) share one set of live/consumed
@@ -46,17 +54,38 @@ public sealed class PairingSecretManager
     private sealed record ActiveSecret(string Psk, string Nonce, long ExpiryUnixMs);
 
     private readonly ConcurrentDictionary<string, ActiveSecret> _active = new();  // sid -> secret
-    private readonly ConcurrentDictionary<string, byte> _consumed = new();        // sid -> tombstone
+    private readonly ConcurrentDictionary<string, long> _consumed = new();        // sid -> original expiry (ms)
+
+    /// <summary>Live (minted, not-yet-consumed) offer count — diagnostics + sweep test hook.</summary>
+    public int PendingSecretCount => _active.Count;
 
     /// <summary>Mint a fresh one-use offer for the QR payload.</summary>
     public PairingOffer Mint()
     {
+        // Lazy sweep on the natural (human-paced) mint cadence so a QR that is displayed but never
+        // scanned — or a consumed sid past its replay window — can't accumulate unbounded.
+        SweepExpired();
+
         var psk = Base64Url(RandomNumberGenerator.GetBytes(PskBytes));
         var nonce = Base64Url(RandomNumberGenerator.GetBytes(NonceBytes));
         var sid = Guid.NewGuid().ToString("N");
-        var exp = DateTimeOffset.UtcNow.Add(Ttl).ToUnixTimeMilliseconds();
+        var exp = DateTimeOffset.UtcNow.Add(_ttl).ToUnixTimeMilliseconds();
         _active[sid] = new ActiveSecret(psk, nonce, exp);
         return new PairingOffer(psk, nonce, exp, sid);
+    }
+
+    /// <summary>
+    /// Drop offers past their expiry from both maps. A consumed sid only needs to be remembered
+    /// for its replay window (= its original expiry); once expired an <see cref="_active"/> lookup
+    /// would miss anyway, so a replay of a swept sid still fails closed.
+    /// </summary>
+    private void SweepExpired()
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        foreach (var kv in _active)
+            if (now > kv.Value.ExpiryUnixMs) _active.TryRemove(kv.Key, out _);
+        foreach (var kv in _consumed)
+            if (now > kv.Value) _consumed.TryRemove(kv.Key, out _);
     }
 
     /// <summary>Compute a tagged pairing MAC (base64). Static so tests + both roles share one impl.</summary>
@@ -93,16 +122,17 @@ public sealed class PairingSecretManager
     {
         if (string.IsNullOrEmpty(sid) || _consumed.ContainsKey(sid)) return null;
         if (!_active.TryGetValue(sid, out var secret)) return null;
-        if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() > secret.ExpiryUnixMs) { Consume(sid); return null; }
+        if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() > secret.ExpiryUnixMs) { Consume(sid, secret.ExpiryUnixMs); return null; }
 
         var expected = ComputeMac(secret.Psk, "C", sid, secret.Nonce, hostFp, clientFp);
         if (!FixedTimeEquals(expected, clientMac)) return null;
 
-        Consume(sid); // single-use: burn the sid whether or not the reply is later delivered
+        Consume(sid, secret.ExpiryUnixMs); // single-use: burn the sid whether or not the reply is later delivered
         return new VerifiedPairing(secret.Psk, secret.Nonce);
     }
 
-    private void Consume(string sid) { _active.TryRemove(sid, out _); _consumed[sid] = 1; }
+    // Tombstone the sid with its original expiry so it is rejected for the replay window, then swept.
+    private void Consume(string sid, long expiryUnixMs) { _active.TryRemove(sid, out _); _consumed[sid] = expiryUnixMs; }
 
     private static bool FixedTimeEquals(string a, string b) =>
         CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(a), Encoding.UTF8.GetBytes(b));
