@@ -78,7 +78,7 @@ public static class HostTelemetryReporter
             try
             {
                 var json = JsonSerializer.Serialize(snapshot, JsonOptions);
-                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
                 using var resp = await HttpClient.PostAsync($"{relayUrl.TrimEnd('/')}/telemetry/connection", content)
                     .ConfigureAwait(false);
                 // Endpoint always returns 204 regardless of payload validity (contract-v1) —

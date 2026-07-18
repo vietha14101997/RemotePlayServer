@@ -102,6 +102,13 @@ namespace RemotePlayServer.Application.Protocol
                     {
                         _perTrackPc = ackMsg.PerTrackPc;
                         Logger.Info($"[Protocol] Client perTrackPc: {_perTrackPc}");
+
+                        // Multi-monitor streaming intent. Missing JSON field defaults to false
+                        // (RemotePlay single-active-monitor policy and legacy fallback).
+                        _streamAllMonitors = ackMsg.StreamAllMonitors;
+                        Logger.Info(
+                            $"[Protocol] Client streamAllMonitors: {_streamAllMonitors} " +
+                            $"(stream policy={(ShouldAutoPauseInactiveMonitors(_streamAllMonitors) ? "active-monitor-only" : "all-monitors")})");
                     }
 
                     return;

@@ -119,13 +119,25 @@ namespace RemotePlayServer.Application.Protocol
             // frames for monitors the client isn't viewing, saving GPU and bandwidth.
             // Without this, the client's pause_monitor message could arrive too late
             // (consumed by WaitForStartStreamingAsync or wiped by ResetSyncState).
-            if (_streamer != null && _capture != null)
+            //
+            // VRWorkspace (streamAllMonitors=true) decodes every requested monitor
+            // simultaneously, so skip this auto-pause. Runtime pause_monitor /
+            // resume_monitor commands remain authoritative in both modes.
+            if (_streamer != null && _capture != null
+                && ShouldAutoPauseInactiveMonitors(_streamAllMonitors))
             {
+                Logger.Info(
+                    "[Protocol] stream policy=active-monitor-only: auto-pausing inactive monitors at Phase 3 start");
                 for (int i = 1; i < _streamer.MonitorCount; i++)
                 {
                     _streamer.PauseMonitor(i);
                     _capture.PauseMonitor(i);
                 }
+            }
+            else if (_streamer != null && _streamAllMonitors)
+            {
+                Logger.Info(
+                    "[Protocol] stream policy=all-monitors: keeping inactive monitors streaming at Phase 3 start");
             }
 
             // Initial frame events (OnInitialFrameNeeded, OnInitialFrameSent) are wired
