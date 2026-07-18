@@ -6,6 +6,10 @@
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <!-- Custom console-capable entry point is Program.Main (global namespace, #if WINDOWS).
+         Disambiguates against WPF's generated App entry point (App.xaml is a <Page>, not
+         ApplicationDefinition) so the build does not fail with CS0017 (multiple entry points). -->
+    <StartupObject>Program</StartupObject>
   </PropertyGroup>
   
   <!-- Exclude test project from main compilation -->

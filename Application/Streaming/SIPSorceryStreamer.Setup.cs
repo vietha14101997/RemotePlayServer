@@ -2,12 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using SIPSorcery.Net;
 using SIPSorcery.Media;
 using SIPSorceryMedia.Abstractions;
 using Vortice.Direct3D11;
+using Org.BouncyCastle.Security;
 using RemotePlayServer.Infrastructure.Hardware;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Infrastructure.Capture;
@@ -15,6 +17,7 @@ using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
 using RemotePlayServer.Infrastructure.Network;
+using RemotePlayServer.Application.Security;
 using RemotePlayServer.Server;
 
 namespace RemotePlayServer.Application.Streaming;
@@ -42,6 +45,40 @@ public partial class SIPSorceryStreamer
 
         Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN-only; TURN is client-side)");
         var cfg = new RTCConfiguration { iceServers = servers };
+
+        // Phase 1 pairing: pin the Host's persistent DTLS cert so its WebRTC fingerprint stays
+        // stable across sessions/restarts (precondition for reconnect-without-reprompt). No-op
+        // when RequirePairing is OFF — legacy behaviour (SIPSorcery's own ephemeral per-connection
+        // cert) is unchanged. RTCCertificate2 has no public ctor from an X509Certificate2; it must
+        // be built from BouncyCastle types (confirmed by compiling against SIPSorcery 8.0.23):
+        // Certificate via DotNetUtilities.FromX509Certificate, PrivateKey via the ECDSA key pair
+        // (X509Certificate2.PrivateKey does NOT support ECDsa certs — SIPSorcery's own
+        // DtlsUtils.LoadPrivateKeyResource throws NotSupportedException for them).
+        if (PairingPolicy.RequirePairing)
+        {
+            try
+            {
+                var hostCert = HostDtlsCertificate.Instance.Certificate;
+                using var ecdsaPrivateKey = hostCert.GetECDsaPrivateKey();
+                if (ecdsaPrivateKey == null)
+                    throw new InvalidOperationException("Host DTLS certificate has no ECDSA private key");
+
+                var keyPair = DotNetUtilities.GetECDsaKeyPair(ecdsaPrivateKey);
+                var pinnedCert = new RTCCertificate2
+                {
+                    Certificate = DotNetUtilities.FromX509Certificate(hostCert),
+                    PrivateKey = keyPair.Private
+                };
+                cfg.certificates2 = new List<RTCCertificate2> { pinnedCert };
+                Logger.Info("[SIPSorcery] Pairing: pinned host DTLS certificate applied to RTCConfiguration");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[SIPSorcery] Pairing: failed to pin host DTLS certificate ({ex.Message}) — " +
+                             "falling back to SIPSorcery's ephemeral per-connection cert (fingerprint will " +
+                             "NOT stay stable across sessions; reconnect-without-reprompt will not hold)");
+            }
+        }
 
         // DEBUG-only, local-admin-set forced-path flag (default OFF; no-op in release builds
         // — see DebugForcedIcePolicy for why this is fail-closed by construction, and the

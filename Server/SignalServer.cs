@@ -30,6 +30,19 @@ public class SignalServer
     private List<(IntPtr hmon, string name, int w, int h)> _monitors = new();
 
     public SignalServer(string prefix) { _listener = new HttpListener(); _listener.Prefixes.Add(prefix); }
+
+    /// <summary>
+    /// Bind multiple explicit prefixes (Phase 1 exposure hardening: loopback + a specific LAN
+    /// address, instead of the legacy all-interfaces <c>http://+:PORT/</c>). Duplicates are
+    /// de-duped since HttpListenerPrefixCollection throws on adding the exact same prefix twice
+    /// (e.g. when no LAN IP is found and the preferred address falls back to loopback).
+    /// </summary>
+    public SignalServer(IEnumerable<string> prefixes)
+    {
+        _listener = new HttpListener();
+        foreach (var p in prefixes.Distinct(StringComparer.OrdinalIgnoreCase))
+            _listener.Prefixes.Add(p);
+    }
     public void SetWindows(List<Win32.WindowInfo> wins) => _windows = wins;
     public void SetMonitors(List<(IntPtr hmon, string name, int w, int h)> mons) => _monitors = mons;
 

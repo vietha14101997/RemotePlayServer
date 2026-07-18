@@ -455,8 +455,14 @@ namespace RemotePlayServer.Application.Protocol
                 }
             };
 
-            // Client input forwarding (BT mouse/keyboard via "input" DataChannel)
-            _streamer.OnInputReceived += data => InputReceiver.HandleInputMessage(data, _monitorRects);
+            // Client input forwarding (BT mouse/keyboard via "input" DataChannel).
+            // Phase 1 pairing gate: an unpaired session (RequirePairing ON) gets zero input —
+            // fail-closed. No-op check when pairing is disabled (legacy behaviour).
+            _streamer.OnInputReceived += data =>
+            {
+                if (!IsPeerAuthorized()) return;
+                InputReceiver.HandleInputMessage(data, _monitorRects);
+            };
 
             // When client sends input, tell capture to force-produce frames for ~80ms.
             // The capture loop will nudge the cursor each iteration to force DXGI to return frames.
@@ -490,12 +496,17 @@ namespace RemotePlayServer.Application.Protocol
                     var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(msg);
 
-                    // LAN host candidate → also advertise a router-forwarded public door (UPnP)
-                    UpnpCandidateAugmenter.TryAugment(candidate, "main PC", async (publicCand) =>
+                    // LAN host candidate → also advertise a router-forwarded public door (UPnP).
+                    // Phase 1 exposure hardening: never map/advertise for an unpaired session
+                    // when RequirePairing is ON (no-op check when pairing is disabled).
+                    if (IsPeerAuthorized())
                     {
-                        if (_ws.State != WebSocketState.Open) return;
-                        await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
-                    });
+                        UpnpCandidateAugmenter.TryAugment(candidate, "main PC", async (publicCand) =>
+                        {
+                            if (_ws.State != WebSocketState.Open) return;
+                            await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
+                        });
+                    }
                 }
                 catch { }
             };
@@ -514,13 +525,18 @@ namespace RemotePlayServer.Application.Protocol
                     var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
                     await SendTextAsync(json);
 
-                    UpnpCandidateAugmenter.TryAugment(candidate, "audio PC", async (publicCand) =>
+                    // Phase 1 exposure hardening: gate UPnP mapping on a paired session (no-op
+                    // check when RequirePairing is disabled).
+                    if (IsPeerAuthorized())
                     {
-                        if (_ws.State != WebSocketState.Open) return;
-                        var publicJson = System.Text.Json.JsonSerializer.Serialize(
-                            new { type = "audio_candidate", candidate = publicCand });
-                        await SendTextAsync(publicJson);
-                    });
+                        UpnpCandidateAugmenter.TryAugment(candidate, "audio PC", async (publicCand) =>
+                        {
+                            if (_ws.State != WebSocketState.Open) return;
+                            var publicJson = System.Text.Json.JsonSerializer.Serialize(
+                                new { type = "audio_candidate", candidate = publicCand });
+                            await SendTextAsync(publicJson);
+                        });
+                    }
                 }
                 catch { }
             };
@@ -551,46 +567,15 @@ namespace RemotePlayServer.Application.Protocol
                     var streamer = _streamer;
                     if (streamer == null) return;
 
-                    int negotiatedMonitors = actualMonitors;
-                    if (!string.IsNullOrEmpty(_lastOfferSdp))
-                    {
-                        int offerVideoCount = CountVideoMLines(_lastOfferSdp);
-                        if (offerVideoCount > 0)
-                            negotiatedMonitors = Math.Min(actualMonitors, offerVideoCount);
-                    }
-                    Logger.Info($"[Protocol] All {negotiatedMonitors} tracks ready, sending ice_ready");
+                    // Phase 1 pairing gate: AFTER DTLS connected, BEFORE any media. Disabled
+                    // (RequirePairing OFF) ⇒ returns true immediately, legacy behaviour unchanged.
+                    // Reconnect with an already-known fingerprint ⇒ true immediately too. A fresh/
+                    // unknown peer ⇒ false: pairing_required was sent and we STOP here — no
+                    // ice_ready, no capture — until HandlePairingClientProofAsync resumes via
+                    // CompleteConnectionReadyAsync on a successful proof.
+                    if (!await EnsurePairedBeforeMediaAsync(actualMonitors)) return;
 
-                    // Reconnect during Phase 3 resets streamer sync state to "pending activation".
-                    // If we don't re-activate here, video/audio frames are dropped indefinitely.
-                    if (_phase == ConnectionPhase.Phase3_Streaming)
-                    {
-                        if (_capture != null && _capture.HasBarrierSync)
-                        {
-                            _capture.OnNextBarrierSync = () => streamer.ActivatePhase3();
-                        }
-                        else
-                        {
-                            streamer.ActivatePhase3();
-                        }
-                        Logger.Info("[Protocol] Reconnect in Phase 3: requested streamer re-activation");
-
-                        // Reset InitialFrameSent so static monitors (text editor, idle desktop)
-                        // re-send at least one frame after reconnect. Without this, DXGI returns
-                        // "no update" for idle screens → 0 encoded frames → client reconnect loop.
-                        _capture?.ForceInitialFrames();
-                    }
-
-                    // Check if encoder supports BGRA mode (skip color conversion)
-                    if (streamer.AnyTrackRequiresBgraInput() && _capture != null)
-                    {
-                        Logger.Info("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
-                        _capture.UseBgraMode = true;
-                    }
-
-                    var msg = new IceReadyMessage { MonitorCount = negotiatedMonitors };
-                    await SendMessageAsync(msg);
-                    Logger.Info("[Protocol] Starting early capture to prevent browser track timeout...");
-                    StartCaptureThread();
+                    await CompleteConnectionReadyAsync(actualMonitors);
                 }
                 catch (Exception ex)
                 {
@@ -646,6 +631,68 @@ namespace RemotePlayServer.Application.Protocol
             };
 
             await SendProgressAsync("capture_init", 100, "Ready");
+        }
+
+        /// <summary>
+        /// Tail of the "main PC DTLS connected" flow: send ice_ready and start capture (or
+        /// re-activate Phase 3 on a mid-stream reconnect). Split out of OnAllTracksReady so the
+        /// Phase 1 pairing gate (<see cref="EnsurePairedBeforeMediaAsync"/>) can defer this call
+        /// until the session is paired-bound, then resume it from
+        /// <see cref="HandlePairingClientProofAsync"/> after a successful proof.
+        /// </summary>
+        private async Task CompleteConnectionReadyAsync(int actualMonitors)
+        {
+            try
+            {
+                if (_ws.State != WebSocketState.Open) return;
+                var streamer = _streamer;
+                if (streamer == null) return;
+
+                int negotiatedMonitors = actualMonitors;
+                if (!string.IsNullOrEmpty(_lastOfferSdp))
+                {
+                    int offerVideoCount = CountVideoMLines(_lastOfferSdp);
+                    if (offerVideoCount > 0)
+                        negotiatedMonitors = Math.Min(actualMonitors, offerVideoCount);
+                }
+                Logger.Info($"[Protocol] All {negotiatedMonitors} tracks ready, sending ice_ready");
+
+                // Reconnect during Phase 3 resets streamer sync state to "pending activation".
+                // If we don't re-activate here, video/audio frames are dropped indefinitely.
+                if (_phase == ConnectionPhase.Phase3_Streaming)
+                {
+                    if (_capture != null && _capture.HasBarrierSync)
+                    {
+                        _capture.OnNextBarrierSync = () => streamer.ActivatePhase3();
+                    }
+                    else
+                    {
+                        streamer.ActivatePhase3();
+                    }
+                    Logger.Info("[Protocol] Reconnect in Phase 3: requested streamer re-activation");
+
+                    // Reset InitialFrameSent so static monitors (text editor, idle desktop)
+                    // re-send at least one frame after reconnect. Without this, DXGI returns
+                    // "no update" for idle screens → 0 encoded frames → client reconnect loop.
+                    _capture?.ForceInitialFrames();
+                }
+
+                // Check if encoder supports BGRA mode (skip color conversion)
+                if (streamer.AnyTrackRequiresBgraInput() && _capture != null)
+                {
+                    Logger.Info("[Protocol] Encoder supports BGRA mode - enabling zero-copy pipeline (no color conversion)");
+                    _capture.UseBgraMode = true;
+                }
+
+                var msg = new IceReadyMessage { MonitorCount = negotiatedMonitors };
+                await SendMessageAsync(msg);
+                Logger.Info("[Protocol] Starting early capture to prevent browser track timeout...");
+                StartCaptureThread();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[Protocol] CompleteConnectionReadyAsync failed: {ex.Message}");
+            }
         }
 
         private async Task RunIceExchangeAsync()
@@ -723,6 +770,12 @@ namespace RemotePlayServer.Application.Protocol
 
                 case "audio_candidate":
                     HandleAudioIceCandidate(json);
+                    break;
+
+                case "pairing_client_proof":
+                    // Phase 1 pairing handshake (contract v1, message 1): client presents its
+                    // QR pairing proof after DTLS connects. See PhaseProtocolHandler.Pairing.cs.
+                    await HandlePairingClientProofAsync(json);
                     break;
 
                 case "ice_restart_offer":
@@ -945,11 +998,16 @@ namespace RemotePlayServer.Application.Protocol
 
                 // SIPSorcery does not re-gather on restart, so the UPnP srflx door mapped
                 // during the initial exchange must be re-trickled or the peer loses it.
-                UpnpCandidateAugmenter.ReAdvertise("main PC", async (publicCand) =>
+                // Phase 1 exposure hardening: only re-advertise for an already-paired session
+                // (no-op check when RequirePairing is disabled).
+                if (IsPeerAuthorized())
                 {
-                    if (_ws.State != WebSocketState.Open) return;
-                    await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
-                });
+                    UpnpCandidateAugmenter.ReAdvertise("main PC", async (publicCand) =>
+                    {
+                        if (_ws.State != WebSocketState.Open) return;
+                        await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -1018,6 +1076,10 @@ namespace RemotePlayServer.Application.Protocol
                             candidate
                         });
                         await SendTextAsync(msg);
+
+                        // Phase 1 exposure hardening: gate UPnP mapping on a paired session
+                        // (no-op check when RequirePairing is disabled).
+                        if (!IsPeerAuthorized()) return;
 
                         UpnpCandidateAugmenter.TryAugment(candidate, $"video PC {monitorIndex}", async (publicCand) =>
                         {

@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using RemotePlayServer.Application.Protocol;
+using RemotePlayServer.Application.Security;
 using RemotePlayServer.Application.Streaming;
 using RemotePlayServer.Configuration;
 using RemotePlayServer.Core;
@@ -81,9 +82,35 @@ public class ServerService : IDisposable
 
             SetupAdbReverse();
 
+            // Computed before the listener binds — used both for the (legacy) status display
+            // and, when RequirePairing is ON, as the specific LAN address to bind (never
+            // all-interfaces). Pure network-interface query, no side effects either way.
+            var preferredIP = NetUtil.GetPreferredLocalIP();
+            Dispatch(() => State.LocalIp = preferredIP);
+            Logger.Info($"[HTTP] Server: {preferredIP}:{State.Port}");
+
             UpdateStatus("Starting signal server...");
             await KillProcessOnPort(State.Port);
-            _server = new SignalServer($"http://+:{State.Port}/");
+
+            if (PairingPolicy.RequirePairing)
+            {
+                // Phase 1 exposure hardening: never bind all-interfaces (`+`) while pairing is
+                // required — loopback (local UI/tools) + the specific LAN address only. The
+                // pairing gate itself is transport-agnostic (lives past DTLS), but a narrower
+                // bind avoids advertising the control/signal endpoint on every NIC (incl. any
+                // stray IPv6-global address) in the first place.
+                _server = new SignalServer(new[]
+                {
+                    $"http://127.0.0.1:{State.Port}/",
+                    $"http://{preferredIP}:{State.Port}/"
+                });
+                Logger.Info($"[HTTP] RequirePairing ON — binding loopback + {preferredIP} only (no all-interfaces exposure)");
+            }
+            else
+            {
+                _server = new SignalServer($"http://+:{State.Port}/"); // legacy: all interfaces
+            }
+
             var monitors = WgcInterop.ListMonitorsDXGI();
             _server.SetWindows(Win32.ListTopLevelWindows()
                 .Where(w => !string.IsNullOrWhiteSpace(w.title))
@@ -91,10 +118,6 @@ public class ServerService : IDisposable
                 .ToList());
             _server.SetMonitors(monitors.Select(m => (m.hmon, m.name, m.width, m.height)).ToList());
             await _server.StartAsync();
-
-            var preferredIP = NetUtil.GetPreferredLocalIP();
-            Dispatch(() => State.LocalIp = preferredIP);
-            Logger.Info($"[HTTP] Server: {preferredIP}:{State.Port}");
 
             // Discover the UPnP gateway in the background so per-connection
             // WebRTC port mappings (direct P2P from internet) are instant later.
@@ -663,7 +686,18 @@ public class ServerService : IDisposable
                         $",\"guestId\":\"{State.GuestId}\",\"guestPass\":\"{State.GuestPassword}\"";
         }
 
-        string qrData = $"{{\"ip\":\"{State.LocalIp}\",\"port\":\"{State.Port}\"{usbIPJson}{tunnelJson}{relayJson}}}";
+        // Phase 1 pairing: mint a fresh one-use {psk,nonce,exp,sid} and embed it in the QR
+        // (contract v1) so a scanning client can complete the pairing handshake after DTLS
+        // connects. No-op when RequirePairing is disabled — QR shape is unchanged (legacy).
+        string pairingJson = "";
+        if (PairingPolicy.RequirePairing)
+        {
+            var offer = PairingSecretManager.Instance.Mint();
+            pairingJson = $",\"prv\":1,\"psk\":\"{offer.Psk}\",\"nonce\":\"{offer.Nonce}\"" +
+                          $",\"exp\":{offer.ExpiryUnixMs},\"sid\":\"{offer.Sid}\"";
+        }
+
+        string qrData = $"{{\"ip\":\"{State.LocalIp}\",\"port\":\"{State.Port}\"{usbIPJson}{tunnelJson}{relayJson}{pairingJson}}}";
 
         Dispatch(() => State.QrData = qrData);
         Logger.Info($"[QR] Data: {qrData}");

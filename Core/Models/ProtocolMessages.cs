@@ -527,6 +527,56 @@ namespace RemotePlayServer.Core.Models
         public string? SuggestedCodec { get; set; }
     }
 
+    // ==================== Pairing Messages (Phase 1 security) ====================
+
+    /// <summary>
+    /// Client -> Server: pairing proof, sent after DTLS connects when the client holds a QR pairing
+    /// secret (psk). macC = base64(HMAC-SHA256(psk, "RS-PAIR-v1|C|sid|nonce|hostFp|clientFp")).
+    /// </summary>
+    public class PairingClientProofMessage : ProtocolMessage
+    {
+        public override string Type => "pairing_client_proof";
+
+        [JsonPropertyName("sid")]
+        public string Sid { get; set; } = "";
+
+        [JsonPropertyName("macC")]
+        public string MacC { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Server -> Client: pairing reply once the client proof verified. macH is the "H"-tagged MAC;
+    /// sas is a 4-digit short authentication string for optional user comparison.
+    /// </summary>
+    public class PairingHostProofMessage : ProtocolMessage
+    {
+        public override string Type => "pairing_host_proof";
+
+        [JsonPropertyName("macH")]
+        public string MacH { get; set; } = "";
+
+        [JsonPropertyName("sas")]
+        public string Sas { get; set; } = "";
+    }
+
+    /// <summary>Server -> Client: pairing rejected (bad MAC, expired, replay, or missing fingerprint).</summary>
+    public class PairingFailedMessage : ProtocolMessage
+    {
+        public override string Type => "pairing_failed";
+
+        [JsonPropertyName("reason")]
+        public string Reason { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Server -> Client: this (unpaired) peer must present a QR pairing before any media/input.
+    /// Sent on a reconnect whose negotiated DTLS fingerprint is not in the host allowlist.
+    /// </summary>
+    public class PairingRequiredMessage : ProtocolMessage
+    {
+        public override string Type => "pairing_required";
+    }
+
     // ==================== Phase 3 Messages ====================
 
     /// <summary>

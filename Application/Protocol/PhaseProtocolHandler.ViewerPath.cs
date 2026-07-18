@@ -88,6 +88,9 @@ public partial class PhaseProtocolHandler
 
         _streamer.OnInputReceived += (data) =>
         {
+            // Phase 1 pairing gate: an unpaired viewer session gets zero input — fail-closed.
+            // No-op check when pairing is disabled (legacy behaviour unchanged).
+            if (!IsPeerAuthorized()) return;
             InputReceiver.HandleInputMessage(data,
                 _monitors.Select(m => (0, 0, m.width, m.height)).ToList());
         };

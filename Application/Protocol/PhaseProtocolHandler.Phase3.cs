@@ -24,6 +24,18 @@ namespace RemotePlayServer.Application.Protocol
             // Wait for start_streaming
             await WaitForStartStreamingAsync();
 
+            // Phase 1 media gate (authoritative, defense-in-depth): never start capture/media
+            // for a session that isn't paired-bound, no matter how it got here (the primary gate
+            // is CompleteConnectionReadyAsync/EnsurePairedBeforeMediaAsync in Phase2 — this is
+            // the fail-closed backstop in case start_streaming somehow arrives without it). No-op
+            // when RequirePairing is disabled (legacy behaviour unchanged).
+            if (!IsPeerAuthorized())
+            {
+                Logger.Error("[Protocol] Phase 3: session is not paired-bound — refusing to start media (fail-closed)");
+                await SendErrorAsync(3, "PAIRING_REQUIRED", "This session is not paired. Complete QR pairing before streaming.");
+                return;
+            }
+
             // CRITICAL: Wait for ALL monitors to be ICE connected before starting streaming
             // This prevents network congestion from one monitor's stream interfering with
             // another monitor's ICE negotiation

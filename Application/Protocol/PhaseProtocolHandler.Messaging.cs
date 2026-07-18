@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SIPSorceryMedia.Abstractions;
 using RemotePlayServer.Configuration;
+using RemotePlayServer.Application.Security;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core.Interfaces;
@@ -633,6 +634,14 @@ namespace RemotePlayServer.Application.Protocol
         private async Task CleanupAsync()
         {
             SetPhase(ConnectionPhase.Disconnecting);
+
+            // Phase 1 pairing: release this session's paired-fingerprint binding (does NOT
+            // unpair the peer — PairingStore keeps the fingerprint for the next reconnect).
+            // Prevents a stale binding from lingering in PeerAuthGate's in-memory dictionary
+            // after the session ends. No-op when RequirePairing is OFF (never touches the
+            // singleton at all, matching every other gate's legacy-unchanged guarantee).
+            if (PairingPolicy.RequirePairing)
+                PeerAuthGate.Instance.Unbind(_clientId);
 
             // Stop keep-alive timer
             StopKeepAlive();

@@ -60,6 +60,17 @@ namespace RemotePlayServer.Application.Protocol
                 if (_p2pConnected || _mediaRelayMode) return;
                 try
                 {
+                    // Phase 1 pairing gate: EnterMediaRelayMode() enforces IsPeerAuthorized()
+                    // itself (single source of truth) and defers/no-ops if unpaired — checked
+                    // here too so the log line doesn't claim "starting" when it will actually
+                    // be deferred pending a pairing_client_proof.
+                    if (!IsPeerAuthorized())
+                    {
+                        Logger.Warn($"[RelayMedia] No P2P after {RELAY_FALLBACK_DELAY_MS}ms, but session isn't paired-bound yet — deferring media relay entry");
+                        EnterMediaRelayMode(); // still call it: it sends pairing_required + stashes the resume
+                        return;
+                    }
+
                     Logger.Info($"[RelayMedia] No P2P after {RELAY_FALLBACK_DELAY_MS}ms — starting media relay (P2P keeps trying in background)");
                     EnterMediaRelayMode();
                 }
@@ -86,6 +97,19 @@ namespace RemotePlayServer.Application.Protocol
             if (streamer == null)
             {
                 Logger.Warn("[RelayMedia] Cannot enter relay mode — no streamer");
+                return;
+            }
+
+            // Phase 1 pairing gate (BLOCKER fix): this fallback bypasses the P2P DTLS-connect
+            // flow entirely — Phase2's OnAllTracksReady (and thus EnsurePairedBeforeMediaAsync)
+            // may never fire if WebRTC never connects, and it sets _startStreamingReceived +
+            // jumps straight to Phase 3 below, which would otherwise skip every other gate too.
+            // No-op when RequirePairing is OFF (EnsurePairedSync returns true immediately).
+            // Unpaired ⇒ pairing_required already sent, deferred here; resumed (or the whole
+            // relay entry re-attempted) from HandlePairingClientProofAsync on a successful proof.
+            if (!EnsurePairedSync(PendingResumeKind.EnterRelay))
+            {
+                Logger.Warn("[RelayMedia] Session not paired-bound — deferring media relay entry until pairing completes");
                 return;
             }
 
