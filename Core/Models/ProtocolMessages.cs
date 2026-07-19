@@ -86,6 +86,19 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("perTrackPc")]
         public bool PerTrackPc { get; set; } = false;
+
+        /// <summary>
+        /// Client intent to decode all configured/available monitors simultaneously
+        /// (e.g. VRWorkspace's multi-screen curved-cluster). When false (default and
+        /// RemotePlay's behavior), Host keeps the legacy single-active-monitor policy
+        /// and auto-pauses inactive monitors at Phase 3 start. Missing field defaults
+        /// to false for backward compatibility with old clients.
+        /// This is an intent within Host limits — Host still uses display_config and
+        /// the actual monitor count, and explicit pause_monitor/resume_monitor
+        /// commands from the client always remain authoritative.
+        /// </summary>
+        [JsonPropertyName("streamAllMonitors")]
+        public bool StreamAllMonitors { get; set; } = false;
     }
 
     /// <summary>

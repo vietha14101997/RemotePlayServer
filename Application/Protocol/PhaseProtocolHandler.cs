@@ -172,6 +172,11 @@ namespace RemotePlayServer.Application.Protocol
         private bool _perTrackPc = false;
         private Action<int, string>? _videoIceCandidateHandler; // stored to prevent double-subscription on reconnect
 
+        // Client intent from hardware_info_ack.streamAllMonitors. When true, Host does not
+        // auto-pause inactive monitors at Phase 3 start (VRWorkspace multi-screen mode).
+        // Defaults to false (RemotePlay single-active-monitor policy and legacy fallback).
+        private bool _streamAllMonitors = false;
+
         // Phase 2 restart limit: prevent infinite restart_phase2 ↔ reconnect_required loop
         private int _phase2RestartCount;
         private const int MAX_PHASE2_RESTARTS = 3;
@@ -213,6 +218,19 @@ namespace RemotePlayServer.Application.Protocol
         /// Default bitrate for WiFi mode (lower to handle variable bandwidth).
         /// </summary>
         private const int WIFI_DEFAULT_BITRATE_KBPS = 15000; // 15 Mbps for WiFi
+
+        /// <summary>
+        /// Pure policy predicate used by Phase 3 startup. Extracted as internal static so
+        /// unit tests can assert behavior without spinning up a full WebSocket pipeline.
+        /// When <paramref name="streamAllMonitors"/> is true, the Host should NOT
+        /// auto-pause inactive monitors (VRWorkspace multi-screen mode). When false, the
+        /// Host retains the legacy single-active-monitor startup behavior (RemotePlay and
+        /// all pre-capability clients). This only governs the initial Phase 3 auto-pause
+        /// loop; runtime <c>pause_monitor</c>/<c>resume_monitor</c> messages remain
+        /// authoritative regardless of the capability value.
+        /// </summary>
+        internal static bool ShouldAutoPauseInactiveMonitors(bool streamAllMonitors)
+            => !streamAllMonitors;
 
         public PhaseProtocolHandler(
             Guid clientId,

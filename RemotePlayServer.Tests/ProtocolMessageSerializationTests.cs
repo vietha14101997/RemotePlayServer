@@ -1,4 +1,5 @@
 using System.Text.Json;
+using RemotePlayServer.Application.Protocol;
 using RemotePlayServer.Core.Models;
 
 namespace RemotePlayServer.Tests;
@@ -421,5 +422,59 @@ public class ProtocolMessageSerializationTests
         Assert.True(parsed.ClientCodecs.SupportsHevc);
         Assert.Equal(3, parsed.ClientCodecs.SupportedCodecs!.Length);
         Assert.Equal("Quest 3", parsed.ClientCodecs.DeviceModel);
+    }
+
+    // ==================== streamAllMonitors capability ====================
+
+    [Fact]
+    public void HardwareInfoAckMessage_DefaultStreamAllMonitors_IsFalse()
+    {
+        // Backward compatibility: missing/default field must keep legacy single-active
+        // behavior so old RemotePlay / VRWorkspace clients continue working unchanged.
+        var msg = new HardwareInfoAckMessage();
+
+        Assert.False(msg.StreamAllMonitors);
+        Assert.True(PhaseProtocolHandler.ShouldAutoPauseInactiveMonitors(msg.StreamAllMonitors));
+    }
+
+    [Fact]
+    public void HardwareInfoAckMessage_StreamAllMonitors_RoundTrip_PreservesCapabilityAndPolicy()
+    {
+        var msg = new HardwareInfoAckMessage
+        {
+            PerTrackPc = true,
+            StreamAllMonitors = true,
+            ClientCodecs = new ClientCodecCapability { PreferredCodec = "H265" }
+        };
+
+        var json = ProtocolMessageParser.Serialize(msg);
+        Assert.Contains("\"streamAllMonitors\":true", json);
+
+        var parsed = ProtocolMessageParser.Parse<HardwareInfoAckMessage>(json);
+
+        Assert.NotNull(parsed);
+        Assert.True(parsed!.StreamAllMonitors);
+        Assert.False(PhaseProtocolHandler.ShouldAutoPauseInactiveMonitors(parsed.StreamAllMonitors));
+    }
+
+    [Fact]
+    public void HardwareInfoAckMessage_StreamAllMonitorsMissing_ParsesAsFalse()
+    {
+        // Old clients omit the field; Host must default to legacy active-monitor-only
+        // policy without throwing and without inferring VRWorkspace from other fields.
+        const string legacyJson = "{\"type\":\"hardware_info_ack\",\"perTrackPc\":true}";
+
+        var parsed = ProtocolMessageParser.Parse<HardwareInfoAckMessage>(legacyJson);
+
+        Assert.NotNull(parsed);
+        Assert.False(parsed!.StreamAllMonitors);
+        Assert.True(PhaseProtocolHandler.ShouldAutoPauseInactiveMonitors(parsed.StreamAllMonitors));
+    }
+
+    [Fact]
+    public void ShouldAutoPauseInactiveMonitors_MatchesInverseOfCapability()
+    {
+        Assert.True(PhaseProtocolHandler.ShouldAutoPauseInactiveMonitors(false));
+        Assert.False(PhaseProtocolHandler.ShouldAutoPauseInactiveMonitors(true));
     }
 }
