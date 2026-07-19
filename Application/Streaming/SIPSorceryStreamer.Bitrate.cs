@@ -351,8 +351,15 @@ public partial class SIPSorceryStreamer
     /// </summary>
     /// <param name="fps">New target FPS (optional, null = no change). Note: FPS change may not take effect until reconnect.</param>
     /// <param name="resolutionHeight">New resolution height (optional, null = no change).</param>
+    /// <param name="preserveBitrateController">
+    /// When true, an FPS-only change does NOT re-initialize the adaptive bitrate controller
+    /// (keeps its settled target/EWMA/warmup). Used by the host-side adaptive-FPS coordinator,
+    /// whose frequent ramps must not reset bitrate to max or restart warmup on every step.
+    /// Client-driven config changes leave this false (a resolution/FPS change re-derives range).
+    /// Ignored for resolution changes (those always re-derive the range).
+    /// </param>
     /// <returns>Tuple of (success, appliedFps, appliedResolutionHeight, message)</returns>
-    public (bool Success, int Fps, int ResolutionHeight, string Message) UpdateConfig(int? fps, int? resolutionHeight)
+    public (bool Success, int Fps, int ResolutionHeight, string Message) UpdateConfig(int? fps, int? resolutionHeight, bool preserveBitrateController = false)
     {
         var messages = new List<string>();
         int appliedFps = _fps;
@@ -461,13 +468,13 @@ public partial class SIPSorceryStreamer
             return (true, appliedFps, appliedResolutionHeight, string.Join(", ", messages));
         }
 
-        if (configChanged)
+        if (configChanged && !preserveBitrateController)
         {
             var range = GetBitrateRange(_resolutionHeight, _fps);
             _bitrateController.Initialize(range.MinBitrate, range.MaxBitrate);
-            
+
             int newTargetBitrate = _bitrateController.TargetBitrateKbps;
-            
+
             TrackInfo[] brSnapshot;
             lock (_lock) { brSnapshot = _tracks.ToArray(); }
 
@@ -481,8 +488,28 @@ public partial class SIPSorceryStreamer
                     }
                 }
             }
-            
+
             messages.Add($"Target Bitrate reset to {newTargetBitrate}kbps based on {appliedResolutionHeight}p @ {appliedFps}fps");
+        }
+        else if (configChanged)
+        {
+            // FPS-only adaptive change: keep the settled bitrate controller state.
+            // Newly-recreated encoders (QSV/LibAv fallback) still pick up the preserved
+            // target below so they don't start at a stale bitrate.
+            int keepBitrate = _bitrateController.TargetBitrateKbps;
+            if (keepBitrate > 0)
+            {
+                TrackInfo[] brSnapshot;
+                lock (_lock) { brSnapshot = _tracks.ToArray(); }
+                foreach (var track in brSnapshot)
+                {
+                    lock (track.EncodeLock)
+                    {
+                        track.Encoder?.SetBitrate(keepBitrate);
+                    }
+                }
+            }
+            messages.Add($"FPS-only change; bitrate controller preserved ({keepBitrate}kbps)");
         }
 
         string message = messages.Count > 0 ? string.Join(", ", messages) : "No changes applied";

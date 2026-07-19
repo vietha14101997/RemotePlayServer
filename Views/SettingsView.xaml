@@ -51,6 +51,40 @@
                 </StackPanel>
             </Border>
 
+            <!-- ═══ STREAMING MODE SETTINGS ═══ -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Streaming Mode" Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="Gaming = low-latency 60fps. Efficiency = adaptive FPS for desktop/reading (lower load, crisper text)."
+                               Style="{StaticResource InfoLabel}" FontStyle="Italic" Margin="0,0,0,8" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Mode" Style="{StaticResource InfoLabel}"
+                                   VerticalAlignment="Center" Width="140" />
+                        <ComboBox ItemsSource="{Binding StreamModeOptions}" SelectedItem="{Binding SelectedStreamMode}" Width="160" />
+                        <Button Style="{StaticResource PrimaryButton}" Margin="12,0,0,0"
+                                Command="{Binding SaveStreamModeCommand}" Padding="16,6">
+                            <Grid>
+                                <TextBlock Text="Save">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSavingStreamMode}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <mah:ProgressRing Width="14" Height="14" IsActive="{Binding IsSavingStreamMode}"
+                                                  Visibility="{Binding IsSavingStreamMode, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="Applies live during an active session (no reconnect needed)." Style="{StaticResource InfoLabel}"
+                               FontStyle="Italic" Margin="0,6,0,0" />
+                </StackPanel>
+            </Border>
+
             <!-- ═══ VR MODE SETTINGS ═══ -->
             <Border Style="{StaticResource CardBorder}">
                 <StackPanel>

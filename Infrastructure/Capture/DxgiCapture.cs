@@ -10,8 +10,16 @@ using RemotePlayServer.Core;
 namespace RemotePlayServer.Infrastructure.Capture;
 
 /// <summary>
-/// Screen capture using DXGI Desktop Duplication API.
-/// More reliable than WGC for getting D3D11 textures directly.
+/// REFERENCE IMPLEMENTATION — NOT WIRED INTO THE PRODUCTION PIPELINE.
+///
+/// Single-monitor screen capture using DXGI Desktop Duplication API. The live/production
+/// path is <see cref="PerMonitorCapture"/> (per-monitor devices + threads), which is what
+/// <c>PhaseProtocolHandler.Phase2</c> instantiates. This class is never constructed at
+/// runtime (grep for <c>new DxgiCapture</c> returns nothing) and is retained only as a
+/// compact, readable single-monitor reference for the capture + idle-detection flow.
+///
+/// It shares the same pure idle/frame-change decision as production
+/// (<see cref="FrameChangeDecision"/>) so the reference does not drift from the live logic.
 /// </summary>
 public sealed class DxgiCapture : IDisposable
 {
@@ -139,20 +147,34 @@ public sealed class DxgiCapture : IDisposable
         const int frameTimeMs = 16; // ~60fps target
         var sw = System.Diagnostics.Stopwatch.StartNew();
         long frameCount = 0;
-        
+        bool initialFrameSent = false;
+
         while (_running)
         {
             try
             {
                 // Try to acquire frame with timeout
                 var result = _duplication.AcquireNextFrame(100, out var frameInfo, out var desktopResource);
-                
+
                 if (result.Success && desktopResource != null)
                 {
                     try
                     {
                         using var texture = desktopResource.QueryInterface<ID3D11Texture2D>();
-                        
+
+                        // ===== DESKTOP IDLE DETECTION (shared pure decision) =====
+                        // Skip callbacks when DXGI reports no desktop change, except for the
+                        // first frame (client needs immediate content). This reference has no
+                        // input-force channel, so inputForceFrames is always 0.
+                        var changeResult = FrameChangeDecision.Evaluate(
+                            frameInfo.LastPresentTime,
+                            frameInfo.TotalMetadataBufferSize,
+                            initialFrameSent,
+                            inputForceFrames: 0);
+                        if (!changeResult.DesktopChanged)
+                            continue; // Desktop idle — nothing to encode/send
+
+                        initialFrameSent = true;
                         frameCount++;
                         if (frameCount == 1 || frameCount % 60 == 0)
                         {

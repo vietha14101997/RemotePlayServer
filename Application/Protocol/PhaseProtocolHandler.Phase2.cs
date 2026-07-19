@@ -367,6 +367,9 @@ namespace RemotePlayServer.Application.Protocol
 
         private async Task CreateCaptureAndStreamerAsync(int actualMonitors, DisplayConfigMessage config)
         {
+            // Efficiency mode (Phase 2): client-chosen FPS is the adaptive-FPS ceiling.
+            _clientFpsCeiling = config.Fps;
+
             // Create capture
             lock (_captureLock)
             {

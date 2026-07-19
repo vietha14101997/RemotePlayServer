@@ -520,6 +520,12 @@ namespace RemotePlayServer.Application.Protocol
 
             try
             {
+                // 0. Stop adaptive-FPS coordinator FIRST (blocking dispose waits for any in-flight
+                // tick) so it can never call UpdateConfig/SetFps into the streamer we stop below.
+                // StartCaptureThread() creates a fresh one after DTLS re-negotiation.
+                try { _adaptiveFpsCoordinator?.Dispose(); } catch { }
+                _adaptiveFpsCoordinator = null;
+
                 // 1. Stop current PeerConnection (lightweight - keep streamer alive)
                 if (_streamer != null)
                 {
@@ -532,6 +538,7 @@ namespace RemotePlayServer.Application.Protocol
                 // Without this, the thread stays alive (blocked on WaitHandle) and prevents
                 // _capture.Start() from being called on the next connection attempt → zero frames.
                 try { _captureCts?.Cancel(); } catch { }
+
                 try { _captureThread?.Join(2000); } catch { }
                 _captureThread = null;
                 if (_sharedCapture != null)
@@ -653,6 +660,10 @@ namespace RemotePlayServer.Application.Protocol
             // 4. Dispose TextureResizer (now safe — no capture thread is using it)
             // 5. Dispose shared capture
             try { _captureCts?.Cancel(); } catch { }
+
+            // Stop adaptive-FPS coordinator BEFORE disposing the streamer it drives.
+            try { _adaptiveFpsCoordinator?.Dispose(); } catch { }
+            _adaptiveFpsCoordinator = null;
 
             // Stop capture loops BEFORE disposing TextureResizer
             lock (_captureLock)

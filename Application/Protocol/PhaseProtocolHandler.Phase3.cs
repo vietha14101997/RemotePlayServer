@@ -9,6 +9,7 @@ using Vortice.Direct3D11;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Infrastructure.Capture;
+using RemotePlayServer.Application.Streaming;
 using RemotePlayServer.Server;
 using RemotePlayServer.Configuration;
 
@@ -748,6 +749,12 @@ namespace RemotePlayServer.Application.Protocol
                                 if (updateMsg.Fps.HasValue && _capture != null)
                                 {
                                     _capture.SetTargetFps(updateMsg.Fps.Value);
+
+                                    // Efficiency mode (Phase 2, Q5): client FPS is the ceiling.
+                                    // Snap the adaptive controller to the new ceiling so it ramps
+                                    // within [FloorFps, newCeiling] from here.
+                                    _clientFpsCeiling = updateMsg.Fps.Value;
+                                    _adaptiveFpsCoordinator?.OnClientCeilingChanged(updateMsg.Fps.Value);
                                 }
 
                                 // Get current bitrate to send back in ack
@@ -895,6 +902,17 @@ namespace RemotePlayServer.Application.Protocol
                     Logger.Info($"[Protocol] Independent track mode: {activeMonitors} monitors, each track sends immediately after encoding");
 
                     _capture.Start();
+
+                    // Efficiency mode (Phase 2): start host-side adaptive-FPS coordinator.
+                    // Flag-gated internally (EfficiencyConfig.AdaptiveFpsEnabled) — OFF ⇒ pure no-op.
+                    // Client FPS acts as the ceiling; controller ramps within [FloorFps, ceiling].
+                    if (_streamer != null)
+                    {
+                        _adaptiveFpsCoordinator = new AdaptiveFpsCoordinator(
+                            _capture, _streamer, () => _clientFpsCeiling, _clientFpsCeiling);
+                        _adaptiveFpsCoordinator.Start();
+                    }
+
                     _captureCts.Token.WaitHandle.WaitOne();
                 }
                 catch (Exception ex)

@@ -109,6 +109,11 @@ public sealed class PerMonitorCapture : IDisposable
         public long LastCursorShapeId; // Unique ID for cursor shape (incremented on shape change)
         public OutduplPointerPosition LastCursorPosition; // Cached position (updated only when Visible=true)
 
+        // Adaptive-FPS signal: delivered active-frame count this window (frames where the
+        // desktop changed AND were sent). Read+reset by AdaptiveFpsCoordinator via
+        // TakeMaxActiveFrameCount(). Interlocked because writer=capture thread, reader=timer.
+        public long ActiveFrameCount;
+
         // Desktop idle detection — skip encode when desktop content hasn't changed
         public long IdleFrameCount;       // Consecutive frames with no desktop update
         public long LastActiveFrameTime;  // Timestamp (ms) of last frame with actual desktop change
@@ -630,6 +635,22 @@ public sealed class PerMonitorCapture : IDisposable
     }
 
     /// <summary>
+    /// Read+reset the delivered active-frame count and return the BUSIEST monitor's value.
+    /// "Global from busiest" keeps FPS high whenever any monitor is active (matches the single
+    /// global FPS knob). Called once per adaptive-FPS window by AdaptiveFpsCoordinator.
+    /// </summary>
+    public int TakeMaxActiveFrameCount()
+    {
+        long max = 0;
+        foreach (var mon in Monitors)
+        {
+            long c = Interlocked.Exchange(ref mon.ActiveFrameCount, 0);
+            if (c > max) max = c;
+        }
+        return (int)max;
+    }
+
+    /// <summary>
     /// Capture loop for a single monitor - runs in its own thread with its own D3D11 device
     /// Uses barrier synchronization to ensure all monitors capture at the same moment.
     /// </summary>
@@ -736,19 +757,19 @@ public sealed class PerMonitorCapture : IDisposable
                         //
                         // EXCEPTION: Always send the first frame so the client has immediate content
                         // on connect, even if the desktop is idle.
-                        bool desktopChanged = frameInfo.LastPresentTime != 0 || frameInfo.TotalMetadataBufferSize > 0;
-                        // Force frames through until the streamer has successfully SENT at least one
-                        // frame for this monitor. InitialFrameSent is set by the streamer callback
-                        // after the first frame is delivered (not just encoded).
-                        if (!mon.InitialFrameSent)
-                            desktopChanged = true; // Force frame through until sent confirmed
-
-                        // Force capture when client is actively sending input
-                        if (mon.InputForceFrames > 0)
-                        {
-                            desktopChanged = true;
+                        // Pure decision (extracted + unit-tested in FrameChangeDecision):
+                        // raw DXGI change signal, with initial-frame and input-force overrides.
+                        // InitialFrameSent is set by the streamer callback after the first frame
+                        // is delivered (not just encoded); InputForceFrames forces capture while
+                        // the client is actively sending input.
+                        var changeResult = FrameChangeDecision.Evaluate(
+                            frameInfo.LastPresentTime,
+                            frameInfo.TotalMetadataBufferSize,
+                            mon.InitialFrameSent,
+                            mon.InputForceFrames);
+                        bool desktopChanged = changeResult.DesktopChanged;
+                        if (changeResult.ConsumeInputForceFrame)
                             mon.InputForceFrames--;
-                        }
 
                         if (!desktopChanged)
                         {
@@ -894,6 +915,9 @@ public sealed class PerMonitorCapture : IDisposable
                         // When desktop is idle, skip encode entirely — this is the primary thermal optimization.
                         if (desktopChanged && canSendFrame)
                         {
+                            // Adaptive-FPS signal: count a delivered active frame (content changed + sent).
+                            Interlocked.Increment(ref mon.ActiveFrameCount);
+
                             // NOTE: InitialFrameSent is NOT set here anymore.
                             // It's set by the streamer after the first frame is ACTUALLY SENT
                             // (past the "drop stale P-frame before first IDR" gate).

@@ -29,6 +29,11 @@ public partial class SettingsViewModel : ObservableObject
 
     public List<string> CodecOptions { get; } = new() { "Auto", "H264", "H265" };
 
+    // Streaming mode (Gaming = low-latency 60fps; Efficiency = adaptive FPS, desktop/text).
+    public List<string> StreamModeOptions { get; } = new() { "Gaming", "Efficiency" };
+    [ObservableProperty] private string _selectedStreamMode = "Gaming";
+    [ObservableProperty] private bool _isSavingStreamMode;
+
     [ObservableProperty] private string _preferredCodec = "Auto";
     [ObservableProperty] private bool _internetEnabled;
     [ObservableProperty] private string _turnServerUrl = "";
@@ -57,6 +62,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         PreferredCodec = _serverService.State.PreferredCodec;
         InternetEnabled = _serverService.State.InternetEnabled;
+        SelectedStreamMode = EfficiencyConfig.Mode.ToString();
         
         FavoriteVRGames = new ObservableCollection<string>(VRGameConfig.VRGames);
         RefreshRunningApps();
@@ -95,6 +101,27 @@ public partial class SettingsViewModel : ObservableObject
             Logger.Error($"[Settings] Codec save failed: {ex.Message}");
         }
         finally { IsSavingCodec = false; }
+    }
+
+    [RelayCommand]
+    private async Task SaveStreamModeAsync()
+    {
+        IsSavingStreamMode = true;
+        try
+        {
+            var mode = Enum.TryParse<StreamMode>(SelectedStreamMode, out var m) ? m : StreamMode.Gaming;
+            // Runtime-safe: updates derived flags; a live coordinator picks them up next tick
+            // (no PeerConnection teardown). Also persists to efficiency-settings.json.
+            await Task.Run(() => EfficiencyConfig.SetMode(mode));
+            SetStatusWithAutoClear($"Streaming mode: {mode}");
+            Logger.Info($"[Settings] Streaming mode changed to {mode}");
+        }
+        catch (Exception ex)
+        {
+            SetStatusWithAutoClear($"Error: {ex.Message}");
+            Logger.Error($"[Settings] Streaming mode save failed: {ex.Message}");
+        }
+        finally { IsSavingStreamMode = false; }
     }
 
     [RelayCommand]

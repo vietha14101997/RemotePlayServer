@@ -93,6 +93,12 @@ namespace RemotePlayServer.Application.Protocol
         private Thread? _captureThread;
         private TextureResizer? _textureResizer;
 
+        // Host Desktop/Efficiency mode (Phase 2): host-side adaptive FPS.
+        // _clientFpsCeiling = the client-chosen max FPS (the ceiling the controller ramps within).
+        // Coordinator is flag-gated (EfficiencyConfig.AdaptiveFpsEnabled); OFF ⇒ pure no-op.
+        private volatile int _clientFpsCeiling = 60;
+        private AdaptiveFpsCoordinator? _adaptiveFpsCoordinator;
+
         // ICE handling
         private readonly Dictionary<int, List<string>> _pendingIce = new();
         private readonly HashSet<int> _answersReady = new();
