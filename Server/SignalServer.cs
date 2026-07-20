@@ -46,7 +46,25 @@ public class SignalServer
     public void SetWindows(List<Win32.WindowInfo> wins) => _windows = wins;
     public void SetMonitors(List<(IntPtr hmon, string name, int w, int h)> mons) => _monitors = mons;
 
-    public Task StartAsync() { _listener.Start(); _ = Task.Run(AcceptLoop); Console.WriteLine($"[HTTP] {string.Join(", ", _listener.Prefixes)}"); return Task.CompletedTask; }
+    public async Task StartAsync()
+    {
+        // A URL registration left by a just-exited instance can take a moment to clear, and
+        // http.sys may briefly report an invalid handle right after a leftover holder is killed.
+        // Retry with backoff instead of failing startup outright ("The handle is invalid").
+        const int maxAttempts = 6;
+        for (int attempt = 1; ; attempt++)
+        {
+            try { _listener.Start(); break; }
+            catch (Exception ex) when (attempt < maxAttempts &&
+                (ex is HttpListenerException || ex is System.ComponentModel.Win32Exception))
+            {
+                Console.WriteLine($"[HTTP] Start attempt {attempt} failed ({ex.Message}); retrying...");
+                await Task.Delay(500 * attempt);
+            }
+        }
+        _ = Task.Run(AcceptLoop);
+        Console.WriteLine($"[HTTP] {string.Join(", ", _listener.Prefixes)}");
+    }
     public async Task StopAsync()
     {
         try { _listener.Stop(); } catch { }

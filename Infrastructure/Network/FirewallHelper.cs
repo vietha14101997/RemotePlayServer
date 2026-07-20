@@ -12,6 +12,7 @@ public static class FirewallHelper
 {
     private const string RuleName = "RemotePlayServer";
     private const string DiscoveryRuleName = "RemotePlayServer-Discovery";
+    private const string SignalRuleName = "RemotePlayServer-Signal";
 
     /// <summary>
     /// Ensure firewall rules exist for the server executable (TCP) and UDP discovery port.
@@ -20,7 +21,32 @@ public static class FirewallHelper
     public static void EnsureRules(int tcpPort, int udpDiscoveryPort)
     {
         EnsureAppRule();
+        // The signal server listens via http.sys (HttpListener http://+:PORT/), so its inbound
+        // TCP socket is owned by System (PID 4), NOT this process. A program-scoped rule
+        // (EnsureAppRule) therefore does NOT authorize it — on a Public network with the default
+        // block-inbound policy, LAN clients get "Connecting to server..." forever. Add a
+        // PORT-scoped TCP rule (like the UDP discovery rule) so the http.sys listener is reachable.
+        EnsureTcpPortRule(tcpPort);
         EnsureUdpRule(udpDiscoveryPort);
+    }
+
+    /// <summary>
+    /// Ensure an inbound TCP rule exists for the signal/WebSocket port. Port-scoped (not program-
+    /// scoped) because the listener is owned by http.sys, not this executable.
+    /// </summary>
+    private static void EnsureTcpPortRule(int port)
+    {
+        if (RuleExists(SignalRuleName))
+        {
+            Console.WriteLine($"[Firewall] Rule '{SignalRuleName}' exists ✓");
+            return;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"[Firewall] Rule '{SignalRuleName}' not found — creating...");
+        Console.ResetColor();
+
+        RunNetsh($"advfirewall firewall add rule name=\"{SignalRuleName}\" dir=in action=allow protocol=TCP localport={port} enable=yes profile=any");
     }
 
     /// <summary>

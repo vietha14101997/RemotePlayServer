@@ -165,6 +165,26 @@ public partial class SIPSorceryStreamer
         {
             encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
+            // FFmpeg adapter: pin the NEGOTIATED codec explicitly. Its parameterless Initialize
+            // defaults to H265 (hevc_qsv), which fails to open on some iGPUs (e.g. Intel Arc:
+            // "Function not implemented") and produced a recreate -> H265-fail -> H264-recover
+            // churn every time the encoder was recreated (bitrate/FPS/resolution change), breaking
+            // the client stream even though H264 QSV works. Native wrappers (NVENC/AMF/QSV native)
+            // fall through to their BGRA/NV12 path below unchanged.
+            if (encoder is LibAvEncoderAdapter libavPrimary)
+            {
+                if (libavPrimary.Initialize(track.Width, track.Height, _fps,
+                        _bitrateController.TargetBitrateKbps, device, _negotiatedCodec))
+                {
+                    Logger.Info($"[SIPSorcery] Track {track.Index}: LibAv encoder initialized (codec: {libavPrimary.CurrentCodec})");
+                    return encoder;
+                }
+                Logger.Error($"[SIPSorcery] Track {track.Index}: LibAv primary ({_negotiatedCodec}) init failed, trying codec fallbacks...");
+                encoder.Dispose();
+                // Negotiated codec just failed on FFmpeg — skip it, try VP9/VP8 software fallbacks.
+                return TryInitializeLibAvEncoder(track, device, skipNegotiatedCodec: true);
+            }
+
             bool initSuccess;
             // Use BGRA mode if encoder supports it (eliminates GPU color conversion)
             if (encoder.SupportsBgraInput)

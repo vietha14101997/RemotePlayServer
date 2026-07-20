@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using RemotePlayServer.Core;
 using SIPSorceryMedia.Abstractions;
 using Vortice.Direct3D11;
@@ -66,6 +67,13 @@ public class SharedEncoderManager
     private ID3D11Device? _hostDevice;
     private readonly ConcurrentDictionary<Guid, ViewerEntry> _viewers = new();
 
+    // Host election is atomic and independent of encoder-ready state: claimed synchronously the
+    // moment a relay connection is elected host, released in RemoveHost() when that connection
+    // ends — even if it failed before its encoder came up. This prevents both the "everyone stuck
+    // as viewer after the host drops" lock (the raw relay adapter count never returning to 0) and a
+    // double-host race during the host's encoder warm-up window.
+    private int _hostClaimed; // 0 = free, 1 = claimed (accessed via Interlocked/Volatile)
+
     public static void Initialize()
     {
         _instance = new SharedEncoderManager();
@@ -128,8 +136,19 @@ public class SharedEncoderManager
         }
         _hostConfig = null;
         _hostDevice = null;
+        Interlocked.Exchange(ref _hostClaimed, 0); // release the claim so the next connection can be elected host
         Logger.Info("[SharedEncoder] Host removed");
     }
+
+    /// <summary>
+    /// Atomically elect the caller as host. Returns true for exactly ONE caller until
+    /// <see cref="RemoveHost"/> releases the claim — use this (not encoder-ready state or the relay
+    /// adapter count) to decide host vs viewer at connection time.
+    /// </summary>
+    public bool TryClaimHost() => Interlocked.CompareExchange(ref _hostClaimed, 1, 0) == 0;
+
+    /// <summary>True once a connection has been elected host, before or after its encoder is ready.</summary>
+    public bool HostClaimed => Volatile.Read(ref _hostClaimed) == 1;
 
     public bool HasHost => _hostStreamer != null && _hostConfig != null;
     public int ViewerCount => _viewers.Count;

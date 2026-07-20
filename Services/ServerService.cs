@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -434,34 +435,44 @@ public class ServerService : IDisposable
 
             var myPid = Environment.ProcessId;
 
+            // Collect DISTINCT holder PIDs first. netstat lists the same HttpListener socket on
+            // both the IPv4 (0.0.0.0) and IPv6 ([::]) lines, so iterating raw would act twice.
+            var holders = new HashSet<int>();
             foreach (var line in output.Split('\n'))
             {
                 if (!line.Contains($":{port} ") || !line.Contains("LISTENING")) continue;
-
                 var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length < 5) continue;
-
                 if (int.TryParse(parts[^1], out var pid) && pid != myPid)
+                    holders.Add(pid);
+            }
+
+            bool httpSysHolder = false;
+            foreach (var pid in holders)
+            {
+                if (pid <= 4)
                 {
-                    if (pid <= 4)
+                    // http.sys (System, PID 4) is the KERNEL owner of every HttpListener socket,
+                    // so a PID<=4 holder never means "restart the HTTP service" — doing that
+                    // invalidates listener handles machine-wide and yields "The handle is invalid"
+                    // on the next Start(). The real owner is a leftover instance of this app.
+                    httpSysHolder = true;
+                }
+                else
+                {
+                    try
                     {
-                        // PID 4 = System (HTTP.sys) — release the URL reservation
-                        Logger.Info($"[Port] HTTP.sys holding port {port}, releasing URL reservation...");
-                        await ReleaseHttpSysPort(port);
+                        var target = System.Diagnostics.Process.GetProcessById(pid);
+                        Logger.Info($"[Port] Killing process {target.ProcessName} (PID {pid}) holding port {port}");
+                        target.Kill();
+                        await Task.Delay(500);
                     }
-                    else
-                    {
-                        try
-                        {
-                            var target = System.Diagnostics.Process.GetProcessById(pid);
-                            Logger.Info($"[Port] Killing process {target.ProcessName} (PID {pid}) holding port {port}");
-                            target.Kill();
-                            await Task.Delay(500);
-                        }
-                        catch { }
-                    }
+                    catch { }
                 }
             }
+
+            if (httpSysHolder)
+                await KillLeftoverServerInstances(port, myPid);
         }
         catch (Exception ex)
         {
@@ -469,37 +480,50 @@ public class ServerService : IDisposable
         }
     }
 
-    private static async Task ReleaseHttpSysPort(int port)
+    /// <summary>
+    /// A port shown as held by http.sys (System PID) is really held by a leftover instance of
+    /// this server that did not shut down cleanly. Terminate those instances so the kernel
+    /// releases the URL registration; <see cref="SignalServer.StartAsync"/> then retries the
+    /// bind. We NEVER restart the shared HTTP service here — that breaks every HttpListener on
+    /// the machine and is what caused the slow, failing startups. Safe at this point in startup:
+    /// this instance has not spawned its own watchdog child yet (see DisplayGuard).
+    /// </summary>
+    private static async Task KillLeftoverServerInstances(int port, int myPid)
     {
-        // Stop and restart HTTP.sys to release stale registrations
-        var cmds = new[]
+        try
         {
-            ("net", "stop http /y"),
-            ("net", "start http")
-        };
+            using var self = System.Diagnostics.Process.GetCurrentProcess();
+            var exePath = self.MainModule?.FileName;
+            var name = self.ProcessName;
 
-        foreach (var (cmd, args) in cmds)
-        {
-            try
+            int killed = 0;
+            foreach (var p in System.Diagnostics.Process.GetProcessesByName(name))
             {
-                var psi = new System.Diagnostics.ProcessStartInfo
+                if (p.Id == myPid) continue;
+                try
                 {
-                    FileName = cmd,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-                using var proc = System.Diagnostics.Process.Start(psi);
-                if (proc == null) continue;
-                await proc.WaitForExitAsync();
-            }
-            catch { }
-        }
+                    // When the path is readable, only kill processes running the SAME executable.
+                    if (exePath != null &&
+                        !string.Equals(p.MainModule?.FileName, exePath, StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-        await Task.Delay(1000);
-        Logger.Info($"[Port] HTTP.sys restarted, port {port} should be free");
+                    Logger.Info($"[Port] Killing leftover server instance PID {p.Id} (holds port {port} via http.sys)");
+                    p.Kill();
+                    killed++;
+                }
+                catch { }
+                finally { p.Dispose(); }
+            }
+
+            if (killed > 0)
+                await Task.Delay(1000); // give the kernel a moment to release the URL registration
+            else
+                Logger.Warn($"[Port] Port {port} shown under http.sys but no leftover instance found; will retry bind");
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[Port] Leftover-instance cleanup failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -554,7 +578,12 @@ public class ServerService : IDisposable
 
             client.OnRoomReady += () =>
             {
-                var isFirstClient = relayBridge.ActiveCount == 0;
+                // Elect exactly one host per live session via the encoder manager's atomic claim
+                // (released when the host connection ends, even on failure) — NOT the raw relay
+                // adapter count, which can stay > 0 across a host drop when a reconnecting client
+                // overlaps the old host's teardown, previously locking every later client into
+                // viewer role forever ("host encoder not available").
+                var isFirstClient = SharedEncoderManager.Instance?.TryClaimHost() ?? false;
                 Logger.Info($"[Relay] Room ready — creating handler (active: {relayBridge.ActiveCount}, role: {(isFirstClient ? "host" : "viewer")})");
 
                 var handlerClientId = Guid.NewGuid();
