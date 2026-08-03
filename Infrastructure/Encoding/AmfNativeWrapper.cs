@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Vortice.Direct3D11;
 using RemotePlayServer.Core.Interfaces;
 using RemotePlayServer.Core;
@@ -141,6 +142,17 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     private bool _useHevc;
     private byte[] _callbackBuffer = Array.Empty<byte>();
 
+    // ── Keyframe diagnostic counters ──
+    // Track how often the encoder actually emits IDR frames. AMF HEVC with
+    // GOP_SIZE=0 (infinite GOP) is supposed to honor FORCE_PICTURE_TYPE for forced
+    // IDRs, but evidence from production logs shows the forced-IDR rate does not
+    // match the request rate. These counters let us verify whether forced requests
+    // are actually producing keyframes or being silently ignored by the encoder.
+    private long _encodedFrameCount;
+    private long _nativeKeyframeCount;
+    private long _overrideKeyframeCount;
+    private long _lastDiagLogTicks;
+
     #endregion
 
     #region Properties
@@ -176,6 +188,25 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     /// WARNING: The backing array is reused between calls — do NOT hold a reference after handler returns.
     /// </summary>
     public event Action<ArraySegment<byte>, bool, long>? OnEncodedData;
+
+    /// <summary>
+    /// Event fired when the encoder detects a scene-change pattern (current encoded frame
+    /// is significantly larger than recent average — typically tab switch / window open /
+    /// large UI update). Subscribers (e.g. streamer) should force the next encoded frame
+    /// to be an IDR so the client gets a fresh reference and avoids "đè trùng" artifacts.
+    /// </summary>
+    public event Action? OnSceneChangeDetected;
+
+    // ── Scene-change detection state ──
+    // Tracks recent encoded frame sizes. When current size > SCENE_CHANGE_RATIO × median,
+    // a scene change is flagged. Only fires after a minimum sample of frames (to avoid
+    // false positives during startup).
+    private const int SCENE_CHANGE_WINDOW = 10;       // sliding window of recent frame sizes
+    private const double SCENE_CHANGE_RATIO = 2.5;    // current frame must be 2.5× median
+    private const int SCENE_CHANGE_MIN_SAMPLES = 5;   // don't flag until we have history
+    private const long SCENE_CHANGE_MIN_BYTES = 8000; // skip trivial small frames (noise)
+    private readonly System.Collections.Generic.Queue<long> _recentFrameSizes = new(SCENE_CHANGE_WINDOW);
+    private long _lastSceneChangeTicks;
     
     #endregion
     
@@ -476,7 +507,77 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
                 _callbackBuffer = new byte[len * 2];
 
             Marshal.Copy(data, _callbackBuffer, 0, len);
-            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), isKeyFrame != 0, pts);
+
+            // Override isKeyFrame with managed-side NAL parsing.
+            // Native DetectKeyframeHEVC/H264 in NalUtils.h only matches 4-byte Annex-B
+            // start codes (00 00 00 01); AMF HEVC sometimes emits 3-byte start codes
+            // (00 00 01) for IDR frames. If we trust the buggy native flag, the streamer
+            // tags IDR frames as P-frames and the client never gets a fresh keyframe.
+            //
+            // Policy: trust native when it says keyframe=true (no need to re-scan).
+            // When native says keyframe=false, double-check with managed parser and
+            // override to true if an IDR/VPS/SPS/CRA NAL is found.
+            bool reportKeyframe = isKeyFrame != 0;
+            if (!reportKeyframe)
+            {
+                bool detected;
+                unsafe
+                {
+                    fixed (byte* p = _callbackBuffer)
+                    {
+                        detected = KeyframeDetector.IsKeyframe(p, len, _useHevc);
+                    }
+                }
+                if (detected)
+                {
+                    reportKeyframe = true;
+                    Interlocked.Increment(ref _overrideKeyframeCount);
+                    Logger.Info($"[AmfNativeWrapper] NAL parser overrode native isKeyFrame=0 → 1 (size={len}B)");
+                }
+            }
+            else
+            {
+                Interlocked.Increment(ref _nativeKeyframeCount);
+            }
+            Interlocked.Increment(ref _encodedFrameCount);
+
+            // Periodic diagnostic: log keyframe ratio every 5 seconds. Reveals whether
+            // AMF HEVC encoder is producing the IDRs we request (it often doesn't when
+            // GOP_SIZE=0 / infinite GOP, since intra-refresh is used for quality and
+            // FORCED_PICTURE_TYPE may be silently ignored).
+            long nowTicks = Environment.TickCount64;
+            long lastTicks = Interlocked.Read(ref _lastDiagLogTicks);
+            if (nowTicks - lastTicks > 5_000)
+            {
+                if (Interlocked.CompareExchange(ref _lastDiagLogTicks, nowTicks, lastTicks) == lastTicks)
+                {
+                    long total = Interlocked.Read(ref _encodedFrameCount);
+                    long nativeKf = Interlocked.Read(ref _nativeKeyframeCount);
+                    long overrideKf = Interlocked.Read(ref _overrideKeyframeCount);
+                    long totalKf = nativeKf + overrideKf;
+                    double pct = total > 0 ? (totalKf * 100.0 / total) : 0;
+                    Logger.Info($"[AmfNativeWrapper][diag] {_width}x{_height}@{_fps}fps codec={(_useHevc ? "HEVC" : "H264")}: " +
+                                $"encoded={total} nativeKf={nativeKf} overrideKf={overrideKf} totalKf={totalKf} ({pct:F2}%)");
+                }
+            }
+
+            // ── Scene-change detection ──
+            // A normal IDR is ~200-450 KB at 1080p HEVC; P-frames are usually 5-80 KB.
+            // When user clicks "New Tab" or switches apps, the next encoded frame is
+            // dramatically larger than recent P-frames (could be 200+ KB delta because
+            // the entire screen content changed). Detect this pattern and fire
+            // OnSceneChangeDetected so the streamer can force the NEXT frame as IDR.
+            //
+            // The flag is consumed by SIPSorceryStreamer.OnEncodedData, which sets
+            // ForceNextKeyframe=true so the following encode produces a fresh IDR.
+            //
+            // BUGFIX: was relying on DXGI's TotalMetadataBufferSize which underestimates
+            // actual content change (e.g. New Tab opens a mostly-blank page with tiny
+            // dirty rect header but huge visual difference). Encoded frame size is the
+            // ground truth for "did the desktop content actually change".
+            DetectAndFireSceneChange(len);
+
+            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), reportKeyframe, pts);
         }
         catch (Exception ex)
         {
@@ -496,6 +597,47 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
         }
         catch { }
         return "Unknown error";
+    }
+
+    /// <summary>
+    /// Update recent-frame-size sliding window and fire <see cref="OnSceneChangeDetected"/>
+    /// when the current frame's size is dramatically larger than the recent median.
+    /// Called once per encoded frame from <see cref="NativeCallback"/>.
+    /// </summary>
+    private void DetectAndFireSceneChange(long currentSize)
+    {
+        // Don't flag trivial small frames — those are intra-refresh roll or noise.
+        if (currentSize < SCENE_CHANGE_MIN_BYTES) return;
+
+        // Add to sliding window.
+        _recentFrameSizes.Enqueue(currentSize);
+        if (_recentFrameSizes.Count > SCENE_CHANGE_WINDOW)
+            _recentFrameSizes.Dequeue();
+
+        // Need enough history to compute a meaningful median.
+        if (_recentFrameSizes.Count < SCENE_CHANGE_MIN_SAMPLES) return;
+
+        // Compute median (sorted copy).
+        var sorted = new long[_recentFrameSizes.Count];
+        _recentFrameSizes.CopyTo(sorted, 0);
+        System.Array.Sort(sorted);
+        long median = sorted[sorted.Length / 2];
+
+        // Scene-change: current frame > RATIO × median.
+        if (median > 0 && currentSize > SCENE_CHANGE_RATIO * median)
+        {
+            // Throttle: at most one scene-change flag per ~500ms (the encoder will
+            // naturally produce an IDR within 1s after this anyway, and we don't
+            // want to spam IDR requests on transient compression spikes).
+            long now = Environment.TickCount64;
+            if (now - _lastSceneChangeTicks >= 500)
+            {
+                _lastSceneChangeTicks = now;
+                Logger.Info($"[AmfNativeWrapper] Scene change detected: frameSize={currentSize}B median={median}B ratio={currentSize / (double)median:F1}×");
+                try { OnSceneChangeDetected?.Invoke(); }
+                catch (Exception ex) { Logger.Error($"[AmfNativeWrapper] OnSceneChangeDetected handler error: {ex.Message}"); }
+            }
+        }
     }
     
     private void Cleanup()

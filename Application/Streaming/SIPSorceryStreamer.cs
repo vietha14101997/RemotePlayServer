@@ -160,6 +160,18 @@ public partial class SIPSorceryStreamer : IDisposable
         // Stats
         public long EncodedFrames;
         public long SentFrames;
+        // ── IDR pipeline diagnostic counters ──
+        // Track how many IDR frames reach each stage of the transmission pipeline.
+        // Reveals where IDRs are being lost between encoder output and client reception
+        // (e.g., DC buffer drop, DC not ready, IDR NAL extraction failure).
+        public long IdrReceivedFromEncoder;
+        public long IdrSentViaDc;
+        public long IdrDeferredDcNotReady;
+        public long IdrDeferredDcHigh;
+        public long IdrDeferredDcMid;
+        public long IdrNoNalFound;
+        public long IdrSendException;
+        public long LastIdrDiagTicks;
         public long LastPts100ns = -1;
         public uint RtpTimestamp;
         public bool TimestampInitialized;

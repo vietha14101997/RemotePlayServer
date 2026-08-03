@@ -273,9 +273,13 @@ public unsafe partial class LibAvEncoder
         _codecCtx->time_base = new AVRational { num = 1, den = _fps };
         _codecCtx->framerate = new AVRational { num = _fps, den = 1 };
         _codecCtx->bit_rate = _bitrate;
-        // 1s GOP - periodic I-frames for WiFi resilience
-        // Short enough to recover quickly from packet loss, long enough to avoid bandwidth waste
-        _codecCtx->gop_size = _fps;  // 1 second GOP
+        // 0.5s GOP — halved from 1s for tab-switch / scene-change recovery.
+        // Bug: tab switching produced P-frame-only updates for up to 1s with the
+        // old GOP. P-frames referencing the OLD keyframe (Messenger) caused the
+        // decoder to render "Messenger layout + YouTube video area" until the next
+        // IDR. A 0.5s ceiling halves the visible artifact window.
+        // Cost: ~2 IDR/s instead of 1, ~200-450KB extra bandwidth per IDR on 1080p H265.
+        _codecCtx->gop_size = Math.Max(_fps / 2, 1);  // 0.5 second GOP ceiling
         _codecCtx->max_b_frames = 0; // No B-frames for low latency
         _codecCtx->pix_fmt = AVPixelFormat.AV_PIX_FMT_NV12;
 
@@ -300,6 +304,9 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "header_insertion_mode", "idr", 0);
+                // Cap AMF IDR interval at 0.5s. AMF ignores the FFmpeg-level
+                // gop_size; set its priv option explicitly to match.
+                ffmpeg.av_opt_set_int(_codecCtx->priv_data, "gop_size", Math.Max(_fps / 2, 1), 0);
 
                 // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
                 if (_useVbrMode)
@@ -331,6 +338,10 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "zerolatency", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "delay", "0", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "no_scenecut", "0", 0);  // Enable scene change detection
+                // Match GOP ceiling: NVENC IDR interval independent from gop_size.
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", Math.Max(_fps / 2, 1).ToString(), 0);
+                // Scene-cut threshold (default 40 is balanced for desktop content).
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "scenecut", "40", 0);
                 // Quality settings for sharper text/desktop content
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "spatial-aq", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "temporal-aq", "1", 0);
@@ -373,7 +384,9 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_b", "0", 0);      // No B-frames
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "b_strategy", "0", 0);
                 // Extra QSV options for stability
-                ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", "0", 0);
+                // (was idr_interval=0 which forces IDR every frame — way too aggressive.
+                //  Cap at 0.5s to match gop_size ceiling.)
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", Math.Max(_fps / 2, 1).ToString(), 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "pic_timing_sei", "0", 0);
 
                 // Rate control: VBR for WiFi (variable bandwidth), CBR for LAN
@@ -411,6 +424,13 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "aq-strength", "8", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "rc-lookahead", "0", 0);  // No lookahead for low latency
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "no-scenecut", "0", 0);   // Enable scene change detection
+                // IDR interval: NVENC HEVC defaults to infinite GOP (~250 frames).
+                // Tab-switch bug: encoder produced P-frames for the entire next second
+                // referencing the OLD IDR, causing "old tab background + new tab video"
+                // reconstruction on the client. Setting idr_interval=0.5s caps the
+                // artifact window at 0.5s. scenecut=40 triggers extra IDR on big deltas.
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", Math.Max(_fps / 2, 1).ToString(), 0);
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "scenecut", "40", 0);
                 // HEVC Main Profile, Level 4.0 (supports 1080p60, 4K30)
                 _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
                 _codecCtx->level = 120;  // Level 4.0
@@ -445,9 +465,13 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "filler_data", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "frame_skipping", "false", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "header_insertion_mode", "idr", 0);
+                // AMF IDR interval — AMF ignores the FFmpeg-level gop_size field and
+                // uses its own "gop_size" priv option (in frames). Cap at 0.5s to match
+                // the FFmpeg-level ceiling set in ConfigureEncoderOptions.
+                ffmpeg.av_opt_set_int(_codecCtx->priv_data, "gop_size", Math.Max(_fps / 2, 1), 0);
                 // HEVC Profile
                 _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
-                _codecCtx->level = 120;
+                _codecCtx->level = 120;  // Level 4.0
 
                 // Rate control — tighter for DataChannel (SCTP) transport
                 if (_useVbrMode)
@@ -481,6 +505,9 @@ public unsafe partial class LibAvEncoder
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_i", "1", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "adaptive_b", "0", 0);
                 ffmpeg.av_opt_set(_codecCtx->priv_data, "b_strategy", "0", 0);
+                // Cap QSV HEVC IDR interval at 0.5s. Without this QSV can default
+                // to a much larger period and the tab-switch artifact window grows.
+                ffmpeg.av_opt_set(_codecCtx->priv_data, "idr_interval", Math.Max(_fps / 2, 1).ToString(), 0);
                 // HEVC Profile
                 _codecCtx->profile = ffmpeg.FF_PROFILE_HEVC_MAIN;
                 _codecCtx->level = 120;

@@ -41,13 +41,10 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_SPS, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
 
-    // Intra Refresh: gradually refresh MBs (16x16 blocks) across frames.
-    int mbCols = (width + 15) / 16;
-    int mbRows = (height + 15) / 16;
-    int totalMbs = mbCols * mbRows;
-    int mbsPerSlot = (totalMbs + fps - 1) / fps;
-    if (mbsPerSlot < 1) mbsPerSlot = 1;
-    encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)mbsPerSlot);
+    // Intra Refresh: BUGFIX — disabled. Same rationale as HEVC config below:
+    // with periodic IDRs every 1 second, intra-refresh is redundant and causes a
+    // visible left-to-right scanline wipe on tab switch.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)0);
 }
 
 // Configure encoder properties for low-latency streaming (H.265/HEVC)
@@ -62,7 +59,18 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, 0); // Infinite GOP — rely on intra refresh for quality
+    // BUGFIX: was 0 (infinite GOP). With infinite GOP the AMF HEVC encoder
+    // never emits natural IDR frames — and FORCED_PICTURE_TYPE for ad-hoc IDRs
+    // appears to be silently ignored on this AMD driver/build (client receives
+    // 0 IDRs after startup despite many forced requests). Tab-switch then shows
+    // the OLD keyframe background with new tab content rendered as P-frame
+    // deltas ("đè trùng") for the entire duration until a forced IDR actually
+    // propagates.
+    //
+    // Setting GOP_SIZE = fps (1 second) ensures the encoder emits a fresh IDR
+    // every ~1s without depending on forced-IDR being honored. Intra-refresh
+    // is still enabled below for smooth-quality recovery between IDRs.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
@@ -79,14 +87,22 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_I, (amf_int64)30);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_QP_P, (amf_int64)36);
 
-    // Intra Refresh: gradually refresh CTBs (64x64 blocks) across frames.
-    // Prevents temporal artifact accumulation without large IDR spikes.
-    int ctbCols = (width + 63) / 64;
-    int ctbRows = (height + 63) / 64;
-    int totalCtbs = ctbCols * ctbRows;
-    int ctbsPerSlot = (totalCtbs + fps - 1) / fps; // Refresh entire frame in ~1 second
-    if (ctbsPerSlot < 1) ctbsPerSlot = 1;
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)ctbsPerSlot);
+    // Intra Refresh: BUGFIX — disabled.
+    // Was: ctbsPerSlot = totalCtbs / fps → entire frame refreshed in ~1 second via
+    // rolling raster scan (left-to-right, top-to-bottom CTB order).
+    //
+    // Why this caused the visible artifact: AMF HEVC was previously configured with
+    // infinite GOP (GOP_SIZE=0), so intra-refresh was the ONLY way the decoder
+    // got a clean reference. With GOP_SIZE=fps (1 second IDRs) — see ConfigureAmfEncoderHEVC
+    // above — every second produces a fresh full IDR, making intra-refresh redundant.
+    // Worse, intra-refresh was producing a visible "scanline wipe" left-to-right on
+    // tab switch: P-frames between IDRs gradually update CTBs from top-left, so the
+    // user sees a sweep instead of an instant update when the IDR arrives.
+    //
+    // Setting INTRA_REFRESH_NUM_CTBS_PER_SLOT=0 disables the feature. With GOP=fps,
+    // each IDR provides the same quality recovery that intra-refresh was giving us,
+    // but instantly instead of over 1 second.
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)0);
 }
 
 // Encoder context structure
@@ -552,29 +568,18 @@ AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
             g_lastError = "SetProperty HEVC_FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
-        // GOP_SIZE stays 0 (infinite) — matches init config.
-        // Update intra refresh to match new FPS (refresh entire frame in ~1 second)
-        int ctbCols = (ctx->width + 63) / 64;
-        int ctbRows = (ctx->height + 63) / 64;
-        int totalCtbs = ctbCols * ctbRows;
-        int ctbsPerSlot = (totalCtbs + fps - 1) / fps;
-        if (ctbsPerSlot < 1) ctbsPerSlot = 1;
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)ctbsPerSlot);
+        // Maintain 1-second IDR period (matches init config), scaled to new FPS.
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps);
+        // Keep intra refresh disabled (matches init config — see ConfigureAmfEncoderHEVC).
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)0);
     } else {
         res = ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
         if (res != AMF_OK) {
             g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
-        // Maintain 5-second IDR period (matches init config), scaled to new FPS.
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 5);
-        // Update intra refresh to match new FPS
-        int mbCols = (ctx->width + 15) / 16;
-        int mbRows = (ctx->height + 15) / 16;
-        int totalMbs = mbCols * mbRows;
-        int mbsPerSlot = (totalMbs + fps - 1) / fps;
-        if (mbsPerSlot < 1) mbsPerSlot = 1;
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)mbsPerSlot);
+        // Keep intra refresh disabled (matches init config).
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)0);
     }
 
     ctx->fps = fps;

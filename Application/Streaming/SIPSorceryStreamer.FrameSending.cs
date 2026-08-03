@@ -59,7 +59,16 @@ public partial class SIPSorceryStreamer
     /// <summary>
     /// Push BGRA texture directly (for NVENC BGRA mode - no color conversion)
     /// </summary>
-    public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0)
+    /// <param name="isSceneChange">
+    /// Heuristic: large dirty area (>= 25% monitor). Forces IDR with 250ms throttle.
+    /// </param>
+    /// <param name="forceKeyframe">
+    /// Discrete input event detected (Tab / Alt-Tab / click / Ctrl-key combo).
+    /// Forces IDR with 400ms throttle. This is the PRIMARY signal that fixes the
+    /// tab-switch bug — it fires on the very next frame after the input arrives,
+    /// so the client never sees a P-frame referencing the pre-switch keyframe.
+    /// </param>
+    public void PushBgraTexture(int monitorIndex, ID3D11Texture2D bgraTexture, int width, int height, long captureTimestampMs = 0, bool isSceneChange = false, bool forceKeyframe = false)
     {
         if (!_running || _disposed || _isPaused) return;
         // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoFrame,
@@ -189,6 +198,44 @@ public partial class SIPSorceryStreamer
                 track.PendingFrame = null;
                 track.PendingCaptureTimestampMs = captureTimestampMs;
 
+                // INPUT-DRIVEN KEYFRAME REQUEST (PRIMARY FIX for tab-switch bug):
+                // When the client sends input (Tab / Alt-Tab / click / Ctrl-key combo /
+                // gamepad press), the next encoded frame must be an IDR — otherwise the
+                // P-frame references the PRE-input keyframe and the client reconstructs
+                // "pre-switch desktop + post-switch video area" for up to GOP seconds.
+                //
+                // Throttle: 400ms between forced IDRs per track. This allows:
+                //   - Discrete events (click, tab, key press) → fire IDR within 1 frame (~17ms @ 60fps).
+                //   - Continuous mouse motion (no discrete events) → IDR every 400ms (~2.5/s).
+                // NVENC HEVC IDR is 200-450KB; 2.5/s = ~0.5-1.1Mbps extra on 1080p, well within
+                // our 8Mbps cap on WiFi. LAN is unaffected.
+                if (forceKeyframe)
+                {
+                    long now = Environment.TickCount64;
+                    if (now - track.LastKeyframeRequestTicks >= 400)
+                    {
+                        track.ForceNextKeyframe = true;
+                        track.LastKeyframeRequestTicks = now;
+                        // Info level (not Debug) so we can verify the path fires in production logs.
+                        Logger.Info($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
+                    }
+                }
+
+                // SCENE-CHANGE IDR REQUEST (HEURISTIC):
+                // Secondary signal for the case where dirty metadata is large but no
+                // discrete input event fires (e.g., a window appears from a system event).
+                // Throttle 250ms; scene-change is rarer than input events so tighter is OK.
+                if (isSceneChange)
+                {
+                    long now = Environment.TickCount64;
+                    if (now - track.LastKeyframeRequestTicks >= 250)
+                    {
+                        track.ForceNextKeyframe = true;
+                        track.LastKeyframeRequestTicks = now;
+                        Logger.Info($"[SIPSorcery] Track {monitorIndex} scene-change → forcing IDR (dirty metadata large)");
+                    }
+                }
+
                 if (track.KeyframeStaggerCountdown > 0)
                 {
                     track.KeyframeStaggerCountdown--;
@@ -217,7 +264,7 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0)
+    public void PushTexture(int monitorIndex, ID3D11Texture2D nv12Texture, int width, int height, long captureTimestampMs = 0, bool isSceneChange = false, bool forceKeyframe = false)
     {
         if (!_running || _disposed || _isPaused) return;
         // Relay-media mode has no PeerConnection/DTLS — frames flow via OnRelayVideoFrame,
@@ -283,6 +330,31 @@ public partial class SIPSorceryStreamer
                 }
 
                 device.ImmediateContext.CopyResource(track.StagingNV12, nv12Texture);
+
+                // INPUT-DRIVEN KEYFRAME REQUEST (PRIMARY FIX for tab-switch bug).
+                // See PushBgraTexture for full rationale. 400ms throttle.
+                if (forceKeyframe)
+                {
+                    long now = Environment.TickCount64;
+                    if (now - track.LastKeyframeRequestTicks >= 400)
+                    {
+                        track.ForceNextKeyframe = true;
+                        track.LastKeyframeRequestTicks = now;
+                        Logger.Info($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
+                    }
+                }
+
+                // SCENE-CHANGE IDR REQUEST (HEURISTIC). 250ms throttle.
+                if (isSceneChange)
+                {
+                    long now = Environment.TickCount64;
+                    if (now - track.LastKeyframeRequestTicks >= 250)
+                    {
+                        track.ForceNextKeyframe = true;
+                        track.LastKeyframeRequestTicks = now;
+                        Logger.Info($"[SIPSorcery] Track {monitorIndex} scene-change → forcing IDR (dirty metadata large)");
+                    }
+                }
 
                 if (track.KeyframeStaggerCountdown > 0)
                 {
@@ -373,15 +445,20 @@ public partial class SIPSorceryStreamer
                 // P-frames go via standard RTP (handled below in SendFrameImmediate).
                 if (_negotiatedCodec == VideoCodec.H265)
                 {
+                    Interlocked.Increment(ref track.IdrReceivedFromEncoder);
+
                     // If DataChannel isn't open yet (race on reconnect), skip this keyframe
                     // and force the encoder to produce another one.
                     if (!IsH265DataChannelReady())
                     {
                         long dcNotReadyCount = Interlocked.Increment(ref track.DcNotReadyCount);
+                        Interlocked.Increment(ref track.IdrDeferredDcNotReady);
                         if (dcNotReadyCount <= 3 || dcNotReadyCount % 120 == 0)
                             Logger.Warn($"[SIPSorcery] Track {track.Index}: DataChannel not ready, deferring IDR #{dcNotReadyCount} (will force next keyframe)");
                         track.ForceNextKeyframe = true;
                         Interlocked.Exchange(ref track.SentFrames, 0);
+
+                        EmitIdrDiagIfDue(track);
                         return;
                     }
 
@@ -391,9 +468,10 @@ public partial class SIPSorceryStreamer
                         SendH265ParamSetsViaDataChannel(track, nalBytes);
                     }
 
-                    if (SendH265IdrViaDataChannel(track, nalBytes))
+                    if (SendH265IdrViaDataChannel(track, nalBytes, out var idrChunks))
                     {
                         track.IdrViaDcCount++;
+                        Interlocked.Increment(ref track.IdrSentViaDc);
 
                         // NOTE: Bootstrap IDR retry DISABLED.
                         // Original intent: retry IDR after 500ms in case SCTP dropped it during slow-start.
@@ -404,9 +482,12 @@ public partial class SIPSorceryStreamer
 
                         // IDR sent via DC — P-frames also go via DC below.
                         IncrementSentFrames(track);
+                        EmitIdrDiagIfDue(track);
                         return;
                     }
-                    // IDR deferred/failed — will retry on next keyframe
+                    // IDR deferred/failed — diagnose which path rejected it.
+                    // SendH265IdrViaDataChannel already logged Warn/Debug for HIGH/MID/no-NAL paths.
+                    EmitIdrDiagIfDue(track);
                     return;
                 }
             }
@@ -436,7 +517,7 @@ public partial class SIPSorceryStreamer
                     if (track.IdrViaDcCount == 0)
                         SendCodecConfigViaDataChannel(track, nalBytes);
 
-                    if (SendH265IdrViaDataChannel(track, nalBytes))
+                    if (SendH265IdrViaDataChannel(track, nalBytes, out _))
                     {
                         track.IdrViaDcCount++;
                         IncrementSentFrames(track);
@@ -760,9 +841,10 @@ public partial class SIPSorceryStreamer
     /// For single-chunk: chunkIndex=0, totalChunks=1
     /// For multi-chunk: client reassembles all chunks before feeding to decoder.
     /// </summary>
-    /// <returns>true if IDR was sent, false if deferred or failed</returns>
-    private bool SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData)
+    /// <returns>true if IDR was sent, false if deferred or failed. chunks sent via out param.</returns>
+    private bool SendH265IdrViaDataChannel(TrackInfo track, byte[] keyframeData, out int chunksSent)
     {
+        chunksSent = 0;
         var dc = GetH265VideoChannel(track.Index);
         if (dc == null) return false;
 
@@ -807,6 +889,7 @@ public partial class SIPSorceryStreamer
             Logger.Warn($"[SIPSorcery] Track {track.Index}: DC buffer HIGH ({buffered/1024}KB), deferring IDR");
             track.PFramesDroppedDuringCongestion = true; // IDR deferred = track also needs resync
             if (!perTrackMode) _dcWasAboveHigh = true;
+            Interlocked.Increment(ref track.IdrDeferredDcHigh);
             return false;
         }
         // Buffer between MID and HIGH: allow IDR only if track needs resync (P-frames were dropped).
@@ -814,6 +897,7 @@ public partial class SIPSorceryStreamer
         if (buffered > DC_BUFFER_MID_WATER && !track.PFramesDroppedDuringCongestion)
         {
             Logger.Debug($"[SIPSorcery] Track {track.Index}: DC buffer MID ({buffered/1024}KB), deferring non-critical IDR");
+            Interlocked.Increment(ref track.IdrDeferredDcMid);
             return false;
         }
 
@@ -826,6 +910,7 @@ public partial class SIPSorceryStreamer
             if (idrData == null || idrData.Length == 0)
             {
                 Logger.Warn($"[SIPSorcery] Track {track.Index}: No IDR NAL found in keyframe ({keyframeData.Length} bytes)");
+                Interlocked.Increment(ref track.IdrNoNalFound);
                 return false;
             }
 
@@ -843,13 +928,38 @@ public partial class SIPSorceryStreamer
                 var msg = BuildPaddedMessage(0x03, track.Index, chunk, totalChunks, idrData, offset, len);
                 dc.send(msg);
             }
+            chunksSent = totalChunks;
 
             return true;
         }
         catch (Exception ex)
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: Failed to send H265 IDR: {ex.Message}");
+            Interlocked.Increment(ref track.IdrSendException);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Periodically log per-track IDR pipeline counters so we can see exactly where
+    /// IDRs are being lost between encoder output and client reception.
+    /// </summary>
+    private void EmitIdrDiagIfDue(TrackInfo track)
+    {
+        long now = Environment.TickCount64;
+        long last = Interlocked.Read(ref track.LastIdrDiagTicks);
+        if (now - last > 5_000 && Interlocked.CompareExchange(ref track.LastIdrDiagTicks, now, last) == last)
+        {
+            long recv = Interlocked.Read(ref track.IdrReceivedFromEncoder);
+            long sent = Interlocked.Read(ref track.IdrSentViaDc);
+            long dNotReady = Interlocked.Read(ref track.IdrDeferredDcNotReady);
+            long dHigh = Interlocked.Read(ref track.IdrDeferredDcHigh);
+            long dMid = Interlocked.Read(ref track.IdrDeferredDcMid);
+            long noNal = Interlocked.Read(ref track.IdrNoNalFound);
+            long exc = Interlocked.Read(ref track.IdrSendException);
+            long totalDeferred = dNotReady + dHigh + dMid + noNal + exc;
+            Logger.Info($"[SIPSorcery][idr-diag] Track {track.Index}: recvFromEncoder={recv} sentViaDc={sent} " +
+                        $"deferred(notReady={dNotReady} high={dHigh} mid={dMid} noNal={noNal} exc={exc} total={totalDeferred})");
         }
     }
 

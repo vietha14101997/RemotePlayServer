@@ -443,7 +443,31 @@ public unsafe class NvencNativeWrapper : ITextureEncoder
                 _callbackBuffer = new byte[len * 2];
 
             Marshal.Copy(data, _callbackBuffer, 0, len);
-            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), isKeyFrame != 0, pts);
+
+            // Override isKeyFrame with managed-side NAL parsing.
+            // NVENC's DetectKeyframeHEVC only matches 4-byte Annex-B start codes
+            // (00 00 00 01); some NVENC builds emit 3-byte start codes (00 00 01)
+            // for IDR frames. Managed parser supports both.
+            // See AmfNativeWrapper.NativeCallback for the same fix + rationale.
+            bool reportKeyframe = isKeyFrame != 0;
+            if (!reportKeyframe)
+            {
+                bool detected;
+                unsafe
+                {
+                    fixed (byte* p = _callbackBuffer)
+                    {
+                        detected = KeyframeDetector.IsKeyframe(p, len, _useHevc);
+                    }
+                }
+                if (detected)
+                {
+                    reportKeyframe = true;
+                    Logger.Info($"[NvencNativeWrapper] NAL parser overrode native isKeyFrame=0 → 1 (size={len}B)");
+                }
+            }
+
+            OnEncodedData?.Invoke(new ArraySegment<byte>(_callbackBuffer, 0, len), reportKeyframe, pts);
         }
         catch (Exception ex)
         {

@@ -128,6 +128,39 @@ public sealed class PerMonitorCapture : IDisposable
         // causes DOM update that DXGI detects, but P-frame arrives at client too late).
         public volatile int InputForceFrames;
         public long InputNudgeCooldownTicks; // Prevents nudge spam under high-frequency input
+
+        // Input-driven keyframe forcing: when client sends input (especially Tab / Alt-Tab /
+        // Ctrl-Tab / mouse-click that may trigger a desktop scene change), the next encoded
+        // frame should be an IDR — otherwise the P-frame chain references the OLD keyframe
+        // and the client reconstructs "old background + new tab video area" until the next
+        // natural IDR (which may not come for several seconds because NVENC HEVC ignores
+        // FFmpeg's idr_interval option and uses its own GOP pacing).
+        //
+        // Decoupled from InputForceFrames: capture forcing has a 5-frame budget, keyframe
+        // forcing has a separate cooldown (400ms) to avoid IDR storms on continuous mouse
+        // motion while still firing immediately on discrete input events (clicks, key presses,
+        // tab switches).
+        public volatile int InputForceKeyframes;
+        public long InputKeyframeCooldownTicks; // Environment.TickCount64 of last forced-IDR
+
+        // Wake-from-idle detection: a desktop transition from "fully idle" to "now changed"
+        // almost always corresponds to a discrete user action (tab switch, window open,
+        // dialog pop, app launch). When the user does this on the DESKTOP PHYSICALLY
+        // (mouse click on browser tab), no input flows through the VR Input DataChannel —
+        // but DXGI still reports the change. We force an IDR on the first dirty frame after
+        // idle because the previous keyframe no longer represents the current desktop content.
+        //
+        // Tuned against real desktop noise: DXGI reports tiny dirty metadata (~16-32 bytes,
+        // i.e. 1-2 dirty rects) continuously even on a visually static Messenger screen —
+        // cursor blink, system tray clock tick, notification badge. Naive wake-from-idle
+        // detectors fire on every noise→active transition and IDR-storm the encoder
+        // (~300 IDR/sec observed on a real desktop, all on noise). We require:
+        //   1. Idle period >= MIN_IDLE_FOR_WAKE_MS (currently 1000ms)
+        //   2. Dirty area >= MIN_WAKE_DIRTY_BYTES (currently 5 KB) — excludes cursor/system noise
+        // Both must hold for wake-from-idle to trigger.
+        public long LastIdleStartTimeMs;  // Environment.TickCount64 when WasIdle flipped false→true
+        public const int MIN_IDLE_FOR_WAKE_MS = 1000;
+        public const int MIN_WAKE_DIRTY_BYTES = 5_000;
     }
     
     private volatile bool _running;
@@ -176,16 +209,21 @@ public sealed class PerMonitorCapture : IDisposable
 
     /// <summary>
     /// Callback for each monitor's NV12 texture frame.
-    /// Parameters: monitorIndex, nv12Texture, width, height, timestamp
+    /// Parameters: monitorIndex, nv12Texture, width, height, timestamp, isSceneChange, forceKeyframe
+    /// - isSceneChange = large dirty area (heuristic for tab switch).
+    /// - forceKeyframe = client recently sent input that should produce an IDR
+    ///   (tab / click / Alt-Tab). The streamer forces IDR (with internal throttle
+    ///   to avoid storms) so the P-frame chain never references stale content for
+    ///   user-driven changes.
     /// </summary>
-    public event Action<int, ID3D11Texture2D, int, int, long>? OnMonitorFrame;
+    public event Action<int, ID3D11Texture2D, int, int, long, bool, bool>? OnMonitorFrame;
 
     /// <summary>
     /// Callback for BGRA texture frame (for encoders that accept BGRA directly).
     /// When set, bypasses color conversion for better GPU efficiency.
-    /// Parameters: monitorIndex, bgraTexture, width, height, timestamp
+    /// Parameters: monitorIndex, bgraTexture, width, height, timestamp, isSceneChange, forceKeyframe
     /// </summary>
-    public event Action<int, ID3D11Texture2D, int, int, long>? OnMonitorFrameBgra;
+    public event Action<int, ID3D11Texture2D, int, int, long, bool, bool>? OnMonitorFrameBgra;
 
     /// <summary>
     /// When true, sends BGRA frames directly via OnMonitorFrameBgra instead of converting to NV12.
@@ -340,6 +378,11 @@ public sealed class PerMonitorCapture : IDisposable
     /// Force capture+encode for the next N frames on all monitors.
     /// Called when client sends input (mouse/keyboard/gamepad) to ensure
     /// the resulting visual changes are captured even on "idle" desktops.
+    ///
+    /// Also bumps <see cref="MonitorInfo.InputForceKeyframes"/> so the next encoded
+    /// frame is sent as an IDR (forcing keyframe on user activity is critical for
+    /// tab-switch / window-resize cases where the P-frame chain would otherwise
+    /// reference stale content).
     /// </summary>
     public void ForceFramesForInput(int frameCount = 5)
     {
@@ -348,6 +391,12 @@ public sealed class PerMonitorCapture : IDisposable
             // Only bump up, don't reduce if already higher
             if (mon.InputForceFrames < frameCount)
                 mon.InputForceFrames = frameCount;
+
+            // Bump keyframe counter (capped at 3). The actual IDR decision is
+            // throttled in PushBgraTexture/PushTexture (>= 400ms between forced IDRs
+            // per track) so continuous mouse motion doesn't trigger IDR storms.
+            if (mon.InputForceKeyframes < 3)
+                mon.InputForceKeyframes++;
         }
     }
 
@@ -768,6 +817,17 @@ public sealed class PerMonitorCapture : IDisposable
                             mon.InitialFrameSent,
                             mon.InputForceFrames);
                         bool desktopChanged = changeResult.DesktopChanged;
+                        // isSceneChange: large dirty area (>= 25% monitor).
+                        // Forwarded to the streamer so it can force an IDR instead
+                        // of a P-frame for the tab-switch / window-resize case.
+                        bool isSceneChange = changeResult.IsSceneChange;
+                        // forceKeyframe: union of (a) client input event flowing through
+                        // VR's Input DataChannel and (b) desktop wake-from-idle transition
+                        // (catches PHYSICAL desktop activity that doesn't flow through VR).
+                        // The latter is the PRIMARY fix for the tab-switch bug because the
+                        // user typically clicks tabs physically on the desktop, not via VR.
+                        bool forceKeyframe = mon.InputForceKeyframes > 0;
+                        bool wakeFromIdle = false;
                         if (changeResult.ConsumeInputForceFrame)
                             mon.InputForceFrames--;
 
@@ -779,6 +839,7 @@ public sealed class PerMonitorCapture : IDisposable
                             if (!mon.WasIdle && mon.IdleFrameCount >= 30)
                             {
                                 mon.WasIdle = true;
+                                mon.LastIdleStartTimeMs = Environment.TickCount64;
                                 try { OnMonitorIdleChanged?.Invoke(mon.Index, true); }
                                 catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
                                 Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop IDLE (skipping encode)");
@@ -795,6 +856,25 @@ public sealed class PerMonitorCapture : IDisposable
                             try { OnMonitorIdleChanged?.Invoke(mon.Index, false); }
                             catch (Exception ex) { Logger.Error($"[PerMonitorCapture] IdleChanged callback error: {ex.Message}"); }
                             Logger.Debug($"[PerMonitorCapture] Monitor {mon.Index}: Desktop ACTIVE (resuming encode)");
+
+                            // WAKE-FROM-IDLE → only trigger IDR if BOTH:
+                            //   1. The idle period was long enough (>= MIN_IDLE_FOR_WAKE_MS)
+                            //      — excludes the noisy idle/active transitions on real desktops
+                            //      that toggle every few frames (cursor blink, clock tick, badge).
+                            //   2. The dirty area is large enough (>= MIN_WAKE_DIRTY_BYTES)
+                            //      — excludes small noise. Without #2, the encoder is flooded
+                            //      with ~300 IDR/sec on a visually static Messenger screen.
+                            // When both hold, this is essentially a tab switch / window open /
+                            // dialog pop / app launch — discrete user actions that invalidate
+                            // the previous keyframe.
+                            long idleForMs = Environment.TickCount64 - mon.LastIdleStartTimeMs;
+                            uint dirtyBytes = frameInfo.TotalMetadataBufferSize;
+                            if (idleForMs >= MonitorInfo.MIN_IDLE_FOR_WAKE_MS &&
+                                dirtyBytes >= MonitorInfo.MIN_WAKE_DIRTY_BYTES)
+                            {
+                                wakeFromIdle = true;
+                                Logger.Debug($"[PerMonitorCapture] Mon{mon.Index} wake-from-idle → forcing IDR (idleForMs={idleForMs}, dirtyBytes={dirtyBytes})");
+                            }
                         }
 
                         // Always cache the latest frame content (fast GPU copy)
@@ -927,7 +1007,7 @@ public sealed class PerMonitorCapture : IDisposable
                             {
                                 // BGRA mode - send BGRA texture directly (no color conversion)
                                 mon.LastSentTime = loopStart;
-                                OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame!, mon.Width, mon.Height, captureTimestamp);
+                                OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame!, mon.Width, mon.Height, captureTimestamp, isSceneChange, forceKeyframe || wakeFromIdle);
                             }
                             else
                             {
@@ -944,7 +1024,7 @@ public sealed class PerMonitorCapture : IDisposable
                                 if (nv12Texture != null)
                                 {
                                     mon.LastSentTime = loopStart;
-                                    OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp);
+                                    OnMonitorFrame?.Invoke(mon.Index, nv12Texture, mon.Width, mon.Height, captureTimestamp, isSceneChange, forceKeyframe || wakeFromIdle);
                                 }
                             }
                         }
@@ -971,10 +1051,14 @@ public sealed class PerMonitorCapture : IDisposable
                     {
                         long captureTs = System.Diagnostics.Stopwatch.GetTimestamp() * 1_000_000 / System.Diagnostics.Stopwatch.Frequency;
                         mon.LastSentTime = loopStart;
+                        // Cached-frame re-send: pass isSceneChange=false, forceKeyframe=false.
+                        // The streamer already forces an IDR for the very first frame.
+                        // Re-sending with these flags true here would create IDR storms
+                        // on completely static desktops during the initial-frame bootstrap.
                         if (UseBgraMode)
-                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs);
+                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
                         else
-                            OnMonitorFrame?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs);
+                            OnMonitorFrame?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
                         continue; // Skip idle tracking while waiting for initial frame
                     }
 
@@ -1058,12 +1142,13 @@ public sealed class PerMonitorCapture : IDisposable
         if (UseBgraMode && mon.LastFrame != null)
         {
             mon.LastSentTime = loopStart;
-            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTimestamp);
+            // Cached fallback frame — never mark as scene change or force IDR (would storm on retries).
+            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTimestamp, false, false);
         }
         else if (mon.LastNV12Frame != null)
         {
             mon.LastSentTime = loopStart;
-            OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp);
+            OnMonitorFrame?.Invoke(mon.Index, mon.LastNV12Frame, mon.Width, mon.Height, captureTimestamp, false, false);
         }
     }
 

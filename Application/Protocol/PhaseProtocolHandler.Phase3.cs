@@ -836,9 +836,9 @@ namespace RemotePlayServer.Application.Protocol
             _captureEventsRegistered = true;
 
             // NV12 frame handler (standard path with color conversion)
-            _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp) =>
+            _capture.OnMonitorFrame += (monitorIndex, nv12Texture, w, h, timestamp, isSceneChange, forceKeyframe) =>
             {
-                _streamer?.PushTexture(monitorIndex, nv12Texture, w, h, timestamp);
+                _streamer?.PushTexture(monitorIndex, nv12Texture, w, h, timestamp, isSceneChange, forceKeyframe);
 
                 if (monitorIndex == 0)
                 {
@@ -849,7 +849,7 @@ namespace RemotePlayServer.Application.Protocol
             };
 
             // BGRA frame handler (zero-copy path, no color conversion)
-            _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp) =>
+            _capture.OnMonitorFrameBgra += (monitorIndex, bgraTexture, w, h, timestamp, isSceneChange, forceKeyframe) =>
             {
                 // Resize texture to target resolution (default 1080p)
                 ID3D11Texture2D? textureToSend = bgraTexture;
@@ -878,7 +878,7 @@ namespace RemotePlayServer.Application.Protocol
                 }
 
                 // Push texture (null-forgiving since textureToSend is always non-null)
-                _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight, timestamp);
+                _streamer?.PushBgraTexture(monitorIndex, textureToSend!, targetWidth, targetHeight, timestamp, isSceneChange, forceKeyframe);
 
                 if (monitorIndex == 0)
                 {

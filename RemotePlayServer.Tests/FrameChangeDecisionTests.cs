@@ -113,30 +113,75 @@ public class FrameChangeDecisionTests
     // ==================== Combined overrides ====================
 
     [Fact]
-    public void Evaluate_ChangedAndInputForce_ConsumesInputForce()
+    public void Evaluate_NotSentAndInputForce_ConsumesInputForce()
     {
         // Desktop already changed AND input is forcing: still consumes an input-force frame
         // (mirrors original inline logic where InputForceFrames-- runs whenever >0).
         var r = FrameChangeDecision.Evaluate(
             lastPresentTime: 100,
             totalMetadataBufferSize: 0,
-            initialFrameSent: true,
-            inputForceFrames: 5);
-
-        Assert.True(r.DesktopChanged);
-        Assert.True(r.ConsumeInputForceFrame);
-    }
-
-    [Fact]
-    public void Evaluate_NotSentAndInputForce_ConsumesInputForce()
-    {
-        var r = FrameChangeDecision.Evaluate(
-            lastPresentTime: 0,
-            totalMetadataBufferSize: 0,
             initialFrameSent: false,
             inputForceFrames: 2);
 
         Assert.True(r.DesktopChanged);
         Assert.True(r.ConsumeInputForceFrame);
+    }
+
+    // ==================== Scene-change detection (tab-switch bug fix) ====================
+
+    [Fact]
+    public void Evaluate_SmallMetadata_NotSceneChange()
+    {
+        // Cursor / scroll motion: metadata under threshold → not a scene change.
+        var r = FrameChangeDecision.Evaluate(
+            lastPresentTime: 100,
+            totalMetadataBufferSize: 1000,
+            initialFrameSent: true,
+            inputForceFrames: 0);
+
+        Assert.True(r.DesktopChanged);
+        Assert.False(r.IsSceneChange);
+    }
+
+    [Fact]
+    public void Evaluate_LargeMetadata_IsSceneChange()
+    {
+        // Tab switch: dirty area covers most of the screen → scene change.
+        var r = FrameChangeDecision.Evaluate(
+            lastPresentTime: 100,
+            totalMetadataBufferSize: FrameChangeDecision.SceneChangeMetadataBytesThreshold + 1,
+            initialFrameSent: true,
+            inputForceFrames: 0);
+
+        Assert.True(r.DesktopChanged);
+        Assert.True(r.IsSceneChange);
+    }
+
+    [Fact]
+    public void Evaluate_AtThreshold_IsSceneChange()
+    {
+        // Boundary: at the threshold the decision flips to true.
+        var r = FrameChangeDecision.Evaluate(
+            lastPresentTime: 100,
+            totalMetadataBufferSize: FrameChangeDecision.SceneChangeMetadataBytesThreshold,
+            initialFrameSent: true,
+            inputForceFrames: 0);
+
+        Assert.True(r.IsSceneChange);
+    }
+
+    [Fact]
+    public void Evaluate_IdleMetadata_NeverSceneChange()
+    {
+        // Idle desktop has zero metadata — never qualifies as a scene change
+        // regardless of overrides.
+        var r = FrameChangeDecision.Evaluate(
+            lastPresentTime: 0,
+            totalMetadataBufferSize: 0,
+            initialFrameSent: true,
+            inputForceFrames: 0);
+
+        Assert.False(r.DesktopChanged);
+        Assert.False(r.IsSceneChange);
     }
 }
