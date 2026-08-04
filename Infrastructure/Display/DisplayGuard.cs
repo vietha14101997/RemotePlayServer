@@ -640,35 +640,21 @@ static class DisplayGuard
             {
                 Logger.Info("[Guard] Restoring Scale and Layout (DPI)...");
 
-                // Prefer user-saved scale from display-settings.json over snapshot
+                // BUGFIX: Always restore from the captured snapshot, NEVER read
+                // display-settings.json here. The settings file stores the user's
+                // *desired* scale for new sessions — applying it on shutdown would
+                // overwrite the original (pre-session) scale with the default, even
+                // though the user only intended it for the next connect.
+                // Example: user has Host at 100%, accidentally saves 125% as default,
+                // connects once → disconnect would permanently flip Host to 125%.
                 int percent = 100;
-                try
+                var firstDpi = snap.DpiSnapshot.FirstOrDefault(s => s.DpiValue.HasValue);
+                if (firstDpi.DpiValue.HasValue)
                 {
-                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "display-settings.json");
-                    if (File.Exists(configPath))
-                    {
-                        var json = File.ReadAllText(configPath);
-                        var doc = System.Text.Json.JsonDocument.Parse(json);
-                        if (doc.RootElement.TryGetProperty("scalePercent", out var prop))
-                        {
-                            percent = prop.GetInt32();
-                            Logger.Info($"[Guard] Using saved scale from display-settings.json: {percent}%");
-                        }
-                    }
-                }
-                catch { }
-
-                // Fallback to snapshot if no saved config
-                if (percent == 100)
-                {
-                    var firstDpi = snap.DpiSnapshot.FirstOrDefault(s => s.DpiValue.HasValue);
-                    if (firstDpi.DpiValue.HasValue)
-                    {
-                        percent = firstDpi.DpiValue.Value * 100 / 96;
-                    }
+                    percent = firstDpi.DpiValue.Value * 100 / 96;
                 }
 
-                Logger.Info($"[Guard] Restoring DPI to {percent}%");
+                Logger.Info($"[Guard] Restoring DPI to {percent}% (from session-start snapshot, ignoring display-settings.json)");
                 bool success = DpiScalingHelper.SetAllMonitorsDpiScaling((uint)percent);
                 if (success)
                 {

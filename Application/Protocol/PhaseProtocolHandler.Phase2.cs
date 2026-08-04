@@ -164,8 +164,11 @@ namespace RemotePlayServer.Application.Protocol
 
             // Complete 7-step ultrawide setup (VDD off → create → primary → scale → ShowOnly → verify)
             await SendProgressAsync("vdd_setup", 20, $"Creating ultrawide virtual display ({width}x{height})...");
+            // BUGFIX (1-monitor ultrawide scale ignored): pass client's requested scale
+            // (config.WindowsScale). Falls back to display-settings.json inside the helper
+            // when config.WindowsScale <= 0.
             string? vddName = await Task.Run(() =>
-                VirtualDisplayManager.SetupUltrawideVirtualMonitor(width, height, hz));
+                VirtualDisplayManager.SetupUltrawideVirtualMonitor(width, height, hz, config.WindowsScale));
 
             if (vddName == null)
             {
@@ -209,8 +212,10 @@ namespace RemotePlayServer.Application.Protocol
             // Reuse ultrawide 7-step flow (VDD off → create → primary → ShowOnly → verify)
             // Skip DPI override (step 5) — phone resolution is already small, 100% is better
             await SendProgressAsync("vdd_setup", 20, $"Creating mobile-bound virtual display ({vddW}x{vddH}@{hz}Hz)...");
+            // BUGFIX (bind_mobile scale ignored): pass client's requested scale
+            // (config.WindowsScale) so the new VDD gets the user-selected %.
             string? vddName = await Task.Run(() =>
-                VirtualDisplayManager.SetupUltrawideVirtualMonitor(vddW, vddH, hz));
+                VirtualDisplayManager.SetupUltrawideVirtualMonitor(vddW, vddH, hz, config.WindowsScale));
 
             if (vddName == null)
             {
@@ -253,41 +258,58 @@ namespace RemotePlayServer.Application.Protocol
         {
             await SendProgressAsync("vdd_setup", 0, "Checking display configuration...");
 
-            // Apply Windows display scale (100%, 125%, 150%)
-            var requestedScale = config.WindowsScale;
-            if (requestedScale == 100 || requestedScale == 125 || requestedScale == 150)
-            {
-                Logger.Info($"[Protocol] Setting Windows scale to {requestedScale}%...");
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        if (Infrastructure.Display.DpiScalingHelper.SetAllMonitorsDpiScaling((uint)requestedScale))
-                        {
-                            Logger.Info($"[Protocol] Windows scale set to {requestedScale}% ✓");
-                            _displayModified = true;
-                        }
-                        else
-                        {
-                            Logger.Error($"[Protocol] Failed to set Windows scale to {requestedScale}%");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"[Protocol] Scale error: {ex.Message}");
-                    }
-                });
-            }
-
-            // Store monitor type in runtime config
+            // Store monitor type in runtime config FIRST — so we know which path to take.
             DisplayConfig.MonitorType = config.MonitorType ?? "standard";
             bool isUltrawide = DisplayConfig.MonitorType == "ultrawide" || DisplayConfig.MonitorType == "super_ultrawide";
+            bool isBindMobile = DisplayConfig.MonitorType == "bind_mobile";
+
+            // BUGFIX (1-monitor ultrawide/super-ultrawide/bind_mobile stuck at 100% scale):
+            // The DPI helper sets scale only on EXISTING monitor paths. When the
+            // monitor is created LATER (ultrawide VDD via SetupUltrawideVirtualMonitor,
+            // bind-mobile VDD via the same), the early set is overwritten by the
+            // new monitor's own scale or never applies to the new monitor at all.
+            // Solution: defer the DPI set to the specific ultrawide/bind-mobile flow,
+            // which calls SetAllMonitorsDpiScaling AFTER the VDD is created and ready
+            // (see SetupUltrawideVirtualMonitor step 3).
+            if (!isUltrawide && !isBindMobile)
+            {
+                // Apply Windows display scale (100%, 125%, 150%) — standard flow only
+                var requestedScale = config.WindowsScale;
+                if (requestedScale == 100 || requestedScale == 125 || requestedScale == 150)
+                {
+                    Logger.Info($"[Protocol] Setting Windows scale to {requestedScale}%...");
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            if (Infrastructure.Display.DpiScalingHelper.SetAllMonitorsDpiScaling((uint)requestedScale))
+                            {
+                                Logger.Info($"[Protocol] Windows scale set to {requestedScale}% ✓");
+                                _displayModified = true;
+                            }
+                            else
+                            {
+                                Logger.Error($"[Protocol] Failed to set Windows scale to {requestedScale}%");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"[Protocol] Scale error: {ex.Message}");
+                        }
+                    });
+                }
+            }
+            else
+            {
+                Logger.Info($"[Protocol] {DisplayConfig.MonitorType} mode: deferring DPI set until VDD is created " +
+                    $"(requested scale from client: {config.WindowsScale}%)");
+            }
 
             if (isUltrawide)
             {
                 await ApplyUltrawideDisplayAsync(config);
             }
-            else if (DisplayConfig.MonitorType == "bind_mobile")
+            else if (isBindMobile)
             {
                 await ApplyBindMobileDisplayAsync(config);
             }
@@ -354,7 +376,7 @@ namespace RemotePlayServer.Application.Protocol
 
                     // ALWAYS ensure topology and scaling are applied (for both physical and virtual monitors)
                     await SendProgressAsync("topology", 60, "Configuring display layout and scaling...");
-                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual());
+                    await Task.Run(() => VirtualDisplayManager.EnsureExtendDesktopWithVirtual(config.WindowsScale));
                     await Task.Delay(1000); // Allow Windows to apply changes
 
                     _displayModified = true;

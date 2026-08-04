@@ -205,8 +205,12 @@ static class VirtualDisplayManager
     /// Step 2: Resolution — ensure virtual monitors match physical resolution
     /// Step 3: Primary — restore original primary display
     /// Step 4: Position — place virtual monitors to the RIGHT of all physical
+    ///
+    /// <paramref name="requestedScalePercent"/> — when &gt; 0, overrides the
+    /// value read from display-settings.json (BUGFIX for 1-monitor ultrawide/
+    /// super-ultrawide/bind-mobile not honoring the client's selection).
     /// </summary>
-    public static void EnsureExtendDesktopWithVirtual()
+    public static void EnsureExtendDesktopWithVirtual(int requestedScalePercent = 0)
     {
         Console.WriteLine("[Display] ══════ Multi-Monitor Setup Pipeline ══════");
 
@@ -369,8 +373,8 @@ static class VirtualDisplayManager
             Console.WriteLine($"[Display]   {mon.name} {w}x{h} at ({x},{y}) [{type}]{(isPrimary ? " [PRIMARY]" : "")}");
         }
 
-        int savedScale = GetSavedScalePercent();
-        Console.WriteLine($"[Display] Setting Windows Scale and Layout to {savedScale}%...");
+        int savedScale = requestedScalePercent > 0 ? requestedScalePercent : GetSavedScalePercent();
+        Console.WriteLine($"[Display] Setting Windows Scale and Layout to {savedScale}% (source: {(requestedScalePercent > 0 ? "client request" : "display-settings.json")})...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
         if (DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale))
             Console.WriteLine($"[Display] Scale set to {savedScale}% ✓");
@@ -388,6 +392,7 @@ static class VirtualDisplayManager
     /// </summary>
     /// <returns>The device name of the virtual monitor, or null on failure</returns>
     public static string? SetupUltrawideVirtualMonitor(int width, int height, int refreshRate,
+        int requestedScalePercent = 0,
         string settingsPath = @"C:\VirtualDisplayDriver\vdd_settings.xml")
     {
         Console.WriteLine("[Bind Mobile] ══════ Virtual Monitor Setup Pipeline ══════");
@@ -447,8 +452,8 @@ static class VirtualDisplayManager
         SetAsPrimaryDisplay(virtualMonitorName);
         Thread.Sleep(500);
 
-        int savedScale = GetSavedScalePercent();
-        Console.WriteLine($"[Bind Mobile]   Setting {savedScale}% scale...");
+        int savedScale = requestedScalePercent > 0 ? requestedScalePercent : GetSavedScalePercent();
+        Console.WriteLine($"[Bind Mobile]   Setting {savedScale}% scale (source: {(requestedScalePercent > 0 ? "client request" : "display-settings.json")})...");
         _originalDpiSettings = DpiScalingHelper.GetAllMonitorsDpiInfo();
         DpiScalingHelper.SetAllMonitorsDpiScaling((uint)savedScale);
         Thread.Sleep(300);

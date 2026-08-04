@@ -29,7 +29,7 @@ public class RelayClientReconnectTests
     }
 
     [Fact]
-    public void TryStartReconnectLoopAsync_SecondConcurrentCall_ReturnsImmediately_SingleFlight()
+    public async Task TryStartReconnectLoopAsync_SecondConcurrentCall_ReturnsImmediately_SingleFlight()
     {
         using var client = new RelayClient();
 
@@ -45,7 +45,11 @@ public class RelayClientReconnectTests
             "a second concurrent reconnect attempt must be a no-op (single-flight guard)");
 
         client.Dispose();
-        Assert.True(loopTask.Wait(TimeSpan.FromSeconds(5)), "reconnect loop did not stop after Dispose()");
+        // Task.WhenAny returns the first-completed task. If the delay wins, the loop
+        // did not finish within 5s → fail. Equivalent to the sync .Wait(timeout) bool
+        // but doesn't block the test thread (no deadlock risk).
+        var winner = await Task.WhenAny(loopTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(loopTask, winner);
     }
 
     [Fact]
@@ -62,7 +66,7 @@ public class RelayClientReconnectTests
     }
 
     [Fact]
-    public void ReconnectLoop_UserDisconnectMidBackoff_StopsLoop_EndsDisconnected()
+    public async Task ReconnectLoop_UserDisconnectMidBackoff_StopsLoop_EndsDisconnected()
     {
         using var client = new RelayClient();
         var stateHistory = new List<RelayClient.RelayConnectionState>();
@@ -76,7 +80,8 @@ public class RelayClientReconnectTests
         // Simulate the user explicitly disconnecting while a backoff wait is in flight.
         client.Dispose();
 
-        Assert.True(loopTask.Wait(TimeSpan.FromSeconds(5)), "reconnect loop did not stop after Dispose()");
+        var winner = await Task.WhenAny(loopTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(loopTask, winner);
         Assert.Equal(RelayClient.RelayConnectionState.Disconnected, client.State);
         Assert.Equal(
             new[] { RelayClient.RelayConnectionState.Reconnecting, RelayClient.RelayConnectionState.Disconnected },
