@@ -533,31 +533,10 @@ namespace RemotePlayServer.Application.Protocol
 
                     // Client requests initial frame after DataChannel is ready.
                     // Resets InitialFrameSent so capture forces a frame even on idle desktops.
+                    // Shared with Phase 2's HandleRequestInitialFrame — both phases can receive this.
                     if (msgType == "request_initial_frame")
                     {
-                        int monitorIndex = -1;
-                        try
-                        {
-                            var json = System.Text.Json.JsonDocument.Parse(text);
-                            if (json.RootElement.TryGetProperty("monitorIndex", out var mi))
-                                monitorIndex = mi.GetInt32();
-                        }
-                        catch { }
-
-                        Logger.Info($"[Protocol] Client requested initial frame for monitor {monitorIndex}");
-                        // Reset InitialFrameSent so capture loop forces frame through even if desktop is idle
-                        if (_capture != null)
-                        {
-                            if (monitorIndex >= 0 && monitorIndex < _capture.Monitors.Count)
-                            {
-                                _capture.Monitors[monitorIndex].InitialFrameSent = false;
-                            }
-                            else
-                            {
-                                _capture.ForceInitialFrames();
-                            }
-                        }
-                        _streamer?.RequestKeyframe(monitorIndex, force: true);
+                        HandleRequestInitialFrame(text);
                         continue;
                     }
 

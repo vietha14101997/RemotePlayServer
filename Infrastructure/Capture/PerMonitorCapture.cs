@@ -358,9 +358,23 @@ public sealed class PerMonitorCapture : IDisposable
             mon.WasIdle = false;
         }
 
-        // Nudge cursor 1px and back to force DXGI Desktop Duplication to return a frame.
-        // Without this, a completely static desktop (no pixel changes since boot/login)
-        // causes AcquireNextFrame to return WaitTimeout forever → no initial frame.
+        NudgeCursorForInitialFrame();
+
+        Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors + cursor nudge");
+    }
+
+    /// <summary>
+    /// Move the OS cursor 1px and back so DXGI Desktop Duplication is forced to
+    /// produce a Present on the next <c>AcquireNextFrame</c> call. Public so that
+    /// <c>HandleRequestInitialFrame</c> in PhaseProtocolHandler can use it when a
+    /// specific monitor index is requested (mirroring the bulk <see cref="ForceInitialFrames"/>
+    /// behavior for the all-monitors case).
+    /// Without this nudge, a completely static desktop (no pixel changes since
+    /// boot/login) causes AcquireNextFrame to return WaitTimeout forever, which
+    /// deadlocks the single-PC 1-monitor stream because no IDR ever gets sent.
+    /// </summary>
+    public void NudgeCursorForInitialFrame()
+    {
         try
         {
             if (GetCursorPos(out var pos))
@@ -369,9 +383,7 @@ public sealed class PerMonitorCapture : IDisposable
                 SetCursorPos(pos.X, pos.Y);
             }
         }
-        catch { /* non-critical */ }
-
-        Logger.Info($"[PerMonitorCapture] ForceInitialFrames: reset {Monitors.Count} monitors + cursor nudge");
+        catch { /* non-critical — placeholder texture path is the safety net */ }
     }
 
     /// <summary>
@@ -1047,19 +1059,70 @@ public sealed class PerMonitorCapture : IDisposable
                     // last frame so the client gets content even on completely static desktops.
                     // If initial frame not yet confirmed sent, re-send cached LastFrame.
                     // This handles the case where desktop is completely static after connect.
-                    if (!mon.InitialFrameSent && mon.LastFrame != null)
+                    if (!mon.InitialFrameSent)
                     {
-                        long captureTs = System.Diagnostics.Stopwatch.GetTimestamp() * 1_000_000 / System.Diagnostics.Stopwatch.Frequency;
-                        mon.LastSentTime = loopStart;
-                        // Cached-frame re-send: pass isSceneChange=false, forceKeyframe=false.
-                        // The streamer already forces an IDR for the very first frame.
-                        // Re-sending with these flags true here would create IDR storms
-                        // on completely static desktops during the initial-frame bootstrap.
-                        if (UseBgraMode)
-                            OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
-                        else
-                            OnMonitorFrame?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
-                        continue; // Skip idle tracking while waiting for initial frame
+                        // BUGFIX (1-monitor stuck): when a desktop is COMPLETELY static from
+                        // connect time (no Present calls > ACQUIRE_TIMEOUT_MS), `LastFrame`
+                        // stays null forever and we never get past this branch without a
+                        // real DXGI frame. With only 1 monitor captured, the entire stream
+                        // would deadlock — the client would never receive an IDR → cluster
+                        // rig never created → "stuck after connected" symptom.
+                        // Fix: allocate a black BGRA placeholder on the first WaitTimeout
+                        // when `LastFrame` is still null, then push it through the encoder
+                        // as the initial frame. The encoder turns it into a valid IDR, the
+                        // server marks `InitialFrameSent=true`, and the stream comes alive.
+                        // On 2/3-monitor setups this branch is rarely hit because at least
+                        // one physical monitor has cursor/clock-tick Presents; on a single
+                        // monitor (especially Ultrawide/Super-Ultrawide VDD), it's the
+                        // dominant path.
+                        if (mon.LastFrame == null && mon.Device != null)
+                        {
+                            try
+                            {
+                                mon.LastFrame = mon.Device.CreateTexture2D(new Texture2DDescription
+                                {
+                                    Width = (uint)mon.Width,
+                                    Height = (uint)mon.Height,
+                                    MipLevels = 1,
+                                    ArraySize = 1,
+                                    Format = Vortice.DXGI.Format.B8G8R8A8_UNorm,
+                                    SampleDescription = new Vortice.DXGI.SampleDescription(1, 0),
+                                    Usage = ResourceUsage.Default,
+                                    BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+                                    CPUAccessFlags = CpuAccessFlags.None
+                                });
+                                // Clear to a known neutral color (very dark gray) so the
+                                // encoder produces valid IDR content rather than undefined
+                                // GPU memory garbage that may crash the client's MediaCodec
+                                // decoder. The placeholder is replaced by real frames as
+                                // soon as DXGI returns a Present.
+                                if (mon.Context != null)
+                                {
+                                    using var rtv = mon.Device.CreateRenderTargetView(mon.LastFrame, null);
+                                    mon.Context.ClearRenderTargetView(rtv, new Vortice.Mathematics.Color4(0.02f, 0.02f, 0.02f, 1f));
+                                }
+                                Logger.Info($"[PerMonitorCapture] Monitor {mon.Index}: Initial frame placeholder created (no DXGI frame available — idle desktop)");
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"[PerMonitorCapture] Monitor {mon.Index}: Failed to create initial placeholder: {ex.Message}");
+                            }
+                        }
+
+                        if (mon.LastFrame != null)
+                        {
+                            long captureTs = System.Diagnostics.Stopwatch.GetTimestamp() * 1_000_000 / System.Diagnostics.Stopwatch.Frequency;
+                            mon.LastSentTime = loopStart;
+                            // Cached-frame re-send: pass isSceneChange=false, forceKeyframe=false.
+                            // The streamer already forces an IDR for the very first frame.
+                            // Re-sending with these flags true here would create IDR storms
+                            // on completely static desktops during the initial-frame bootstrap.
+                            if (UseBgraMode)
+                                OnMonitorFrameBgra?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
+                            else
+                                OnMonitorFrame?.Invoke(mon.Index, mon.LastFrame, mon.Width, mon.Height, captureTs, false, false);
+                            continue; // Skip idle tracking while waiting for initial frame
+                        }
                     }
 
                     mon.IdleFrameCount++;

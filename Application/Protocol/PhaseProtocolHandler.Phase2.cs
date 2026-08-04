@@ -907,8 +907,63 @@ namespace RemotePlayServer.Application.Protocol
                     // Client acknowledged successful reconnect for a monitor
                     HandleReconnectAck(json);
                     break;
+
+                case "request_initial_frame":
+                    // BUGFIX (1-monitor stuck): client now sends this immediately when its
+                    // h265video-N DataChannel is created (single-PC mode). The message
+                    // arrives during Phase 2 ICE exchange, BEFORE Phase 3 begins — so we
+                    // must handle it here too, not only in Phase 3's receive loop.
+                    // Logic is identical to Phase3.cs — extracts monitorIndex, resets
+                    // InitialFrameSent so capture forces a frame even on idle desktops,
+                    // and forces next encoded frame as IDR.
+                    HandleRequestInitialFrame(json);
+                    break;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Shared handler for "request_initial_frame" — usable from both Phase 2 ICE loop
+        /// (early arrival, single-PC 1-monitor case) and Phase 3 streaming loop.
+        /// Resets the monitor's <c>InitialFrameSent</c> flag so the capture loop forces a
+        /// frame even on a completely static desktop, and forces the next encoded frame
+        /// as an IDR. Also nudges the cursor (mirroring <see cref="PerMonitorCapture.ForceInitialFrames"/>)
+        /// so DXGI Desktop Duplication is guaranteed to produce a frame on truly idle
+        /// desktops — without this nudge, a single-monitor stream on a fully static
+        /// screen could deadlock (no Present calls → AcquireNextFrame WaitTimeout forever).
+        /// No-op if capture/streamer aren't ready yet.
+        /// </summary>
+        private void HandleRequestInitialFrame(string json)
+        {
+            int monitorIndex = -1;
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("monitorIndex", out var mi))
+                    monitorIndex = mi.GetInt32();
+            }
+            catch { }
+
+            Logger.Info($"[Protocol] Client requested initial frame for monitor {monitorIndex}");
+            if (_capture != null)
+            {
+                if (monitorIndex >= 0 && monitorIndex < _capture.Monitors.Count)
+                {
+                    // Targeted reset: just this monitor. The cursor nudge below covers
+                    // the "DXGI won't return a frame because the desktop is dead still"
+                    // case that `InitialFrameSent=false` alone can't fix — the capture
+                    // loop would still see WaitTimeout because no Present occurred.
+                    _capture.Monitors[monitorIndex].InitialFrameSent = false;
+                    _capture.Monitors[monitorIndex].WasIdle = false;
+                    try { _capture.NudgeCursorForInitialFrame(); }
+                    catch (Exception ex) { Logger.Warn($"[Protocol] Cursor nudge for initial frame failed: {ex.Message}"); }
+                }
+                else
+                {
+                    _capture.ForceInitialFrames();
+                }
+            }
+            _streamer?.RequestKeyframe(monitorIndex, force: true);
         }
 
         /// <summary>
@@ -1275,6 +1330,26 @@ namespace RemotePlayServer.Application.Protocol
                     Logger.Info($"[Protocol] Offer has {offerVideoCount} m=video section(s) but {monitorCount} monitors configured. " +
                         $"Limiting tracks to {offerVideoCount} to match offer.");
                     monitorCount = offerVideoCount;
+                }
+
+                // BUGFIX (1-monitor stuck): client always sends `perTrackPc:true` in
+                // hardware_info_ack (see PhaseOneHandler.cs:126), but the client only
+                // ACTUALLY enables per-track PC mode when monitor count > 1 (see
+                // PhaseProtocolClient.cs:416). When monitors=1, the client uses
+                // single-PC mode and ignores `video_offer` from the server (logs
+                // "video_offer received but perTrackPcMode=false, ignoring" at
+                // PhaseProtocolClient.cs:819), so the server's per-track video PC
+                // never receives an answer → waits 15s → falls back to main PC.
+                // Result: 15-second delay where the client sees the "CONNECTED" menu
+                // without transitioning to the remote desktop display.
+                // Fix: override _perTrackPc=false here when monitorCount<=1. This is
+                // symmetric with the H264 override just below.
+                if (_perTrackPc && monitorCount <= 1)
+                {
+                    Logger.Info($"[Protocol] Single-monitor config (monitors={monitorCount}): disabling perTrackPc " +
+                        $"(client's hardware_info_ack always reports perTrackPc=true regardless of monitor count, " +
+                        $"but client's actual mode is single-PC when monitors<=1).");
+                    _perTrackPc = false;
                 }
 
                 var targetHeight = TextureResizer.DEFAULT_TARGET_HEIGHT;
