@@ -216,8 +216,10 @@ public partial class SIPSorceryStreamer
                     {
                         track.ForceNextKeyframe = true;
                         track.LastKeyframeRequestTicks = now;
-                        // Info level (not Debug) so we can verify the path fires in production logs.
-                        Logger.Info($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
+                        // Debug: under continuous mouse motion this fires ~2.5/sec/track,
+                        // dumping thousands of Info lines/min into session logs. Demoted from Info;
+                        // diagnostic visibility retained via Logger.Debug + grep if needed.
+                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
                     }
                 }
 
@@ -340,7 +342,7 @@ public partial class SIPSorceryStreamer
                     {
                         track.ForceNextKeyframe = true;
                         track.LastKeyframeRequestTicks = now;
-                        Logger.Info($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
+                        Logger.Debug($"[SIPSorcery] Track {monitorIndex} input-driven IDR request (input/wake-from-idle)");
                     }
                 }
 

@@ -40,7 +40,11 @@ namespace RemotePlayServer.Application.Protocol
             // CRITICAL: Wait for ALL monitors to be ICE connected before starting streaming
             // This prevents network congestion from one monitor's stream interfering with
             // another monitor's ICE negotiation
-            if (_allConnectedTcs != null)
+            // SKIP in relay mode: no monitors connect via WebRTC, so _allConnectedTcs will never
+            // complete. Waiting the full 15s timeout blocks the Phase 3 RX loop from processing
+            // client input (focus_monitor, mouse move, etc.), causing 8+ second cursor control
+            // delay. Relay mode streams without DTLS so the gate is irrelevant.
+            if (_allConnectedTcs != null && !_mediaRelayMode)
             {
                 Logger.Info("[Protocol] Phase 3: Waiting for all monitors to connect...");
                 try
@@ -63,6 +67,10 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     Logger.Info("[Protocol] Phase 3: Timeout waiting for all monitors, proceeding anyway");
                 }
+            }
+            else if (_mediaRelayMode)
+            {
+                Logger.Info("[Protocol] Phase 3: relay mode — skipping all-monitors ICE gate (no WebRTC DCs to wait for)");
             }
 
             // Per-track PC mode: also wait for all video PCs to reach connected state
@@ -335,6 +343,7 @@ namespace RemotePlayServer.Application.Protocol
                     // Log important Phase 3 messages (skip high-frequency ones)
                     if (msgType != "quality_feedback" && msgType != "fps_feedback"
                         && msgType != "request_keyframe" && msgType != "frameTiming"
+                        && msgType != "decoder_ready"
                         && !text.StartsWith("ping:"))
                     {
                         Logger.Info($"[Protocol] Phase3 RX: type={msgType ?? "null"}, len={text.Length}");

@@ -744,6 +744,21 @@ namespace RemotePlayServer.Application.Protocol
                     var result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
                     if (result.MessageType == WebSocketMessageType.Close) break;
 
+                    // Binary frames during Phase 2 are client→host input envelopes (0xF5), used
+                    // when the client is sending input over the room WS instead of the WebRTC
+                    // input DataChannel (e.g. P2P is failing and the client is anticipating the
+                    // server's media-relay fallback). Forwarding them here closes the gap where
+                    // input was silently dropped until the Phase 3 receive loop took over.
+                    if (result.MessageType == WebSocketMessageType.Binary)
+                    {
+                        var binBuf = new byte[result.Count];
+                        Buffer.BlockCopy(buffer, 0, binBuf, 0, result.Count);
+                        var input = RelayMediaProtocol.TryUnwrapInput(binBuf);
+                        if (input != null)
+                            InputReceiver.HandleInputMessage(input, _monitorRects);
+                        continue;
+                    }
+
                     ms.Write(buffer, 0, result.Count);
                     if (!result.EndOfMessage) continue;
 
