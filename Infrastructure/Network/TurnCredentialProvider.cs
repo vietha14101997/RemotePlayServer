@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using RemotePlayServer.Core;
 using RemotePlayServer.Core.Models;
@@ -34,27 +35,50 @@ public static class TurnCredentialProvider
         string.IsNullOrWhiteSpace(_config?.TurnHost) ? null : _config!.TurnHost;
 
     /// <summary>
-    /// Full ICE server list for the current session: locally-minted coturn
-    /// credentials first (if configured), then whatever the relay handed out.
-    /// Used both for the host's RTCConfiguration and for the client via
-    /// config_complete, so both ends allocate on the same TURN server.
+    /// Full ICE server list for the current session: baseline STUN, locally-minted
+    /// coturn credentials (if configured), then whatever the relay handed out.
+    /// The baseline STUN entry keeps direct ICE viable when relay authentication
+    /// or TURN provisioning is unavailable.
     /// </summary>
     public static List<IceServerDto> GetSessionIceServers()
     {
-        var list = new List<IceServerDto>();
+        return BuildIceServerList(MintIceServer(), RelayClientManager.Instance?.IceServers);
+    }
 
-        var minted = MintIceServer();
+    internal static List<IceServerDto> BuildIceServerList(
+        IceServerDto? minted,
+        IEnumerable<IceServerConfig>? relayIce)
+    {
+        var baselineStunUrls = new List<string>
+        {
+            "stun:stun.l.google.com:19302",
+            "stun:stun1.l.google.com:19302"
+        };
+        var seenStunUrls = new HashSet<string>(baselineStunUrls, StringComparer.OrdinalIgnoreCase);
+        var list = new List<IceServerDto>
+        {
+            new()
+            {
+                Urls = baselineStunUrls
+            }
+        };
+
         if (minted != null)
             list.Add(minted);
 
-        var relayIce = RelayClientManager.Instance?.IceServers;
         if (relayIce != null)
         {
             foreach (var ice in relayIce)
             {
+                var uniqueUrls = (ice.Urls ?? new List<string>())
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .Where(url => !IsStunUrl(url) || seenStunUrls.Add(url))
+                    .ToList();
+                if (uniqueUrls.Count == 0) continue;
+
                 list.Add(new IceServerDto
                 {
-                    Urls = ice.Urls,
+                    Urls = uniqueUrls,
                     Username = ice.Username,
                     Credential = ice.Credential
                 });
@@ -62,6 +86,10 @@ public static class TurnCredentialProvider
         }
         return list;
     }
+
+    private static bool IsStunUrl(string url) =>
+        url.StartsWith("stun:", StringComparison.OrdinalIgnoreCase) ||
+        url.StartsWith("stuns:", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Mint one ephemeral TURN entry (UDP + TCP urls) from the configured

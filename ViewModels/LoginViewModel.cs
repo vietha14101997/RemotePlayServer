@@ -65,8 +65,6 @@ public partial class LoginViewModel : ObservableObject
                 return;
             }
 
-            var client = new RelayClient();
-
             if (IsRegistering)
             {
                 if (string.IsNullOrWhiteSpace(Username))
@@ -74,32 +72,45 @@ public partial class LoginViewModel : ObservableObject
                     ErrorMessage = "Username is required";
                     return;
                 }
-
-                StatusMessage = "Creating account...";
-                var (success, error) = await client.RegisterAsync(RelayUrl.Trim(), Email.Trim(), Username.Trim(), Password);
-                if (!success)
-                {
-                    ErrorMessage = error ?? "Registration failed";
-                    client.Dispose();
-                    return;
-                }
             }
-            else
+
+            var client = new RelayClient();
+            try
             {
-                StatusMessage = "Signing in...";
-                var success = await client.LoginAsync(RelayUrl.Trim(), Email.Trim(), Password);
-                if (!success)
+                if (IsRegistering)
                 {
-                    ErrorMessage = "Invalid email or password";
-                    client.Dispose();
-                    return;
-                }
-            }
 
-            StatusMessage = "";
-            IsLoggedIn = true;
-            LoggedInEmail = Email.Trim();
-            OnLoginSuccess?.Invoke(client);
+                    StatusMessage = "Creating account...";
+                    var (success, error) = await client.RegisterAsync(RelayUrl.Trim(), Email.Trim(), Username.Trim(), Password);
+                    if (!success)
+                    {
+                        ErrorMessage = error ?? "Registration failed";
+                        client.Dispose();
+                        return;
+                    }
+                }
+                else
+                {
+                    StatusMessage = "Signing in...";
+                    var success = await client.LoginAsync(RelayUrl.Trim(), Email.Trim(), Password);
+                    if (!success)
+                    {
+                        ErrorMessage = client.LastAuthError ?? "Invalid email or password";
+                        client.Dispose();
+                        return;
+                    }
+                }
+
+                StatusMessage = "";
+                IsLoggedIn = true;
+                LoggedInEmail = Email.Trim();
+                OnLoginSuccess?.Invoke(client);
+            }
+            catch
+            {
+                client.Dispose();
+                throw;
+            }
         }
         catch (Exception ex)
         {

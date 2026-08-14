@@ -44,6 +44,7 @@ public partial class RelayClient : IDisposable
 
     public bool IsConnected => _presenceWs?.State == WebSocketState.Open;
     public string? DeviceId => _deviceId;
+    public string? LastAuthError { get; private set; }
 
     /// <summary>Base HTTP(S) URL of the relay this client is registered/connected to (e.g. "https://relay.example.com"). Null until Login/RegisterAsync sets it.</summary>
     public string? RelayUrl => _relayUrl;
@@ -52,14 +53,19 @@ public partial class RelayClient : IDisposable
 
     public async Task<(bool Success, string? Error)> RegisterAsync(string relayUrl, string email, string username, string password)
     {
+        LastAuthError = null;
+
+        if (string.IsNullOrWhiteSpace(relayUrl))
+            return (false, "Relay URL is required");
+
         _relayUrl = relayUrl.TrimEnd('/');
 
         var body = JsonSerializer.Serialize(new { email, username, password });
-        var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        using var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
 
         try
         {
-            var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/register", content);
+            using var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/register", content);
             var json = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -76,11 +82,9 @@ public partial class RelayClient : IDisposable
                 return (false, errorMsg);
             }
 
-            var result = JsonSerializer.Deserialize<LoginResponse>(json);
-            ApplyAuthTokens(result);
-
-            Logger.Info("[Relay] Registration successful");
-            return (_accessToken != null, null);
+            Logger.Info("[Relay] Registration successful — signing in");
+            var loggedIn = await LoginAsync(_relayUrl, email, password);
+            return (loggedIn, loggedIn ? null : $"Account created, but sign-in failed: {LastAuthError ?? "unknown error"}");
         }
         catch (Exception ex)
         {
@@ -91,17 +95,27 @@ public partial class RelayClient : IDisposable
 
     public async Task<bool> LoginAsync(string relayUrl, string email, string password)
     {
+        LastAuthError = null;
+
+        if (string.IsNullOrWhiteSpace(relayUrl))
+        {
+            LastAuthError = "Relay URL is required";
+            return false;
+        }
+
         _relayUrl = relayUrl.TrimEnd('/');
 
         var body = JsonSerializer.Serialize(new { email, password, device_name = Environment.MachineName });
-        var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        using var content = new StringContent(body, TextEncoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
 
         try
         {
-            var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/login", content);
+            using var resp = await _httpClient.PostAsync($"{_relayUrl}/auth/login", content);
             if (!resp.IsSuccessStatusCode)
             {
-                Logger.Error($"[Relay] Login failed: {resp.StatusCode}");
+                var error = await resp.Content.ReadAsStringAsync();
+                LastAuthError = FormatAuthError(resp.StatusCode, error);
+                Logger.Error($"[Relay] Login failed: {resp.StatusCode} - {error}");
                 return false;
             }
 
@@ -109,14 +123,40 @@ public partial class RelayClient : IDisposable
             var result = JsonSerializer.Deserialize<LoginResponse>(json);
             ApplyAuthTokens(result);
 
+            if (_accessToken == null)
+            {
+                LastAuthError = "Relay returned an invalid login response without an access token.";
+                Logger.Error("[Relay] Login failed: invalid success response without an access token");
+                return false;
+            }
+
             Logger.Info("[Relay] Login successful");
-            return _accessToken != null;
+            return true;
         }
         catch (Exception ex)
         {
+            LastAuthError = $"Relay connection error: {ex.Message}";
             Logger.Error($"[Relay] Login error: {ex.Message}");
             return false;
         }
+    }
+
+    internal static string FormatAuthError(System.Net.HttpStatusCode statusCode, string responseBody)
+    {
+        if (statusCode == System.Net.HttpStatusCode.NotFound)
+            return "Relay authentication endpoint was not found. Check the Relay URL and deployed server version.";
+
+        try
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>(responseBody);
+            if (json.TryGetProperty("error", out var error))
+                return error.GetString() ?? $"Relay login failed ({(int)statusCode})";
+            if (json.TryGetProperty("message", out var message))
+                return message.GetString() ?? $"Relay login failed ({(int)statusCode})";
+        }
+        catch (JsonException) { }
+
+        return $"Relay login failed ({(int)statusCode})";
     }
 
     public async Task<string?> RegisterDeviceAsync(string deviceName, object? hwInfo = null)

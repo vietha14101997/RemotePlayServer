@@ -32,28 +32,95 @@ public partial class SIPSorceryStreamer
         InitializeAudio();
 
         // Backpressure v1: the relay path is TCP + a server hop, so it can't sustain the
-        // P2P bitrate. Cap conservatively and force an immediate keyframe so the client
-        // gets a clean decodable start (no bufferedAmount signal to drive drops here).
-        try { ForceSetBitrate(RelayMediaBitrateKbps); } catch { }
-        try { RequestKeyframe(force: true); } catch { }
+        // P2P bitrate. Cap conservatively and reset the transport bootstrap before forcing
+        // an immediate per-track keyframe. The handler publishes relay acceptance first.
+        try { ApplyRelayBitratePolicy(); } catch { }
 
         // The relay path has no DTLS/start_streaming handshake to trigger the normal
         // Phase-3 activation, so activate it here — otherwise PushBgraTexture/PushTexture
         // keep dropping every frame until the (possibly never-completing) WebRTC Phase 3
         // flow runs. ResetSyncState gives a clean time origin + forces an IDR first frame.
         ResetSyncState();
+        for (int trackIndex = 0; trackIndex < MonitorCount; trackIndex++)
+        {
+            try { RequestKeyframe(trackIndex, force: true); } catch { }
+        }
         ActivatePhase3();
     }
 
     /// <summary>Conservative per-session bitrate cap while media flows over the TCP relay.</summary>
     private const int RelayMediaBitrateKbps = 6000;
 
+    internal void ApplyRelayBitratePolicy()
+    {
+        lock (_relayBitrateLock)
+        {
+            if (!_preRelayBitrateKbps.HasValue)
+            {
+                _preRelayBitrateKbps = _bitrateController.TargetBitrateKbps;
+                _preRelayWiFiMode = _bitrateController.IsWiFiMode;
+            }
+
+            ForceSetBitrate(RelayMediaBitrateKbps);
+        }
+    }
+
+    internal void RestorePreRelayBitratePolicy()
+    {
+        lock (_relayBitrateLock)
+        {
+            if (!_preRelayBitrateKbps.HasValue) return;
+
+            int bitrateKbps = _preRelayBitrateKbps.Value;
+            _bitrateController.IsWiFiMode = _preRelayWiFiMode;
+            _preRelayBitrateKbps = null;
+            ForceSetBitrate(bitrateKbps);
+        }
+    }
+
     /// <summary>Leave relay-media mode when a WebRTC P2P path recovers (auto-upgrade).</summary>
     public void StopRelayMediaMode()
     {
         if (!RelayMediaMode) return;
         Logger.Info("[SIPSorcery] Leaving relay-media mode — WebRTC path resumed");
-        RelayMediaMode = false;
+
+        TrackInfo[] tracks;
+        lock (_lock) { tracks = _tracks.ToArray(); }
+
+        // Freeze every encode callback while changing transport ownership. Relay workers
+        // have already been canceled/awaited by the handler. Keeping RelayMediaMode true
+        // until every track is armed prevents a P-frame from crossing into direct output.
+        foreach (var track in tracks)
+            Monitor.Enter(track.EncodeLock);
+        try
+        {
+            foreach (var track in tracks)
+            {
+                try { track.Encoder?.Flush(); } catch { }
+                track.PendingFrame = null;
+                Interlocked.Exchange(ref track.SentFrames, 0);
+                track.IdrViaDcCount = 0;
+                track.IsDecodable = false;
+                track.DirectKeyframeGate.Require();
+                track.ForceNextKeyframe = true;
+            }
+
+            RelayMediaMode = false;
+        }
+        finally
+        {
+            for (int i = tracks.Length - 1; i >= 0; i--)
+                Monitor.Exit(tracks[i].EncodeLock);
+        }
+
+        // Use the normal force-IDR path per track as well as the transition gate above.
+        // If an asynchronous stale P-frame appears after Flush, the gate drops it and
+        // re-arms ForceNextKeyframe until a direct IDR is actually sent.
+        for (int trackIndex = 0; trackIndex < MonitorCount; trackIndex++)
+        {
+            try { RequestKeyframe(trackIndex, force: true); } catch { }
+        }
+        try { RestorePreRelayBitratePolicy(); } catch { }
     }
 
     private void InitializeEncoders()
@@ -445,12 +512,15 @@ public partial class SIPSorceryStreamer
             _lastAbsoluteAudioRtp = 0;
         }
 
-        // Stop audio pipeline
-        try { _audioCapture?.Stop(); } catch { }
-        try { _opusEncoder?.Dispose(); } catch { }
-        try { _audioCapture?.Dispose(); } catch { }
-        _audioCapture = null;
-        _opusEncoder = null;
+        // Stop audio pipeline under the same guard used by relay/P2P initialization.
+        lock (_audioLifecycleLock)
+        {
+            try { _audioCapture?.Stop(); } catch { }
+            try { _opusEncoder?.Dispose(); } catch { }
+            try { _audioCapture?.Dispose(); } catch { }
+            _audioCapture = null;
+            _opusEncoder = null;
+        }
 
         lock (_lock)
         {

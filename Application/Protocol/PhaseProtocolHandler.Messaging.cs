@@ -387,12 +387,17 @@ namespace RemotePlayServer.Application.Protocol
 
         private async Task SendTextAsync(string text)
         {
-            if (_ws.State != WebSocketState.Open) return;
+            await TrySendTextAsync(text).ConfigureAwait(false);
+        }
+
+        private async Task<bool> TrySendTextAsync(string text)
+        {
+            if (_ws.State != WebSocketState.Open) return false;
 
             if (!await _sendLock.WaitAsync(5000, _ct))
             {
                 Logger.Error($"[Protocol] SendTextAsync timed out waiting for lock (len={text.Length})");
-                return;
+                return false;
             }
 
             try
@@ -401,14 +406,17 @@ namespace RemotePlayServer.Application.Protocol
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
                 cts.CancelAfter(5000); // 5 sec timeout
                 await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, cts.Token);
+                return true;
             }
             catch (OperationCanceledException)
             {
                 Logger.Warn($"[Protocol] SendTextAsync timed out or cancelled (len={text.Length})");
+                return false;
             }
             catch (Exception ex)
             {
                 Logger.Error($"[Protocol] SendTextAsync error: {ex.Message}");
+                return false;
             }
             finally
             {
@@ -426,24 +434,31 @@ namespace RemotePlayServer.Application.Protocol
         /// video send loop, where load shedding happens upstream at FRAME granularity
         /// (dropping a mid-frame chunk corrupts the NAL and poisons all later P-frames).
         /// </summary>
-        private async Task SendBytesAsync(byte[] data, int lockTimeoutMs = 1000)
+        private async Task<bool> SendBytesAsync(
+            byte[] data,
+            int lockTimeoutMs = 1000,
+            CancellationToken cancellationToken = default)
         {
-            if (_ws.State != WebSocketState.Open) return;
+            if (_ws.State != WebSocketState.Open) return false;
+            using var operationCts = CancellationTokenSource.CreateLinkedTokenSource(_ct, cancellationToken);
+            var operationToken = operationCts.Token;
             if (lockTimeoutMs < 0)
-                await _sendLock.WaitAsync(_ct);
-            else if (!await _sendLock.WaitAsync(lockTimeoutMs, _ct))
-                return; // drop under backpressure (loss-tolerant channels only)
+                await _sendLock.WaitAsync(operationToken);
+            else if (!await _sendLock.WaitAsync(lockTimeoutMs, operationToken))
+                return false; // drop under backpressure (loss-tolerant channels only)
 
             try
             {
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(_ct);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(operationToken);
                 cts.CancelAfter(5000);
                 await _ws.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, cts.Token);
+                return true;
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) { return false; }
             catch (Exception ex)
             {
                 Logger.Error($"[Protocol] SendBytesAsync error: {ex.Message}");
+                return false;
             }
             finally
             {
@@ -659,6 +674,10 @@ namespace RemotePlayServer.Application.Protocol
 
             // Stop keep-alive timer
             StopKeepAlive();
+
+            // Relay workers own a cancellation source even when the constructor token is None.
+            // Stop and await them before disposing the streamer or closing the WebSocket.
+            await ShutdownRelayMediaAsync().ConfigureAwait(false);
 
             // Stop capture — order matters to avoid ObjectDisposedException:
             // 1. Signal capture thread to stop

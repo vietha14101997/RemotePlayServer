@@ -572,9 +572,7 @@ namespace RemotePlayServer.Application.Protocol
                 {
                     // P2P is up: cancel the head-start fallback timer and, if we were on the
                     // relay, switch media back to direct DataChannels/RTP (auto-upgrade).
-                    _p2pConnected = true;
-                    CancelRelayFallbackTimer();
-                    if (_mediaRelayMode) ExitMediaRelayMode();
+                    await PromoteMediaToP2PAsync();
 
                     _allConnectedTcs?.TrySetResult(true);
 
@@ -616,6 +614,10 @@ namespace RemotePlayServer.Application.Protocol
             {
                 try
                 {
+                    // OnConnectionFailed is emitted only for terminal failed states. Reset the
+                    // current-path flag before any early return so a recovered P2P path can fall
+                    // back again if that recovery later fails.
+                    int p2pVersion = _p2pState.MarkTerminalFailure();
                     if (_ws.State != WebSocketState.Open) return;
                     if (_mediaRelayMode) { _dtlsRetrying = false; return; } // already relaying
                     if (_dtlsRetrying) return;
@@ -633,7 +635,7 @@ namespace RemotePlayServer.Application.Protocol
                     if (_dtlsFailCount >= DERP_AFTER_DTLS_FAILURES && _streamer != null)
                     {
                         Logger.Error($"[Protocol] WebRTC DTLS failed (x{_dtlsFailCount}) — falling back to media relay");
-                        try { EnterMediaRelayMode(); }
+                        try { await HandleP2PFailureAsync(p2pVersion); }
                         catch (Exception mrEx)
                         {
                             Logger.Error($"[Protocol] Media relay fallback failed: {mrEx.Message} — asking client to reconnect");

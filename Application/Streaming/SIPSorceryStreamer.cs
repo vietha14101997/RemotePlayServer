@@ -19,6 +19,25 @@ using VideoCodec = RemotePlayServer.Core.VideoCodec;
 
 namespace RemotePlayServer.Application.Streaming;
 
+internal sealed class DirectMediaKeyframeGate
+{
+    private int _required;
+
+    public bool IsRequired => Volatile.Read(ref _required) != 0;
+
+    public void Require() => Volatile.Write(ref _required, 1);
+
+    public bool ShouldSuppress(bool relayMediaMode, bool isKeyframe) =>
+        !relayMediaMode && !isKeyframe && IsRequired;
+
+    public bool TryComplete(bool relayMediaMode, bool isKeyframe)
+    {
+        if (relayMediaMode || !isKeyframe || !IsRequired) return false;
+        Volatile.Write(ref _required, 0);
+        return true;
+    }
+}
+
 /// <summary>
 /// SIPSorcery-based WebRTC streamer for multi-monitor desktop streaming.
 /// Uses SIPSorcery's VideoStreamList for multi-track support (v6.0.8+).
@@ -43,6 +62,7 @@ public partial class SIPSorceryStreamer : IDisposable
     // are emitted atomically so the relay sender can drop whole frames (never a single
     // chunk: a missing chunk corrupts the NAL and poisons every following P-frame).
     public event Action<int, System.Collections.Generic.List<byte[]>, bool>? OnRelayVideoFrame;
+    public event Action<int>? OnRelayVideoFrameDropped;
     public event Action<byte[]>? OnRelayAudioChunk;      // raw PCM16
     /// <summary>
     /// Fired when encoder falls back to a different codec than negotiated.
@@ -109,6 +129,7 @@ public partial class SIPSorceryStreamer : IDisposable
     // Audio pipeline
     private DesktopAudioCapture? _audioCapture;
     private OpusAudioEncoder? _opusEncoder;
+    private readonly object _audioLifecycleLock = new();
     private bool _hasAudioTrack;
     private volatile RTCDataChannel? _audioDc; // DataChannel for low-latency audio (bypasses client NetEQ)
     private RTCPeerConnection? _audioPc; // Dedicated PeerConnection for audio RTP (isolated from H.265 video SCTP congestion)
@@ -132,6 +153,9 @@ public partial class SIPSorceryStreamer : IDisposable
     private uint _lastAbsoluteAudioRtp;
     // Adaptive bitrate controller
     private readonly AdaptiveBitrateController _bitrateController = new();
+    private readonly object _relayBitrateLock = new();
+    private int? _preRelayBitrateKbps;
+    private bool _preRelayWiFiMode;
 
     // Deferred send mode: buffer frames in OnEncodedData, flush via FlushAllPendingFrames()
     // Prevents consistent jitter buffer asymmetry when SRTP lock serializes multi-track sends
@@ -176,6 +200,7 @@ public partial class SIPSorceryStreamer : IDisposable
         public uint RtpTimestamp;
         public bool TimestampInitialized;
         public volatile bool ForceNextKeyframe;
+        public DirectMediaKeyframeGate DirectKeyframeGate { get; } = new();
         public int KeyframeBurstRemaining; // Send N consecutive keyframes for WiFi resilience
         public long LastKeyframeRequestTicks; // Throttle: last time a keyframe was requested for this track
         public int KeyframeStaggerCountdown; // Frames to wait before forcing keyframe (stagger between tracks)
@@ -224,7 +249,13 @@ public partial class SIPSorceryStreamer : IDisposable
         {
             public readonly byte[] Au;
             public readonly uint RtpStep;
-            public PendingFrameData(byte[] au, uint rtpStep) { Au = au; RtpStep = rtpStep; }
+            public readonly bool IsKeyframe;
+            public PendingFrameData(byte[] au, uint rtpStep, bool isKeyframe)
+            {
+                Au = au;
+                RtpStep = rtpStep;
+                IsKeyframe = isKeyframe;
+            }
         }
 
         public void Dispose()

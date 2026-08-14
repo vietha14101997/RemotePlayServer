@@ -23,94 +23,103 @@ public partial class SIPSorceryStreamer
             return;
         }
 
-        try
+        lock (_audioLifecycleLock)
         {
-            _audioCapture = new DesktopAudioCapture();
-            _opusEncoder = new OpusAudioEncoder();
+            if (_audioCapture != null && _opusEncoder != null) return;
 
-            // Wire: capture -> DC (raw PCM) + encoder -> RTP (Opus, fallback)
-            _audioCapture.OnAudioData += (pcm, length, sampleRate, channels, timestampMs) =>
+            DesktopAudioCapture? audioCapture = null;
+            OpusAudioEncoder? opusEncoder = null;
+            try
             {
-                if (_isPaused || !_running || !_phase3Active) return;
-                // Relay-media mode streams without DTLS — don't gate on WebRTC connect.
-                if (!_connected && !RelayMediaMode) return;
+                audioCapture = new DesktopAudioCapture();
+                opusEncoder = new OpusAudioEncoder();
+                _audioCapture = audioCapture;
+                _opusEncoder = opusEncoder;
 
-                // Relay-media fallback: raw PCM16 over the WebSocket relay instead of DC.
-                if (RelayMediaMode)
+                // Wire: capture -> DC (raw PCM) + encoder -> RTP (Opus, fallback)
+                audioCapture.OnAudioData += (pcm, length, sampleRate, channels, timestampMs) =>
                 {
+                    if (_isPaused || !_running || !_phase3Active) return;
+                    // Relay-media mode streams without DTLS — don't gate on WebRTC connect.
+                    if (!_connected && !RelayMediaMode) return;
+
+                    // Relay-media fallback: raw PCM16 over the WebSocket relay instead of DC.
+                    if (RelayMediaMode)
+                    {
+                        try
+                        {
+                            var packet = new byte[length];
+                            Buffer.BlockCopy(pcm, 0, packet, 0, length);
+                            OnRelayAudioChunk?.Invoke(packet);
+                            Interlocked.Increment(ref _audioPacketsSent); // count relay audio in stats too
+                        }
+                        catch { }
+                        return;
+                    }
+
+                    // Primary: send raw PCM16 via DataChannel for lowest latency.
+                    // Bypasses Opus encode+decode + libwebrtc jitter buffer entirely.
+                    // 48kHz stereo PCM16 = 192KB/s (~1.5Mbps), acceptable for USB/LAN.
+                    var dc = _audioDc;
+                    if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    {
+                        try
+                        {
+                            var packet = new byte[length];
+                            Buffer.BlockCopy(pcm, 0, packet, 0, length);
+                            dc.send(packet);
+                            Interlocked.Increment(ref _audioPacketsSent);
+                        }
+                        catch { }
+                        return; // Don't also send via RTP
+                    }
+
+                    // Fallback: Opus via RTP when DC not available
+                    opusEncoder.EncodePcm(pcm, length, sampleRate, channels, timestampMs);
+                };
+
+                opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
+                {
+                    if (!_connected || !_running || _mainPc == null || _isPaused || !_phase3Active) return;
                     try
                     {
-                        var packet = new byte[length];
-                        Buffer.BlockCopy(pcm, 0, packet, 0, length);
-                        OnRelayAudioChunk?.Invoke(packet);
-                        Interlocked.Increment(ref _audioPacketsSent); // count relay audio in stats too
+                        var pc = _mainPc;
+                        if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
+                        {
+                            var packet = new byte[opusLength];
+                            Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
+                            pc.SendAudio(rtpDuration, packet);
+                            Interlocked.Increment(ref _audioPacketsSent);
+                        }
                     }
                     catch { }
-                    return;
-                }
+                };
 
-                // Primary: send raw PCM16 via DataChannel for lowest latency.
-                // Bypasses Opus encode+decode + libwebrtc jitter buffer entirely.
-                // 48kHz stereo PCM16 = 192KB/s (~1.5Mbps), acceptable for USB/LAN.
-                var dc = _audioDc;
-                if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                bool audioPathLogged = false;
+                audioCapture.OnAudioData += (_, _, _, _, _) =>
                 {
-                    try
+                    if (audioPathLogged) return;
+                    var dcCheck = _audioDc;
+                    if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                     {
-                        var packet = new byte[length];
-                        Buffer.BlockCopy(pcm, 0, packet, 0, length);
-                        dc.send(packet);
-                        Interlocked.Increment(ref _audioPacketsSent);
+                        Logger.Info("[SIPSorcery] Audio path: DataChannel PCM (zero encode/decode latency)");
+                        audioPathLogged = true;
                     }
-                    catch { }
-                    return; // Don't also send via RTP
-                }
+                };
 
-                // Fallback: Opus via RTP when DC not available
-                _opusEncoder.EncodePcm(pcm, length, sampleRate, channels, timestampMs);
-            };
+                audioCapture.Start();
 
-            _opusEncoder.OnEncodedAudio += (opusData, opusLength, rtpDuration, timestampMs) =>
+                Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI -> PCM DC primary, Opus RTP fallback)");
+            }
+            catch (Exception ex)
             {
-                if (!_connected || !_running || _mainPc == null || _isPaused || !_phase3Active) return;
-                try
-                {
-                    var pc = _mainPc;
-                    if (pc?.connectionState == SIPSorcery.Net.RTCPeerConnectionState.connected)
-                    {
-                        var packet = new byte[opusLength];
-                        Buffer.BlockCopy(opusData, 0, packet, 0, opusLength);
-                        pc.SendAudio(rtpDuration, packet);
-                        Interlocked.Increment(ref _audioPacketsSent);
-                    }
-                }
-                catch { }
-            };
+                Logger.Error($"[SIPSorcery] Audio init failed (non-fatal, video continues): {ex.Message}");
 
-            bool audioPathLogged = false;
-            _audioCapture.OnAudioData += (_, _, _, _, _) =>
-            {
-                if (audioPathLogged) return;
-                var dcCheck = _audioDc;
-                if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
-                {
-                    Logger.Info("[SIPSorcery] Audio path: DataChannel PCM (zero encode/decode latency)");
-                    audioPathLogged = true;
-                }
-            };
-
-            _audioCapture.Start();
-
-            Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI -> PCM DC primary, Opus RTP fallback)");
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"[SIPSorcery] Audio init failed (non-fatal, video continues): {ex.Message}");
-
-            try { _opusEncoder?.Dispose(); } catch { }
-            try { _audioCapture?.Dispose(); } catch { }
-            _opusEncoder = null;
-            _audioCapture = null;
+                try { opusEncoder?.Dispose(); } catch { }
+                try { audioCapture?.Dispose(); } catch { }
+                if (ReferenceEquals(_opusEncoder, opusEncoder)) _opusEncoder = null;
+                if (ReferenceEquals(_audioCapture, audioCapture)) _audioCapture = null;
+            }
         }
     }
 }

@@ -227,14 +227,12 @@ public partial class SettingsViewModel : ObservableObject
         IsSavingInternet = true;
         try
         {
-            var config = new InternetConfig
-            {
-                Enabled = InternetEnabled,
-                TurnServerUrl = string.IsNullOrWhiteSpace(TurnServerUrl) ? null : TurnServerUrl,
-                TurnUsername = string.IsNullOrWhiteSpace(TurnUsername) ? null : TurnUsername,
-                TurnPassword = string.IsNullOrWhiteSpace(TurnPassword) ? null : TurnPassword,
-                RequireToken = RequireToken
-            };
+            var config = InternetManager.Instance?.Config ?? new InternetConfig();
+            config.Enabled = InternetEnabled;
+            config.TurnServerUrl = string.IsNullOrWhiteSpace(TurnServerUrl) ? null : TurnServerUrl;
+            config.TurnUsername = string.IsNullOrWhiteSpace(TurnUsername) ? null : TurnUsername;
+            config.TurnPassword = string.IsNullOrWhiteSpace(TurnPassword) ? null : TurnPassword;
+            config.RequireToken = RequireToken;
             await InternetManager.SaveConfigAsync(config);
             SetStatusWithAutoClear("Internet settings saved (restart to apply tunnel changes)");
             Logger.Info("[Settings] Internet settings saved");

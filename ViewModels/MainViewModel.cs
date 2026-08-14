@@ -62,6 +62,7 @@ public partial class MainViewModel : ObservableObject
             Dispatch(() => _login.LoadFromConfig(config));
 
         if (config is not { UseRelay: true } ||
+            string.IsNullOrWhiteSpace(config.RelayUrl) ||
             string.IsNullOrEmpty(config.RelayEmail) ||
             string.IsNullOrEmpty(config.RelayPassword))
         {
@@ -82,6 +83,8 @@ public partial class MainViewModel : ObservableObject
         }
         else
         {
+            RemotePlayServer.Core.Logger.Error(
+                $"[Relay] Auto-login failed: {client.LastAuthError ?? "unknown authentication error"}");
             client.Dispose();
         }
     }

@@ -172,6 +172,11 @@ namespace RemotePlayServer.Application.Protocol
             {
                 _streamer.OnFatalError += (reason) =>
                 {
+                    if (_mediaRelayMode || _dtlsRetrying)
+                    {
+                        Logger.Warn($"[Protocol] Streamer reported '{reason}' while relay recovery is active — keeping session alive");
+                        return;
+                    }
                     Logger.Error($"[Protocol] Fatal streamer error: {reason} - triggering cleanup");
                     _fatalErrorCts?.Cancel();
                 };
@@ -288,6 +293,13 @@ namespace RemotePlayServer.Application.Protocol
 
                     ms.Write(buffer, 0, result.Count);
                     if (!result.EndOfMessage) continue;
+
+                    // Any complete inbound frame proves that the client transport is alive.
+                    // Relay input and control share one ordered WebSocket with media; requiring a
+                    // dedicated pong can false-disconnect an actively controlled session under
+                    // TCP head-of-line pressure.
+                    _lastPongReceived = DateTime.UtcNow;
+                    _missedPongs = 0;
 
                     // Relay-media mode: client input arrives as a binary WS frame
                     // (0xF5 envelope) instead of over the WebRTC input DataChannel.

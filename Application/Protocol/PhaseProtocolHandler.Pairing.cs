@@ -139,7 +139,7 @@ public partial class PhaseProtocolHandler
         switch (resumeKind)
         {
             case PendingResumeKind.EnterRelay:
-                EnterMediaRelayMode(); // re-entrant: now paired, so its own gate passes immediately
+                await EnterMediaRelayModeAsync(); // re-entrant: now paired, so its own gate passes immediately
                 break;
             case PendingResumeKind.CompleteConnection:
             default:

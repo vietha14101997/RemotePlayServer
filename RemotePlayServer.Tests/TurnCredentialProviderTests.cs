@@ -72,4 +72,55 @@ public class TurnCredentialProviderTests
             TurnCredentialProvider.Configure(null);
         }
     }
+
+    [Fact]
+    public void BuildIceServerList_IncludesStunWithoutTurnOrRelay()
+    {
+        var servers = TurnCredentialProvider.BuildIceServerList(null, null);
+
+        var stun = Assert.Single(servers);
+        Assert.Contains("stun:stun.l.google.com:19302", stun.Urls);
+        Assert.Contains("stun:stun1.l.google.com:19302", stun.Urls);
+        Assert.Null(stun.Username);
+        Assert.Null(stun.Credential);
+    }
+
+    [Fact]
+    public void BuildIceServerList_DeduplicatesStunButPreservesTurnCredentials()
+    {
+        var localTurn = new IceServerDto
+        {
+            Urls = new List<string> { "turn:turn.example.com:3478?transport=udp" },
+            Username = "local-user",
+            Credential = "local-credential"
+        };
+        var relayIce = new List<IceServerConfig>
+        {
+            new()
+            {
+                Urls = new List<string>
+                {
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302"
+                }
+            },
+            new()
+            {
+                Urls = new List<string> { "turn:turn.example.com:3478?transport=udp" },
+                Username = "relay-user",
+                Credential = "relay-credential"
+            },
+            new() { Urls = null! },
+            new() { Urls = new List<string> { null! } }
+        };
+
+        var servers = TurnCredentialProvider.BuildIceServerList(localTurn, relayIce);
+
+        Assert.Equal(3, servers.Count);
+        Assert.Single(servers, server => server.Urls.Any(url => url.StartsWith("stun:")));
+        Assert.Contains(servers, server =>
+            server.Username == "local-user" && server.Credential == "local-credential");
+        Assert.Contains(servers, server =>
+            server.Username == "relay-user" && server.Credential == "relay-credential");
+    }
 }

@@ -123,6 +123,7 @@ public partial class SIPSorceryStreamer
         // Create Main PeerConnection with STUN + optional TURN
         var cfg = BuildIceConfiguration();
         _mainPc = new RTCPeerConnection(cfg);
+        var mainPc = _mainPc;
         NextIceGeneration("main");
         Logger.Info("[SIPSorcery] Main PC: PeerConnection created (with STUN/TURN)");
 
@@ -335,6 +336,8 @@ public partial class SIPSorceryStreamer
         // Encoder init moved to onconnectionstatechange (after DTLS complete)
         _mainPc.oniceconnectionstatechange += (state) =>
         {
+            if (!ReferenceEquals(_mainPc, mainPc)) return;
+
             // Suppress duplicate "connected" events from ICE consent checks during active streaming
             if (state == RTCIceConnectionState.connected && _connected)
                 return;
@@ -360,6 +363,8 @@ public partial class SIPSorceryStreamer
         // DTLS/SRTP connection state - initialize encoders AFTER DTLS completes
         _mainPc.onconnectionstatechange += (state) =>
         {
+            if (!ReferenceEquals(_mainPc, mainPc)) return;
+
             Logger.Info($"[SIPSorcery] Main PC: Peer state: {state}");
             if (state == RTCPeerConnectionState.connected)
             {

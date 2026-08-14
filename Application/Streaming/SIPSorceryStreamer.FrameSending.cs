@@ -407,6 +407,13 @@ public partial class SIPSorceryStreamer
         {
             long earlyFrameNum = Interlocked.Read(ref track.SentFrames);
 
+            if (track.DirectKeyframeGate.ShouldSuppress(RelayMediaMode, isKeyframe))
+            {
+                track.ForceNextKeyframe = true;
+                Logger.Info($"[SIPSorcery] Track {track.Index}: Dropping P-frame at relay-to-direct boundary until requested IDR");
+                return;
+            }
+
             // CRITICAL: Drop P-frames that arrive before the first IDR of this session.
             // AMF/NVENC encoders have a hardware pipeline — stale P-frames from the
             // previous session can drain AFTER forceKeyframe=true is requested,
@@ -481,7 +488,7 @@ public partial class SIPSorceryStreamer
                         // → text smearing artifacts on initial connection.
 
                         // IDR sent via DC — P-frames also go via DC below.
-                        IncrementSentFrames(track);
+                        IncrementSentFrames(track, completesDirectBootstrap: true);
                         EmitIdrDiagIfDue(track);
                         return;
                     }
@@ -520,7 +527,7 @@ public partial class SIPSorceryStreamer
                     if (SendH265IdrViaDataChannel(track, nalBytes, out _))
                     {
                         track.IdrViaDcCount++;
-                        IncrementSentFrames(track);
+                        IncrementSentFrames(track, completesDirectBootstrap: true);
                         return;
                     }
                     // DC send failed — fall through to RTP
@@ -551,20 +558,21 @@ public partial class SIPSorceryStreamer
             {
                 if (track.PendingFrame == null)
                 {
-                    track.PendingFrame = new TrackInfo.PendingFrameData(au, rtpStep);
+                    track.PendingFrame = new TrackInfo.PendingFrameData(au, rtpStep, isKeyframe);
                 }
                 else
                 {
                     var merged = new byte[track.PendingFrame.Au.Length + au.Length];
                     Buffer.BlockCopy(track.PendingFrame.Au, 0, merged, 0, track.PendingFrame.Au.Length);
                     Buffer.BlockCopy(au, 0, merged, track.PendingFrame.Au.Length, au.Length);
-                    track.PendingFrame = new TrackInfo.PendingFrameData(merged, track.PendingFrame.RtpStep);
+                    track.PendingFrame = new TrackInfo.PendingFrameData(
+                        merged, track.PendingFrame.RtpStep, track.PendingFrame.IsKeyframe || isKeyframe);
                 }
                 // (isKeyframe flag is no longer used for session-start guard here to avoid race with SendRtpPacket)
             }
             else
             {
-                SendFrameImmediate(track, au, rtpStep, frameNum);
+                SendFrameImmediate(track, au, rtpStep, frameNum, isKeyframe);
             }
         }
         catch (Exception ex)
@@ -574,7 +582,7 @@ public partial class SIPSorceryStreamer
         }
     }
 
-    private void SendFrameImmediate(TrackInfo track, byte[] au, uint rtpStep, long frameNum)
+    private void SendFrameImmediate(TrackInfo track, byte[] au, uint rtpStep, long frameNum, bool isKeyframe = false)
     {
         // Update absolute timestamp for this frame
         track.RtpTimestamp += rtpStep;
@@ -606,11 +614,13 @@ public partial class SIPSorceryStreamer
             SendRtpPacket(track, au, track.RtpTimestamp, 1, frameNum);
         }
 
-        IncrementSentFrames(track);
+        IncrementSentFrames(track, completesDirectBootstrap: isKeyframe);
     }
 
-    private void IncrementSentFrames(TrackInfo track)
+    private void IncrementSentFrames(TrackInfo track, bool completesDirectBootstrap = false)
     {
+        if (completesDirectBootstrap)
+            track.DirectKeyframeGate.TryComplete(RelayMediaMode, isKeyframe: true);
         long prev = Interlocked.Read(ref track.SentFrames);
         Interlocked.Increment(ref track.SentFrames);
         // Notify capture that initial frame has been delivered — stops forcing frames on idle desktops
@@ -682,7 +692,7 @@ public partial class SIPSorceryStreamer
             try
             {
                 long currentSent = Interlocked.Read(ref track.SentFrames);
-                SendFrameImmediate(track, pending.Au, pending.RtpStep, currentSent);
+                SendFrameImmediate(track, pending.Au, pending.RtpStep, currentSent, pending.IsKeyframe);
             }
             catch (Exception ex)
             {
@@ -1226,8 +1236,9 @@ public partial class SIPSorceryStreamer
     /// Relay-media fallback: emit one encoded frame as protocol-v2 chunks to
     /// OnRelayVideoFrame (carried over the WebSocket relay). Mirrors the DataChannel
     /// framing (param-sets 0x02, IDR 0x03, P-frame 0x04) so the client's existing
-    /// VideoFrameParser handles it unchanged. Reuses BuildPaddedMessage + the 60KB
-    /// chunk size. All chunks of a frame go out as ONE atomic ordered list — the
+    /// VideoFrameParser handles it unchanged. Reuses BuildPaddedMessage with smaller
+    /// WebSocket chunks to prevent long video send-lock holds from starving audio.
+    /// All chunks of a frame go out as ONE atomic ordered list — the
     /// relay sender (PhaseProtocolHandler.RelayMedia) drops whole frames under TCP
     /// backpressure, never individual chunks (a missing chunk corrupts the NAL and
     /// poisons every following P-frame → macroblock garbage on the client).
@@ -1236,36 +1247,22 @@ public partial class SIPSorceryStreamer
     {
         try
         {
-            var chunks = new System.Collections.Generic.List<byte[]>(4);
-
+            byte[]? paramSets = null;
             if (isKeyframe)
             {
-                var paramSets = ExtractH265ParamSets(frameData);
+                paramSets = ExtractH265ParamSets(frameData);
                 if (paramSets != null && paramSets.Length > 0)
                     track.LastH265ParamSets = paramSets;
                 else
                     paramSets = track.LastH265ParamSets;
-
-                if (paramSets != null && paramSets.Length > 0)
-                {
-                    var cfg = new byte[2 + paramSets.Length];
-                    cfg[0] = 0x02; // h265_codec_config
-                    cfg[1] = (byte)track.Index;
-                    Buffer.BlockCopy(paramSets, 0, cfg, 2, paramSets.Length);
-                    chunks.Add(cfg);
-                }
             }
 
-            byte frameType = isKeyframe ? (byte)0x03 : (byte)0x04;
-            const int MAX_CHUNK = 60_000;
-            int totalChunks = (frameData.Length + MAX_CHUNK - 1) / MAX_CHUNK;
-            if (totalChunks > 255) totalChunks = 255;
-
-            for (int chunk = 0; chunk < totalChunks; chunk++)
+            var chunks = BuildRelayFrameChunks(track.Index, frameData, isKeyframe, paramSets);
+            if (chunks == null)
             {
-                int offset = chunk * MAX_CHUNK;
-                int len = Math.Min(MAX_CHUNK, frameData.Length - offset);
-                chunks.Add(BuildPaddedMessage(frameType, track.Index, chunk, totalChunks, frameData, offset, len));
+                Logger.Warn($"[SIPSorcery] Track {track.Index}: relay frame too large ({frameData.Length} bytes), dropping atomically");
+                OnRelayVideoFrameDropped?.Invoke(track.Index);
+                return;
             }
 
             OnRelayVideoFrame?.Invoke(track.Index, chunks, isKeyframe);
@@ -1275,6 +1272,36 @@ public partial class SIPSorceryStreamer
         {
             Logger.Error($"[SIPSorcery] Track {track.Index}: relay emit error: {ex.Message}");
         }
+    }
+
+    internal const int RelayMaxChunkSize = 16_000;
+    internal const int RelayMaxChunks = 255;
+
+    internal static System.Collections.Generic.List<byte[]>? BuildRelayFrameChunks(
+        int trackIndex, byte[] frameData, bool isKeyframe, byte[]? paramSets)
+    {
+        int totalChunks = (frameData.Length + RelayMaxChunkSize - 1) / RelayMaxChunkSize;
+        if (totalChunks > RelayMaxChunks) return null;
+
+        var chunks = new System.Collections.Generic.List<byte[]>(totalChunks + 1);
+        if (isKeyframe && paramSets != null && paramSets.Length > 0)
+        {
+            var cfg = new byte[2 + paramSets.Length];
+            cfg[0] = 0x02; // h265_codec_config
+            cfg[1] = (byte)trackIndex;
+            Buffer.BlockCopy(paramSets, 0, cfg, 2, paramSets.Length);
+            chunks.Add(cfg);
+        }
+
+        byte frameType = isKeyframe ? (byte)0x03 : (byte)0x04;
+        for (int chunk = 0; chunk < totalChunks; chunk++)
+        {
+            int offset = chunk * RelayMaxChunkSize;
+            int len = Math.Min(RelayMaxChunkSize, frameData.Length - offset);
+            chunks.Add(BuildPaddedMessage(frameType, trackIndex, chunk, totalChunks, frameData, offset, len));
+        }
+
+        return chunks;
     }
 
     /// <summary>
