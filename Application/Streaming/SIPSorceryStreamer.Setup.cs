@@ -43,7 +43,26 @@ public partial class SIPSorceryStreamer
             new RTCIceServer { urls = "stun:stun1.l.google.com:19302" }
         };
 
-        Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN-only; TURN is client-side)");
+        var turnServer = TurnCredentialProvider.MintIceServer(userId: "host");
+        if (turnServer != null && turnServer.Urls != null)
+        {
+            foreach (var url in turnServer.Urls)
+            {
+                servers.Add(new RTCIceServer
+                {
+                    urls = url,
+                    username = turnServer.Username,
+                    credential = turnServer.Credential,
+                    credentialType = RTCIceCredentialType.password
+                });
+            }
+            Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN + Host TURN relay: {turnServer.Username})");
+        }
+        else
+        {
+            Logger.Info($"[SIPSorcery] Using {servers.Count} ICE servers (STUN-only)");
+        }
+
         var cfg = new RTCConfiguration { iceServers = servers };
 
         // Phase 1 pairing: pin the Host's persistent DTLS cert so its WebRTC fingerprint stays
@@ -322,8 +341,12 @@ public partial class SIPSorceryStreamer
         {
             if (cand != null && !string.IsNullOrEmpty(cand.candidate))
             {
-                Logger.Info($"[SIPSorcery] Main PC: Local ICE: {cand.candidate.Substring(0, Math.Min(50, cand.candidate.Length))}...");
-                OnIceCandidate?.Invoke(cand.candidate);
+                var candStr = cand.candidate.Trim();
+                if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
+                    candStr = "candidate:" + candStr;
+
+                Logger.Info($"[SIPSorcery] Main PC: Local ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                OnIceCandidate?.Invoke(candStr);
             }
             else
             {
@@ -665,6 +688,18 @@ public partial class SIPSorceryStreamer
             if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
                 candStr = "candidate:" + candStr;
 
+            if (!IceCandidateInspector.IsRoutable(candStr))
+            {
+                Logger.Info($"[SIPSorcery] Main PC: Dropped unroutable ICE candidate: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                return;
+            }
+            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candStr))
+            {
+                Logger.Info($"[SIPSorcery] Main PC: Dropped private host ICE candidate in TURN mode: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                return;
+            }
+
             var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = mid ?? "0" };
             _mainPc.addIceCandidate(init);
             Logger.Info($"[SIPSorcery] Main PC: Added remote ICE: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
@@ -901,6 +936,18 @@ public partial class SIPSorceryStreamer
                 candStr = candStr.Substring("candidate:".Length);
             if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase))
                 candStr = "candidate:" + candStr;
+
+            if (!IceCandidateInspector.IsRoutable(candStr))
+            {
+                Logger.Info($"[SIPSorcery] Audio PC: Dropped unroutable ICE candidate: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                return;
+            }
+            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candStr))
+            {
+                Logger.Info($"[SIPSorcery] Audio PC: Dropped private host ICE candidate in TURN mode: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
+                return;
+            }
 
             var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = "0" };
             _audioPc!.addIceCandidate(init);

@@ -52,4 +52,23 @@ public class IceCandidateInspectorTests
     {
         Assert.True(IceCandidateInspector.IsRoutable(value));
     }
+
+    [Theory]
+    [InlineData("candidate:1 1 udp 2122 192.168.1.10 50000 typ host", true)]
+    [InlineData("candidate:2 1 udp 2122 10.0.0.5 50000 typ host", true)]
+    [InlineData("candidate:3 1 udp 2122 172.20.1.5 50000 typ host", true)]
+    [InlineData("candidate:4 1 udp 2122 100.90.7.13 50000 typ host", true)]
+    [InlineData("candidate:5 1 udp 2122 6.217.208.144 50000 typ host", true)]
+    [InlineData("candidate:6 1 udp 2122 127.0.0.1 50000 typ host", true)]
+    [InlineData("candidate:7 1 udp 2122 ::1 50000 typ host", true)]
+    [InlineData("candidate:8 1 udp 2122 fe80::1 50000 typ host", true)]
+    [InlineData("candidate:9 1 udp 1685 42.119.222.65 50000 typ srflx raddr 192.168.1.10 rport 50000", false)]
+    [InlineData("candidate:10 1 udp 41885439 160.30.157.234 3478 typ relay raddr 0.0.0.0 rport 0", false)]
+    [InlineData("candidate:11 1 udp 2122 203.0.113.5 50000 typ host", false)]
+    [InlineData("872 1 udp 2122 192.168.1.10 50000 typ host generation 0", true)]
+    [InlineData("873 1 udp 41885439 160.30.157.234 3478 typ relay generation 0", false)]
+    public void IsPrivateOrLoopbackHostCandidate_ClassifiesCorrectly(string candidate, bool expected)
+    {
+        Assert.Equal(expected, IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate));
+    }
 }

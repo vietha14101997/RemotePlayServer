@@ -50,4 +50,41 @@ static class IceCandidateInspector
         if (ip.IsIPv6LinkLocal) return false;
         return true;
     }
+
+    /// <summary>
+    /// True if the candidate is a host candidate bound to a private IPv4 (RFC 1918),
+    /// CGNAT (100.64/10), cellular-internal (6.x), loopback, or IPv6 link-local address.
+    /// In TURN / Internet mode, these candidates are not reachable across the WAN and
+    /// will trigger 403 denied-peer-ip errors on coturn when paired with relay candidates.
+    /// srflx and relay candidates are never dropped by this check.
+    /// </summary>
+    internal static bool IsPrivateOrLoopbackHostCandidate(string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate)) return false;
+
+        var s = candidate.Trim();
+        if (s.StartsWith("a=", StringComparison.OrdinalIgnoreCase)) s = s.Substring(2);
+        if (!s.Contains(" typ host", StringComparison.OrdinalIgnoreCase)) return false;
+
+        var parts = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 6) return false;
+
+        if (!IPAddress.TryParse(parts[4], out var ip)) return false;
+
+        if (IPAddress.IsLoopback(ip) || ip.Equals(IPAddress.Any) || ip.Equals(IPAddress.IPv6Any) || ip.IsIPv6LinkLocal)
+            return true;
+
+        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            var b = ip.GetAddressBytes();
+            if (b[0] == 10) return true;
+            if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+            if (b[0] == 192 && b[1] == 168) return true;
+            if (b[0] == 6) return true; // DoD/carrier internal range sometimes emitted by cellular
+            if (b[0] == 100 && b[1] >= 64 && b[1] <= 127) return true; // CGNAT host IP
+            if (b[0] == 169 && b[1] == 254) return true; // Link-local APIPA
+        }
+
+        return false;
+    }
 }

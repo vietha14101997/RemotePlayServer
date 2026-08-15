@@ -518,7 +518,16 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info($"[Protocol] Skipping non-routable local ICE candidate: {candidate}");
                         return;
                     }
-                    var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
+                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping private/LAN host ICE candidate in TURN mode: {candidate}");
+                        return;
+                    }
+                    var candStr = candidate.Trim();
+                    if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && candStr != "end-of-candidates")
+                        candStr = "candidate:" + candStr;
+                    var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candStr };
                     await SendMessageAsync(msg);
 
                     // LAN host candidate → also advertise a router-forwarded public door (UPnP).
@@ -545,6 +554,12 @@ namespace RemotePlayServer.Application.Protocol
                     if (!IceCandidateInspector.IsRoutable(candidate))
                     {
                         Logger.Info($"[Protocol] Skipping non-routable audio ICE candidate: {candidate}");
+                        return;
+                    }
+                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping private/LAN audio host ICE candidate in TURN mode: {candidate}");
                         return;
                     }
                     var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
@@ -1473,6 +1488,12 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info($"[Protocol] Skipping non-routable embedded ICE candidate: {candidate}");
                         continue;
                     }
+                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
+                    {
+                        Logger.Info($"[Protocol] Skipping private/LAN embedded ICE candidate in TURN mode: {candidate}");
+                        continue;
+                    }
                     var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
                     await SendMessageAsync(candMsg);
                 }
@@ -2023,6 +2044,18 @@ namespace RemotePlayServer.Application.Protocol
             // Resolve mDNS if needed
             candidate = await MdnsHelper.MaybeResolveMdnsCandidateAsync(candidate);
             candidate = MdnsHelper.MaybeReplaceMdnsWithRemoteIp(candidate, _remoteIp);
+
+            if (!IceCandidateInspector.IsRoutable(candidate))
+            {
+                Logger.Info($"[Protocol] Dropping non-routable client ICE candidate: {candidate}");
+                return;
+            }
+            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
+                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
+            {
+                Logger.Info($"[Protocol] Dropping private/LAN client ICE candidate in TURN mode: {candidate}");
+                return;
+            }
 
             bool buffered = false;
             lock (_iceLock)
