@@ -57,24 +57,27 @@ public partial class SIPSorceryStreamer
                         return;
                     }
 
-                    // Primary: send raw PCM16 via DataChannel for lowest latency.
-                    // Bypasses Opus encode+decode + libwebrtc jitter buffer entirely.
-                    // 48kHz stereo PCM16 = 192KB/s (~1.5Mbps), acceptable for USB/LAN.
-                    var dc = _audioDc;
-                    if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    // Adaptive Audio routing:
+                    // When UsePcmDataChannelAudio is true: send raw PCM16 via DataChannel for lowest latency (LAN/USB).
+                    // When UsePcmDataChannelAudio is false: send Opus RTP (TURN Relay / 4G / WAN) to save 95% bandwidth.
+                    if (UsePcmDataChannelAudio)
                     {
-                        try
+                        var dc = _audioDc;
+                        if (dc != null && dc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                         {
-                            var packet = new byte[length];
-                            Buffer.BlockCopy(pcm, 0, packet, 0, length);
-                            dc.send(packet);
-                            Interlocked.Increment(ref _audioPacketsSent);
+                            try
+                            {
+                                var packet = new byte[length];
+                                Buffer.BlockCopy(pcm, 0, packet, 0, length);
+                                dc.send(packet);
+                                Interlocked.Increment(ref _audioPacketsSent);
+                            }
+                            catch { }
+                            return; // Don't also send via RTP
                         }
-                        catch { }
-                        return; // Don't also send via RTP
                     }
 
-                    // Fallback: Opus via RTP when DC not available
+                    // Opus via RTP (used for TURN Relay, 4G/WAN, or when DataChannel is not open)
                     opusEncoder.EncodePcm(pcm, length, sampleRate, channels, timestampMs);
                 };
 
@@ -99,17 +102,21 @@ public partial class SIPSorceryStreamer
                 audioCapture.OnAudioData += (_, _, _, _, _) =>
                 {
                     if (audioPathLogged) return;
-                    var dcCheck = _audioDc;
-                    if (dcCheck != null && dcCheck.readyState == SIPSorcery.Net.RTCDataChannelState.open)
+                    if (UsePcmDataChannelAudio && _audioDc != null && _audioDc.readyState == SIPSorcery.Net.RTCDataChannelState.open)
                     {
-                        Logger.Info("[SIPSorcery] Audio path: DataChannel PCM (zero encode/decode latency)");
+                        Logger.Info("[SIPSorcery] Audio active path: DataChannel PCM (zero encode/decode latency)");
+                        audioPathLogged = true;
+                    }
+                    else if (!UsePcmDataChannelAudio && _connected)
+                    {
+                        Logger.Info("[SIPSorcery] Audio active path: Opus RTP (compressed ~96kbps, FEC enabled)");
                         audioPathLogged = true;
                     }
                 };
 
                 audioCapture.Start();
 
-                Logger.Info("[SIPSorcery] Audio pipeline started (WASAPI -> PCM DC primary, Opus RTP fallback)");
+                Logger.Info("[SIPSorcery] Audio pipeline started (Adaptive: PCM DC for LAN/USB, Opus RTP for Relay/WAN)");
             }
             catch (Exception ex)
             {

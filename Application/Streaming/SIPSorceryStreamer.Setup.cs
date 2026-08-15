@@ -693,12 +693,6 @@ public partial class SIPSorceryStreamer
                 Logger.Info($"[SIPSorcery] Main PC: Dropped unroutable ICE candidate: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
                 return;
             }
-            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candStr))
-            {
-                Logger.Info($"[SIPSorcery] Main PC: Dropped private host ICE candidate in TURN mode: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
-                return;
-            }
 
             var init = new RTCIceCandidateInit { candidate = candStr, sdpMLineIndex = 0, sdpMid = mid ?? "0" };
             _mainPc.addIceCandidate(init);
@@ -940,12 +934,6 @@ public partial class SIPSorceryStreamer
             if (!IceCandidateInspector.IsRoutable(candStr))
             {
                 Logger.Info($"[SIPSorcery] Audio PC: Dropped unroutable ICE candidate: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
-                return;
-            }
-            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candStr))
-            {
-                Logger.Info($"[SIPSorcery] Audio PC: Dropped private host ICE candidate in TURN mode: {candStr.Substring(0, Math.Min(50, candStr.Length))}...");
                 return;
             }
 

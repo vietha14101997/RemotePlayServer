@@ -54,6 +54,12 @@ public static class TurnCredentialProvider
             "stun:stun.l.google.com:19302",
             "stun:stun1.l.google.com:19302"
         };
+        var cfg = _config;
+        if (cfg != null && !string.IsNullOrWhiteSpace(cfg.TurnHost))
+        {
+            var port = cfg.TurnPort > 0 ? cfg.TurnPort : 3478;
+            baselineStunUrls.Insert(0, $"stun:{cfg.TurnHost}:{port}");
+        }
         var seenStunUrls = new HashSet<string>(baselineStunUrls, StringComparer.OrdinalIgnoreCase);
         var list = new List<IceServerDto>
         {

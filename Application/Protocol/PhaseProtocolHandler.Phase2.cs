@@ -421,6 +421,18 @@ namespace RemotePlayServer.Application.Protocol
             // reuses this connection's own clientId GUID, never a raw network address.
             _streamer.SessionId = _clientId.ToString();
 
+            // Set initial audio transport mode (Adaptive Audio)
+            if (_isRelayTransport)
+            {
+                _streamer.UsePcmDataChannelAudio = false;
+                Logger.Info("[Protocol] Initial audio mode: Opus RTP (Relay transport - 95% bandwidth savings)");
+            }
+            else if (_isUsbTransport)
+            {
+                _streamer.UsePcmDataChannelAudio = true;
+                Logger.Info("[Protocol] Initial audio mode: Raw PCM DataChannel (USB transport - zero latency)");
+            }
+
             // Create texture resizer with target output height
             _textureResizer = new TextureResizer(actualMonitors, resolutionHeight);
             Logger.Info($"[Protocol] Created TextureResizer for {actualMonitors} monitors (targetHeight: {resolutionHeight}p, type: {DisplayConfig.MonitorType})");
@@ -518,17 +530,6 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info($"[Protocol] Skipping non-routable local ICE candidate: {candidate}");
                         return;
                     }
-                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
-                    {
-                        Logger.Info($"[Protocol] Skipping private/LAN host ICE candidate in TURN mode: {candidate}");
-                        return;
-                    }
-                    var candStr = candidate.Trim();
-                    if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && candStr != "end-of-candidates")
-                        candStr = "candidate:" + candStr;
-                    var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candStr };
-                    await SendMessageAsync(msg);
 
                     // LAN host candidate → also advertise a router-forwarded public door (UPnP).
                     // Phase 1 exposure hardening: never map/advertise for an unpaired session
@@ -538,9 +539,18 @@ namespace RemotePlayServer.Application.Protocol
                         UpnpCandidateAugmenter.TryAugment(candidate, "main PC", async (publicCand) =>
                         {
                             if (_ws.State != WebSocketState.Open) return;
-                            await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = publicCand });
+                            var upnpCand = publicCand.Trim();
+                            if (!upnpCand.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && upnpCand != "end-of-candidates")
+                                upnpCand = "candidate:" + upnpCand;
+                            await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = upnpCand });
                         });
                     }
+
+                    var candStr = candidate.Trim();
+                    if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && candStr != "end-of-candidates")
+                        candStr = "candidate:" + candStr;
+                    var msg = new CandidateMessage { MonitorIndex = 0, Candidate = candStr };
+                    await SendMessageAsync(msg);
                 }
                 catch { }
             };
@@ -556,14 +566,6 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info($"[Protocol] Skipping non-routable audio ICE candidate: {candidate}");
                         return;
                     }
-                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
-                    {
-                        Logger.Info($"[Protocol] Skipping private/LAN audio host ICE candidate in TURN mode: {candidate}");
-                        return;
-                    }
-                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate });
-                    await SendTextAsync(json);
 
                     // Phase 1 exposure hardening: gate UPnP mapping on a paired session (no-op
                     // check when RequirePairing is disabled).
@@ -572,11 +574,20 @@ namespace RemotePlayServer.Application.Protocol
                         UpnpCandidateAugmenter.TryAugment(candidate, "audio PC", async (publicCand) =>
                         {
                             if (_ws.State != WebSocketState.Open) return;
+                            var upnpCand = publicCand.Trim();
+                            if (!upnpCand.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && upnpCand != "end-of-candidates")
+                                upnpCand = "candidate:" + upnpCand;
                             var publicJson = System.Text.Json.JsonSerializer.Serialize(
-                                new { type = "audio_candidate", candidate = publicCand });
+                                new { type = "audio_candidate", candidate = upnpCand });
                             await SendTextAsync(publicJson);
                         });
                     }
+
+                    var candStr = candidate.Trim();
+                    if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && candStr != "end-of-candidates")
+                        candStr = "candidate:" + candStr;
+                    var json = System.Text.Json.JsonSerializer.Serialize(new { type = "audio_candidate", candidate = candStr });
+                    await SendTextAsync(json);
                 }
                 catch { }
             };
@@ -1488,13 +1499,24 @@ namespace RemotePlayServer.Application.Protocol
                         Logger.Info($"[Protocol] Skipping non-routable embedded ICE candidate: {candidate}");
                         continue;
                     }
-                    if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                        IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
+
+                    // LAN host candidate → ask UPnP router to open a public port for P2P direct
+                    if (IsPeerAuthorized())
                     {
-                        Logger.Info($"[Protocol] Skipping private/LAN embedded ICE candidate in TURN mode: {candidate}");
-                        continue;
+                        UpnpCandidateAugmenter.TryAugment(candidate, "main PC", async (publicCand) =>
+                        {
+                            if (_ws.State != WebSocketState.Open) return;
+                            var upnpCand = publicCand.Trim();
+                            if (!upnpCand.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && upnpCand != "end-of-candidates")
+                                upnpCand = "candidate:" + upnpCand;
+                            await SendMessageAsync(new CandidateMessage { MonitorIndex = 0, Candidate = upnpCand });
+                        });
                     }
-                    var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candidate };
+
+                    var candStr = candidate.Trim();
+                    if (!candStr.StartsWith("candidate:", StringComparison.OrdinalIgnoreCase) && candStr != "end-of-candidates")
+                        candStr = "candidate:" + candStr;
+                    var candMsg = new CandidateMessage { MonitorIndex = 0, Candidate = candStr };
                     await SendMessageAsync(candMsg);
                 }
 
@@ -2048,12 +2070,6 @@ namespace RemotePlayServer.Application.Protocol
             if (!IceCandidateInspector.IsRoutable(candidate))
             {
                 Logger.Info($"[Protocol] Dropping non-routable client ICE candidate: {candidate}");
-                return;
-            }
-            if (TurnCredentialProvider.MintIceServer(userId: "host") != null &&
-                IceCandidateInspector.IsPrivateOrLoopbackHostCandidate(candidate))
-            {
-                Logger.Info($"[Protocol] Dropping private/LAN client ICE candidate in TURN mode: {candidate}");
                 return;
             }
 

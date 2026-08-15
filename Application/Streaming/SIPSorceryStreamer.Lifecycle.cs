@@ -232,27 +232,8 @@ public partial class SIPSorceryStreamer
         {
             encoder.OnEncodedData += (nal, keyframe, pts) => OnEncodedData(track, nal, keyframe, pts);
 
-            // BUGFIX: Scene-change auto-IDR. The encoder (AmfNativeWrapper) detects when the
-            // current encoded frame is dramatically larger than recent frames (typical of
-            // tab switches / new windows / large UI updates). When detected, force the next
-            // encode as IDR so the client gets a fresh reference without waiting for the
-            // natural GOP cycle. Without this, "New Tab" or app switches on the desktop
-            // show stale P-frame deltas for up to 1 second before the natural IDR arrives.
-            if (encoder is AmfNativeWrapper amf)
-            {
-                amf.OnSceneChangeDetected += () =>
-                {
-                    long now = Environment.TickCount64;
-                    // Throttle per-track: at most one force-IDR per 500ms (we already
-                    // throttle scene-change detection at the encoder; this is a safety net).
-                    if (now - track.LastKeyframeRequestTicks >= 500)
-                    {
-                        track.ForceNextKeyframe = true;
-                        track.LastKeyframeRequestTicks = now;
-                        Logger.Info($"[SIPSorcery] Track {track.Index} scene-change from encoder → forcing IDR");
-                    }
-                };
-            }
+            // Note: Scene-change auto-IDR was disabled because fast cursor moves triggered false-positive
+            // scene changes, flooding the network with 180KB IDR keyframes and spiking ping.
 
             // FFmpeg adapter: pin the NEGOTIATED codec explicitly. Its parameterless Initialize
             // defaults to H265 (hevc_qsv), which fails to open on some iGPUs (e.g. Intel Arc:
@@ -857,6 +838,17 @@ public partial class SIPSorceryStreamer
     {
         try
         {
+            // Check main PC first
+            if (_mainPc?.AudioDestinationEndPoint != null)
+            {
+                var ip = _mainPc.AudioDestinationEndPoint.Address.ToString();
+                var isTurn = TurnServerIps.Contains(ip);
+                var result = isTurn ? "TURN Relay" : "P2P Direct";
+                UpdateAudioTransportMode(isTurn, $"Main PC ICE endpoint {ip}");
+                Logger.Info($"[SIPSorcery] ICE type (Main PC): {result} (connected to {ip})");
+                return result;
+            }
+
             foreach (var vpc in _videoPcs.Values)
             {
                 var ep = vpc.AudioDestinationEndPoint;
@@ -865,6 +857,7 @@ public partial class SIPSorceryStreamer
                     var ip = ep.Address.ToString();
                     var isTurn = TurnServerIps.Contains(ip);
                     var result = isTurn ? "TURN Relay" : "P2P Direct";
+                    UpdateAudioTransportMode(isTurn, $"Video PC ICE endpoint {ip}");
                     Logger.Info($"[SIPSorcery] ICE type: {result} (connected to {ip})");
                     return result;
                 }

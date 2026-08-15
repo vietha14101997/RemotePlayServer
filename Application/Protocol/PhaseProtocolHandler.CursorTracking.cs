@@ -70,6 +70,9 @@ namespace RemotePlayServer.Application.Protocol
             _lastDxgiCursorShapeId = -1;
             long lastSentShapeId = -1; // Track last shapeId for which image was successfully sent
 
+            // Nudge cursor immediately to force DXGI Desktop Duplication to output the current cursor frame
+            try { InputInjector.NudgeCursor(); } catch { }
+
             return Task.Run(async () =>
             {
                 const int POLL_INTERVAL_MS = 8; // ~120Hz (faster cursor updates via DataChannel)
@@ -118,9 +121,11 @@ namespace RemotePlayServer.Application.Protocol
                         if (monitorIndex < _monitorRects.Count)
                         {
                             var rect = _monitorRects[monitorIndex];
-                            // Position is already relative to monitor - just normalize
-                            u = (float)position.Value.Position.X / rect.w;
-                            v = (float)position.Value.Position.Y / rect.h;
+                            // Position is relative to monitor; add Hotspot so (u,v) represents exact mouse point
+                            int hotX = shapeInfo.HasValue ? shapeInfo.Value.HotSpot.X : 0;
+                            int hotY = shapeInfo.HasValue ? shapeInfo.Value.HotSpot.Y : 0;
+                            u = (float)(position.Value.Position.X + hotX) / rect.w;
+                            v = (float)(position.Value.Position.Y + hotY) / rect.h;
                             // Clamp to valid range
                             u = Math.Clamp(u, 0f, 1f);
                             v = Math.Clamp(v, 0f, 1f);

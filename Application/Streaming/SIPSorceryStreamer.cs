@@ -157,6 +157,35 @@ public partial class SIPSorceryStreamer : IDisposable
     private int? _preRelayBitrateKbps;
     private bool _preRelayWiFiMode;
 
+    // Adaptive Audio pipeline configuration:
+    // True: Send raw 16-bit PCM via DataChannel (LAN / USB - zero latency, lossless 1.54 Mbps).
+    // False: Send Opus encoded packets via RTP Audio Track (TURN Relay / 4G / WAN - 64-128 kbps, saving 95% bandwidth).
+    public volatile bool UsePcmDataChannelAudio = true;
+    public volatile bool AdaptiveAudioEnabled = true;
+
+    /// <summary>
+    /// Dynamically update audio transport mode based on network path (Adaptive Audio).
+    /// </summary>
+    public void UpdateAudioTransportMode(bool isRelay, string reason)
+    {
+        if (!AdaptiveAudioEnabled) return;
+
+        bool previous = UsePcmDataChannelAudio;
+        UsePcmDataChannelAudio = !isRelay;
+
+        if (previous != UsePcmDataChannelAudio)
+        {
+            if (UsePcmDataChannelAudio)
+            {
+                Logger.Info($"[Audio] Adaptive mode: Switched to Raw PCM DataChannel (reason: {reason} - zero latency, lossless)");
+            }
+            else
+            {
+                Logger.Info($"[Audio] Adaptive mode: Switched to Opus RTP (reason: {reason} - saving 95% bandwidth, FEC/PLC enabled)");
+            }
+        }
+    }
+
     // Deferred send mode: buffer frames in OnEncodedData, flush via FlushAllPendingFrames()
     // Prevents consistent jitter buffer asymmetry when SRTP lock serializes multi-track sends
     public bool DeferredSendEnabled { get; set; }
