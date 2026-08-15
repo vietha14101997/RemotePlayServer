@@ -158,10 +158,10 @@ public partial class SIPSorceryStreamer : IDisposable
     private bool _preRelayWiFiMode;
 
     // Adaptive Audio pipeline configuration:
-    // True: Send raw 16-bit PCM via DataChannel (LAN / USB - zero latency, lossless 1.54 Mbps).
-    // False: Send Opus encoded packets via RTP Audio Track (TURN Relay / 4G / WAN - 64-128 kbps, saving 95% bandwidth).
-    public volatile bool UsePcmDataChannelAudio = true;
-    public volatile bool AdaptiveAudioEnabled = true;
+    // False (default): Send Opus encoded packets via RTP Audio Track (P2P Direct / TURN Relay / 4G / WAN - 64-96 kbps with DTX, saving 95% bandwidth).
+    // True: Send raw 16-bit PCM via DataChannel (lossless 1.54 Mbps).
+    public volatile bool UsePcmDataChannelAudio = false;
+    public volatile bool AdaptiveAudioEnabled = false;
 
     /// <summary>
     /// Dynamically update audio transport mode based on network path (Adaptive Audio).
@@ -171,7 +171,7 @@ public partial class SIPSorceryStreamer : IDisposable
         if (!AdaptiveAudioEnabled) return;
 
         bool previous = UsePcmDataChannelAudio;
-        UsePcmDataChannelAudio = !isRelay;
+        UsePcmDataChannelAudio = false; // Always use Opus RTP with DTX across both P2PDirect and Relay to minimize bandwidth
 
         if (previous != UsePcmDataChannelAudio)
         {

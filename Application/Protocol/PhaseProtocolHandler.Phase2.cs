@@ -411,6 +411,20 @@ namespace RemotePlayServer.Application.Protocol
             // Initialize TCS for waiting on all connections
             _allConnectedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            // Set initial Stream Mode (Adaptive Audio & Work Mode) BEFORE streamer creation
+            bool isWorkMode = string.Equals(_displayConfig?.StreamMode, "work", StringComparison.OrdinalIgnoreCase) ||
+                              string.Equals(_displayConfig?.StreamMode, "efficiency", StringComparison.OrdinalIgnoreCase);
+            if (isWorkMode)
+            {
+                EfficiencyConfig.SetMode(StreamMode.Efficiency, persist: false);
+                Logger.Info("[Protocol] Work Mode ACTIVATED: Adaptive FPS (15-30), Ultra-low bandwidth, Opus DTX Audio");
+            }
+            else
+            {
+                EfficiencyConfig.SetMode(StreamMode.Gaming, persist: false);
+                Logger.Info("[Protocol] Gaming Mode ACTIVATED: Full 60 FPS target, Low Latency");
+            }
+
             // Create SIPSorcery streamer with negotiated codec
             var negotiatedCodec = ParseVideoCodec(_selectedCodec);
             int resolutionHeight = config.Resolution?.Height > 0 ? config.Resolution.Height : TextureResizer.DEFAULT_TARGET_HEIGHT;
@@ -421,17 +435,9 @@ namespace RemotePlayServer.Application.Protocol
             // reuses this connection's own clientId GUID, never a raw network address.
             _streamer.SessionId = _clientId.ToString();
 
-            // Set initial audio transport mode (Adaptive Audio)
-            if (_isRelayTransport)
-            {
-                _streamer.UsePcmDataChannelAudio = false;
-                Logger.Info("[Protocol] Initial audio mode: Opus RTP (Relay transport - 95% bandwidth savings)");
-            }
-            else if (_isUsbTransport)
-            {
-                _streamer.UsePcmDataChannelAudio = true;
-                Logger.Info("[Protocol] Initial audio mode: Raw PCM DataChannel (USB transport - zero latency)");
-            }
+            // Set initial audio transport mode: Use Opus RTP with DTX (saving 95% bandwidth) across all network connections (P2P Direct & Relay)
+            _streamer.UsePcmDataChannelAudio = _isUsbTransport;
+            Logger.Info($"[Protocol] Initial audio mode: {(_streamer.UsePcmDataChannelAudio ? "Raw PCM DataChannel (USB transport)" : "Opus RTP (P2P Direct & Relay - 95% bandwidth savings with DTX)")}");
 
             // Create texture resizer with target output height
             _textureResizer = new TextureResizer(actualMonitors, resolutionHeight);

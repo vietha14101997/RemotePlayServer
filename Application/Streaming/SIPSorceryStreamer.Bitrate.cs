@@ -6,6 +6,7 @@ using System.Threading;
 using RemotePlayServer.Infrastructure.Encoding;
 using RemotePlayServer.Core.Models;
 using RemotePlayServer.Core;
+using RemotePlayServer.Configuration;
 
 namespace RemotePlayServer.Application.Streaming;
 
@@ -326,6 +327,15 @@ public partial class SIPSorceryStreamer
 
     public (int MinBitrate, int MaxBitrate) GetBitrateRange(int resolutionHeight, int fps)
     {
+        if (EfficiencyConfig.Mode == StreamMode.Efficiency)
+        {
+            // Work / Efficiency Mode: Ultra-low bandwidth target (800 - 2000 kbps)
+            // Crisp text rendering without wasting bandwidth on static screens.
+            if (resolutionHeight <= 720) return (600, 1500);
+            if (resolutionHeight <= 1080) return (800, 2000);
+            return (1200, 3000); // 1440p
+        }
+
         if (resolutionHeight <= 720)
         {
             if (fps <= 30) return (2000, 6000);

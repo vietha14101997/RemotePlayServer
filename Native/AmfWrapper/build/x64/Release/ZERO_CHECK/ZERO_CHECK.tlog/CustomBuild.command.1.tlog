@@ -1,6 +1,6 @@
 ^C:\USERS\SUPER\ONEDRIVE\DOCUMENTS\VRWORKSPACEPROJECTS\REMOTEPLAYSERVER\NATIVE\AMFWRAPPER\BUILD\CMAKEFILES\EF785AD70FDAF0594323C9F6B88E9C52\GENERATE.STAMP.RULE
 setlocal
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper -BC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build/AmfWrapper.sln
+"C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper -BC:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/super/OneDrive/Documents/VRWorkspaceProjects/RemotePlayServer/Native/AmfWrapper/build/AmfWrapper.slnx
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

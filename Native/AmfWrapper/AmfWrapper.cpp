@@ -31,10 +31,10 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE_LEVEL, 42);
     encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, bitrate * 1000);
     encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, bitrate * 1300);  // 1.3x peak (was 1.5x) — tighter for consistent frame sizes
-    encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_LATENCY_CONSTRAINED_VBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, 0);
-    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 5); // 5 second GOP
+    encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 10); // 10 second GOP
     encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_DE_BLOCKING_FILTER, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, 0);
@@ -42,7 +42,7 @@ static void ConfigureAmfEncoderH264(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_INSERT_PPS, true);
 
     // Intra Refresh: BUGFIX — disabled. Same rationale as HEVC config below:
-    // with periodic IDRs every 1 second, intra-refresh is redundant and causes a
+    // with periodic IDRs every 10 seconds, intra-refresh is redundant and causes a
     // visible left-to-right scanline wipe on tab switch.
     encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)0);
 }
@@ -56,21 +56,13 @@ static void ConfigureAmfEncoderHEVC(amf::AMFComponentPtr& encoder, int fps, int 
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE_LEVEL, AMF_LEVEL_5_1);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitrate * 1000);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitrate * 1300);  // 1.3x peak (was 1.5x) — tighter for consistent frame sizes
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR);
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_LATENCY_CONSTRAINED_VBR);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(fps, 1));
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, 1);
-    // BUGFIX: was 0 (infinite GOP). With infinite GOP the AMF HEVC encoder
-    // never emits natural IDR frames — and FORCED_PICTURE_TYPE for ad-hoc IDRs
-    // appears to be silently ignored on this AMD driver/build (client receives
-    // 0 IDRs after startup despite many forced requests). Tab-switch then shows
-    // the OLD keyframe background with new tab content rendered as P-frame
-    // deltas ("đè trùng") for the entire duration until a forced IDR actually
-    // propagates.
-    //
-    // Setting GOP_SIZE = fps (1 second) ensures the encoder emits a fresh IDR
-    // every ~1s without depending on forced-IDR being honored. Intra-refresh
-    // is still enabled below for smooth-quality recovery between IDRs.
-    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps);
+    // 10-second GOP (fps * 10): prevents flooding the network with ~200KB IDR keyframes
+    // every second during static screens / small updates (like text cursor blinking).
+    // On-demand keyframes are triggered on tab switch (scene change) or packet loss (PLI).
+    encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps * 10);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, true);
     encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_DE_BLOCKING_FILTER_DISABLE, false);
@@ -568,8 +560,8 @@ AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
             g_lastError = "SetProperty HEVC_FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
-        // Maintain 1-second IDR period (matches init config), scaled to new FPS.
-        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps);
+        // Maintain 10-second IDR period (matches init config), scaled to new FPS.
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, fps * 10);
         // Keep intra refresh disabled (matches init config — see ConfigureAmfEncoderHEVC).
         ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT, (amf_int64)0);
     } else {
@@ -578,6 +570,7 @@ AMFWRAPPER_API int AmfSetFps(AmfEncoderHandle handle, int fps) {
             g_lastError = "SetProperty FRAMERATE failed: " + std::to_string(res);
             return AMF_WRAPPER_FAIL;
         }
+        ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, fps * 10);
         // Keep intra refresh disabled (matches init config).
         ctx->encoder->SetProperty(AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT, (amf_int64)0);
     }

@@ -606,6 +606,9 @@ public unsafe class AmfNativeWrapper : ITextureEncoder
     /// </summary>
     private void DetectAndFireSceneChange(long currentSize)
     {
+        // In Work / Efficiency Mode, P-frames handle local text/UI changes smoothly without keyframe spikes.
+        if (RemotePlayServer.Configuration.EfficiencyConfig.Mode == RemotePlayServer.Configuration.StreamMode.Efficiency) return;
+
         // Don't flag trivial small frames — those are intra-refresh roll or noise.
         if (currentSize < SCENE_CHANGE_MIN_BYTES) return;
 

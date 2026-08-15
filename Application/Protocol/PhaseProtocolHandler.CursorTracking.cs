@@ -75,8 +75,8 @@ namespace RemotePlayServer.Application.Protocol
 
             return Task.Run(async () =>
             {
-                const int POLL_INTERVAL_MS = 8; // ~120Hz (faster cursor updates via DataChannel)
-                const float THRESHOLD = 0.001f; // Minimum UV change to send update
+                const int POLL_INTERVAL_MS = 16; // 60Hz smooth, stable cursor updates aligned with display vsync
+                const float THRESHOLD = 0.0001f; // Minimum UV change (~0.2px) so small 1px movements are never dropped
                 const int MIN_CURSOR_IMAGE_INTERVAL_MS = 50; // Max ~20 cursor images/s to avoid WebSocket flood
                 var lastCursorImageSendTime = DateTime.MinValue;
 

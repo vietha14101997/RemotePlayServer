@@ -209,7 +209,7 @@ public partial class SIPSorceryStreamer
                 //   - Continuous mouse motion (no discrete events) → IDR every 400ms (~2.5/s).
                 // NVENC HEVC IDR is 200-450KB; 2.5/s = ~0.5-1.1Mbps extra on 1080p, well within
                 // our 8Mbps cap on WiFi. LAN is unaffected.
-                if (forceKeyframe)
+                if (forceKeyframe && RemotePlayServer.Configuration.EfficiencyConfig.Mode != RemotePlayServer.Configuration.StreamMode.Efficiency)
                 {
                     long now = Environment.TickCount64;
                     if (now - track.LastKeyframeRequestTicks >= 400)
@@ -227,7 +227,7 @@ public partial class SIPSorceryStreamer
                 // Secondary signal for the case where dirty metadata is large but no
                 // discrete input event fires (e.g., a window appears from a system event).
                 // Throttle 250ms; scene-change is rarer than input events so tighter is OK.
-                if (isSceneChange)
+                if (isSceneChange && RemotePlayServer.Configuration.EfficiencyConfig.Mode != RemotePlayServer.Configuration.StreamMode.Efficiency)
                 {
                     long now = Environment.TickCount64;
                     if (now - track.LastKeyframeRequestTicks >= 250)
@@ -335,7 +335,7 @@ public partial class SIPSorceryStreamer
 
                 // INPUT-DRIVEN KEYFRAME REQUEST (PRIMARY FIX for tab-switch bug).
                 // See PushBgraTexture for full rationale. 400ms throttle.
-                if (forceKeyframe)
+                if (forceKeyframe && RemotePlayServer.Configuration.EfficiencyConfig.Mode != RemotePlayServer.Configuration.StreamMode.Efficiency)
                 {
                     long now = Environment.TickCount64;
                     if (now - track.LastKeyframeRequestTicks >= 400)
@@ -347,7 +347,7 @@ public partial class SIPSorceryStreamer
                 }
 
                 // SCENE-CHANGE IDR REQUEST (HEURISTIC). 250ms throttle.
-                if (isSceneChange)
+                if (isSceneChange && RemotePlayServer.Configuration.EfficiencyConfig.Mode != RemotePlayServer.Configuration.StreamMode.Efficiency)
                 {
                     long now = Environment.TickCount64;
                     if (now - track.LastKeyframeRequestTicks >= 250)

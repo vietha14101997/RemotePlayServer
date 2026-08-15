@@ -43,6 +43,8 @@ public static class InputReceiver
         if (data == null || data.Length < 2) return;
 
         byte tag = data[0];
+        bool isContentModifyingInput = false;
+
         switch (tag)
         {
             case TAG_MOUSE_MOVE when data.Length >= 5:
@@ -57,6 +59,7 @@ public static class InputReceiver
                 byte button = data[1];
                 bool down = data[2] != 0;
                 InputInjector.ClickButton(button, down);
+                isContentModifyingInput = true;
                 break;
             }
             case TAG_MOUSE_WHEEL when data.Length >= 5:
@@ -65,6 +68,7 @@ public static class InputReceiver
                 short deltaX = BitConverter.ToInt16(data, 3);
                 if (deltaY != 0) InputInjector.Wheel(deltaY);
                 if (deltaX != 0) InputInjector.Wheel(deltaX, horizontal: true);
+                isContentModifyingInput = true;
                 break;
             }
             case TAG_KEY when data.Length >= 4:
@@ -72,6 +76,7 @@ public static class InputReceiver
                 ushort vk = BitConverter.ToUInt16(data, 1);
                 bool down = data[3] != 0;
                 InputInjector.Key(vk, down);
+                isContentModifyingInput = true;
                 break;
             }
             case TAG_TEXT when data.Length >= 3:
@@ -81,6 +86,7 @@ public static class InputReceiver
                 {
                     string text = Encoding.UTF8.GetString(data, 3, len);
                     InputInjector.Text(text);
+                    isContentModifyingInput = true;
                 }
                 break;
             }
@@ -102,6 +108,7 @@ public static class InputReceiver
             {
                 EnsureGamepad();
                 _gamepad?.UpdateState(data, 1); // skip tag byte
+                isContentModifyingInput = true;
                 break;
             }
             case TAG_PING when data.Length >= 9:
@@ -132,13 +139,17 @@ public static class InputReceiver
             }
         }
 
-        // Notify capture layer to force frames (throttled to ~60Hz)
-        long now = System.Diagnostics.Stopwatch.GetTimestamp();
-        long elapsed = now - _lastInputNotifyTicks;
-        if (elapsed > System.Diagnostics.Stopwatch.Frequency / 60) // ~16ms
+        // Notify capture layer to force frames ONLY for content-modifying inputs (clicks, keys, wheel, gamepad).
+        // Pure cursor movement does not alter desktop pixels (cursor is rendered locally on client + via cursor DC).
+        if (isContentModifyingInput)
         {
-            _lastInputNotifyTicks = now;
-            OnInputInjected?.Invoke();
+            long now = System.Diagnostics.Stopwatch.GetTimestamp();
+            long elapsed = now - _lastInputNotifyTicks;
+            if (elapsed > System.Diagnostics.Stopwatch.Frequency / 60) // ~16ms
+            {
+                _lastInputNotifyTicks = now;
+                OnInputInjected?.Invoke();
+            }
         }
     }
 

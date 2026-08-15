@@ -753,6 +753,23 @@ namespace RemotePlayServer.Application.Protocol
                                     Logger.Info($"[Protocol] Resolution changed to {newHeight}p, encoders re-initialized");
                                 }
 
+                                // Handle live StreamMode switch (Gaming <-> Work)
+                                if (!string.IsNullOrEmpty(updateMsg.StreamMode))
+                                {
+                                    bool newIsWork = string.Equals(updateMsg.StreamMode, "work", StringComparison.OrdinalIgnoreCase) ||
+                                                     string.Equals(updateMsg.StreamMode, "efficiency", StringComparison.OrdinalIgnoreCase);
+                                    EfficiencyConfig.SetMode(newIsWork ? StreamMode.Efficiency : StreamMode.Gaming, persist: false);
+                                    if (newIsWork)
+                                    {
+                                        if (_streamer != null) _streamer.UsePcmDataChannelAudio = false;
+                                        Logger.Info("[Protocol] Live Switch -> Work Mode: Adaptive FPS 15-30, Opus DTX");
+                                    }
+                                    else
+                                    {
+                                        Logger.Info("[Protocol] Live Switch -> Gaming Mode: Full FPS");
+                                    }
+                                }
+
                                 var (success, appliedFps, appliedResolutionHeight, message) = _streamer!.UpdateConfig(
                                     updateMsg.Fps,
                                     resolvedHeight);

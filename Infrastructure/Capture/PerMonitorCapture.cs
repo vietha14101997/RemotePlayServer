@@ -881,7 +881,8 @@ public sealed class PerMonitorCapture : IDisposable
                             // the previous keyframe.
                             long idleForMs = Environment.TickCount64 - mon.LastIdleStartTimeMs;
                             uint dirtyBytes = frameInfo.TotalMetadataBufferSize;
-                            if (idleForMs >= MonitorInfo.MIN_IDLE_FOR_WAKE_MS &&
+                            if (RemotePlayServer.Configuration.EfficiencyConfig.Mode != RemotePlayServer.Configuration.StreamMode.Efficiency &&
+                                idleForMs >= MonitorInfo.MIN_IDLE_FOR_WAKE_MS &&
                                 dirtyBytes >= MonitorInfo.MIN_WAKE_DIRTY_BYTES)
                             {
                                 wakeFromIdle = true;

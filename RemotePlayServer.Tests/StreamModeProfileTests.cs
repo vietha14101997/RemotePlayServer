@@ -54,13 +54,17 @@ public class StreamModeProfileTests
     // ==================== Floor consistent + valid ladder ====================
 
     [Fact]
-    public void For_BothModes_FloorIsDefault20_AndBelowCeil()
+    public void For_BothModes_FloorIsDefault15_AndBelowCeil()
     {
         var gaming = StreamModeProfile.For(StreamMode.Gaming);
         var efficiency = StreamModeProfile.For(StreamMode.Efficiency);
+        var work = StreamModeProfile.For(StreamMode.Work);
 
-        Assert.Equal(20, gaming.FloorFps);
-        Assert.Equal(20, efficiency.FloorFps);
+        Assert.Equal(15, gaming.FloorFps);
+        Assert.Equal(15, efficiency.FloorFps);
+        Assert.Equal(15, work.FloorFps);
+        Assert.True(work.AdaptiveFpsEnabled);
+        Assert.Equal(30, work.CeilFps);
         // Floor must be a usable range below each ceiling.
         Assert.True(gaming.FloorFps < gaming.CeilFps);
         Assert.True(efficiency.FloorFps < efficiency.CeilFps);

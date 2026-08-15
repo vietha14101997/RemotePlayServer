@@ -39,16 +39,18 @@ public sealed class OpusAudioEncoder : IDisposable
     public OpusAudioEncoder()
     {
         _encoder = OpusCodecFactory.CreateEncoder(SAMPLE_RATE, CHANNELS, OpusApplication.OPUS_APPLICATION_AUDIO);
-        _encoder.Bitrate = 128000; // 128 kbps - good quality for desktop audio
+        _encoder.Bitrate = 96000;  // 96 kbps - high fidelity desktop audio with low bandwidth
         _encoder.Complexity = 5;   // Balance quality/CPU
-        _encoder.SignalType = OpusSignal.OPUS_SIGNAL_MUSIC;
+        _encoder.SignalType = OpusSignal.OPUS_SIGNAL_AUTO;
+        _encoder.UseVBR = true;
+        _encoder.UseDTX = true;    // Discontinuous Transmission: drops audio bandwidth to ~0 KB/s during silence
 
         _frameBuffer = new byte[BYTES_PER_FRAME];
         _frameBufferOffset = 0;
         _pcmShortBuffer = new short[SAMPLES_PER_FRAME * CHANNELS]; // 1920 shorts
         _opusOutputBuffer = new byte[4000]; // Max Opus packet size
 
-        Logger.Info($"[OpusEncoder] Created: {SAMPLE_RATE}Hz, {CHANNELS}ch, {_encoder.Bitrate}bps, frame={FRAME_DURATION_MS}ms ({BYTES_PER_FRAME}B)");
+        Logger.Info($"[OpusEncoder] Created: {SAMPLE_RATE}Hz, {CHANNELS}ch, {_encoder.Bitrate}bps, VBR/DTX=ON, frame={FRAME_DURATION_MS}ms ({BYTES_PER_FRAME}B)");
     }
 
     /// <summary>

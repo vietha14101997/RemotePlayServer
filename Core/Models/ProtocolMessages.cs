@@ -377,6 +377,12 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("windowsScale")]
         public int WindowsScale { get; set; } = 125;
+
+        /// <summary>
+        /// Streaming mode: "gaming" (default, 60fps fixed, low-latency gaming) or "work" / "efficiency" (adaptive 15-30fps, ultra-low bandwidth, crisp text).
+        /// </summary>
+        [JsonPropertyName("streamMode")]
+        public string StreamMode { get; set; } = "gaming";
     }
 
     /// <summary>
@@ -719,6 +725,12 @@ namespace RemotePlayServer.Core.Models
         /// </summary>
         [JsonPropertyName("resolutionHeight")]
         public int? ResolutionHeight { get; set; }
+
+        /// <summary>
+        /// Streaming mode override: "gaming" or "work" (optional, null = no change).
+        /// </summary>
+        [JsonPropertyName("streamMode")]
+        public string? StreamMode { get; set; }
     }
 
     /// <summary>
